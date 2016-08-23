@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tcs.destination.bean.CustomerMasterT;
-import com.tcs.destination.bean.FrequentlySearchedResponse;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.TargetVsActualResponse;
@@ -31,7 +30,6 @@ import com.tcs.destination.service.CustomerDownloadService;
 import com.tcs.destination.service.CustomerService;
 import com.tcs.destination.service.CustomerUploadService;
 import com.tcs.destination.service.UploadErrorReport;
-import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.PropertyUtil;
 import com.tcs.destination.utils.ResponseConstructors;
@@ -557,4 +555,41 @@ public class CustomerController {
 					"Backend error while updating customer");
 		}
 	}
+	
+	/**
+	 * This method is used to get user details related to customer
+	 * 
+	 * @param customerName
+	 * @param page
+	 * @param count
+	 * @param fields
+	 * @param view
+	 * @return user details with pagination
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/user", method = RequestMethod.GET)
+	public @ResponseBody String bdUserSearchForCustomer(
+			@RequestParam(value = "customerId", defaultValue = "") String customerId,
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "30") int count,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Inside CustomerController: Start of bdUserSearchForCustomer");
+		String response = null;
+		PaginatedResponse paginatedResponse;
+		try {
+			paginatedResponse = customerService.searchUserDetailsForCustomer(customerId, page,count);
+			logger.info("Ending CustomerController bdUserSearchForCustomer method");
+			response= ResponseConstructors.filterJsonForFieldAndViews(fields, view, paginatedResponse);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the user details for customer");
+		}
+		return response;
+	}
+	
 }

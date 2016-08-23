@@ -35,7 +35,7 @@ import com.tcs.destination.utils.FileManager;
 import com.tcs.destination.utils.StringUtils;
 
 public class RevenueCustomWriter implements ItemWriter<String[]>, StepExecutionListener, WriteListener {
-	
+
 	public RevenueUploadHelper getHelper() {
 		return helper;
 	}
@@ -92,56 +92,56 @@ public class RevenueCustomWriter implements ItemWriter<String[]>, StepExecutionL
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(RevenueCustomWriter.class);
-	
+
 	private DataProcessingRequestRepository dataProcessingRequestRepository;
-	
+
 	private RevenueUploadHelper helper;
-	
+
 	private DataProcessingRequestT request; 
-	
+
 	private StepExecution stepExecution;
-	
-	
+
+
 	private RevenueService revenueService;
-	
+
 	private List<UploadServiceErrorDetailsDTO> errorList = null;
-	
+
 	private UploadErrorReport uploadErrorReport;
-	
-	
-	
-	
+
+
+
+
 	@Override
 	public void write(List<? extends String[]> items) throws Exception {
 		logger.debug("Inside write:");
 		List<ActualRevenuesDataT> addList = new ArrayList<ActualRevenuesDataT>();
 		for (String[] data: items) {
-				logger.info("***ADDING****");
-				ActualRevenuesDataT revenueT =  new ActualRevenuesDataT();;
-				UploadServiceErrorDetailsDTO errorDTO = helper.validateRevenueAdd(data, request.getUserT().getUserId() ,revenueT);
-				if (errorDTO.getMessage() != null) {
-					errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
-					errorList.add(errorDTO);
-				} else if (errorDTO.getMessage() == null) {
-					addList.add(revenueT);
-				}
-				
+			logger.info("***ADDING****");
+			ActualRevenuesDataT revenueT =  new ActualRevenuesDataT();;
+			UploadServiceErrorDetailsDTO errorDTO = helper.validateRevenueAdd(data, request.getUserT().getUserId() ,revenueT);
+			if (errorDTO.getMessage() != null) {
+				errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+				errorList.add(errorDTO);
+			} else if (errorDTO.getMessage() == null) {
+				addList.add(revenueT);
+			}
+
 		}
 		// for saving the rows which are valid
 		if (CollectionUtils.isNotEmpty(addList)) {
 			revenueService.save(addList);
 		}
-		
+
 	}
 
 
-	
+
 
 	public DataProcessingRequestT getRequest() {
 		return request;
 	}
 
-	
+
 
 	public DataProcessingRequestRepository getDataProcessingRequestRepository() {
 		return dataProcessingRequestRepository;
@@ -163,14 +163,14 @@ public class RevenueCustomWriter implements ItemWriter<String[]>, StepExecutionL
 		this.uploadErrorReport = uploadErrorReport;
 	}
 
-	
+
 
 
 	public void setRequest(DataProcessingRequestT request) {
 		this.request = request;
 	}
 
-	
+
 
 	@Override
 	public void beforeStep(StepExecution stepExecution) {
@@ -179,39 +179,39 @@ public class RevenueCustomWriter implements ItemWriter<String[]>, StepExecutionL
 
 	@Override
 	public ExitStatus afterStep(StepExecution stepExecution) {
-		
+
 		try {
-			
+
 			ExecutionContext jobContext = stepExecution.getJobExecution().getExecutionContext();
-			
+
 			DataProcessingRequestT request = (DataProcessingRequestT) jobContext.get(REQUEST);
-			
+
 			if (!CollectionUtils.isEmpty(errorList)) {
 				Workbook workbook = uploadErrorReport.writeErrorToWorkbook(errorList);
 				logger.info("request file path "+request.getFilePath());
 				String errorPath = request.getFilePath() + "ERROR" +FILE_DIR_SEPERATOR;
 				String errorFileName = "revenueUpload_error.xlsx";
-				
+
 				File file = FileManager.createFile(errorPath, errorFileName);
 				FileOutputStream outputStream = new FileOutputStream(file);
 				workbook.write(outputStream);
 				outputStream.flush();
 				outputStream.close();
-				
+
 				request.setErrorFileName(errorFileName);	
 				request.setErrorFilePath(errorPath);
-				
+
 			}
-			
+
 			request.setStatus(RequestStatus.PROCESSED.getStatus());
 			dataProcessingRequestRepository.save(request);
-			
+
 			jobContext.remove(REQUEST);
 			jobContext.remove(FILE_PATH);
 		} catch (Exception e) {
 			logger.error("Error while writing the error report: {}", e);
 		}
-		
+
 		return ExitStatus.COMPLETED;
 	}
 
@@ -219,14 +219,14 @@ public class RevenueCustomWriter implements ItemWriter<String[]>, StepExecutionL
 	@Override
 	public void onWritePossible() throws IOException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 
 	@Override
 	public void onError(Throwable throwable) {
 		logger.error("Error while writing the error report: {}", throwable);
-		
+
 	}
 
 

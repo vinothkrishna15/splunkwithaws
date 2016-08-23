@@ -35,7 +35,7 @@ import com.tcs.destination.utils.FileManager;
 import com.tcs.destination.utils.StringUtils;
 
 public class CustomerCustomWriter implements ItemWriter<String[]>,
-		StepExecutionListener, WriteListener {
+StepExecutionListener, WriteListener {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(CustomerCustomWriter.class);
@@ -84,7 +84,7 @@ public class CustomerCustomWriter implements ItemWriter<String[]>,
 
 				String errorPath = request.getFilePath() + "ERROR"
 						+ FILE_DIR_SEPERATOR;
-				String errorFileName = "connectUpload_error.xlsx";
+				String errorFileName = "customerUpload_error.xlsx";
 
 				File file = FileManager.createFile(errorPath, errorFileName);
 				FileOutputStream outputStream = new FileOutputStream(file);
@@ -99,8 +99,8 @@ public class CustomerCustomWriter implements ItemWriter<String[]>,
 			request.setStatus(RequestStatus.PROCESSED.getStatus());
 
 			dataProcessingRequestRepository.save(request);
-			jobContext.remove(REQUEST);
-			jobContext.remove(FILE_PATH);
+			//jobContext.remove(REQUEST);
+			//jobContext.remove(FILE_PATH);
 		} catch (Exception e) {
 			logger.error("Error while writing the error report: {}", e);
 		}
@@ -173,7 +173,7 @@ public class CustomerCustomWriter implements ItemWriter<String[]>,
 		List<CustomerMasterT> updateList = new ArrayList<CustomerMasterT>();
 		for (String[] data : items) {
 			String operation = (String) data[1];
-			
+
 			if ((!StringUtils.isEmpty(operation))) {
 				if (operation.equalsIgnoreCase(Operation.ADD.name())) {
 					logger.info("executing " + operation + " operation");
@@ -232,9 +232,8 @@ public class CustomerCustomWriter implements ItemWriter<String[]>,
 			customerService.makeInactive(deleteList);
 		}
 		// for updating the rows which are valid
-				if (CollectionUtils.isNotEmpty(updateList)) {
-					customerService.save(updateList);
-				}
+		if (CollectionUtils.isNotEmpty(updateList)) {
+			customerService.save(updateList);
+		}
 	}
-
 }

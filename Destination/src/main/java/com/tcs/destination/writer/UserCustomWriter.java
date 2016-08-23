@@ -1,7 +1,6 @@
 package com.tcs.destination.writer;
 
 import static com.tcs.destination.utils.Constants.FILE_DIR_SEPERATOR;
-import static com.tcs.destination.utils.Constants.FILE_PATH;
 import static com.tcs.destination.utils.Constants.REQUEST;
 
 import java.io.File;
@@ -23,19 +22,14 @@ import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 
-import com.tcs.destination.bean.ActualRevenuesDataT;
 import com.tcs.destination.bean.DataProcessingRequestT;
-import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
-import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.Operation;
 import com.tcs.destination.enums.RequestStatus;
-import com.tcs.destination.helper.PartnerUploadHelper;
 import com.tcs.destination.helper.UserUploadHelper;
-import com.tcs.destination.service.PartnerService;
 import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.service.UserService;
 import com.tcs.destination.utils.Constants;
@@ -62,14 +56,16 @@ public class UserCustomWriter implements ItemWriter<String[]>, StepExecutionList
 
 	private UserRepository userRepository;
 
-	List<UserT> insertList = new ArrayList<UserT>();
-	List<UserT> updateList = new ArrayList<UserT>();
-	List<UserT> deleteList = new ArrayList<UserT>();
+	List<UserT> insertList;
+	List<UserT> updateList;
+	List<UserT> deleteList;
 
 	@Override
 	public void write(List<? extends String[]> items) throws Exception {
 		logger.debug("Inside write:");
-
+		insertList = new ArrayList<UserT>();
+		updateList = new ArrayList<UserT>();
+		deleteList = new ArrayList<UserT>();
 
 		String operation = null; 
 		
@@ -143,20 +139,22 @@ public class UserCustomWriter implements ItemWriter<String[]>, StepExecutionList
 				
 					
 				}
-				if ((CollectionUtils.isNotEmpty(insertList)) || (CollectionUtils.isNotEmpty(updateList)) || (CollectionUtils.isNotEmpty(deleteList))) {
-
-					if (operation.equalsIgnoreCase(Operation.ADD.name())) {
-						userService.save(insertList);
-					} 
-					else if (operation.equalsIgnoreCase(Operation.UPDATE.name())){ 
-						userService.updateUser(updateList);
-					}
-					else if (operation.equalsIgnoreCase(Operation.DELETE.name())){ 
-						userService.deleteUser(deleteList);
-					}
-
-				}
+				
 			}
+		}
+		
+		if ((CollectionUtils.isNotEmpty(insertList)) || (CollectionUtils.isNotEmpty(updateList)) || (CollectionUtils.isNotEmpty(deleteList))) {
+
+			if (CollectionUtils.isNotEmpty(insertList)) {
+				userService.save(insertList);
+			} 
+			else if (CollectionUtils.isNotEmpty(updateList)){ 
+				userService.updateUser(updateList);
+			}
+			else if (CollectionUtils.isNotEmpty(deleteList)){ 
+				userService.deleteUser(deleteList);
+			}
+
 		}
 	}
 
@@ -264,7 +262,6 @@ public class UserCustomWriter implements ItemWriter<String[]>, StepExecutionList
 	@Override
 	public void onWritePossible() throws IOException 
 	{
-		// TODO Auto-generated method stub
 
 	}
 

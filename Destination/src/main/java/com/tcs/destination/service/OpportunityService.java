@@ -5,7 +5,6 @@ import static com.tcs.destination.utils.ErrorConstants.ERR_INAC_01;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,6 +33,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.Lists;
 import com.tcs.destination.bean.AsyncJobRequest;
 import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
@@ -55,8 +55,10 @@ import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.OpportunityTcsAccountContactLinkT;
 import com.tcs.destination.bean.OpportunityTimelineHistoryT;
 import com.tcs.destination.bean.OpportunityWinLossFactorsT;
+import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.SearchKeywordsT;
+import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
 import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.bean.UserT;
@@ -106,6 +108,7 @@ import com.tcs.destination.enums.JobName;
 import com.tcs.destination.enums.OpportunityRole;
 import com.tcs.destination.enums.PrivilegeType;
 import com.tcs.destination.enums.SalesStageCode;
+import com.tcs.destination.enums.SmartSearchType;
 import com.tcs.destination.enums.Switch;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.WorkflowStatus;
@@ -365,39 +368,158 @@ public class OpportunityService {
     
 	/**
 	 * This method is used to fetch the recent opportunities
+	 * 
+	 * @param fromDate
 	 * @param customerId
 	 * @param toCurrency
+	 * @param smartSearchType 
+	 * @param opportunityNameWith 
+	 * @param count 
+	 * @param page 
 	 * @return
 	 * @throws Exception
 	 */
-	public List<OpportunityT> findRecentOpportunities(String customerId,
-			List<String> toCurrency) throws Exception {
+	public PaginatedResponse findOpportunitiesByCustomerIdAndSearchTerm(Date fromDate, String customerId,
+			List<String> toCurrency, SmartSearchType smartSearchType, String term, int page, int count) throws Exception {
 		logger.debug("Inside findRecentOpportunities() service");
-		// Date date = new Date(); // Or where ever you get it from
-		// Date daysAgo = new DateTime(date).minusDays(300).toDate();
-		Calendar now = Calendar.getInstance();
-		now.set(Calendar.YEAR, now.get(Calendar.YEAR) - 1);
-		Date fromDate = new Date(now.getTimeInMillis());
-		List<OpportunityT> opportunities = opportunityRepository
-				.findByCustomerIdAndOpportunityRequestReceiveDateAfter(
-						customerId, fromDate);
-		if (opportunities.isEmpty()) {
-			logger.error(
-					"NOT_FOUND: Recent opportunities not found for CustomerId: {}",
-					customerId);
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Recent opportunities not found for CustomerId: "
-							+ customerId);
-		}
-
-		prepareOpportunity(opportunities);
+		PaginatedResponse paginatedResponse = new PaginatedResponse();
+		List<OpportunityT> opportunitiesList = new ArrayList<OpportunityT>();
 		
-		beaconConverterService.convertOpportunityCurrency(opportunities,
-				toCurrency);
-
-		return opportunities;
+		Set<OpportunityT> opportunitiesSet = new HashSet<OpportunityT>();
+		
+		if(smartSearchType != null) {
+			
+			switch(smartSearchType) {
+			case ALL:
+				opportunitiesSet.addAll(getOpportunitiesByOpportunityIdAndCustomerIdAndReceivedDate(term, customerId,
+						new Timestamp(fromDate.getTime())));
+				opportunitiesSet.addAll(getOpportunitiesByNameAndCustomerIdAndReceivedDate(term, customerId,
+						new Timestamp(fromDate.getTime())));
+				opportunitiesSet.addAll(getOpportunitiesByOwnerAndCustomerIdAndReceivedDate(term, customerId,
+						new Timestamp(fromDate.getTime())));
+				opportunitiesSet.addAll(getOpportunitiesBySubSpsAndCustomerIdAndReceivedDate(term, customerId,
+						new Timestamp(fromDate.getTime())));
+				opportunitiesList.addAll(opportunitiesSet);
+				break;
+			case ID:
+				opportunitiesList = getOpportunitiesByOpportunityIdAndCustomerIdAndReceivedDate(term, customerId,
+						new Timestamp(fromDate.getTime()));
+				break;
+			case NAME:
+				opportunitiesList = getOpportunitiesByNameAndCustomerIdAndReceivedDate(term, customerId,
+						new Timestamp(fromDate.getTime()));
+				break;
+			case PRIMARY_OWNER:
+				opportunitiesList = getOpportunitiesByOwnerAndCustomerIdAndReceivedDate(term, customerId,
+						new Timestamp(fromDate.getTime()));
+				break;
+			case SUBSP:
+				opportunitiesList = getOpportunitiesBySubSpsAndCustomerIdAndReceivedDate(term, customerId,
+						new Timestamp(fromDate.getTime()));
+				break;
+			default:
+				break;
+			}
+		} else {
+			opportunitiesList = getAllOpportunitiesByCustomerIdAndStartDateOfConnectBetween(
+					customerId, new Timestamp(fromDate.getTime()));
+		}
+		
+		prepareOpportunity(opportunitiesList);
+		beaconConverterService.convertOpportunityCurrency(opportunitiesList, toCurrency);
+		paginatedResponse.setTotalCount(opportunitiesList.size());
+		// Code for pagination
+		if (PaginationUtils.isValidPagination(page, count, opportunitiesList.size())) {
+			int fromIndex = PaginationUtils.getStartIndex(page, count, opportunitiesList.size());
+			int toIndex = PaginationUtils.getEndIndex(page, count, opportunitiesList.size()) + 1;
+			opportunitiesList = opportunitiesList.subList(fromIndex, toIndex);
+			paginatedResponse.setOpportunityTs(opportunitiesList);
+			logger.debug("Opportunities after pagination size is " + opportunitiesList.size());
+		} else {
+			logger.info(" opportunities not found for CustomerId: {} ");
+			throw new DestinationException(HttpStatus.NOT_FOUND, " opportunities not found for CustomerId: {} ");
+		}
+		return paginatedResponse;
 	}
     
+	/**
+	 * This method is used to find the opportunities for the customerId, opportunityId like search
+	 * and after request received date
+	 * @param term
+	 * @param customerId
+	 * @param timestamp
+	 * @return
+	 */
+	private List<OpportunityT> getOpportunitiesByOpportunityIdAndCustomerIdAndReceivedDate(
+			String term, String customerId, Timestamp fromTimestamp) {
+		List<OpportunityT> opportunitiesList = opportunityRepository
+				.findByCustomerIdAndOpportunityRequestReceiveDateAfterAndOpportunityIdLike(
+						customerId, fromTimestamp, "%"+term.toUpperCase()+"%");
+		return opportunitiesList;
+	}
+
+	/**
+	 * This method is used to find the opportunities for the customerId, opportunityName like search
+	 * and after request received date
+	 * @param term
+	 * @param customerId
+	 * @param timestamp
+	 * @return
+	 */
+	private List<OpportunityT> getOpportunitiesByNameAndCustomerIdAndReceivedDate(String term,
+			String customerId, Timestamp fromTimestamp) {
+		List<OpportunityT> opportunitiesList = opportunityRepository
+					.findByCustomerIdAndOpportunityRequestReceiveDateAfterAndOpportunityNameLike(
+							customerId, fromTimestamp, "%"+term.toUpperCase()+"%");
+		return opportunitiesList;
+	}
+	
+	/**
+	 * This method is used to find the opportunities for the customerId, opportunityOwner like search
+	 * and after request received date
+	 * @param term
+	 * @param customerId
+	 * @param timestamp
+	 * @return
+	 */
+	private List<OpportunityT> getOpportunitiesByOwnerAndCustomerIdAndReceivedDate(
+			String term, String customerId, Timestamp fromTimestamp) {
+		List<OpportunityT> opportunitiesList = opportunityRepository
+				.findByCustomerIdAndOpportunityRequestReceiveDateAfterAndOpportunityOwnerLike(
+						customerId, fromTimestamp, "%"+term.toUpperCase()+"%");
+		return opportunitiesList;
+	}
+
+	/**
+	 * This method is used to find the opportunities for the customerId, opportunity SubSp like search and 
+	 * after request received date
+	 * @param term
+	 * @param customerId
+	 * @param timestamp
+	 * @return
+	 */
+	private List<OpportunityT> getOpportunitiesBySubSpsAndCustomerIdAndReceivedDate(String term,
+			String customerId, Timestamp fromTimestamp) {
+		List<OpportunityT> opportunitiesList = opportunityRepository
+				.findByCustomerIdAndOpportunityRequestReceiveDateAfterAndSubSpLike(
+						customerId, fromTimestamp, "%"+term.toUpperCase()+"%");
+		return opportunitiesList;	}
+	
+	/**
+	 * This method is used to find the opportunities for the customerId after request received date
+	 * 
+	 * @param customerId
+	 * @param timestamp
+	 * @return
+	 */
+	private List<OpportunityT> getAllOpportunitiesByCustomerIdAndStartDateOfConnectBetween(
+			String customerId, Timestamp fromTimestamp) {
+		List<OpportunityT> opportunitiesList = opportunityRepository
+					.findByCustomerIdAndOpportunityRequestReceiveDateAfter(
+							customerId, fromTimestamp);
+		return opportunitiesList;
+	}
+	
 	/**
 	 * This method is used to fetch the opportunities by owner and role
 	 * @param userId
@@ -921,143 +1043,11 @@ public class OpportunityService {
 	 * @param opportunity
 	 */
 	public void validateInactiveIndicators(OpportunityT opportunity) {
-		//createdBy
-		String createdBy = opportunity.getCreatedBy();
-		if(StringUtils.isNotBlank(createdBy) && userRepository.findByActiveTrueAndUserId(createdBy) == null) {
-			throw new DestinationException(HttpStatus.BAD_REQUEST, "The user createdBy is inactive");
-		}
-		
-		// modifiedBy,
-		String modifiedBy = opportunity.getModifiedBy();
-		if(StringUtils.isNotBlank(modifiedBy) && userRepository.findByActiveTrueAndUserId(modifiedBy) == null) {
-			throw new DestinationException(HttpStatus.BAD_REQUEST, "The user modifiedBy is inactive");
-		}
-		
-		// customerId,
-		String customerId = opportunity.getCustomerId();
-		if(StringUtils.isNotBlank(customerId) && customerRepository.findByActiveTrueAndCustomerId(customerId) == null) {
-			throw new DestinationException(HttpStatus.BAD_REQUEST, "The customer is inactive");
-		}
-				
-		// country
-		String country = opportunity.getCountry();
-		if(StringUtils.isNotBlank(country) && countryRepository.findByActiveTrueAndCountry(country) == null) {
-			throw new DestinationException(HttpStatus.BAD_REQUEST, "The country is inactive");
-		}
-		
 		// opportunityOwner,
 		String opportunityOwner = opportunity.getOpportunityOwner();
 		if(StringUtils.isNotBlank(opportunityOwner) && userRepository.findByActiveTrueAndUserId(opportunityOwner) == null) {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "Please assign an active primary owner before making any changes.");
 		}
-		
-		// opportunityCompetitorLinkTs,
-		List<OpportunityCompetitorLinkT> opportunityCompetitorLinkTs = opportunity.getOpportunityCompetitorLinkTs();
-		if(CollectionUtils.isNotEmpty(opportunityCompetitorLinkTs)) {
-			for (OpportunityCompetitorLinkT compLink : opportunityCompetitorLinkTs) {
-				String competitorName = compLink.getCompetitorName();
-				if(StringUtils.isNotBlank(competitorName) && competitorRepository.findByActiveTrueAndCompetitorName(competitorName) == null) {
-					throw new DestinationException(HttpStatus.BAD_REQUEST, "The competitor is inactive");
-				}
-			}
-		}
-		
-		
-		// opportunityCustomerContactLinkTs,
-		List<OpportunityCustomerContactLinkT> oppCustomerContactLinkTs = opportunity.getOpportunityCustomerContactLinkTs();
-		if(CollectionUtils.isNotEmpty(oppCustomerContactLinkTs)) {
-			for (OpportunityCustomerContactLinkT contact : oppCustomerContactLinkTs) {
-				String contactId = contact.getContactId();
-				if(StringUtils.isNotBlank(contactId) && contactRepository.findByActiveTrueAndContactId(contactId) == null) {
-					throw new DestinationException(HttpStatus.BAD_REQUEST, "The customer contact is inactive");
-				}
-			}
-		}
-		
-		// opportunityOfferingLinkTs,
-		List<OpportunityOfferingLinkT> connectOfferingLinkTs = opportunity.getOpportunityOfferingLinkTs();
-		if(CollectionUtils.isNotEmpty(connectOfferingLinkTs)) {
-			for (OpportunityOfferingLinkT offeringLink : connectOfferingLinkTs) {
-				String offering = offeringLink.getOffering();
-				if(StringUtils.isNotBlank(offering) && offeringRepository.findByActiveTrueAndOffering(offering) == null) {
-					throw new DestinationException(HttpStatus.BAD_REQUEST, "The offering is inactive");
-				}
-			}
-		}
-		
-		//List<OpportunityPartnerLinkT> opportunityPartnerLinkTs,
-		List<OpportunityPartnerLinkT> opportunityPartnerLinkTs = opportunity.getOpportunityPartnerLinkTs();
-		if(CollectionUtils.isNotEmpty(opportunityPartnerLinkTs)) {
-			for (OpportunityPartnerLinkT partnerLink : opportunityPartnerLinkTs) {
-				String partnerId = partnerLink.getPartnerId();
-				if(StringUtils.isNotBlank(partnerId) && partnerRepository.findByActiveTrueAndPartnerId(partnerId) == null) {
-					throw new DestinationException(HttpStatus.BAD_REQUEST, "The partner is inactive");
-				}
-			}
-		}
-		
-		
-		//opportunitySubSpLinkTs,
-		List<OpportunitySubSpLinkT> oppSubSpLinkTs = opportunity.getOpportunitySubSpLinkTs();
-		if(CollectionUtils.isNotEmpty(oppSubSpLinkTs)) {
-			for (OpportunitySubSpLinkT subSpLink : oppSubSpLinkTs) {
-				String subSp = subSpLink.getSubSp();
-				if(StringUtils.isNotBlank(subSp) && subSpRepository.findByActiveTrueAndSubSp(subSp) == null) {
-					throw new DestinationException(HttpStatus.BAD_REQUEST, "The subsp is inactive");
-				}
-			}
-		}
-		
-		
-		// opportunityTcsAccountContactLinkTs,
-		List<OpportunityTcsAccountContactLinkT> opportunityTcsAccountContactLinkTs = opportunity.getOpportunityTcsAccountContactLinkTs();
-		if(CollectionUtils.isNotEmpty(opportunityTcsAccountContactLinkTs)) {
-			for (OpportunityTcsAccountContactLinkT contactLink : opportunityTcsAccountContactLinkTs) {
-				String contactId = contactLink.getContactId();
-				if(StringUtils.isNotBlank(contactId) && contactRepository.findByActiveTrueAndContactId(contactId) == null) {
-					throw new DestinationException(HttpStatus.BAD_REQUEST, "The account contact is inactive");
-				}
-			}
-		}
-		
-		// opportunityWinLossFactorsTs,
-		List<OpportunityWinLossFactorsT> opportunityWinLossFactorsTs = opportunity.getOpportunityWinLossFactorsTs();
-		if(CollectionUtils.isNotEmpty(opportunityWinLossFactorsTs)) {
-			for (OpportunityWinLossFactorsT oppWLFactor : opportunityWinLossFactorsTs) {
-				String wlFactor = oppWLFactor.getWinLossFactor();
-				if(StringUtils.isNotBlank(wlFactor) && winlossFactorRepository.findByActiveTrueAndWinLossFactor(wlFactor) == null) {
-					throw new DestinationException(HttpStatus.BAD_REQUEST, "The win loss factor is inactive");
-				}
-			}
-		}
-
-		// OpportunitySalesSupportLink,
-		List<OpportunitySalesSupportLinkT> opportunitySaleSupOwnTs = opportunity.getOpportunitySalesSupportLinkTs();
-		if(CollectionUtils.isNotEmpty(opportunitySaleSupOwnTs)) {
-			for (OpportunitySalesSupportLinkT oppWLFactor : opportunitySaleSupOwnTs) {
-				String userId = oppWLFactor.getSalesSupportOwner();
-				if(StringUtils.isNotBlank(userId) && userRepository.findByActiveTrueAndUserId(userId) == null) {
-					throw new DestinationException(HttpStatus.BAD_REQUEST, "The sales support owner is inactive");
-				}
-			}
-		}
-
-		// BidDetails,
-		List<BidDetailsT> bidDetailsT = opportunity.getBidDetailsTs();
-		if(CollectionUtils.isNotEmpty(bidDetailsT)) {
-			for (BidDetailsT bidDetail : bidDetailsT) {
-				List<BidOfficeGroupOwnerLinkT> bidofficeGrpOwners = bidDetail.getBidOfficeGroupOwnerLinkTs();
-				if(CollectionUtils.isNotEmpty(bidofficeGrpOwners)) {
-					for (BidOfficeGroupOwnerLinkT bidgrpOwner : bidofficeGrpOwners) {
-						String userId = bidgrpOwner.getBidOfficeGroupOwner();
-						if(StringUtils.isNotBlank(userId) && userRepository.findByActiveTrueAndUserId(userId) == null) {
-							throw new DestinationException(HttpStatus.BAD_REQUEST, "The Bid Office Group Owner is inactive");
-						}
-					}
-				}
-			}
-		}
-
 	}
 
 
@@ -1514,21 +1504,23 @@ public class OpportunityService {
 	private void prepareOpportunity(List<OpportunityT> opportunityTs)
 			throws DestinationException {
 		logger.debug("Inside prepareOpportunity(List<>) method");
-		List<String> opportunityIds = new ArrayList<String>();
-		for (OpportunityT opportunityT : opportunityTs) {
-			opportunityIds.add(opportunityT.getOpportunityId());
-		}
-		try {
-			List<String> previledgedOpportuniyies = opportunityDao.getPriviledgedOpportunityId(opportunityIds);
-
-			if (opportunityTs != null) {
-				for (OpportunityT opportunityT : opportunityTs) {
-					prepareOpportunity(opportunityT, previledgedOpportuniyies);
-				}
+		if(CollectionUtils.isNotEmpty(opportunityTs)) {
+			List<String> opportunityIds = new ArrayList<String>();
+			for (OpportunityT opportunityT : opportunityTs) {
+				opportunityIds.add(opportunityT.getOpportunityId());
 			}
-		} catch (Exception e) {
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
+			try {
+				List<String> previledgedOpportuniyies = opportunityDao.getPriviledgedOpportunityId(opportunityIds);
+
+				if (opportunityTs != null) {
+					for (OpportunityT opportunityT : opportunityTs) {
+						prepareOpportunity(opportunityT, previledgedOpportuniyies);
+					}
+				}
+			} catch (Exception e) {
+				throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+						e.getMessage());
+			}
 		}
 	}
 
@@ -1548,6 +1540,8 @@ public class OpportunityService {
 						.setEnableEditAccess(isEditAccessRequiredForOpportunity(
 								opportunityT, userGroup, userId));
 				checkAccessControl(opportunityT, previledgedOppIdList);
+				
+				
 			}
 
 		} catch (Exception e) {
@@ -1573,8 +1567,9 @@ public class OpportunityService {
 	private void checkAccessControl(OpportunityT opportunityT,
 			List<String> previledgedOppIdList) throws Exception {
 		// previledgedOppIdList is null only while it is a single opportunity.
+		
 		if (previledgedOppIdList != null) {
-			if (!previledgedOppIdList.contains(opportunityT.getOpportunityId())) {
+			if (!previledgedOppIdList.contains(opportunityT.getOpportunityId()) && (!opportunityT.isEnableEditAccess())) {
 				preventSensitiveInfo(opportunityT);
 			}
 		} else {
@@ -2639,6 +2634,115 @@ public class OpportunityService {
 	}
 	
 	/**
+	 * Service method to fetch the opportunity related information based on search type and the search keyword 
+	 * @param smartSearchType
+	 * @param term
+	 * @param getAll 
+	 * @param currency
+	 * @param count 
+	 * @param page 
+	 * @return
+	 */
+	public PageDTO<SearchResultDTO<OpportunityT>> smartSearch(SmartSearchType smartSearchType,
+			String term, boolean getAll, List<String> currency, int page, int count) {
+		logger.info("OpportunityService::smartSearch type {}",smartSearchType);
+		PageDTO<SearchResultDTO<OpportunityT>> res = new PageDTO<SearchResultDTO<OpportunityT>>();
+		List<SearchResultDTO<OpportunityT>> resList = Lists.newArrayList();
+		SearchResultDTO<OpportunityT> searchResultDTO = new SearchResultDTO<OpportunityT>();
+		if(smartSearchType != null) {
+			
+			switch(smartSearchType) {
+			case ALL:
+				resList.add(getOpportunityById(term, getAll, currency));
+				resList.add(getOpportunityByName(term, getAll, currency));
+				resList.add(getOpportunityByCustomers(term, getAll, currency));
+				resList.add(getOpportunitySubSps(term, getAll, currency));
+				resList.add(getOpportunityByOwner(term, getAll, currency));
+				break;
+			case ID:
+				searchResultDTO = getOpportunityById(term, getAll, currency);
+				break;
+			case NAME:
+				searchResultDTO = getOpportunityByName(term, getAll, currency);
+				break;
+			case CUSTOMER:
+				searchResultDTO = getOpportunityByCustomers(term, getAll, currency);
+				break;
+			case SUBSP:
+				searchResultDTO = getOpportunitySubSps(term, getAll, currency);
+				break;
+			case PRIMARY_OWNER:
+				searchResultDTO = getOpportunityByOwner(term, getAll, currency);
+				break;
+			default:
+				break;
+
+			}
+			
+			if(smartSearchType != SmartSearchType.ALL) {//paginate the result if it is fetching entire record(ie. getAll=true)
+				if(getAll) {
+					List<OpportunityT> values = searchResultDTO.getValues();
+					List<OpportunityT> records = PaginationUtils.paginateList(page, count, values);
+					if(CollectionUtils.isNotEmpty(records)) {
+						prepareOpportunity(records);
+						beaconConverterService.convertOpportunityCurrency(records, currency);
+					}
+					searchResultDTO.setValues(records);
+					res.setTotalCount(values.size());
+				}
+				resList.add(searchResultDTO);
+			}
+		}
+		res.setContent(resList);
+		return res;
+	}
+	
+	private SearchResultDTO<OpportunityT> getOpportunityById(String term,
+			boolean getAll, List<String> toCurrency) {
+		List<OpportunityT> records = opportunityRepository.searchById("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.ID, getAll, toCurrency);
+	}
+
+	private SearchResultDTO<OpportunityT> getOpportunityByName(String term,
+			boolean getAll, List<String> toCurrency) {
+		List<OpportunityT> records = opportunityRepository.searchByName("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.NAME, getAll, toCurrency);
+	}
+
+	private SearchResultDTO<OpportunityT> getOpportunityByCustomers(
+			String term, boolean getAll, List<String> toCurrency) {
+		List<OpportunityT> records = opportunityRepository.searchByCustomerName("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.CUSTOMER, getAll, toCurrency);
+	}
+
+	private SearchResultDTO<OpportunityT> getOpportunitySubSps(String term,
+			boolean getAll, List<String> toCurrency) {
+		List<OpportunityT> records = opportunityRepository.searchBySubsp("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.SUBSP, getAll, toCurrency);
+	}
+
+	private SearchResultDTO<OpportunityT> getOpportunityByOwner(String term,
+			boolean getAll, List<String> toCurrency) {
+		List<OpportunityT> records = opportunityRepository.searchByPrimaryOwner("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.PRIMARY_OWNER, getAll, toCurrency);
+	}
+
+	/**
+	 * creates {@link SearchResultDTO} from the list of connects
+	 * @param records
+	 * @param type
+	 * @param getAll
+	 * @return
+	 */
+	private SearchResultDTO<OpportunityT> createSearchResultFrom(
+			List<OpportunityT> records, SmartSearchType type, boolean getAll, List<String> toCurrency) {
+		SearchResultDTO<OpportunityT> conRes = new SearchResultDTO<OpportunityT>();
+		conRes.setSearchType(type);
+		conRes.setValues(records);
+		return conRes;
+	}
+	
+	/**
 	 * This method is used to check whether the logged in user has edit access
 	 * for an opportunity
 	 * 
@@ -2649,7 +2753,7 @@ public class OpportunityService {
 	 */
 	private boolean isEditAccessRequiredForOpportunity(
 			OpportunityT opportunity, String userGroup, String userId) {
-		logger.info("Inside isEditAccessRequiredForOpportunity method");
+		logger.debug("Inside isEditAccessRequiredForOpportunity method");
 		boolean isEditAccessRequired = false;
 		if (isUserOwner(userId, opportunity)) {
 			isEditAccessRequired = true;
@@ -2677,7 +2781,7 @@ public class OpportunityService {
 			}
 		}
 		
-		logger.info("Is Edit Access Required for connect: " +isEditAccessRequired);
+		logger.debug("Is Edit Access Required for Opportunity: " +isEditAccessRequired);
 		return isEditAccessRequired;
 	}
 	

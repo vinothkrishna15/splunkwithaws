@@ -63,6 +63,12 @@ public class SubSpMappingT implements Serializable {
 	@JsonIgnore
 	@OneToMany(mappedBy = "subSpMappingT")
 	private List<OpportunitySubSpLinkT> opportunitySubSpLinkTs;
+	
+	//partner changes
+	// bi-directional many-to-one association to OpportunitySubSpLinkT
+	@JsonIgnore
+	@OneToMany(mappedBy = "subSpMappingT")
+	private List<PartnerSubSpMappingT> partnerSubspMappingT;
 
 	public SubSpMappingT() {
 	}
@@ -209,6 +215,16 @@ public class SubSpMappingT implements Serializable {
 	}
 	public void setActualSubSp(String actualSubSp) {
 		this.actualSubSp = actualSubSp;
+	}
+	
+	//partner changes
+	public List<PartnerSubSpMappingT> getPartnerSubspMappingT() {
+		return partnerSubspMappingT;
+	}
+
+	public void setPartnerSubspMappingT(
+			List<PartnerSubSpMappingT> partnerSubspMappingT) {
+		this.partnerSubspMappingT = partnerSubspMappingT;
 	}
 
 }

@@ -29,6 +29,7 @@ import org.springframework.batch.item.ItemWriter;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
+import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.enums.RequestStatus;
 import com.tcs.destination.service.DataProcessingService;
 import com.tcs.destination.utils.Constants;
@@ -61,6 +62,10 @@ public class PartnerDwldWriter implements ItemWriter<PartnerMasterT>,
 	private String filePath;
 
 	private FileInputStream fileInputStream;
+	
+	private PartnerRepository partnerRepository;
+
+	
 
 	@Override
 	public ExitStatus afterStep(StepExecution stepExecution) {
@@ -71,23 +76,11 @@ public class PartnerDwldWriter implements ItemWriter<PartnerMasterT>,
 					filePath));
 			workbook.write(outputStream); // write changes
 			outputStream.close(); // close the stream
-			
-			ExecutionContext jobContext = stepExecution.getJobExecution()
-					.getExecutionContext();
-			DataProcessingRequestT request = (DataProcessingRequestT) jobContext
-					.get(REQUEST);
-
-			request.setStatus(RequestStatus.PROCESSED.getStatus());
-			dataProcessingRequestRepository.save(request);
-
-			jobContext.remove(REQUEST);
-			
 		} catch (IOException e) {
 			logger.error("Error in after step process: {}", e);
 		}
 
 		return stepExecution.getExitStatus();
-
 	}
 
 	@Override
@@ -177,23 +170,81 @@ public class PartnerDwldWriter implements ItemWriter<PartnerMasterT>,
 
 				Cell cellPartnerName = row.createCell(2);
 				cellPartnerName.setCellValue(partnerMaster.getPartnerName().trim());
-
-				Cell cellGeography = row.createCell(3);
+ 
+				Cell cellGroupPartnerName = row.createCell(3);
+				if(partnerMaster.getGroupPartnerName()!=null)
+				{
+				cellGroupPartnerName.setCellValue(partnerMaster.getGroupPartnerName().trim());
+				}
+				
+				Cell cellGeography = row.createCell(4);
 				cellGeography.setCellValue(partnerMaster.getGeography().trim());
-
-				Cell cellWebsite = row.createCell(4);
-				if(partnerMaster.getWebsite()!=null)
-					cellWebsite.setCellValue(partnerMaster.getWebsite().trim());
 				
-				Cell cellFacebook = row.createCell(5);
-				if(partnerMaster.getFacebook()!=null)
-					cellFacebook.setCellValue(partnerMaster.getFacebook().trim());
-
-				Cell cellCorporateHqAddress = row.createCell(6);
+				Cell cellCountry = row.createCell(5);
+				if(partnerMaster.getCountry()!=null)
+				{
+				cellCountry.setCellValue(partnerMaster.getCountry().trim());
+				}
+				
+				Cell cellCity= row.createCell(6);
+				if(partnerMaster.getCity()!=null)
+				{
+				cellCity.setCellValue(partnerMaster.getCity().trim());
+				}
+				
+				Cell cellHqPartnerLinkName = row.createCell(7);
+				if(partnerMaster.getHqPartnerLinkId()!=null)
+				{
+				PartnerMasterT partner=partnerRepository.findByPartnerId(partnerMaster.getHqPartnerLinkId());
+				 if(partner!=null)
+				 {
+				  cellHqPartnerLinkName.setCellValue(partner.getPartnerName().trim());
+				 }
+				}
+				
+				Cell cellCorporateHqAddress = row.createCell(8);
 				if(partnerMaster.getCorporateHqAddress()!=null)
+				{
 					cellCorporateHqAddress.setCellValue(partnerMaster.getCorporateHqAddress().trim());
+				}
 				
-				Cell active = row.createCell(7);
+				Cell cellWebsite = row.createCell(9);
+				if(partnerMaster.getWebsite()!=null)
+				{
+					cellWebsite.setCellValue(partnerMaster.getWebsite().trim());
+				}
+				
+				Cell cellFacebook = row.createCell(10);
+				if(partnerMaster.getFacebook()!=null)
+				{
+					cellFacebook.setCellValue(partnerMaster.getFacebook().trim());
+				}
+				
+				Cell cellText1 = row.createCell(11);
+				if(partnerMaster.getText1()!=null)
+				{
+					cellText1.setCellValue(partnerMaster.getText1().trim());
+				}
+				
+				Cell cellText2 = row.createCell(12);
+				if(partnerMaster.getText2()!=null)
+				{
+					cellText2.setCellValue(partnerMaster.getText2().trim());
+				}
+				
+				Cell cellText3 = row.createCell(13);
+				if(partnerMaster.getText3()!=null)
+				{
+					cellText3.setCellValue(partnerMaster.getText3().trim());
+				}
+				
+				Cell cellNotes = row.createCell(14);
+				if(partnerMaster.getNotes()!=null)
+				{
+					cellNotes.setCellValue(partnerMaster.getNotes().trim());
+				}
+				
+				Cell active = row.createCell(15);
 				active.setCellValue(partnerMaster.isActive());//TODO inactive indicator - adding extra column for active -done
 				
 				// Increment row counter
@@ -274,6 +325,14 @@ public class PartnerDwldWriter implements ItemWriter<PartnerMasterT>,
 
 	public void setFileInputStream(FileInputStream fileInputStream) {
 		this.fileInputStream = fileInputStream;
+	}
+	
+	public PartnerRepository getPartnerRepository() {
+		return partnerRepository;
+	}
+
+	public void setPartnerRepository(PartnerRepository partnerRepository) {
+		this.partnerRepository = partnerRepository;
 	}
 
 }

@@ -64,7 +64,7 @@ public class CustomerMasterT implements Serializable {
 	private String website;
 	private String iou;
 	private String geography;
-	
+
 	@Column(name = "active")
 	private boolean active = true;
 
@@ -118,6 +118,11 @@ public class CustomerMasterT implements Serializable {
 	// bi-directional many-to-one association to UserFavoritesT
 	@OneToMany(mappedBy = "customerMasterT")
 	private List<UserFavoritesT> userFavoritesTs;
+
+	//added for partner changes
+	//bi-directional many-to-one association to CollaborationCommentT
+	@OneToMany(mappedBy="customerMasterT")
+	private List<CollaborationCommentT> collaborationCommentTs;
 
 	public CustomerMasterT() {
 	}
@@ -226,7 +231,7 @@ public class CustomerMasterT implements Serializable {
 
 		return beaconCustomerMappingT;
 	}
-	
+
 	public List<ContactCustomerLinkT> getContactCustomerLinkTs() {
 		return contactCustomerLinkTs;
 	}
@@ -452,4 +457,27 @@ public class CustomerMasterT implements Serializable {
 		this.active = active;
 	}
 	
+	public List<CollaborationCommentT> getCollaborationCommentTs() {
+		return this.collaborationCommentTs;
+	}
+
+	public void setCollaborationCommentTs(List<CollaborationCommentT> collaborationCommentTs) {
+		this.collaborationCommentTs = collaborationCommentTs;
+	}
+
+	public CollaborationCommentT addCollaborationCommentT(CollaborationCommentT collaborationCommentT) {
+		getCollaborationCommentTs().add(collaborationCommentT);
+		collaborationCommentT.setCustomerMasterT(this);
+
+		return collaborationCommentT;
+	}
+
+	public CollaborationCommentT removeCollaborationCommentT(CollaborationCommentT collaborationCommentT) {
+		getCollaborationCommentTs().remove(collaborationCommentT);
+		collaborationCommentT.setCustomerMasterT(null);
+
+		return collaborationCommentT;
+	}
+
+
 }

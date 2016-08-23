@@ -37,24 +37,25 @@
 	</batch:job>
 	
 	<!-- Readers -->
-	<bean id="customerContactDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="customerContactDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 		<property name="repository" ref="contactRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>
-	<bean id="customerContactMasterRefDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="customerContactMasterRefDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 		<property name="repository" ref="customerRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>
 	
 	<!-- Writers -->
-	<bean id="customerContactDwldWriter" class="com.tcs.destination.writer.CustomerContactDwldWriter">
+	<bean id="customerContactDwldWriter" class="com.tcs.destination.writer.CustomerContactDwldWriter" scope="step">
 		<property name="template" value="${customerContactSheetTemplate}"/>
 		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+		<property name="contactCustomerLinkTRepository" ref="contactCustomerLinkTRepository"/>
 		<property name="fileServerPath" value="${fileserver.path}" />
 		<property name="dataProcessingService" ref="dataProcessingService" />
 	</bean>
 	
-	<bean id="customerContactMasterRefDwldWriter" class="com.tcs.destination.writer.CustomerContactMasterRefDwldWriter">
+	<bean id="customerContactMasterRefDwldWriter" class="com.tcs.destination.writer.CustomerContactMasterRefDwldWriter" scope="step">
 	    <property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
 	</bean>
 		

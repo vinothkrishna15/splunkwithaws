@@ -80,12 +80,13 @@ public class UserNotificationSettingsWriter implements ItemWriter<String[]>, Ste
 					} else if (errorDTO.getMessage() == null) {
 						insertList.add(userT);
 					}
-					if (CollectionUtils.isNotEmpty(insertList)) {
-						userService.saveNotificationSettings(insertList);
-					}
+					
 
 				}
 			}
+		}
+		if (CollectionUtils.isNotEmpty(insertList)) {
+			userService.saveNotificationSettings(insertList);
 		}
 	}
 
@@ -195,7 +196,6 @@ public class UserNotificationSettingsWriter implements ItemWriter<String[]>, Ste
 	@Override
 	public void onWritePossible() throws IOException 
 	{
-		// TODO Auto-generated method stub
 		
 	}
 

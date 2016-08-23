@@ -2,6 +2,7 @@ package com.tcs.destination.utils;
 
 import java.util.List;
 
+import javax.activation.DataSource;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
@@ -17,7 +18,9 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StreamUtils;
 
+import com.sun.istack.ByteArrayDataSource;
 import com.tcs.destination.bean.DestinationMailMessage;
 import com.tcs.destination.exception.DestinationException;
 
@@ -101,48 +104,47 @@ public class DestinationMailSender {
 	 */
 	public void sendMultiPart(final DestinationMailMessage message) throws Exception {
 		
-		//filter the in-active user mail ids 
-		//filterInActiveUsers(message);
-		
-		if(isValidMessage(message)) {
 			try {
-				MimeMessage mimeMessage = ((JavaMailSenderImpl) mailSender).createMimeMessage();
+				 MimeMessage mimeMessage = ((JavaMailSenderImpl) mailSender).createMimeMessage();
 				MimeMessageHelper msgHelper = new MimeMessageHelper(mimeMessage, true, Constants.UTF8);
-				
-				List<String> recipients = message.getRecipients();
-				List<String> ccList = message.getCcList();
-				List<String> bccList = message.getBccList();
-				String subject = message.getSubject();
-				String mailBody = message.getMessage();
-				
-				msgHelper.setFrom(senderEmailId);
-				msgHelper.setTo(convertToArray(recipients));
-				if(CollectionUtils.isNotEmpty(ccList)) {
-					msgHelper.setCc(convertToArray(ccList));
-				}
-				if(CollectionUtils.isNotEmpty(bccList)) {
-					msgHelper.setBcc(convertToArray(bccList));
-				}
-				msgHelper.setSubject(subject);
-				msgHelper.setText(mailBody, true);
-				if(hasAttachment(message)) {
-					msgHelper.addAttachment(message.getAtchFileName(), new FileSystemResource(message.getAtchFilePath()));
-				}
-				
-				//log the mail details
-				logMailDetails(recipients, ccList, bccList, subject, mailBody);
-				
-				mailSender.send(mimeMessage);
-				logger.info("mail sent, subject : {}", subject);
-				
-			} catch (MessagingException | MailException e) {
+					
+					List<String> recipients = message.getRecipients();
+					List<String> ccList = message.getCcList();
+					List<String> bccList = message.getBccList();
+					String subject = message.getSubject();
+					String mailBody = message.getMessage();
+
+					msgHelper.setFrom(senderEmailId);
+					msgHelper.setTo(convertToArray(recipients));
+					if(CollectionUtils.isNotEmpty(ccList)) {
+						msgHelper.setCc(convertToArray(ccList));
+					}
+					if(CollectionUtils.isNotEmpty(bccList)) {
+						msgHelper.setBcc(convertToArray(bccList));
+					}
+					msgHelper.setSubject(subject);
+					msgHelper.setText("<html><body><h1>hello</h1><img src='cid:identifier1234'></body></html>", true);
+//					if(hasAttachment(message)) {
+//						msgHelper.addAttachment(message.getAtchFileName(), new FileSystemResource(message.getAtchFilePath()));
+//					}
+					
+					//Inline message
+					byte[] fileBinary = StreamUtils.copyToByteArray(getClass().getResourceAsStream("/templates/img/MountView.png"));
+
+					logger.info("file size ################ {}", fileBinary.length);
+					DataSource fds = new ByteArrayDataSource(fileBinary, "image/png");
+					msgHelper.addInline("identifier1234", fds);
+
+					//log the mail details
+					logMailDetails(recipients, ccList, bccList, subject, mailBody);
+					
+					mailSender.send(mimeMessage);
+					logger.info("mail sent, subject : {}", subject);
+								
+			} catch (Exception e ) {
 				logger.error("Error sending mail ", e);
 				throw e;
 			}
-		} else {
-			throw new DestinationException("Invalid mail : Recipients and subject are mandatory");
-		}
-		
 		
 	}
 

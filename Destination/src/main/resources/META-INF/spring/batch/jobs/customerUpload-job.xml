@@ -1,60 +1,123 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:batch="http://www.springframework.org/schema/batch"
-    xmlns:context="http://www.springframework.org/schema/context"
-    xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:batch="http://www.springframework.org/schema/batch"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:task="http://www.springframework.org/schema/task"
 	xsi:schemaLocation="
 	http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-3.0.xsd
 	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
 	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
-	
+
 	<batch:job id="customerUpload">
-	<batch:step id="customerUploadPreprocess" next="customerStepDecider">
+		<batch:step id="customerUploadPreprocess" next="customerStepDecider">
 			<batch:tasklet>
-			<ref bean="customerPreprocessor"/>
+				<ref bean="customerUploadPreprocessor" />
 			</batch:tasklet>
 		</batch:step>
-	
-		<batch:step id="customerProcessing" next="customerUploadPreprocess">
+
+		<batch:step id="customerProcessing" next="beaconMappingProcessing">
 			<batch:tasklet>
-				<batch:chunk reader="customerSpreadSheetReader" writer="customerWriter" 
-				commit-interval="${upload.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+				<batch:chunk reader="customerSpreadSheetReader" writer="customerWriter"
+					commit-interval="${upload.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
 			</batch:tasklet>
 		</batch:step>
-		
-		 <batch:decision id="customerStepDecider" decider="customerFlowdecider">
-              <batch:next on="PREPROCESS" to="customerUploadPreprocess" />
-              <batch:next on="CUSTOMER_PROCESSING" to="customerProcessing" />
-              <batch:end on="END"/>
-         </batch:decision>
+
+
+		<batch:step id="beaconMappingProcessing" next="financeProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="beaconCustomerMappingSpreadSheetReader"
+					writer="beaconCustomerMappingWriter" commit-interval="${upload.commit.interval}"
+					skip-policy="alwaysSkip" retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+
+		<batch:step id="financeProcessing" next="customerUploadPreprocess">
+			<batch:tasklet>
+				<batch:chunk reader="financeSpreadSheetReader" writer="financeCustomerMappingWriter"
+					commit-interval="${upload.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+
+		<batch:decision id="customerStepDecider" decider="customerUploadDecider">
+			<batch:next on="PREPROCESS" to="customerUploadPreprocess" />
+			<batch:next on="CUSTOMER_PROCESSING" to="customerProcessing" />
+			<batch:end on="END" />
+		</batch:decision>
 	</batch:job>
-	
+
 	<!-- Readers -->
-	<bean id="customerSpreadSheetReader" class="com.tcs.destination.reader.SpreadSheetReader" scope="step">
-		<property name="filePath" value="#{jobExecutionContext['FILE_PATH']}"/>
-		<property name="sheetName" value="Customer Master"/>
-		<property name="rowsToSkip" value = "1" />
+	<bean id="customerSpreadSheetReader" class="com.tcs.destination.reader.SpreadSheetReader"
+		scope="step">
+		<property name="filePath" value="#{jobExecutionContext['FILE_PATH']}" />
+		<property name="sheetName" value="Customer Master" />
+		<property name="rowsToSkip" value="1" />
 	</bean>
-	
+
+	<!-- Readers -->
+	<bean id="beaconCustomerMappingSpreadSheetReader" class="com.tcs.destination.reader.SpreadSheetReader"
+		scope="step">
+		<property name="filePath" value="#{jobExecutionContext['FILE_PATH']}" />
+		<property name="sheetName" value="Beacon Mapping" />
+		<property name="rowsToSkip" value="1" />
+	</bean>
+
+	<!-- Readers -->
+	<bean id="financeSpreadSheetReader" class="com.tcs.destination.reader.SpreadSheetReader"
+		scope="step">
+		<property name="filePath" value="#{jobExecutionContext['FILE_PATH']}" />
+		<property name="sheetName" value="Finance Mappping" />
+		<property name="rowsToSkip" value="1" />
+	</bean>
+
 	<!-- Writers -->
-	<bean id="customerWriter" class="com.tcs.destination.writer.CustomerCustomWriter" scope="step">
-		<property name="request" value="#{jobExecutionContext['REQUEST']}"/>
-		<property name="helper" ref="customerUploadHelper"/>
-		<property name="customerService" ref="customerService"/>
-		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+	<bean id="customerWriter" class="com.tcs.destination.writer.CustomerCustomWriter"
+		scope="step">
+		<property name="request" value="#{jobExecutionContext['REQUEST']}" />
+		<property name="helper" ref="customerUploadHelper" />
+		<property name="customerService" ref="customerService" />
+		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository" />
+		<property name="uploadErrorReport" ref="uploadErrorReport" />
+	</bean>
+
+	<!-- Writers -->
+	<bean id="beaconCustomerMappingWriter" class="com.tcs.destination.writer.BeaconCustomerMappingWriter"
+		scope="step">
+		<property name="request" value="#{jobExecutionContext['REQUEST']}" />
+		<property name="helper" ref="beaconCustomerMappingUploadHelper" />
+		<property name="beaconCustomerUploadService" ref="beaconCustomerUploadService" />
+		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository" />
+		<property name="uploadErrorReport" ref="uploadErrorReport" />
+	</bean>
+
+	<!-- Writers -->
+	<bean id="financeCustomerMappingWriter" class="com.tcs.destination.writer.RevenueCustomerMappingWriter"
+		scope="step">
+		<property name="request" value="#{jobExecutionContext['REQUEST']}" />
+		<property name="helper" ref="financeCustomerMappingUploadHelper" />
+		<property name="RevenueUploadService" ref="revenueUploadService" />
+		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository" />
 		<property name="uploadErrorReport" ref="uploadErrorReport" />
 	</bean>
 	
+	<!-- Preprocessor -->
+	<bean id = "customerUploadPreprocessor" class="com.tcs.destination.tasklet.CustomerUploadPreprocessor" scope="step"></bean>
+
 	<!-- Decider -->
-    <bean id="customerFlowdecider" class="com.tcs.destination.decider.CustomerDecider" />
+	<bean id="customerUploadDecider" class="com.tcs.destination.decider.CustomerDecider" />
+
+	<bean id="uploadErrorReport" class="com.tcs.destination.service.UploadErrorReport" />
 	
-	<bean id="uploadErrorReport" class="com.tcs.destination.service.UploadErrorReport"/>
-	
-	<bean id="customerPreprocessor" class="com.tcs.destination.tasklet.CustomerPreprocessor" scope="step">
-	<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"></property>
+	<!-- scheduler  -->
+	<bean id="customerUploadScheduler" class="com.tcs.destination.scheduler.JobScheduler">
+		<property name="job" ref="customerUpload"/>
 	</bean>
+	
+	<task:scheduled-tasks>
+        <task:scheduled ref="customerUploadScheduler" method="run" cron="${customer.upload.job.cron}"/>
+    </task:scheduled-tasks>
 
 </beans>
 	

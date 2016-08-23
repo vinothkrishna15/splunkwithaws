@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:batch="http://www.springframework.org/schema/batch"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-3.0.xsd
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+	
+	<batch:job id="productUpload">
+
+		<batch:step id="productUploadPreprocess" next="productDecider">
+          <batch:tasklet ref="productPreprocessor"/>
+		</batch:step>
+		
+		<batch:step id="productProcessing" next="productUploadPreprocess">
+			<batch:tasklet>
+				<batch:chunk reader="productSpreadSheetReader" writer="productWriter" 
+				commit-interval="${upload.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		</batch:step>
+		
+
+		 <batch:decision id="productDecider" decider="productFlowdecider">
+              <batch:next on="PREPROCESS" to="productUploadPreprocess" />
+              <batch:next on="PRODUCT_PROCESSING" to="productProcessing" />
+              <batch:end on="END"/>
+         </batch:decision>
+	</batch:job>
+	
+	<!-- Readers -->
+	<bean id="productSpreadSheetReader" class="com.tcs.destination.reader.SpreadSheetReader" scope="step">
+		<property name="filePath" value="#{jobExecutionContext['FILE_PATH']}"/>
+		<property name="sheetName" value="Product Master"/>
+		<property name="rowsToSkip" value = "1" />
+	</bean>
+	
+	<!-- Writers -->
+	<bean id="productWriter" class="com.tcs.destination.writer.ProductCustomWriter" scope="step">
+		<property name="request" value="#{jobExecutionContext['REQUEST']}"/>
+		<property name="helper" ref="productUploadHelper"/>
+		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+		<property name="uploadErrorReport" ref="uploadErrorReport" />
+		<property name="productRepository" ref="productRepository"/>
+	</bean>
+	
+	<!-- Decider -->
+    <bean id="productFlowdecider" class="com.tcs.destination.decider.ProductDecider" />
+	
+	<bean id="uploadErrorReport" class="com.tcs.destination.service.UploadErrorReport"/>
+	
+	<!-- scheduler  -->
+	<bean id="productUploadScheduler" class="com.tcs.destination.scheduler.JobScheduler">
+		<property name="job" ref="productUpload"/>
+	</bean>
+	
+	<task:scheduled-tasks>
+        <task:scheduled ref="productUploadScheduler" method="run" cron="${products.upload.job.cron}"/>
+    </task:scheduled-tasks>
+	
+</beans>
+	

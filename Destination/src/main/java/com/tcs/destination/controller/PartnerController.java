@@ -20,6 +20,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tcs.destination.bean.PageDTO;
+import com.tcs.destination.bean.SearchResultDTO;
+import com.tcs.destination.enums.SmartSearchType;
+import com.tcs.destination.bean.CustomerMasterT;
+import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.SearchResultDTO;
@@ -148,6 +152,42 @@ public class PartnerController {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while retrieving partner details");
 		}
+	}
+
+	/**
+	 * This method is used to retrieves the group partner name for the given
+	 * name with.
+	 * 
+	 * @param nameWith
+	 * @param fields
+	 * @param view
+	 * @return customer
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/group", method = RequestMethod.GET)
+	public @ResponseBody String findByGroupCustomerName(
+			@RequestParam("nameWith") String nameWith,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Inside PartnerController: Start of retrieving the Group partner names");
+		String response = null;
+		List<PartnerMasterT> partner;
+		try {
+			partner = (List<PartnerMasterT>) partnerService
+				.findByGroupPartnerName(nameWith);
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, partner);
+			logger.info("Inside PartnerController: Start of retrieving the Group partner names");
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the Group partner name for "
+							+ nameWith);
+		}
+		return response;
 	}
 
 	/**
@@ -357,5 +397,39 @@ public class PartnerController {
 					"Backend error while editing partner");
 		}
 
+	}
+	
+	/**
+	 * Service to fetch the partner related information based on search type and the search keyword 
+	 * @param searchType - category type
+	 * @param term - keyword
+	 * @param getAll - true, to retrieve entire result, false to filter the result to only 3 records.(<b>default:false</b>)
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/search/smart", method = RequestMethod.GET)
+	public @ResponseBody String smartSearch(
+			@RequestParam("searchType") String searchType,
+			@RequestParam("term") String term,
+			@RequestParam(value = "getAll", defaultValue = "false") boolean getAll,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "30") int count,
+			@RequestParam(value = "view", defaultValue = "") String view)
+					throws DestinationException {
+		logger.info("Inside PartnerController: smart search by search term");
+		try {
+			PageDTO<SearchResultDTO<PartnerMasterT>> res = partnerService.smartSearch(SmartSearchType.get(searchType), term, getAll, page, count);
+			logger.info("Inside PartnerController: End - smart search by search term");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, res, !getAll);
+		} catch (Exception e) {
+			logger.error("Error on Partner smartSearch", e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while retrieving Partners list");
+		}
+		
 	}
 }

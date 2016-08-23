@@ -1,13 +1,16 @@
 package com.tcs.destination.tasklet;
 
-import static com.tcs.destination.enums.JobStep.PARTNER_DWLD_PROCESSING;
 import static com.tcs.destination.enums.JobStep.END;
+import static com.tcs.destination.enums.JobStep.PARTNER_DWLD_PROCESSING;
 import static com.tcs.destination.enums.RequestStatus.SUBMITTED;
 import static com.tcs.destination.enums.RequestType.PARTNER_CONTACT_DOWNLOAD;
 import static com.tcs.destination.utils.Constants.NEXT_STEP;
 import static com.tcs.destination.utils.Constants.REQUEST;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -21,7 +24,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.tcs.destination.bean.DataProcessingRequestT;
+import com.tcs.destination.bean.PartnerContactLinkT;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
+import com.tcs.destination.data.repository.PartnerContactLinkTRepository;
 
 
 /**
@@ -39,6 +44,13 @@ public class PartnerContactDwldPreprocessor implements Tasklet{
 	
 	@Autowired
 	private DataProcessingRequestRepository dataProcessingRequestRepository;
+	
+	// data needed for partner contact sheet
+	private Map<String,List<PartnerContactLinkT>> partnerMap;
+	
+	@Autowired
+	PartnerContactLinkTRepository partnerContactLinkTRepository;
+		
 
 	@Override
 	public RepeatStatus execute(StepContribution contribution,
@@ -58,6 +70,9 @@ public class PartnerContactDwldPreprocessor implements Tasklet{
 		   
 		    jobContext.put(REQUEST,request);
 		    jobContext.put(NEXT_STEP, PARTNER_DWLD_PROCESSING);
+		    
+		    populatePartnerMap();
+			jobContext.put("partnerMap", partnerMap);
 			
 		} else {
 			 jobContext.put(NEXT_STEP, END);
@@ -65,6 +80,33 @@ public class PartnerContactDwldPreprocessor implements Tasklet{
 		}
 		logger.info("Exit:Inside execute() of PartnerContactDwldPreprocessor:");
 		return RepeatStatus.FINISHED;
+	}
+	
+	
+	private void populatePartnerMap() {
+		logger.debug("Inside populatePartnerMap method:");
+		List<PartnerContactLinkT> partnerContactLinkList = (List<PartnerContactLinkT>) partnerContactLinkTRepository.findAll();
+		partnerMap =new HashMap<String,List<PartnerContactLinkT>>();
+		if(partnerContactLinkList!=null && !partnerContactLinkList.isEmpty()){
+			for(PartnerContactLinkT partnerContactLinkT : partnerContactLinkList){
+				String contactId = partnerContactLinkT.getContactId();
+				if(!partnerMap.isEmpty()){
+					List<PartnerContactLinkT> partnerContactList = partnerMap.get(contactId);
+					if(partnerContactList==null){
+						List<PartnerContactLinkT> partnerList = new ArrayList<PartnerContactLinkT>();
+						partnerList.add(partnerContactLinkT);
+						partnerMap.put(contactId, partnerList);
+					} else {
+						partnerContactList.add(partnerContactLinkT);
+					}
+				} else {
+					List<PartnerContactLinkT> partnerList = new ArrayList<PartnerContactLinkT>();
+					partnerList.add(partnerContactLinkT);
+					partnerMap.put(contactId, partnerList);
+				}
+			}
+		}
+		logger.debug("Populated Partner Map : " + partnerMap.size());
 	}
 
 }

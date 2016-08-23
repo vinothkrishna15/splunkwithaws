@@ -238,8 +238,20 @@ public class ContactUploadService {
 			// CONTACT CATEGORY
 			contactT.setContactCategory(contactCategory);
 			
-			// CREATED_MODIFIED_BY
-			contactT.setCreatedModifiedBy(userId);
+			if(action.equalsIgnoreCase(DocumentActionType.ADD.name()))
+			{
+				// CREATED_BY
+				contactT.setCreatedBy(userId);
+				
+				//MODIFIED_BY
+				contactT.setModifiedBy(userId);
+			}
+			else if((action.equalsIgnoreCase(DocumentActionType.UPDATE.name()))||(action.equalsIgnoreCase(DocumentActionType.DELETE.name())))
+			{
+				//MODIFIED_BY
+				contactT.setModifiedBy(userId);
+			}
+			
 			
 			// CONTACT_TYPE
 			contactT.setContactType(ContactType.EXTERNAL.name());
@@ -286,7 +298,8 @@ public class ContactUploadService {
 			if(!StringUtils.isEmpty(listOfCellValues.get(2))){
 				String partnerId = getMapValuesForKey(mapOfPartnerMasterT, listOfCellValues.get(2));
 				if(!StringUtils.isEmpty(partnerId)){
-					contactT.setPartnerId(partnerId);
+					contactT.getPartnerContactLinkTs().get(0).setPartnerId(partnerId);
+					//contactT.setPartnerId(partnerId);
 				} else {
 					throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid Partner Name");
 				}
@@ -355,8 +368,20 @@ public class ContactUploadService {
 				// CONTACT CATEGORY
 				contactT.setContactCategory(contactCategory);
 				
-				// CREATED_MODIFIED_BY
-				contactT.setCreatedModifiedBy(userId);
+				if(action.equalsIgnoreCase(DocumentActionType.ADD.name())){
+				
+				// CREATED_BY
+				contactT.setCreatedBy(userId);
+				
+				//MODIFIED_BY
+				contactT.setModifiedBy(userId);
+				}
+				else if((action.equalsIgnoreCase(DocumentActionType.UPDATE.name())) || (action.equalsIgnoreCase(DocumentActionType.DELETE.name())))
+				{
+				    //MODIFIED_BY
+				    contactT.setModifiedBy(userId);
+				}
+				
 				
 				// CONTACT_TYPE
 				if(!StringUtils.isEmpty(listOfCellValues.get(3))){

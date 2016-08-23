@@ -55,6 +55,15 @@
     <bean id="revenueFlowdecider" class="com.tcs.destination.decider.RevenueDecider" />
 	
 	<bean id="uploadErrorReport" class="com.tcs.destination.service.UploadErrorReport"/>
+	
+	<!-- scheduler  -->
+	<bean id="revenueUploadScheduler" class="com.tcs.destination.scheduler.JobScheduler">
+		<property name="job" ref="revenueUpload"/>
+	</bean>
+	
+	<task:scheduled-tasks>
+        <task:scheduled ref="revenueUploadScheduler" method="run" cron="${revenue.upload.job.cron}"/>
+    </task:scheduled-tasks>
 
 </beans>
 	

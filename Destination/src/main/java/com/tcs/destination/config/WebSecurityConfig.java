@@ -12,7 +12,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.session.web.http.HeaderHttpSessionStrategy;
 import org.springframework.session.web.http.HttpSessionStrategy;
@@ -45,11 +44,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 				.sessionRegistry(sessionRegistry());
 		http.authorizeRequests()
 				.antMatchers(HttpMethod.POST, "/api/useraccess/request").permitAll().and().httpBasic();
-				//.antMatchers(HttpMethod.POST, "/api/user/forgotpwd")
-			//	.permitAll().antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-				//.anyRequest().authenticated().and().requestCache()
-				//.requestCache(new NullRequestCache()).and().httpBasic();
-
+		
+		
+		//added for suppressing authentication popup
+		DestinationEntryPoint entryPoint = new DestinationEntryPoint();
+		
+		http.httpBasic().authenticationEntryPoint(entryPoint).and()
+        .exceptionHandling().authenticationEntryPoint(entryPoint).and()
+        .csrf().disable();
+		
 	}
 
 	@Bean

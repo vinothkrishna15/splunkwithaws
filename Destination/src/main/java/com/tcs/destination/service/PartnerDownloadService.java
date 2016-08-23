@@ -47,38 +47,52 @@ public class PartnerDownloadService
 
 	/**
 	 * this method downloads the sheet Partner Master
+	 * 
 	 * @param oppFlag
 	 * @return
 	 * @throws Exception
 	 */
-	public InputStreamResource getPartners(boolean oppFlag) throws Exception 
-	{
-		logger.debug("Begin:Inside getPartners() method of PartnerDownloadService"); 
+	public InputStreamResource getPartners(boolean oppFlag) throws Exception {
+		logger.debug("Begin:Inside getPartners() method of PartnerDownloadService");
 		Workbook workbook = null;
 		InputStreamResource inputStreamResource = null;
-		try 
-		{
-			workbook =(XSSFWorkbook) ExcelUtils.getWorkBook(new File
-					(PropertyUtil.getProperty
-							(Constants.PARTNER_TEMPLATE_LOCATION_PROPERTY_NAME)));
+		try {
+			workbook = ExcelUtils
+					.getWorkBook(new File(
+							PropertyUtil
+									.getProperty(Constants.PARTNER_TEMPLATE_LOCATION_PROPERTY_NAME)));
 
 			// Populate Partner Master Sheet
-			if(oppFlag)
-				populatePartnerMasterSheet(workbook.getSheet(Constants.PARTNER_TEMPLATE_PARTNER_SHEET_NAME));
+			if (oppFlag) {
+				populatePartnerMasterSheet(workbook
+						.getSheet(Constants.PARTNER_TEMPLATE_PARTNER_SHEET_NAME));
+			}
 
+			// Populate Geography Country Ref
+			commonWorkbookSheets
+					.populateGeographyCountryRef(workbook
+							.getSheet(Constants.PARTNER_TEMPLATE_GEOGRAPHY_REF_SHEET_NAME));
+			// populate SubSp
+			commonWorkbookSheets.populateSubSpSheet(workbook
+					.getSheet(Constants.PARTNER_TEMPLATE_SUBSP_REF_SHEET_NAME));
+
+			// Populate Product
+			commonWorkbookSheets
+					.populateProductSheet(workbook
+							.getSheet(Constants.PARTNER_TEMPLATE_PRODUCT_REF_SHEET_NAME));
 			ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
 			workbook.write(byteOutPutStream);
 			byteOutPutStream.flush();
 			byteOutPutStream.close();
 			byte[] bytes = byteOutPutStream.toByteArray();
-			inputStreamResource = new InputStreamResource(new ByteArrayInputStream(bytes));
-		} 
-		catch (Exception e) 
-		{
+			inputStreamResource = new InputStreamResource(
+					new ByteArrayInputStream(bytes));
+		} catch (Exception e) {
 			e.printStackTrace();
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"An Internal Exception has occured");
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"An Internal Exception has occured");
 		}
-		logger.debug("End:Inside getPartners() method of PartnerDownloadService"); 
+		logger.debug("End:Inside getPartners() method of PartnerDownloadService");
 		return inputStreamResource;
 	}
 
@@ -133,16 +147,75 @@ public class PartnerDownloadService
 		int currentRow = 1; // Excluding the header, header starts with index 0
 
 		List<PartnerMasterT> partnerMasterNamesList=(List<PartnerMasterT>) partnerRepository.findAll();
+		if(!(partnerMasterNamesList.isEmpty())&&(partnerMasterNamesList!=null))
+		{
 		for(PartnerMasterT partner:partnerMasterNamesList){
 
 			Row row = partnerSheet.createRow(currentRow);
 
 			// Get Cell and set cell value
+		    if(partner.getPartnerId()!=null)
+		    {
+			row.createCell(1).setCellValue(partner.getPartnerId().toString());
+		    }
+		    if(partner.getPartnerName()!=null)
+		    {
 			row.createCell(2).setCellValue(partner.getPartnerName().toString());
+		    }
+		    if(partner.getGeography()!=null)
+		    {
 			row.createCell(3).setCellValue(partner.getGeography().toString());
+		    }
+		    if(partner.getWebsite()!=null)
+		    {
+			row.createCell(4).setCellValue(partner.getWebsite().toString());
+		    }
+		    if(partner.getFacebook()!=null)
+		    {
+			row.createCell(5).setCellValue(partner.getFacebook().toString());
+		    }
+		    if(partner.getCorporateHqAddress()!=null)
+		    {
+			row.createCell(6).setCellValue(partner.getCorporateHqAddress().toString());
+		    }
+		    
 			row.createCell(7).setCellValue(partner.isActive());//TODO inactive indicator - adding a separate column in template with data - done 
+		    
+			if(partner.getCountry()!=null)
+		    {
+			row.createCell(8).setCellValue(partner.getCountry().toString());
+		    }
+			if(partner.getCity()!=null)
+		    {
+			row.createCell(9).setCellValue(partner.getCity().toString());
+		    }
+			if(partner.getText1()!=null)
+			{
+			row.createCell(10).setCellValue(partner.getText1().toString());
+			}
+			if(partner.getText2()!=null)
+			{
+			row.createCell(11).setCellValue(partner.getText2().toString());
+			}
+			if(partner.getText3()!=null)
+			{
+			row.createCell(12).setCellValue(partner.getText3().toString());
+			}
+			if(partner.getGroupPartnerName()!=null)
+			{
+			row.createCell(13).setCellValue(partner.getGroupPartnerName().toString());
+			}
+			if(partner.getNotes()!=null)
+			{
+			row.createCell(14).setCellValue(partner.getNotes().toString());
+			}
+			if(partner.getHqPartnerLinkId()!=null)
+			{
+			row.createCell(15).setCellValue(partner.getHqPartnerLinkId().toString());
+			}
 			// Increment row counter
 			currentRow++;
+		 }
 		}
 		logger.debug("End:Inside populatePartnerMasterSheet() method of PartnerDownloadService"); 
 	}
@@ -170,7 +243,7 @@ public class PartnerDownloadService
 					// Create new Cell and set cell value
 					Cell cellPartnerName = row.createCell(1);
 					try {
-						cellPartnerName.setCellValue(ct.getPartnerMasterT().getPartnerName().trim());
+						cellPartnerName.setCellValue(ct.getPartnerContactLinkTs().get(0).getPartnerMasterT().getPartnerName().trim());
 					} catch(NullPointerException npe){
 						throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, "Partner Contact cannot exist without Partner");
 					}

@@ -62,13 +62,13 @@ public class OpportunitySubSpLinkT implements Serializable {
 	private String subSp;
 	
 	@Column(name="subsp_primary")
-	private boolean subspPrimary;
+	private Boolean subspPrimary;
 
-	public boolean isSubspPrimary() {
+	public Boolean isSubspPrimary() {
 		return subspPrimary;
 	}
 
-	public void setSubspPrimary(boolean subspPrimary) {
+	public void setSubspPrimary(Boolean subspPrimary) {
 		this.subspPrimary = subspPrimary;
 	}
 
