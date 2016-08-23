@@ -1550,6 +1550,7 @@ public class OpportunityService {
 		}
 		setUserFavourite(opportunityT);
 		setSearchKeywordTs(opportunityT);
+		removeCyclicForLinkedContacts(opportunityT);
 		removeCyclicForLinkedConnects(opportunityT);
 		removeCyclicForCustomers(opportunityT);}
 
@@ -1612,6 +1613,20 @@ public class OpportunityService {
 						.getConnectOpportunityLinkIdTs()) {
 					connectOpportunityLinkIdT.getConnectT()
 							.setConnectOpportunityLinkIdTs(null);
+				}
+			}
+		}
+	}
+	private void  removeCyclicForLinkedContacts(OpportunityT opportunityT) {
+		logger.debug("Inside removeCyclicForLinkedContacts() method");
+
+		if (opportunityT != null) {
+			if (opportunityT.getOpportunityPartnerLinkTs() != null) {
+				for (OpportunityPartnerLinkT opportunityPartnerLinkT : opportunityT
+						.getOpportunityPartnerLinkTs()) {
+					opportunityPartnerLinkT.getPartnerMasterT().setOpportunityPartnerLinkTs(null);
+					opportunityPartnerLinkT.getPartnerMasterT().setPartnerMasterT(null);
+							
 				}
 			}
 		}
