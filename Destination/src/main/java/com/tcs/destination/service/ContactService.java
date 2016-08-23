@@ -586,6 +586,14 @@ public class ContactService {
 				contactCustomerLinkT.setCreatedModifiedBy(userId);
 			}
 		}
+		if (contact.getPartnerContactLinkTs() != null) {
+			for (PartnerContactLinkT partnerContactLinkT : contact
+					.getPartnerContactLinkTs()) {
+				partnerContactLinkT.setContactId(contact.getContactId());
+				partnerContactLinkT.setCreatedBy(userId);
+				partnerContactLinkT.setModifiedBy(userId);
+			}
+		}
 		if(contact.getContactCategory().equals(EntityType.PARTNER)){
 			ProductContactLinkT productcontatcLinkT = new ProductContactLinkT();
 			productcontatcLinkT.setContactId(contact.getContactId());
