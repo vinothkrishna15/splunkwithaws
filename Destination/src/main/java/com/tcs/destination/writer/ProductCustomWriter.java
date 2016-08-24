@@ -199,10 +199,16 @@ public class ProductCustomWriter implements ItemWriter<String[]>, StepExecutionL
 						} else {
 							errorDTO.setRowNumber(rowNumber);
 							errorDTO.setMessage("Invalid product Id ");
+							errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
+									: errorList;
+							errorList.add(errorDTO);
 						}
 					} else {
 						errorDTO.setRowNumber(rowNumber);
 						errorDTO.setMessage("product Id is mandatory for delete");
+						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
+								: errorList;
+						errorList.add(errorDTO);
 					}
 				}
 			}
