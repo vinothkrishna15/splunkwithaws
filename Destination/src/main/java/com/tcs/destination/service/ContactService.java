@@ -565,6 +565,7 @@ public class ContactService {
 			throws CloneNotSupportedException, Exception {
 		ContactT contact = requestContact.clone();
 		requestContact.setContactCustomerLinkTs(null);
+		requestContact.setPartnerContactLinkTs(null);
 		contact.setContactId(contactRepository.save(requestContact)
 				.getContactId());
 		return contact;
