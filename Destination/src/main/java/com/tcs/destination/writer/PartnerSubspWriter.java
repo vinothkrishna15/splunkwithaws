@@ -12,6 +12,7 @@ import java.util.List;
 import javax.servlet.WriteListener;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,11 +81,11 @@ public class PartnerSubspWriter implements ItemWriter<String[]>,
 					UploadServiceErrorDetailsDTO errorDTO = helper
 							.validatePartnerSubSpData(data, request.getUserT()
 									.getUserId(), partnerSubSpMappingT);
-					if (errorDTO.getMessage() != null) {
+					if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
 								: errorList;
 						errorList.add(errorDTO);
-					} else if (errorDTO.getMessage() == null) {
+					} else {
 						insertList.add(partnerSubSpMappingT);
 					}
 
@@ -100,11 +101,11 @@ public class PartnerSubspWriter implements ItemWriter<String[]>,
 						errorDTO = helper.validatePartnerSubspId(data,
 								partnerSubspT, deleteFlag);
 
-						if (errorDTO.getMessage() != null) {
+						if (StringUtils.isNotEmpty(errorDTO.getMessage() )) {
 							errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
 									: errorList;
 							errorList.add(errorDTO);
-						} else if (errorDTO.getMessage() == null) {
+						} else {
 							deleteList.add(partnerSubspT);
 						}
 					} else {
@@ -122,8 +123,8 @@ public class PartnerSubspWriter implements ItemWriter<String[]>,
 		// to save partner subsp details to db
 		if (CollectionUtils.isNotEmpty(insertList)) {
 			partnerService.savePartnerSubsp(insertList);
-        }
-		 // to delete partner subsp details from db
+		}
+		// to delete partner subsp details from db
 		else if (CollectionUtils.isNotEmpty(deleteList)) {
 			partnerService.deletePartnerSubSp(deleteList);
 		}

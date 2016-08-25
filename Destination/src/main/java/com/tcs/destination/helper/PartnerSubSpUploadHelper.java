@@ -1,7 +1,6 @@
 package com.tcs.destination.helper;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.PartnerSubSpMappingT;
 import com.tcs.destination.bean.PartnerSubspProductMappingT;
@@ -24,7 +22,6 @@ import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.service.PartnerService;
 import com.tcs.destination.utils.StringUtils;
-import com.tcs.destination.writer.PartnerCustomWriter;
 
 @Component("partnerSubSpUploadHelper")
 public class PartnerSubSpUploadHelper {
@@ -64,10 +61,10 @@ public class PartnerSubSpUploadHelper {
 
 	public UploadServiceErrorDetailsDTO validatePartnerSubSpData(String[] data,
 			String userId, PartnerSubSpMappingT partnerSubSpMappingT)
-			throws Exception {
+					throws Exception {
 
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
-
+		StringBuffer sb = new StringBuffer();
 		// PARTNER_NAME
 		String partnerName = data[3];
 		int rowNumber = Integer.parseInt(data[0]) + 1;
@@ -78,12 +75,12 @@ public class PartnerSubSpUploadHelper {
 				partnerSubSpMappingT.setPartnerId(partner.getPartnerId());
 			} else {
 				error.setRowNumber(rowNumber);
-				error.setMessage("Partner name is not found ");
+				sb.append("Partner name is not found ");
 			}
 
 		} else {
 			error.setRowNumber(rowNumber);
-			error.setMessage("Partner name is mandatory; ");
+			sb.append("Partner name is mandatory; ");
 		}
 
 		// SUBSP
@@ -94,11 +91,11 @@ public class PartnerSubSpUploadHelper {
 				partnerSubSpMappingT.setSubSpId(subSpMappingT.getSubSpId());
 			} else {
 				error.setRowNumber(rowNumber);
-				error.setMessage("Subsp is not valid ");
+				sb.append("Subsp is not valid ");
 			}
 		} else {
 			error.setRowNumber(rowNumber);
-			error.setMessage("Subsp is mandatory; ");
+			sb.append("Subsp is mandatory; ");
 		}
 
 		// CREATED_BY
@@ -106,7 +103,8 @@ public class PartnerSubSpUploadHelper {
 
 		// MODIFIED_BY
 		partnerSubSpMappingT.setModifiedBy(userId);
-
+		
+		error.setMessage(sb.toString());
 		return error;
 	}
 
@@ -196,15 +194,16 @@ public class PartnerSubSpUploadHelper {
 		List<PartnerSubspProductMappingT> partnerSubSpProductMappingTs = new ArrayList<PartnerSubspProductMappingT>();
 		int rowNumber = Integer.parseInt(data[0]) + 1;
 
+		StringBuffer sb = new StringBuffer();
 		if (StringUtils.isEmpty(partnerSubspMappingId)) {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			error.setMessage("Partner SubSp Mapping Id is mandatory ");
+			sb.append("Partner SubSp Mapping Id is mandatory ;");
 		} else {
 			PartnerSubSpMappingT partnerSubSp = partnerSubSpMappingTRepository
 					.findByPartnerSubspMappingId(partnerSubspMappingId);
 			if (partnerSubSp == null) {
 				error.setRowNumber(rowNumber);
-				error.setMessage("Invalid Partner SubSp Mapping Id");
+				sb.append("Invalid Partner SubSp Mapping Id;");
 			} else {
 
 				List<PartnerSubspProductMappingT> partnerSubSpProductList = partnerSubSpProductMappingTRepository
@@ -212,24 +211,25 @@ public class PartnerSubSpUploadHelper {
 								.getPartnerSubspMappingId());
 				if(partnerSubSpProductList!=null)
 				{
-				 for(PartnerSubspProductMappingT partnerSubspProductMappingT :partnerSubSpProductList)
-				 {
-				 partnerSubSpProductMappingTs.add(partnerSubspProductMappingT);
-				 }
-				 partner.setPartnerSubspProductMappingTs(partnerSubSpProductMappingTs);
-				 deleteFlag=true;
+					for(PartnerSubspProductMappingT partnerSubspProductMappingT :partnerSubSpProductList)
+					{
+						partnerSubSpProductMappingTs.add(partnerSubspProductMappingT);
+					}
+					partner.setPartnerSubspProductMappingTs(partnerSubSpProductMappingTs);
+					deleteFlag=true;
 				}
 				else
 				{
 					logger.debug("No partner subsp product records found!");
 				}
-				
+
 				partner.setPartnerSubspMappingId(partnerSubspMappingId);
 
 			}
 
-			
+
 		}
+		error.setMessage(sb.toString());
 		return error;
 	}
 	

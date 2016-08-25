@@ -13,6 +13,7 @@ import java.util.List;
 import javax.servlet.WriteListener;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,11 +82,11 @@ public class PartnerSubspProductWriter implements ItemWriter<String[]>,
 							.validatePartnerSubspProductData(data, request
 									.getUserT().getUserId(),
 									partnerSubspProductMappingT);
-					if (errorDTO.getMessage() != null) {
+					if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
 								: errorList;
 						errorList.add(errorDTO);
-					} else if (errorDTO.getMessage() == null) {
+					} else {
 						insertList.add(partnerSubspProductMappingT);
 					}
 
@@ -101,11 +102,11 @@ public class PartnerSubspProductWriter implements ItemWriter<String[]>,
 						UploadServiceErrorDetailsDTO errorDTO = helper
 								.validatePartnerSubSpProductId(data, partner);
 
-						if (errorDTO.getMessage() != null) {
+						if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
 							errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
 									: errorList;
 							errorList.add(errorDTO);
-						} else if (errorDTO.getMessage() == null) {
+						} else {
 							deleteList.add(partner);
 						}
 					}
