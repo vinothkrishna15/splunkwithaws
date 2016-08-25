@@ -2968,7 +2968,7 @@ public class WorkflowService {
 			city = oldObject.getCity();
 		}
 		if (!workflowPartnerT.getCity().equals(city)) {
-			oldObject.setCountry(workflowPartnerT.getCity());
+			oldObject.setCity(workflowPartnerT.getCity());
 			isPartnerModifiedFlag = true;
 		}
 		//group Partner name
@@ -2976,7 +2976,7 @@ public class WorkflowService {
 			groupPartnerName = oldObject.getGroupPartnerName();
 		}
 		if (!workflowPartnerT.getGroupPartnerName().equals(groupPartnerName)) {
-			oldObject.setCountry(workflowPartnerT.getGroupPartnerName());
+			oldObject.setGroupPartnerName(workflowPartnerT.getGroupPartnerName());
 			isPartnerModifiedFlag = true;
 		}
 		return isPartnerModifiedFlag;
