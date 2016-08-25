@@ -98,41 +98,17 @@ public class PartnerContactCustomWriter implements ItemWriter<String[]>,
 				} else if (operation.equalsIgnoreCase(Operation.UPDATE.name())) {
 
 					logger.debug("***PARTNER CONTACT UPDATE***");
-					String contactId = data[2];
 					UploadServiceErrorDetailsDTO errorDTO = new UploadServiceErrorDetailsDTO();
-					if (!contactId.isEmpty()) {
-						try {
 
-							ContactT contact = contactRepository
-									.findByContactId(contactId);
-							if (contact != null) {
-								errorDTO = helper.validatePartnerContactUpdate(
-										data, request.getUserT().getUserId(),
-										contact);
-								if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
-									errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
-											: errorList;
-									errorList.add(errorDTO);
-								} else  {
-									updateList.add(contact);
-								}
-							} else {
-								errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
-										: errorList;
-								errorDTO.setRowNumber(Integer.parseInt(data[0]) + 1);
-								errorDTO.setMessage("Contact Id is invalid");
-								errorList.add(errorDTO);
-							}
-						} catch (InvocationTargetException e) {
-							System.out.println("Exception Cause:"
-									+ e.getCause());
-						}
-					} else {
+					errorDTO = helper.validatePartnerContactUpdate(
+							data, request.getUserT().getUserId());
+					if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
 								: errorList;
-						errorDTO.setRowNumber(Integer.parseInt(data[0]) + 1);
-						errorDTO.setMessage("Contact Id is mandatory");
 						errorList.add(errorDTO);
+					} else  {
+						updateList.add(helper.populatePartnerContactData(
+								data, request.getUserT().getUserId()));
 					}
 				}
 

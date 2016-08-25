@@ -38,6 +38,8 @@ public interface ContactRepository extends CrudRepository<ContactT, String> {
 	
 	List<ContactT> findByContactName(String contactName);
 	
+	List<ContactT> findByContactNameAndContactEmailId(String contactName, String emailId);
+	
 	
 	ContactT findByContactId(String contactId);
 	

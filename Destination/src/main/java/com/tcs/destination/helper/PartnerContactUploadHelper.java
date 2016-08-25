@@ -1,7 +1,6 @@
 package com.tcs.destination.helper;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +64,6 @@ public class PartnerContactUploadHelper {
 	@Autowired
 	PartnerContactLinkTRepository partnerContactLinkTRepository;
 
-	private Map<String, String> mapOfPartnerMasterT = null;
 	private List<ContactRoleMappingT> listOfContactRole = null;
 	private Map<String, PartnerMasterT> mapOfPartnerT = null;
 
@@ -77,34 +75,36 @@ public class PartnerContactUploadHelper {
 	 * constraints. It throws exceptions in case if it fails.
 	 */
 	public UploadServiceErrorDetailsDTO validatePartnerContactData(
-			String[] data, String userId, ContactT partnerContactT)
-			throws Exception {
-		logger.info("Begin:inside validatePartnerContactData() of PartnerContactUploadHelper");
+			String[] data, String userId, ContactT partnerContactT) throws Exception {
+		
+		logger.debug("Begin:inside validatePartnerContactData() of PartnerContactUploadHelper");
+		
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
 		StringBuffer errorMsg = new StringBuffer();
-		mapOfPartnerMasterT = getNameAndIdFromPartnerMasterT();
 		listOfContactRole = (List<ContactRoleMappingT>) contactRoleMappingTRepository
 				.findAll();
 
+		int rowNo = Integer.parseInt(data[0]) + 1;
 		// PARTNER NAME
 		String partnerName = data[3];
 		if (StringUtils.isEmpty(partnerName)) {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNo);
 			errorMsg.append("Partner name is mandatory; ");
 		}
 
 		// CONTACT NAME
 		String contactName = data[4];
+		String contactEmailId = data[6];
 		if (StringUtils.isNotEmpty(contactName)) {
-			if (CollectionUtils.isEmpty(contactRepository.findByContactName(contactName))) {
+			if (CollectionUtils.isEmpty(contactRepository.findByContactNameAndContactEmailId(contactName, contactEmailId))) {
 				partnerContactT.setContactName(contactName);
 			} else {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				errorMsg.append("Duplicate contact name; ");
+				error.setRowNumber(rowNo);
+				errorMsg.append("Contact already availble in the system; ");
 			}
 			
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNo);
 			errorMsg.append("Contact name is mandatory; ");
 		}
 
@@ -119,16 +119,15 @@ public class PartnerContactUploadHelper {
 			}
 
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNo);
 			errorMsg.append("Contact role is mandatory; ");
 		}
 
 		// contact email id
-		String contactEmailid = data[6];
-		if (StringUtils.isNotEmpty(contactEmailid)) {
-			partnerContactT.setContactEmailId(contactEmailid);
+		if (StringUtils.isNotEmpty(contactEmailId)) {
+			partnerContactT.setContactEmailId(contactEmailId);
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNo);
 			errorMsg.append("Contact email id is mandatory; ");
 
 		}
@@ -146,74 +145,69 @@ public class PartnerContactUploadHelper {
 
 		// PARTNER NAMES
 		if (StringUtils.isNotEmpty(partnerName)) {
-			String partnerId = getMapValuesForKey(mapOfPartnerMasterT,
-					partnerName);
-			if (StringUtils.isNotEmpty(partnerId) && (partnerId != null)) {
+			if (mapOfPartnerT == null) {
+				mapOfPartnerT = getPartnerMasterT();
+			}
+			
+			PartnerMasterT partnerMasterT = mapOfPartnerT.get(partnerName);
+			if (partnerMasterT != null) {
+				List<PartnerContactLinkT> partnerContactLinks = new ArrayList<PartnerContactLinkT>();
 				String contactId = data[2];
-				List<PartnerContactLinkT> pclt = constructPartnerContactLinkT(
-						partnerId, userId, contactId);
-
-				partnerContactT.setPartnerContactLinkTs(pclt);
+				PartnerContactLinkT pclt = constructPartnerContactLinkT(
+						partnerMasterT.getPartnerId(), userId, contactId);
+				partnerContactLinks.add(pclt);
+				
+				partnerContactT.setPartnerContactLinkTs(partnerContactLinks);
 
 			} else {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNo);
 				errorMsg.append("Invalid Partner Name; ");
 			}
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNo);
 			errorMsg.append("Partner name not found; ");
 		}
 
 		partnerContactT.setContactCategory("PARTNER");
-
 		partnerContactT.setContactType("EXTERNAL");
-
 		partnerContactT.setCreatedBy(userId);
-
 		partnerContactT.setModifiedBy(userId);
 
 		// ACTIVE
 		String active = data[9];
-		if (StringUtils.isNotEmpty(active)) {
-			if (active.equalsIgnoreCase("true")) {
+		if (StringUtils.isNotEmpty(active) && active.equalsIgnoreCase("false")) {
 				partnerContactT.setActive(true);
 
-			} else {
-				partnerContactT.setActive(false);
-			}
-		} else {
-			partnerContactT.setActive(true);
-		}
+		} 
 
 		error.setMessage(errorMsg.toString());
 
-		logger.info("End::inside validatePartnerContactData() of PartnerContactUploadHelper");
+		logger.debug("End::inside validatePartnerContactData() of PartnerContactUploadHelper");
 
 		return error;
 	}
 
 	public UploadServiceErrorDetailsDTO validatePartnerContactUpdate(
-			String[] data, String userId, ContactT partnerContactT)
+			String[] data, String userId)
 			throws Exception {
-		logger.info("Begin:inside validatePartnerContactData() of PartnerContactUploadHelper");
+		
+		logger.debug("Begin:inside validatePartnerContactData() of PartnerContactUploadHelper");
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
 		StringBuffer errorMsg = new StringBuffer();
-		mapOfPartnerMasterT = getNameAndIdFromPartnerMasterT();
 		listOfContactRole = (List<ContactRoleMappingT>) contactRoleMappingTRepository
 				.findAll();
 
 		String contactId = data[2];
-
+		ContactT contactT = null;
+		int rowNo = Integer.parseInt(data[0]) + 1;
 		if (StringUtils.isNotEmpty(contactId)) {
-
-			ContactT contactT = contactRepository.findByContactId(contactId);
+			contactT = contactRepository.findByContactId(contactId);
 			if (contactT == null) {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNo);
 				errorMsg.append("Invalid contact id; ");
-
-			}
+			} 
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNo);
 			errorMsg.append("Contact id is mandatory; ");
 		}
 
@@ -223,88 +217,26 @@ public class PartnerContactUploadHelper {
 			if (mapOfPartnerT == null) {
 				mapOfPartnerT = getPartnerMasterT();
 			}
-
-			List<PartnerContactLinkT> partnerContactLinks = new ArrayList<PartnerContactLinkT>();
-			if (mapOfPartnerT.containsKey(partnerName)) {
-				PartnerContactLinkT partnerContactLinkT = constructPartnerContactLinkUpdate(
-						partnerName, userId, mapOfPartnerT, partnerContactT);
-				partnerContactLinks.add(partnerContactLinkT);
-			} else {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			PartnerMasterT partnerMasterT = mapOfPartnerT.get(partnerName);
+			if (partnerMasterT == null) {
+				error.setRowNumber(rowNo);
 				errorMsg.append("Invalid partner name; ");
 			}
-
-			partnerContactLinkTRepository.delete(partnerContactT
-					.getPartnerContactLinkTs());
-			partnerContactT.setPartnerContactLinkTs(partnerContactLinks);
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNo);
 			errorMsg.append("Partner name is mandatory;");
 		}
 
-		// CONTACT NAME
-		String contactName = data[4];
-		if (StringUtils.isNotEmpty(contactName)) {
-			partnerContactT.setContactName(contactName);
-		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			errorMsg.append("Contact name not found; ");
-		}
-
-		// CONTACT ROLE (Optional)
-		String contactRole = data[5];
-		if (StringUtils.isNotEmpty(contactRole)) {
-			if (validateContactRole(data[5])) {
-				partnerContactT.setContactRole(contactRole);
-			} else {
-				partnerContactT.setContactRole("Other");
-				partnerContactT.setOtherRole(contactRole);
-			}
-
-		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+		if (StringUtils.isEmpty(data[5])) {
+			error.setRowNumber(rowNo);
 			errorMsg.append("Contact role not found; ");
 		}
 
 		// contact email id
-		String contactEmailid = data[6];
-		if (StringUtils.isNotEmpty(contactEmailid)) {
-			partnerContactT.setContactEmailId(contactEmailid);
-		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+		if (StringUtils.isEmpty(data[6])) {
+			error.setRowNumber(rowNo);
 			errorMsg.append("Contact email id is mandatory; ");
 
-		}
-
-		// contact telephone (Optional)
-		String contactTelephone = data[7];
-		if (StringUtils.isNotEmpty(contactTelephone)) {
-			partnerContactT.setContactTelephone(contactTelephone);
-		}
-
-		// contact linkedin (Optional)
-		String contactLinkedIn = data[8];
-		if (StringUtils.isNotEmpty(contactLinkedIn)) {
-			partnerContactT.setContactLinkedinProfile(contactLinkedIn);
-		}
-
-		partnerContactT.setContactCategory("PARTNER");
-
-		partnerContactT.setContactType("EXTERNAL");
-
-		partnerContactT.setModifiedBy(userId);
-
-		// ACTIVE
-		String active = data[9];
-		if (StringUtils.isNotEmpty(active)) {
-			if (active.equalsIgnoreCase("true")) {
-				partnerContactT.setActive(true);
-
-			} else {
-				partnerContactT.setActive(false);
-			}
-		} else {
-			partnerContactT.setActive(true);
 		}
 
 		error.setMessage(errorMsg.toString());
@@ -317,19 +249,18 @@ public class PartnerContactUploadHelper {
 		// TODO Auto-generated method stub
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
 		String contactId = data[2];
-
+		int rowNo = Integer.parseInt(data[0]) + 1;
 		if (StringUtils.isEmpty(contactId)) {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			error.setMessage("Contact Id is mandatory ");
+			error.setRowNumber(rowNo);
+			error.setMessage("Contact id is mandatory; ");
 		} else {
 			ContactT contactT = contactRepository.findByContactId(contactId);
-			if (contactT.getContactId() == null) {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				error.setMessage("Invalid Contact Id ");
+			if (contactT == null) {
+				error.setRowNumber(rowNo);
+				error.setMessage("Invalid contact id; ");
 			} else {
 				// ACTIVE
 				contact.setActive(false);
-
 			}
 		}
 
@@ -355,43 +286,6 @@ public class PartnerContactUploadHelper {
 		return flag;
 	}
 
-	/**
-	 * This method retrieves the value for the key
-	 * 
-	 * @param map
-	 * @param key
-	 * @return String
-	 * @throws Exception
-	 */
-	private String getMapValuesForKey(Map<String, String> map, String key)
-			throws Exception {
-		String value = null;
-		if (map.containsKey(key)) {
-			value = map.get(key);
-		}
-		return value;
-	}
-
-	/**
-	 * This method retrieves Customer Name and Id from CustomerMasterT
-	 * 
-	 * @return Map
-	 * @throws Exception
-	 */
-	private Map<String, String> getNameAndIdFromPartnerMasterT()
-			throws Exception {
-
-		Map<String, String> mapOfCMT = new HashMap<String, String>();
-
-		List<Object[]> listOfPartnerMasterT = partnerRepository
-				.getPartnerNameAndId();
-
-		for (Object[] st : listOfPartnerMasterT) {
-			mapOfCMT.put(st[0].toString().trim(), st[1].toString().trim());
-		}
-
-		return mapOfCMT;
-	}
 
 	/**
 	 * This method is used to get the list of customer contact link for the list
@@ -402,25 +296,19 @@ public class PartnerContactUploadHelper {
 	 * @return
 	 * @throws Exception
 	 */
-	private List<PartnerContactLinkT> constructPartnerContactLinkT(
-			String listOfPartnerId, String userId, String contactId)
+	private PartnerContactLinkT constructPartnerContactLinkT(
+			String partnerId, String userId, String contactId)
 			throws Exception {
-		List<PartnerContactLinkT> listOfPartnerContactLinkT = null;
-		if ((listOfPartnerId != null) && (!listOfPartnerId.isEmpty())) {
-			listOfPartnerContactLinkT = new ArrayList<PartnerContactLinkT>();
 
 			PartnerContactLinkT cclt = new PartnerContactLinkT();
 			cclt.setCreatedBy(userId);
-			cclt.setPartnerId(listOfPartnerId);
+			cclt.setPartnerId(partnerId);
 			cclt.setModifiedBy(userId);
 			if (contactId != null) {
 				cclt.setContactId(contactId);
 			}
 
-			listOfPartnerContactLinkT.add(cclt);
-
-		}
-		return listOfPartnerContactLinkT;
+		return cclt;
 	}
 
 	/**
@@ -464,6 +352,66 @@ public class PartnerContactUploadHelper {
 			partner = mapOfPartner.get(key);
 		}
 		return partner;
+	}
+
+	/**
+	 * @param data
+	 * @param userId
+	 * @param contact
+	 * @return
+	 */
+	public ContactT populatePartnerContactData(String[] data, String userId) {
+		
+		logger.debug("Begin:inside populatePartnerContactData() of PartnerContactUploadHelper");
+
+		String contactId = data[2];
+
+		ContactT contactT = contactRepository.findByContactId(contactId);
+
+		// PARTNER NAMES
+		String partnerName = data[3];
+		List<PartnerContactLinkT> partnerContactLinks = contactT.getPartnerContactLinkTs();
+		PartnerMasterT partnerMasterT = mapOfPartnerT.get(partnerName);
+		List<PartnerContactLinkT> contactLinkTs = partnerContactLinkTRepository.findByPartnerIdAndContactId(partnerMasterT.getPartnerId(), contactT.getContactId());
+		if (CollectionUtils.isEmpty(contactLinkTs)) {
+			PartnerContactLinkT partnerContactLinkT = constructPartnerContactLinkUpdate(
+					partnerName, userId, mapOfPartnerT, contactT);
+			partnerContactLinks.add(partnerContactLinkT);
+		}
+
+		contactT.setPartnerContactLinkTs(partnerContactLinks);
+		contactT.setContactName(data[4]);
+
+		// CONTACT ROLE (Optional)
+		String contactRole = data[5];
+		if (validateContactRole(contactRole)) {
+			contactT.setContactRole(contactRole);
+		} else {
+			contactT.setContactRole("Other");
+			contactT.setOtherRole(contactRole);
+		}
+
+		contactT.setContactEmailId(data[6]);
+		contactT.setContactTelephone(data[7]);
+
+		// contact linkedin (Optional)
+		String contactLinkedIn = data[8];
+		if (StringUtils.isNotEmpty(contactLinkedIn)) {
+			contactT.setContactLinkedinProfile(contactLinkedIn);
+		}
+
+		contactT.setContactCategory("PARTNER");
+		contactT.setContactType("EXTERNAL");
+		contactT.setModifiedBy(userId);
+
+		// ACTIVE
+		String active = data[9];
+		if (StringUtils.isNotEmpty(active) && active.equalsIgnoreCase("false")) {
+			contactT.setActive(false);
+
+		}
+
+		return contactT;
 	}
 
 }
