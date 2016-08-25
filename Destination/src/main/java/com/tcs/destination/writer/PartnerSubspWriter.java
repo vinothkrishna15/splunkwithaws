@@ -27,6 +27,7 @@ import com.tcs.destination.bean.PartnerSubSpMappingT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
 import com.tcs.destination.data.repository.PartnerSubSpMappingTRepository;
+import com.tcs.destination.data.repository.PartnerSubSpProductMappingTRepository;
 import com.tcs.destination.enums.Operation;
 import com.tcs.destination.enums.RequestStatus;
 import com.tcs.destination.helper.PartnerSubSpUploadHelper;
@@ -58,6 +59,8 @@ public class PartnerSubspWriter implements ItemWriter<String[]>,
 
 	private PartnerSubSpMappingTRepository partnerSubSpMappingTRepository;
 
+	private PartnerSubSpProductMappingTRepository partnerSubSpProductMappingTRepository;
+	
 	boolean deleteFlag = false;
 
 	@Override
@@ -125,7 +128,11 @@ public class PartnerSubspWriter implements ItemWriter<String[]>,
 			partnerService.savePartnerSubsp(insertList);
 		}
 		// to delete partner subsp details from db
-		else if (CollectionUtils.isNotEmpty(deleteList)) {
+		if (CollectionUtils.isNotEmpty(deleteList)) {
+			//delete the product references
+			for (PartnerSubSpMappingT partnerSubSpMappingT : deleteList) {
+				partnerSubSpProductMappingTRepository.delete(partnerSubSpProductMappingTRepository.findByPartnerSubspMappingId(partnerSubSpMappingT.getPartnerSubspMappingId()));
+			}
 			partnerService.deletePartnerSubSp(deleteList);
 		}
 	}

@@ -116,7 +116,8 @@ public class PartnerSubspProductWriter implements ItemWriter<String[]>,
 					if (CollectionUtils.isNotEmpty(insertList)) {
 						partnerService.savePartnerSubSpProduct(insertList);
 					} // to delete partner subsp product details from db 
-					else if (CollectionUtils.isNotEmpty(deleteList)){
+					
+					if (CollectionUtils.isNotEmpty(deleteList)){
 						partnerService.deletePartnerSubSpProduct(deleteList);
 					}
 				
