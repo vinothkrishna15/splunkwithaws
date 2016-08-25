@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,7 +96,13 @@ public class PartnerContactUploadHelper {
 		// CONTACT NAME
 		String contactName = data[4];
 		if (StringUtils.isNotEmpty(contactName)) {
-			partnerContactT.setContactName(contactName);
+			if (CollectionUtils.isEmpty(contactRepository.findByContactName(contactName))) {
+				partnerContactT.setContactName(contactName);
+			} else {
+				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				errorMsg.append("Duplicate contact name; ");
+			}
+			
 		} else {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
 			errorMsg.append("Contact name is mandatory; ");
