@@ -187,6 +187,15 @@ public class PartnerSubspWriter implements ItemWriter<String[]>,
 		this.request = request;
 	}
 
+	public PartnerSubSpProductMappingTRepository getPartnerSubSpProductMappingTRepository() {
+		return partnerSubSpProductMappingTRepository;
+	}
+
+	public void setPartnerSubSpProductMappingTRepository(
+			PartnerSubSpProductMappingTRepository partnerSubSpProductMappingTRepository) {
+		this.partnerSubSpProductMappingTRepository = partnerSubSpProductMappingTRepository;
+	}
+
 	@Override
 	public void beforeStep(StepExecution stepExecution) {
 		this.stepExecution = stepExecution;
