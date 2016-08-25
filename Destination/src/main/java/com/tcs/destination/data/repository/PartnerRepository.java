@@ -120,6 +120,6 @@ CrudRepository<PartnerMasterT, String> {
 	/*   -------  partner smart search ends --------*/
 	
 	
-	List<PartnerMasterT> findByGroupPartnerNameIgnoreCaseContainingAndGroupPartnerNameIgnoreCaseNotLikeAndActiveOrderByGroupPartnerNameAsc(
+	List<PartnerMasterT> findDistinctByGroupPartnerNameIgnoreCaseContainingAndGroupPartnerNameIgnoreCaseNotLikeAndActiveOrderByGroupPartnerNameAsc(
 			String groupPartnerName, String unknownPartner, boolean b);	
 }

@@ -2,8 +2,10 @@
 package com.tcs.destination.service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -840,12 +842,17 @@ public class PartnerService {
 	 * @param nameWith
 	 * @return
 	 */
-	public List<PartnerMasterT> findByGroupPartnerName(String groupPartnerName) {
+	public Set<String> findByGroupPartnerName(String groupPartnerName) {
 		logger.debug("Inside findByGroupPartnerName() service");
+		Set<String> groupPartnerNameSet = new HashSet<String>();
 		List<PartnerMasterT> partnerList = partnerRepository
-				.findByGroupPartnerNameIgnoreCaseContainingAndGroupPartnerNameIgnoreCaseNotLikeAndActiveOrderByGroupPartnerNameAsc(
+				.findDistinctByGroupPartnerNameIgnoreCaseContainingAndGroupPartnerNameIgnoreCaseNotLikeAndActiveOrderByGroupPartnerNameAsc(
 						groupPartnerName, Constants.UNKNOWN_PARTNER,true);
-		if (partnerList.isEmpty()) {
+		//retrieving distinct groupPartnerNames from the queried result
+		for (PartnerMasterT partner : partnerList) {
+			groupPartnerNameSet.add(partner.getGroupPartnerName());
+		}
+		if (groupPartnerNameSet.isEmpty()) {
 			logger.error(
 					"NOT_FOUND: Partner not found with given group Partner name: {}",
 					groupPartnerName);
@@ -853,7 +860,7 @@ public class PartnerService {
 					"Partner not found with given group Partner name: "
 							+ groupPartnerName);
 		}
-		return partnerList;
+		return groupPartnerNameSet;
 	}
 
 	private void preparePartnerDetails(List<PartnerMasterT> partnerList) {

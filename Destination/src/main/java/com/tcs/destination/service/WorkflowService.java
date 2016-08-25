@@ -2699,13 +2699,6 @@ public class WorkflowService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Country Should not be empty");
 		} 
-
-		String city = reqPartner.getCity();
-		if (StringUtils.isEmpty(city)) {
-			logger.error("city should not be empty");
-			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"city Should not be empty");
-		} 
 	}
 
 	/**
@@ -3098,14 +3091,6 @@ public class WorkflowService {
 			validated = false;
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Country should not be empty");
-		}
-
-		// city should not be empty
-		if (StringUtils.isEmpty(requestedPartner.getCity())) {
-			logger.error("City should not be empty");
-			validated = false;
-			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"City should not be empty");
 		}
 		return validated;
 	}
