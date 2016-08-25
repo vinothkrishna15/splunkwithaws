@@ -22,6 +22,7 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.util.StringUtils;
 
 import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.DataProcessingRequestT;
@@ -167,10 +168,14 @@ public class ProductContactCustomWriter implements ItemWriter<String[]>,
 			{
 
 				logger.debug("***PRODUCT CONTACT UPDATE***");
-				String contactId =data[2];
+				String contactId = null;
+				if(data[2]!=null){
+					contactId = data[2].trim();
+				}
+				
 				ContactT contact = new ContactT();
                 UploadServiceErrorDetailsDTO errorDTO = new UploadServiceErrorDetailsDTO();
-				if (!contactId.isEmpty()) {
+				if (!StringUtils.isEmpty(contactId)) {
 					try{
 						
 						contact= contactRepository.findByContactId(contactId);
@@ -220,13 +225,13 @@ public class ProductContactCustomWriter implements ItemWriter<String[]>,
 			}
 		}
 		if ((CollectionUtils.isNotEmpty(contactList)) || (CollectionUtils.isNotEmpty(updateList)) || (CollectionUtils.isNotEmpty(deleteList))) {
-			if (operation.equalsIgnoreCase(Operation.ADD.name())) {
+			if (CollectionUtils.isNotEmpty(contactList)) {
 				contactService.saveContacts(contactList);
 			} 
-			else if (operation.equalsIgnoreCase(Operation.UPDATE.name())){ 
+			else if (CollectionUtils.isNotEmpty(updateList)){ 
 				contactService.updateContact(updateList);
 			}
-			else if (operation.equalsIgnoreCase(Operation.DELETE.name())){ 
+			else if (CollectionUtils.isNotEmpty(deleteList)){ 
 				contactService.deleteContact(deleteList);
 			}
 		}

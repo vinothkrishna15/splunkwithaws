@@ -86,7 +86,8 @@ public class ProductContactUploadHelper {
 		contact.setModifiedBy(userId);
 
 		// Product Names
-		String productName = data[3];
+		if(data[3]!=null){
+		String productName = data[3].trim();
 		String contactId=null;
 		if (!StringUtils.isEmpty(productName)) {
 			String[] productNameList = productName.split(",");
@@ -104,61 +105,81 @@ public class ProductContactUploadHelper {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
 			error.setMessage("Product Name is mandatory ");
 		}
+		}else {
+			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setMessage("Product Name is mandatory ");
+		}
 		
 		// Contact Name
-		String contactName = data[4];
+		if(data[4]!=null){
+		String contactName = data[4].trim();
 				if (!StringUtils.isEmpty(contactName)) {
 					contact.setContactName(contactName);
 				} else {
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
 					error.setMessage("Contact Name is mandatory ");
 				}
-
+		} else {
+			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setMessage("Contact Name is mandatory ");
+		}
+		
 
 		// Contact Role
-        String contactRole = data[5];
-		if (!StringUtils.isEmpty(contactRole)) {
-			if (validateContactRole(contactRole)) {
-			contact.setContactRole(contactRole);
+		if (data[5] != null) {
+			String contactRole = data[5].trim();
+			if (!StringUtils.isEmpty(contactRole)) {
+				if (validateContactRole(contactRole)) {
+					contact.setContactRole(contactRole);
+				} else {
+					contact.setContactRole("Other");
+					contact.setOtherRole(contactRole);
+				}
+
+			} else {
+				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setMessage("Contact Role is mandatory ");
 			}
-			else {
-				contact.setContactRole("Other");
-				contact.setOtherRole(contactRole);
-			}
-			
 		} else {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
 			error.setMessage("Contact Role is mandatory ");
 		}
-
 		// Contact Email id
-		String contactEmailId = data[6];
+		if(data[6]!=null){
+		String contactEmailId = data[6].trim();
 		if (!StringUtils.isEmpty(contactEmailId)) {
 			contact.setContactEmailId(contactEmailId);
 		}
 		else
 		{
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Contact email id is mandatory");
-
+			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setMessage("Contact email id is mandatory ");
 		}
-
+		} else {
+			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setMessage("Contact email id is mandatory ");
+		}
+		
 		// Contact Telephone
-		String contactTelephone = data[7];
-		if((contactTelephone!=null)&&(!StringUtils.isEmpty(contactTelephone)))
+		if(data[7]!=null){
+		String contactTelephone = data[7].trim();
+		if(!StringUtils.isEmpty(contactTelephone))
 		{
-		Long telephoneNumber=Double.valueOf(contactTelephone).longValue();
-		if (telephoneNumber!=null) {
-			contact.setContactTelephone(telephoneNumber.toString());
+			contact.setContactTelephone(contactTelephone);
 		}
 		}
+		
 		// Contact LinkedIn profile
-		String contactLinkedInProfile = data[8];
+		if(data[8]!=null){
+		String contactLinkedInProfile = data[8].trim();
 		if (!StringUtils.isEmpty(contactLinkedInProfile)) {
 			contact.setContactLinkedinProfile(contactLinkedInProfile);
 		}
+		}
 		
 		//ACTIVE
-		String active=data[9];
+		if(data[9]!=null){
+		String active=data[9].trim();
 		boolean activeFlag=false;
 		if (!StringUtils.isEmpty(active)) {
 		 if(active.equalsIgnoreCase("true"))
@@ -171,6 +192,7 @@ public class ProductContactUploadHelper {
 		 {
 			 contact.setActive(activeFlag);
 		 }
+		}
 		}
 		return error;
 	}
@@ -186,7 +208,8 @@ public class ProductContactUploadHelper {
 				mapOfProductMasterT = getNameAndIdFromProductMasterT();
 				
 			    //CONTACT_ID
-		        String contactId=data[2];
+				if(data[2]!=null){
+		        String contactId=data[2].trim();
 			
 				if (!StringUtils.isEmpty(contactId)) 
 				{
@@ -199,6 +222,10 @@ public class ProductContactUploadHelper {
 				}
 				else
 				{
+					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setMessage("Contact id is mandatory");
+				}
+				} else {
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
 					error.setMessage("Contact id is mandatory");
 				}
@@ -219,7 +246,8 @@ public class ProductContactUploadHelper {
 				contact.setModifiedBy(userId);
 
 				// PRODUCT NAMES
-				String productName = data[3];
+				if(data[3]!=null){
+				String productName = data[3].trim();
 				if (!StringUtils.isEmpty(productName)) {
 					if (mapOfProductT == null) {
 						mapOfProductT = getProductMasterT();
@@ -256,19 +284,25 @@ public class ProductContactUploadHelper {
 					productContactLinkTRepository.delete(deleteList);
 					contact.setProductContactLinkTs(updateList);
 				}
+				}
 				
 				// Contact Name
-				String contactName = data[4];
+				if(data[4]!=null){
+				String contactName = data[4].trim();
 						if (!StringUtils.isEmpty(contactName)) {
 							contact.setContactName(contactName);
 						} else {
 							error.setRowNumber(Integer.parseInt(data[0]) + 1);
 							error.setMessage("Contact Name is mandatory ");
 						}
-
-
+				} else {
+					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setMessage("Contact Name is mandatory ");
+				}
+				
 				// Contact Role
-		        String contactRole = data[5];
+				if(data[5]!=null){
+		        String contactRole = data[5].trim();
 				if (!StringUtils.isEmpty(contactRole)) {
 					if (validateContactRole(contactRole)) {
 					contact.setContactRole(contactRole);
@@ -282,35 +316,46 @@ public class ProductContactUploadHelper {
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
 					error.setMessage("Contact Role is mandatory ");
 				}
+	            }else {
+	            	error.setRowNumber(Integer.parseInt(data[0]) + 1);
+	            	error.setMessage("Contact Role is mandatory ");
+	            }
 
 				// Contact Email id
-				String contactEmailId = data[6];
+				if(data[6]!=null){
+				String contactEmailId = data[6].trim();
 				if (!StringUtils.isEmpty(contactEmailId)) {
 					contact.setContactEmailId(contactEmailId);
 				}
 				else
 				{
-					throw new DestinationException(HttpStatus.NOT_FOUND, "Contact email id is mandatory");
-
+					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setMessage("Contact email id is mandatory ");
 				}
-
+				} else {
+					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setMessage("Contact email id is mandatory ");
+				}
 				// Contact Telephone
-				String contactTelephone = data[7];
-				if((contactTelephone!=null)&&(!StringUtils.isEmpty(contactTelephone)))
+				if(data[7]!=null){
+				String contactTelephone = data[7].trim();
+				if(!StringUtils.isEmpty(contactTelephone))
 				{
-				Long telephoneNumber=Double.valueOf(contactTelephone).longValue();
-				if (telephoneNumber!=null) {
-					contact.setContactTelephone(telephoneNumber.toString());
+					contact.setContactTelephone(contactTelephone);
 				}
 				}
+				
 				// Contact LinkedIn profile
-				String contactLinkedInProfile = data[8];
+				if(data[8]!=null){
+				String contactLinkedInProfile = data[8].trim();
 				if (!StringUtils.isEmpty(contactLinkedInProfile)) {
 					contact.setContactLinkedinProfile(contactLinkedInProfile);
 				}
+				}
 				
 				//ACTIVE
-				String active=data[9];
+				if(data[9]!=null){
+				String active=data[9].trim();
 				boolean activeFlag=false;
 				if (!StringUtils.isEmpty(active)) {
 				 if(active.equalsIgnoreCase("true"))
@@ -323,6 +368,7 @@ public class ProductContactUploadHelper {
 				 {
 					 contact.setActive(activeFlag);
 				 }
+				}
 				}
 			}
 				else
