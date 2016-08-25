@@ -174,9 +174,11 @@ public class PartnerContactUploadHelper {
 			} else {
 				partnerContactT.setActive(false);
 			}
+		} else {
+			partnerContactT.setActive(true);
 		}
+
 		error.setMessage(errorMsg.toString());
-		
 
 		logger.info("End::inside validatePartnerContactData() of PartnerContactUploadHelper");
 
@@ -208,100 +210,96 @@ public class PartnerContactUploadHelper {
 			errorMsg.append("Contact id is mandatory; ");
 		}
 
-		if (partnerContactT.isActive()) {
+		// PARTNER NAMES
+		String partnerName = data[3];
+		if (StringUtils.isNotEmpty(partnerName)) {
+			if (mapOfPartnerT == null) {
+				mapOfPartnerT = getPartnerMasterT();
+			}
 
-			// PARTNER NAMES
-			String partnerName = data[3];
-			if (StringUtils.isNotEmpty(partnerName)) {
-				if (mapOfPartnerT == null) {
-					mapOfPartnerT = getPartnerMasterT();
-				}
-				
-				List<PartnerContactLinkT> partnerContactLinks = new ArrayList<PartnerContactLinkT>();
-				if (mapOfPartnerT.containsKey(partnerName)) {
-					PartnerContactLinkT partnerContactLinkT = constructPartnerContactLinkUpdate(
-							partnerName, userId, mapOfPartnerT,
-							partnerContactT);
-					partnerContactLinks.add(partnerContactLinkT);
-				} else {
-					error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					errorMsg.append("Invalid partner name; ");
-				}
-
-				partnerContactLinkTRepository.delete(partnerContactT.getPartnerContactLinkTs());
-				partnerContactT.setPartnerContactLinkTs(partnerContactLinks);
+			List<PartnerContactLinkT> partnerContactLinks = new ArrayList<PartnerContactLinkT>();
+			if (mapOfPartnerT.containsKey(partnerName)) {
+				PartnerContactLinkT partnerContactLinkT = constructPartnerContactLinkUpdate(
+						partnerName, userId, mapOfPartnerT, partnerContactT);
+				partnerContactLinks.add(partnerContactLinkT);
 			} else {
 				error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				errorMsg.append("Partner name is mandatory;");
+				errorMsg.append("Invalid partner name; ");
 			}
 
-			// CONTACT NAME
-			String contactName = data[4];
-			if (StringUtils.isNotEmpty(contactName)) {
-				partnerContactT.setContactName(contactName);
-			} else {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				errorMsg.append("Contact name not found; ");
-			}
-
-			// CONTACT ROLE (Optional)
-			String contactRole = data[5];
-			if (StringUtils.isNotEmpty(contactRole)) {
-				if (validateContactRole(data[5])) {
-					partnerContactT.setContactRole(contactRole);
-				} else {
-					partnerContactT.setContactRole("Other");
-					partnerContactT.setOtherRole(contactRole);
-				}
-
-			} else {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				errorMsg.append("Contact role not found; ");
-			}
-
-			// contact email id
-			String contactEmailid = data[6];
-			if (StringUtils.isNotEmpty(contactEmailid)) {
-				partnerContactT.setContactEmailId(contactEmailid);
-			} else {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				errorMsg.append("Contact email id is mandatory; ");
-
-			}
-
-			// contact telephone (Optional)
-			String contactTelephone = data[7];
-			if (StringUtils.isNotEmpty(contactTelephone)) {
-				partnerContactT.setContactTelephone(contactTelephone);
-			}
-
-			// contact linkedin (Optional)
-			String contactLinkedIn = data[8];
-			if (StringUtils.isNotEmpty(contactLinkedIn)) {
-				partnerContactT.setContactLinkedinProfile(contactLinkedIn);
-			}
-
-			partnerContactT.setContactCategory("PARTNER");
-
-			partnerContactT.setContactType("EXTERNAL");
-
-			partnerContactT.setModifiedBy(userId);
-
-			// ACTIVE
-			String active = data[9];
-			if (StringUtils.isNotEmpty(active)) {
-				if (active.equalsIgnoreCase("true")) {
-					partnerContactT.setActive(true);
-
-				} else {
-					partnerContactT.setActive(false);
-				}
-			}
+			partnerContactLinkTRepository.delete(partnerContactT
+					.getPartnerContactLinkTs());
+			partnerContactT.setPartnerContactLinkTs(partnerContactLinks);
 		} else {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			errorMsg.append("Contact is not active to be updated; ");
+			errorMsg.append("Partner name is mandatory;");
 		}
-		
+
+		// CONTACT NAME
+		String contactName = data[4];
+		if (StringUtils.isNotEmpty(contactName)) {
+			partnerContactT.setContactName(contactName);
+		} else {
+			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			errorMsg.append("Contact name not found; ");
+		}
+
+		// CONTACT ROLE (Optional)
+		String contactRole = data[5];
+		if (StringUtils.isNotEmpty(contactRole)) {
+			if (validateContactRole(data[5])) {
+				partnerContactT.setContactRole(contactRole);
+			} else {
+				partnerContactT.setContactRole("Other");
+				partnerContactT.setOtherRole(contactRole);
+			}
+
+		} else {
+			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			errorMsg.append("Contact role not found; ");
+		}
+
+		// contact email id
+		String contactEmailid = data[6];
+		if (StringUtils.isNotEmpty(contactEmailid)) {
+			partnerContactT.setContactEmailId(contactEmailid);
+		} else {
+			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			errorMsg.append("Contact email id is mandatory; ");
+
+		}
+
+		// contact telephone (Optional)
+		String contactTelephone = data[7];
+		if (StringUtils.isNotEmpty(contactTelephone)) {
+			partnerContactT.setContactTelephone(contactTelephone);
+		}
+
+		// contact linkedin (Optional)
+		String contactLinkedIn = data[8];
+		if (StringUtils.isNotEmpty(contactLinkedIn)) {
+			partnerContactT.setContactLinkedinProfile(contactLinkedIn);
+		}
+
+		partnerContactT.setContactCategory("PARTNER");
+
+		partnerContactT.setContactType("EXTERNAL");
+
+		partnerContactT.setModifiedBy(userId);
+
+		// ACTIVE
+		String active = data[9];
+		if (StringUtils.isNotEmpty(active)) {
+			if (active.equalsIgnoreCase("true")) {
+				partnerContactT.setActive(true);
+
+			} else {
+				partnerContactT.setActive(false);
+			}
+		} else {
+			partnerContactT.setActive(true);
+		}
+
 		error.setMessage(errorMsg.toString());
 
 		return error;
@@ -426,7 +424,7 @@ public class PartnerContactUploadHelper {
 	public Map<String, PartnerMasterT> getPartnerMasterT() {
 		List<PartnerMasterT> listOfPartnerMasterT = null;
 		listOfPartnerMasterT = (List<PartnerMasterT>) partnerRepository
-				.findAll();
+				.findByActiveTrue();
 		Map<String, PartnerMasterT> partnerMap = new HashMap<String, PartnerMasterT>();
 		for (PartnerMasterT partnerT : listOfPartnerMasterT) {
 			partnerMap.put(partnerT.getPartnerName(), partnerT);
