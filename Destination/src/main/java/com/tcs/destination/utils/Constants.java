@@ -246,6 +246,7 @@ public class Constants {
 	public static final int CONSTANT_ONE = 1;
 	public static final int CONSTANT_TWO = 2;
 	public static final int CONSTANT_NINE = 9;
+	public static final int CONSTANT_FOUR = 4;
 	
 	//For Opportunity win/loss mail
 	public static final String 	WITH_SUPPORT_FROM = "with support from";

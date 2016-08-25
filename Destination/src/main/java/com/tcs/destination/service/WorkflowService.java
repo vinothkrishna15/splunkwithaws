@@ -3025,7 +3025,12 @@ public class WorkflowService {
 		oldPartnerMaster.setText3(workflowPartnerT.getText3());
 		if(!workflowPartnerT.getPartnerName().equalsIgnoreCase(workflowPartnerT.getGroupPartnerName())){
 			List<PartnerMasterT> parentPartner = partnerRepository.findByPartnerName(workflowPartnerT.getGroupPartnerName());
+			if (!parentPartner.isEmpty()){
 			oldPartnerMaster.setHqPartnerLinkId(parentPartner.get(0).getPartnerId());
+			} else {
+				logger.error("This group partner name is not valid and not approved partner");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"This group partner name is not valid and not approved partner!");			}
 		}
 		partnerRepository.save(oldPartnerMaster);
 	}
@@ -4066,6 +4071,14 @@ public class WorkflowService {
 			}
 			workflowStepTRepository.save(requestSteps);
 			workflowRequestTRepository.save(masterRequest);
+			
+			//once the BFM request is rejected, revert the sales stage code of the given opportunity to 4.
+			if (masterRequest.getStatus().equals(WorkflowStatus.REJECTED.getStatus())) {
+				OpportunityT opportuntiy = opportunityRepository.findOne(workflowBfmT.getOpportunityId());
+				opportuntiy.setSalesStageCode(Constants.CONSTANT_FOUR);
+				opportunityRepository.save(opportuntiy);
+			}
+			
 			if (masterRequest.getStatus().equals(
 					workflowStaus.getStatus())) {
 				WorkflowBfmT workflowBfmToBeSaved = workflowBfmTRepository.findOne(workflowBfmT.getWorkflowBfmId());
