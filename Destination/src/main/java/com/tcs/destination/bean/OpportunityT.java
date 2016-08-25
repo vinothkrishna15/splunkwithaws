@@ -305,6 +305,8 @@ public class OpportunityT implements Serializable, Cloneable {
 	@Transient
 	private byte[] dealFinancialFile;
 	
+	@Transient
+	private String bfmFileName;
 
 	public boolean isEnableEditAccess() {
 		return enableEditAccess;
@@ -1272,6 +1274,14 @@ public class OpportunityT implements Serializable, Cloneable {
 
 	public void setWorkflowBfmTs(List<WorkflowBfmT> workflowBfmTs) {
 		this.workflowBfmTs = workflowBfmTs;
+	}
+
+	public String getBfmFileName() {
+		return bfmFileName;
+	}
+
+	public void setBfmFileName(String bfmFileName) {
+		this.bfmFileName = bfmFileName;
 	}
 
 }

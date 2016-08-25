@@ -665,6 +665,20 @@ public class ContactService {
 					.setContactCustomerLinkTs(null);
 				}
 			}
+			if (contactT.getPartnerContactLinkTs() != null) {
+				for (PartnerContactLinkT partnerContactLinkT : contactT
+						.getPartnerContactLinkTs()) {
+					partnerContactLinkT.getPartnerMasterT().setPartnerContactLinkTs(null);
+					partnerContactLinkT.getCreatedByUser().setContactCustomerLinkTs(null);
+				}
+			}
+			if (contactT.getProductContactLinkTs() != null) {
+				for (ProductContactLinkT ProductContactLinkT : contactT
+						.getProductContactLinkTs()) {
+					ProductContactLinkT.getProductMasterT().setProductContactLinkTs(null);
+					ProductContactLinkT.getCreatedByUser().setContactCustomerLinkTs(null);
+				}
+			}
 		}
 	}
 

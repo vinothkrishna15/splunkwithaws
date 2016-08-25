@@ -35,6 +35,9 @@ public class WorkflowBfmT implements Serializable {
 
 	@Column(name="opportunity_id")
 	private String opportunityId;
+	
+	@Column(name="bfm_file_name")
+	private String bfmFileName;
 
 	@Column(name="deal_financial_file")
 	private byte[] dealFinancialFile;
@@ -187,5 +190,13 @@ public class WorkflowBfmT implements Serializable {
 
 	public void setComments(String comments) {
 		this.comments = comments;
+	}
+
+	public String getBfmFileName() {
+		return bfmFileName;
+	}
+
+	public void setBfmFileName(String bfmFileName) {
+		this.bfmFileName = bfmFileName;
 	}
 }
