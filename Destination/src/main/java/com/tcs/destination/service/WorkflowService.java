@@ -3834,6 +3834,8 @@ public class WorkflowService {
 							workflowBfmT.getWorkflowBfmId(), EntityTypeId.ESCALATION_A.getType(), userId, "");	
 					if (workflowRequest != null) {
 						if (workflowRequest.getStatus().equals(WorkflowStatus.PENDING.getStatus())) {
+							// update the status to Escalated after shrilakshmi initiates exception
+							updateEscalted(workflowRequest.getRequestId(), workflowBfmT);
 							//sendEmailNotificationforPending(workflowRequest.getRequestId(),new Date(), entityTypeId);
 							status.setStatus(
 									Status.SUCCESS,
@@ -3847,6 +3849,8 @@ public class WorkflowService {
 							workflowBfmT.getWorkflowBfmId(), EntityTypeId.ESCALATION_B.getType(), userId, "");
 					if (workflowRequest != null) {
 						if (workflowRequest.getStatus().equals(WorkflowStatus.PENDING.getStatus())) {
+							// update the status to Escalated after shrilakshmi initiates exception
+							updateEscalted(workflowRequest.getRequestId(), workflowBfmT);
 							//sendEmailNotificationforPending(workflowRequest.getRequestId(),new Date(), entityTypeId);
 							status.setStatus(
 									Status.SUCCESS,
@@ -3861,6 +3865,23 @@ public class WorkflowService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Exceptions cannot be empty");
 		}
+	}
+
+	private void updateEscalted(Integer requestId, WorkflowBfmT workflowBfmT) {
+		List<WorkflowStepT> workflowSteps = workflowStepRepository.findStepsByRequestId(requestId);
+		for (WorkflowStepT workflowStep : workflowSteps) {
+			if (workflowStep.getStepStatus().equals(WorkflowStatus.PENDING.getStatus())) {
+				workflowStep.setStepStatus(WorkflowStatus.ESCALATED.getStatus());
+				workflowStep.setComments(workflowBfmT.getComments());
+				break;
+			}
+		}
+		workflowStepRepository.save(workflowSteps);
+		
+		WorkflowBfmT workflowBfmToBeSaved = workflowBfmTRepository.findOne(workflowBfmT.getWorkflowBfmId());
+		workflowBfmToBeSaved.setGrossMargin(workflowBfmT.getGrossMargin());
+		workflowBfmToBeSaved.setExceptions(workflowBfmT.getExceptions());
+		workflowBfmTRepository.save(workflowBfmToBeSaved);
 	}
 
 	/**
@@ -4007,16 +4028,16 @@ public class WorkflowService {
 		int rowIteration = 0;
 		int step = 0;
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		Integer entityTypeId = EntityTypeId.BFM.getType();
+		int[] bfmEntityTypeIds = {Constants.CONSTANT_FOUR,Constants.CONSTANT_FIVE,Constants.CONSTANT_SIX};
 		List<WorkflowStepT> requestSteps = new ArrayList<WorkflowStepT>();
 		WorkflowRequestT masterRequest = new WorkflowRequestT();
 		//
 		if (validateWorkflowBfmDetails(workflowBfmT)) {
-
+			masterRequest = workflowRequestTRepository.findByEntityIdAndEntityTypeIdIn(workflowBfmT.getWorkflowBfmId(),bfmEntityTypeIds);
+			Integer entityTypeId = masterRequest.getEntityTypeId();
 			requestSteps = workflowStepTRepository
 					.findStepForEditAndApprove(entityTypeId,workflowBfmT.getWorkflowBfmId());
-			masterRequest = workflowRequestTRepository.findRequestedRecord(
-					entityTypeId, workflowBfmT.getWorkflowBfmId());
+			
 			for (WorkflowStepT stepRecord : requestSteps) {
 				if (stepRecord.getStepStatus().equals(
 						WorkflowStatus.PENDING.getStatus())) {
@@ -4034,6 +4055,12 @@ public class WorkflowService {
 						// for updating the status in workflow_request_t
 						masterRequest.setModifiedBy(userId);
 						masterRequest.setStatus(workflowStaus.getStatus());
+						if (masterRequest.getStatus().equals(WorkflowStatus.APPROVED.getStatus()) || 
+								masterRequest.getStatus().equals(WorkflowStatus.REJECTED.getStatus())) {
+						WorkflowBfmT workflowBfmToBeSaved = workflowBfmTRepository.findOne(workflowBfmT.getWorkflowBfmId());
+						workflowBfmToBeSaved.setGrossMargin(workflowBfmT.getGrossMargin());
+						workflowBfmTRepository.save(workflowBfmToBeSaved);
+						}
 						step = stepRecord.getStep() + 1;
 						rowIteration++;
 					}
@@ -4066,18 +4093,18 @@ public class WorkflowService {
 			
 			if (masterRequest.getStatus().equals(
 					workflowStaus.getStatus())) {
-				WorkflowBfmT workflowBfmToBeSaved = workflowBfmTRepository.findOne(workflowBfmT.getWorkflowBfmId());
-				workflowBfmToBeSaved.setGrossMargin(workflowBfmT.getGrossMargin());
-				workflowBfmTRepository.save(workflowBfmToBeSaved);
-
 				status.setStatus(Status.SUCCESS,
-						"The requested workflow bfm is " + masterRequest.getStatus() + "!!!");
+						"The requested workflow bfm is finally" + masterRequest.getStatus() + "!!!");
 				//				sendEmailNotificationforApprovedOrRejectMail(
 				//						workflowPartnerApprovedSubject,
 				//						masterRequest.getRequestId(),
 				//						masterRequest.getCreatedDatetime(),
 				//						masterRequest.getEntityTypeId());
+			} else {
+				status.setStatus(Status.SUCCESS,
+						"The requested workflow bfm is intermediately" + masterRequest.getStatus() + "!!!");
 			}
+		
 		}
 		return status;
 	}
