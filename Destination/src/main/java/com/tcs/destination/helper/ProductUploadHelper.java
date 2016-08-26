@@ -50,6 +50,11 @@ public class ProductUploadHelper {
 			error.setRowNumber(rowNumber);
 			error.setMessage("product Name Is Mandatory; ");
 		} else {
+			ProductMasterT dbProduct = productRepository.findByProductName(productName);
+			if(dbProduct!=null){
+				error.setRowNumber(rowNumber);
+				error.setMessage("product Name already exists; ");
+			}
 			productT.setProductName(productName);
 			productT.setProductDescription(productDescription);
 			productT.setCreatedBy(userId);

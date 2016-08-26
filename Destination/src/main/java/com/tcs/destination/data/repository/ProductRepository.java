@@ -19,11 +19,13 @@ public interface ProductRepository extends CrudRepository<ProductMasterT, String
 	    @Query(value="select product_name from product_master_t", nativeQuery=true)
 	    List<String> getProductName();
 	    
-	    ProductMasterT findByProductName(String product);
+	    ProductMasterT findByProductName(String productName);
 	    
 	    ProductMasterT findByProductId(String productId);
 	    
 	    @Query(value = "SELECT * FROM product_master_t WHERE UPPER(product_name) like UPPER(?1) ORDER BY product_id asc", nativeQuery = true)
 		List<ProductMasterT> getProductsByProductNameKeyword(String productName);
+	    
+	    List<ProductMasterT> findByActiveTrue();
 
 }

@@ -83,6 +83,7 @@
 		<property name="partnerService" ref="partnerService"/>
 		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
 		<property name="partnerSubSpMappingTRepository" ref="partnerSubSpMappingTRepository"/>
+		<property name="partnerSubSpProductMappingTRepository" ref="partnerSubSpProductMappingTRepository"/>
 		<property name="uploadErrorReport" ref="uploadErrorReport" />
 	</bean>
 	

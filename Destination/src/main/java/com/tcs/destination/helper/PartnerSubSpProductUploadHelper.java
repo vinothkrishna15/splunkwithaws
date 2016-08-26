@@ -6,7 +6,6 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.PartnerSubSpMappingT;
 import com.tcs.destination.bean.PartnerSubspProductMappingT;
@@ -19,9 +18,7 @@ import com.tcs.destination.data.repository.PartnerSubSpProductMappingTRepository
 import com.tcs.destination.data.repository.ProductRepository;
 import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.UserRepository;
-import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.PartnerService;
-import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.StringUtils;
 
 @Component("partnerSubSpProductUploadHelper")
@@ -60,99 +57,74 @@ public class PartnerSubSpProductUploadHelper {
 	 */
 	public UploadServiceErrorDetailsDTO validatePartnerSubspProductData(String[] data, String userId, PartnerSubspProductMappingT partnerSubspProductMappingT) throws Exception 
 	{
-		
-			
+
+		StringBuffer str = new StringBuffer();
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
 		List<PartnerSubSpMappingT> partnerSubsp=new ArrayList<PartnerSubSpMappingT>();
-		
-	
+
 		// PARTNER_NAME 
 		String partnerName = data[3];
 		int rowNumber = Integer.parseInt(data[0]) + 1;
 		if(!StringUtils.isEmpty(partnerName))
 		{
-
 			PartnerMasterT partner=partnerRepository.findPartnerByName(partnerName);
-			if(partner==null)
+			if(partner == null)
 			{
 				error.setRowNumber(rowNumber);
-				error.setMessage("Partner name is not found ");
+				str.append("Partner name is not found ;");
 			}
 			else
 			{
-               //SUBSP
+				//SUBSP
 				String subSp = data[4];
-				if(!StringUtils.isEmpty(subSp))
-				{
-					SubSpMappingT subSpMappingT=subSpRepository.findBySubSp(subSp);
-					if(subSpMappingT!=null)
-					{
-						partnerSubsp=partnerSubSpMappingTRepository.findByPartnerIdAndSubSpId(partner.getPartnerId(),subSpMappingT.getSubSpId());
-						if(partnerSubsp!=null)
-						{
-							for(PartnerSubSpMappingT partnerSubSpMapping:partnerSubsp)
-							{
+				if(!StringUtils.isEmpty(subSp))	{
+					SubSpMappingT subSpMappingT = subSpRepository.findBySubSp(subSp);
+					if(subSpMappingT != null)	{
+						partnerSubsp=partnerSubSpMappingTRepository.findByPartnerIdAndSubSpId(partner.getPartnerId(), subSpMappingT.getSubSpId());
+						if(partnerSubsp != null) {
+							for(PartnerSubSpMappingT partnerSubSpMapping:partnerSubsp) {
 								partnerSubspProductMappingT.setPartnerSubspMappingId(partnerSubSpMapping.getPartnerSubspMappingId());
 							}
-
-						}
-						else
-						{
+						} else {
 							error.setRowNumber(rowNumber);
-							error.setMessage("Partner Name and SubSp Combination is not found ");
+							str.append("Partner Name and SubSp Combination is not found; ");
 						}
-
-					}
-					else
-					{
+					} else {
 						error.setRowNumber(rowNumber);
-						error.setMessage("Invalid SubSp");
-
+						str.append("Invalid SubSp;");
 					}
-				}
-				else
-				{
+				} else {
 					error.setRowNumber(rowNumber);
-					error.setMessage("SubSp is mandatory");
+					str.append("SubSp is mandatory;");
 				}
 			}
-		}
-		else
-		{
+		} else {
 			error.setRowNumber(rowNumber);
-			error.setMessage("Partner name is mandatory; ");
+			str.append("Partner name is mandatory; ");
 		}
 
-				
-				//PRODUCT 
-				String product=data[5];
-				if(!StringUtils.isEmpty(product))
-				{
-				 ProductMasterT productMasterT=productRepository.findByProductName(product);
-				 if(productMasterT!=null)
-				 {
-					 partnerSubspProductMappingT.setProductId(productMasterT.getProductId());
-				 }
-				 else
-				 {
-					 error.setRowNumber(rowNumber);
-					 error.setMessage("Product is not valid");
-				 }
-				}
-				else
-				{
-					 error.setRowNumber(rowNumber);
-					 error.setMessage("Product should not be empty");
-				}
-				
-				
-				// CREATED_BY
-				partnerSubspProductMappingT.setCreatedBy(userId);
-				
-				// MODIFIED_BY
-				partnerSubspProductMappingT.setModifiedBy(userId);
-					
-				
+		//PRODUCT 
+		String product=data[5];
+		if(!StringUtils.isEmpty(product)) {
+			ProductMasterT productMasterT=productRepository.findByProductName(product);
+			if(productMasterT!=null) {
+				partnerSubspProductMappingT.setProductId(productMasterT.getProductId());
+			} else {
+				error.setRowNumber(rowNumber);
+				str.append("Product is not valid;");
+			}
+		} else {
+			error.setRowNumber(rowNumber);
+			str.append("Product should not be empty;");
+		}
+
+		// CREATED_BY
+		partnerSubspProductMappingT.setCreatedBy(userId);
+
+		// MODIFIED_BY
+		partnerSubspProductMappingT.setModifiedBy(userId);
+
+		error.setMessage(str.toString());
 		return error;
 	}
 

@@ -120,4 +120,6 @@ CrudRepository<PartnerMasterT, String> {
 	
 	List<PartnerMasterT> findByGroupPartnerNameIgnoreCaseContainingAndGroupPartnerNameIgnoreCaseNotLikeAndActiveOrderByGroupPartnerNameAsc(
 			String groupPartnerName, String unknownPartner, boolean b);	
+	
+	List<PartnerMasterT> findByActiveTrue();
 }

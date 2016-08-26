@@ -12,6 +12,7 @@ import java.util.List;
 import javax.servlet.WriteListener;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,7 @@ import com.tcs.destination.bean.PartnerSubSpMappingT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
 import com.tcs.destination.data.repository.PartnerSubSpMappingTRepository;
+import com.tcs.destination.data.repository.PartnerSubSpProductMappingTRepository;
 import com.tcs.destination.enums.Operation;
 import com.tcs.destination.enums.RequestStatus;
 import com.tcs.destination.helper.PartnerSubSpUploadHelper;
@@ -57,6 +59,8 @@ public class PartnerSubspWriter implements ItemWriter<String[]>,
 
 	private PartnerSubSpMappingTRepository partnerSubSpMappingTRepository;
 
+	private PartnerSubSpProductMappingTRepository partnerSubSpProductMappingTRepository;
+	
 	boolean deleteFlag = false;
 
 	@Override
@@ -80,11 +84,11 @@ public class PartnerSubspWriter implements ItemWriter<String[]>,
 					UploadServiceErrorDetailsDTO errorDTO = helper
 							.validatePartnerSubSpData(data, request.getUserT()
 									.getUserId(), partnerSubSpMappingT);
-					if (errorDTO.getMessage() != null) {
+					if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
 								: errorList;
 						errorList.add(errorDTO);
-					} else if (errorDTO.getMessage() == null) {
+					} else {
 						insertList.add(partnerSubSpMappingT);
 					}
 
@@ -100,11 +104,11 @@ public class PartnerSubspWriter implements ItemWriter<String[]>,
 						errorDTO = helper.validatePartnerSubspId(data,
 								partnerSubspT, deleteFlag);
 
-						if (errorDTO.getMessage() != null) {
+						if (StringUtils.isNotEmpty(errorDTO.getMessage() )) {
 							errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
 									: errorList;
 							errorList.add(errorDTO);
-						} else if (errorDTO.getMessage() == null) {
+						} else {
 							deleteList.add(partnerSubspT);
 						}
 					} else {
@@ -122,9 +126,13 @@ public class PartnerSubspWriter implements ItemWriter<String[]>,
 		// to save partner subsp details to db
 		if (CollectionUtils.isNotEmpty(insertList)) {
 			partnerService.savePartnerSubsp(insertList);
-        }
-		 // to delete partner subsp details from db
-		else if (CollectionUtils.isNotEmpty(deleteList)) {
+		}
+		// to delete partner subsp details from db
+		if (CollectionUtils.isNotEmpty(deleteList)) {
+			//delete the product references
+			for (PartnerSubSpMappingT partnerSubSpMappingT : deleteList) {
+				partnerSubSpProductMappingTRepository.delete(partnerSubSpProductMappingTRepository.findByPartnerSubspMappingId(partnerSubSpMappingT.getPartnerSubspMappingId()));
+			}
 			partnerService.deletePartnerSubSp(deleteList);
 		}
 	}
@@ -177,6 +185,15 @@ public class PartnerSubspWriter implements ItemWriter<String[]>,
 
 	public void setRequest(DataProcessingRequestT request) {
 		this.request = request;
+	}
+
+	public PartnerSubSpProductMappingTRepository getPartnerSubSpProductMappingTRepository() {
+		return partnerSubSpProductMappingTRepository;
+	}
+
+	public void setPartnerSubSpProductMappingTRepository(
+			PartnerSubSpProductMappingTRepository partnerSubSpProductMappingTRepository) {
+		this.partnerSubSpProductMappingTRepository = partnerSubSpProductMappingTRepository;
 	}
 
 	@Override

@@ -27,6 +27,7 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
+import org.apache.commons.lang.StringUtils;
 
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.ProductMasterT;
@@ -38,7 +39,6 @@ import com.tcs.destination.enums.RequestStatus;
 import com.tcs.destination.helper.ProductUploadHelper;
 import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.utils.FileManager;
-import com.tcs.destination.utils.StringUtils;
 /**
  * This ProductCustomWriter class provide the functionality for writing product details to db, and having listener functionality for steps
  * 
@@ -131,7 +131,7 @@ public class ProductCustomWriter implements ItemWriter<String[]>, StepExecutionL
 		
 		String operation = null; 
 		for (String[] data : items) {
-
+			int rowNumber = Integer.parseInt(data[0]) + 1;
 			operation = (String) data[1];
 			if (operation.equalsIgnoreCase(Operation.ADD.name())) {
 
@@ -139,32 +139,30 @@ public class ProductCustomWriter implements ItemWriter<String[]>, StepExecutionL
 				UploadServiceErrorDetailsDTO errorDTO = helper
 						.validateProductData(data, request.getUserT()
 								.getUserId(), product);
-				if (errorDTO.getMessage() != null) {
+				if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
 					errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
 							: errorList;
 					errorList.add(errorDTO);
-				} else if (errorDTO.getMessage() == null) {
+				} else if (StringUtils.isEmpty(errorDTO.getMessage())) {
 					insertList.add(product);
 				}
 
-			} else {
-				int rowNumber = Integer.parseInt(data[0]) + 1;
-				if (operation.equalsIgnoreCase(Operation.UPDATE.name())) {
+			} else if (operation.equalsIgnoreCase(Operation.UPDATE.name())) {
 
 					String productId = data[2];
 					UploadServiceErrorDetailsDTO errorDTO = new UploadServiceErrorDetailsDTO();
 
-					if (!StringUtils.isEmpty(productId)) {
+					if (StringUtils.isNotEmpty(productId)) {
 						ProductMasterT productT = productRepository
 								.findOne(productId);
 						if (productT != null) {
 							errorDTO = helper.validateProductDataUpdate(data,
 									request.getUserT().getUserId(), productT);
-							if (errorDTO.getMessage() != null) {
+							if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
 								errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
 										: errorList;
 								errorList.add(errorDTO);
-							} else if (errorDTO.getMessage() == null) {
+							} else if (StringUtils.isEmpty(errorDTO.getMessage())) {
 								updateList.add(productT);
 							}
 						} else {
@@ -185,27 +183,33 @@ public class ProductCustomWriter implements ItemWriter<String[]>, StepExecutionL
 				} else if (operation.equalsIgnoreCase(Operation.DELETE.name())) {
 					String productId = data[2];
 					UploadServiceErrorDetailsDTO errorDTO = new UploadServiceErrorDetailsDTO();
-					if (!StringUtils.isEmpty(productId)) {
+					if (StringUtils.isNotEmpty(productId)) {
 						ProductMasterT productT = productRepository
 								.findOne(productId);
 						if (productT != null) {
-							if (errorDTO.getMessage() != null) {
+							if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
 								errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
 										: errorList;
 								errorList.add(errorDTO);
-							} else if (errorDTO.getMessage() == null) {
+							} else if (StringUtils.isEmpty(errorDTO.getMessage())) {
 								deleteList.add(productT);
 							}
 						} else {
 							errorDTO.setRowNumber(rowNumber);
 							errorDTO.setMessage("Invalid product Id ");
+							errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
+									: errorList;
+							errorList.add(errorDTO);
 						}
 					} else {
 						errorDTO.setRowNumber(rowNumber);
 						errorDTO.setMessage("product Id is mandatory for delete");
+						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
+								: errorList;
+						errorList.add(errorDTO);
 					}
 				}
-			}
+			
 		}
 		
 		if (CollectionUtils.isNotEmpty(insertList)) {

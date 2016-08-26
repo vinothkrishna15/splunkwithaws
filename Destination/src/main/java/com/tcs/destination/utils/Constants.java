@@ -134,6 +134,8 @@ public class Constants {
 	public static final String PARTNER_UPLOAD_NOTIFY_SUBJECT = "Partner upload request submitted.";
 	public static final String PARTNER_CONTACT_UPLOAD_NOTIFY_SUBJECT = "Partner contact upload request submitted.";
 	public static final String BEACON_UPLOAD_NOTIFY_SUBJECT = "Beacon upload request submitted.";
+	public static final String PRODUCT_UPLOAD_NOTIFY_SUBJECT = "Product upload request submitted";
+	public static final String PRODUCT_CONTACT_UPLOAD_NOTIFY_SUBJECT = "Product contact upload request submitted";
 	public static final String USER_UPLOAD_SUBJECT = "User upload request processed.";
 	public static final String CUSTOMER_UPLOAD_SUBJECT = "Customer upload request processed.";
 	public static final String CONNECT_UPLOAD_SUBJECT = "Connect upload request processed.";

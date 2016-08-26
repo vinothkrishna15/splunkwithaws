@@ -46,13 +46,12 @@
 	</bean>
 	<bean id="emailNotifyReader" class="org.springframework.batch.item.data.RepositoryItemReader" scope="step">
 		<property name="repository" ref="dataProcessingRequestRepository"/>
-		<property name="methodName" value="findByStatusAndRequestTypeBetween"/>
+		<property name="methodName" value="findByStatusAndRequestTypeIn"/>
 		<property name="pageSize" value="1"/>
 		<property name="arguments">
 			<list>
 				<value>#{T(com.tcs.destination.enums.RequestStatus).SUBMITTED.getStatus()}</value>
-				<value>#{T(com.tcs.destination.enums.RequestType).USER_UPLOAD.getType()}</value>
-				<value>#{T(com.tcs.destination.enums.RequestType).BEACON_UPLOAD.getType()}</value>
+				<ref bean="requestTypes"/>
 			</list>
 		</property>
 		<property name="sort">
@@ -60,6 +59,24 @@
 				<entry key="processRequestId" value="ASC"/>
 			</map>
  		</property>
+	</bean>
+	
+	<bean id="requestTypes" class="java.util.ArrayList">
+	    <constructor-arg>
+	        <list>
+	            <value>#{T(com.tcs.destination.enums.RequestType).USER_UPLOAD.getType()}</value>
+				<value>#{T(com.tcs.destination.enums.RequestType).CUSTOMER_UPLOAD.getType()}</value>
+				<value>#{T(com.tcs.destination.enums.RequestType).CONNECT_UPLOAD.getType()}</value>
+				<value>#{T(com.tcs.destination.enums.RequestType).OPPORTUNITY_UPLOAD.getType()}</value>
+				<value>#{T(com.tcs.destination.enums.RequestType).ACTUAL_REVENUE_UPLOAD.getType()}</value>
+				<value>#{T(com.tcs.destination.enums.RequestType).CUSTOMER_CONTACT_UPLOAD.getType()}</value>
+				<value>#{T(com.tcs.destination.enums.RequestType).BEACON_UPLOAD.getType()}</value>
+				<value>#{T(com.tcs.destination.enums.RequestType).PRODUCT_UPLOAD.getType()}</value>
+				<value>#{T(com.tcs.destination.enums.RequestType).PRODUCT_CONTACT_UPLOAD.getType()}</value>
+				<value>#{T(com.tcs.destination.enums.RequestType).PARTNER_MASTER_UPLOAD.getType()}</value>
+				<value>#{T(com.tcs.destination.enums.RequestType).PARTNER_CONTACT_UPLOAD.getType()}</value>            
+	        </list>
+	    </constructor-arg>
 	</bean>
 	
 	<!-- Writer -->
