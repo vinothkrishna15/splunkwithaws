@@ -5,13 +5,13 @@
 			 Your deal financial request for opportunity : ${opportunityName} with customer : ${customerName} and Opportunity ID [${opportunityId}] is ${status}. 	
 		</p>
 		<p>
+		   This opportunity is now moved to ${salesStageCode}
+		</p>
+		<p>
 		   Please see the comments below:
 		<br>
 		   ${comments}     
-		</p>    
-		<p>
-		   This opportunity is now moved to ${salesStageCode}
-		</p>   
+		</p>     
 		<p>
 		Regards,<br>
 		Destination Team.
