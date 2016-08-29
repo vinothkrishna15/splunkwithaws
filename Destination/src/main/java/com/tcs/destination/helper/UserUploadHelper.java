@@ -25,6 +25,7 @@ import com.tcs.destination.data.repository.ConnectTypeRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
+import com.tcs.destination.data.repository.GoalMappingRepository;
 import com.tcs.destination.data.repository.IouRepository;
 import com.tcs.destination.data.repository.OfferingRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
@@ -83,6 +84,9 @@ public class UserUploadHelper {
 	
 	@Autowired
 	UserGoalsRepository userGoalsRepository;
+	
+	@Autowired
+	GoalMappingRepository goalMappingRepository;
 	
 	private static final Logger logger = LoggerFactory
 			.getLogger(UserUploadHelper.class);
@@ -231,19 +235,9 @@ public class UserUploadHelper {
 				//USER TELEPHONE
 				if(data[9]!=null){
 				String userPhone = data[9].trim();
-				
 				if(!StringUtils.isEmpty(userPhone))
 				{
-					try{
-					Long telephoneNumber=Double.valueOf(userPhone).longValue();
-					if (telephoneNumber!=null) {
-						userT.setUserTelephone(telephoneNumber.toString());
-					}
 					userT.setUserTelephone(userPhone);
-					} catch(Exception e){
-						error.setRowNumber(Integer.parseInt(data[0]) + 1);
-						error.setMessage("Invalid Telephone Number; ");
-					}
 				}
 				}
 				
@@ -424,18 +418,8 @@ public class UserUploadHelper {
 		//USER TELEPHONE
 		if(data[9]!=null){
 		String userPhone = data[9].trim();
-		if(!StringUtils.isEmpty(userPhone))
-		{
-			
-			try{
-			Long telephoneNumber=Double.valueOf(userPhone).longValue();
-			if (telephoneNumber!=null) {
-				userT.setUserTelephone(telephoneNumber.toString());
-			}
-			} catch(Exception e){
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				error.setMessage("Invalid Telephone Number; ");
-			}
+		if(!StringUtils.isEmpty(userPhone)){
+			userT.setUserTelephone(userPhone);
 		}
 		}
 		
@@ -481,14 +465,16 @@ public class UserUploadHelper {
 
 		// TODO Auto-generated method stub
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
+	
 		String userId = data[2];
 
 		if (StringUtils.isEmpty(userId)) {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
 			error.setMessage("User Id is mandatory ");
 		} else {
+			userId = userId.indexOf(".") < 0 ? userId : userId.replaceAll("0*$", "").replaceAll("\\.$", "");
 			user = userRepository.findByUserId(userId);
-			if (user.getUserId() == null) {
+			if (user == null) {
 				error.setRowNumber(Integer.parseInt(data[0]) + 1);
 				error.setMessage("Invalid User Id ");
 			}
@@ -499,6 +485,7 @@ public class UserUploadHelper {
 				
 			}
 		}
+		
 
 		return error;
 	
@@ -928,8 +915,14 @@ public class UserUploadHelper {
 		}
 		else
 		{
+			List<GoalMappingT> goalMappingList = goalMappingRepository.findByGoalName(goalName);
+			if(isValidGoalName(goalName,goalMappingList)){
 			goalMappingT.setGoalName(goalName);
 			userGoalsT.setGoalMappingT(goalMappingT);
+			} else {
+				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setMessage("Invalid Goal Name ");
+			}
 		}
 		} else {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
@@ -975,6 +968,20 @@ public class UserUploadHelper {
 	}
 	
 	
+	private boolean isValidGoalName(String goalName,
+			List<GoalMappingT> goalMappingList) {
+		boolean isValidGoal = false;
+		
+		for(GoalMappingT goalMapping : goalMappingList){
+			if(goalMapping.getGoalName().equalsIgnoreCase(goalName)){
+				isValidGoal = true;
+				break;
+			}
+		}
+		
+		return isValidGoal;
+	}
+
 	/**
 	 * This method is used to retrieve the values as a list
 	 * @param value
