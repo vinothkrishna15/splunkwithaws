@@ -318,4 +318,14 @@ public class Constants {
 	public static final String E3 = "E3";
 	public static final String E4 = "E4";
 	public static final String E5 = "E5";
+	
+	public static final String WORKFLOW_BFM_STEP1_PENDING_SUBJECT = "Deal Financial Submitted - ";
+	public static final String WORKFLOW_BFM_STEP1_APPROVED_SUBJECT = "Deal Financial Approved - ";
+	public static final String WORKFLOW_BFM_STEP1_REJECTED_SUBJECT = "Deal Financial Rejected - ";
+	public static final String WORKFLOW_BFM_ESCALATE_PENDING_SUBJECT = "Deal Financial Exception Initiated for ";
+	public static final String WORKFLOW_BFM_ESCALATE_PATH_A_APPROVED_SUBJECT = "Deal Financial Exception Approved - ";
+	public static final String WORKFLOW_BFM_ESCALATE_PATH_A_REJECTED_SUBJECT = "Deal Financial Exception Rejected - ";
+	public static final String WORKFLOW_BFM_ESCALATE_PATH_B_APPROVED_SUBJECT = "Deal Financial Exception Approved - ";
+	public static final String WORKFLOW_BFM_ESCALATE_PATH_B_REJECTED_SUBJECT = "Deal Financial Exception Rejected - ";
+
 }

@@ -44,6 +44,7 @@ import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.OpportunityWinLossFactorsT;
 import com.tcs.destination.bean.UserAccessRequestT;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.bean.WorkflowBfmT;
 import com.tcs.destination.bean.WorkflowCompetitorT;
 import com.tcs.destination.bean.WorkflowCustomerT;
 import com.tcs.destination.bean.WorkflowPartnerT;
@@ -60,6 +61,7 @@ import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserAccessRequestRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.data.repository.WorkflowBfmTRepository;
 import com.tcs.destination.data.repository.WorkflowCompetitorTRepository;
 import com.tcs.destination.data.repository.WorkflowCustomerTRepository;
 import com.tcs.destination.data.repository.WorkflowPartnerRepository;
@@ -105,6 +107,24 @@ public class DestinationMailUtils {
 
 	@Value("${workflowPendingTemplateLoc}")
 	private String workflowPendingTemplateLoc;
+	
+	@Value("${workflowPendingBFMStep1TemplateLoc}")
+	private String workflowPendingBFMStep1TemplateLoc;
+	
+	@Value("${workflowApprovedRejectedBFMStep1TemplateLoc}")
+	private String workflowApprovedRejectedBFMStep1TemplateLoc;
+	
+	@Value("${workflowPendingBFMEscalateTemplateLoc}")
+	private String workflowPendingBFMEscalateTemplateLoc;
+	
+	@Value("${workflowPendingBFMEscalateBApproveRejectTemplateLoc}")
+	private String workflowPendingBFMEscalateBApproveRejectTemplateLoc;
+	
+	@Value("${workflowBFMEscalatePathAGEOHeadApproveTemplateLoc}")
+	private String workflowBFMEscalatePathAGEOHeadApproveTemplateLoc;
+	
+	@Value("${workflowBFMEscalatePathADESSHeadApproveTemplateLoc}")
+	private String workflowBFMEscalatePathADESSHeadApproveTemplateLoc;
 
 	@Value("${workflowCustomerPendingTemplateLoc}")
 	private String workflowCustomerPendingTemplateLoc;
@@ -247,6 +267,10 @@ public class DestinationMailUtils {
 	
 	@Autowired
 	ConnectRepository connectRepository;
+	
+	//added for workflow bfm changes
+	@Autowired
+	WorkflowBfmTRepository workflowBfmTRepository;
 
 	@Autowired
 	private DestinationMailSender destMailSender;
@@ -259,6 +283,10 @@ public class DestinationMailUtils {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(DestinationMailUtils.class);
+	
+	private static final int PATH_B_LAST_STEP_NUMBER = 4;
+	
+	private static final int PATH_A_LAST_STEP_NUMBER = 5;
 
 	/**
 	 * @param user
@@ -807,6 +835,146 @@ public class DestinationMailUtils {
 			logger.error("request not fetched");
 		}
 	}
+	
+	
+	
+	
+	/**
+	 * This method is used to send mail notification to whom the request is
+	 * pending
+	 * 
+	 * 
+	 * @param requestId
+	 * @param entityTypeId
+	 * @throws Exception
+	 */
+	public void sendWorkflowPendingBFMStep1Mail(Integer requestId,
+			Integer entityTypeId) throws Exception {
+		logger.info("Inside sendWorkflowPendingBFMStep1Mail method");
+
+		DestinationMailMessage message = new DestinationMailMessage();
+
+		List<String> recepientIds = new ArrayList<String>();
+		List<String> ccIds = new ArrayList<String>();
+		String userGroupOrUserRoleOrUserId = null;
+		String customerName = null;
+		String oppName = null;
+		String opportunityId = null;
+		String crmId = null;
+		String dealValueUSDInNumberScale = null;
+
+		StringBuffer subject = new StringBuffer("");
+		String userName = null;
+
+		logger.info("sendWorkflowPendingBFMStep1Mail :: RequestId" + requestId);
+		WorkflowRequestT workflowRequestT = workflowRequestRepository
+				.findOne(requestId);
+		
+		if (workflowRequestT != null) {
+			String createdById = workflowRequestT.getCreatedBy();
+			UserT createdByUser = userRepository.findOne(createdById);
+			userName = createdByUser.getUserName();
+			String entityId = workflowRequestT.getEntityId();
+			logger.debug("Request fetched:");
+			logger.debug("EntityId:" + entityId);
+			switch (EntityTypeId.valueOf(EntityTypeId.getName(entityTypeId))) {
+			case BFM:
+				WorkflowBfmT workflowBfmT = workflowBfmTRepository
+						.findOne(entityId);
+				OpportunityT opportunityT = workflowBfmT.getOpportunityT();
+				opportunityId = workflowBfmT.getOpportunityId();
+				crmId = opportunityT.getCrmId();
+				CustomerMasterT customerMasterT = opportunityT
+						.getCustomerMasterT();
+				customerName = customerMasterT.getCustomerName();
+				oppName = opportunityT.getOpportunityName();
+				Integer dealValue = opportunityT.getDigitalDealValue();
+				String dealCurrency = opportunityT.getDealCurrency();
+				BigDecimal newDealValueInUSD = opportunityDownloadService
+						.convertCurrencyToUSD(dealCurrency, dealValue);
+				dealValueUSDInNumberScale = NumericUtil
+						.toUSDinNumberScale(newDealValueInUSD);
+
+				userName = userRepository.findUserNameByUserId(workflowBfmT
+						.getCreatedBy());
+				
+				subject.append(Constants.WORKFLOW_BFM_STEP1_PENDING_SUBJECT);
+				subject.append(getCustomerOpportunitySubString(opportunityId,customerName));
+				WorkflowStepT workflowStepPending = workflowStepRepository
+						.findByRequestIdAndStepStatus(requestId,
+								WorkflowStatus.PENDING.getStatus());
+
+				WorkflowStepT requestRaisedStep = workflowStepRepository
+						.findByRequestIdAndStep(requestId, 1);
+				if (requestRaisedStep.getUserRole() != null) {
+					String userRolesStr = requestRaisedStep.getUserRole();
+					String[] userRoles = userRolesStr.split(",");
+					ccIds.add(createdById);
+					for(String userRole : userRoles){
+					  if(!userRole.equalsIgnoreCase("User"))	
+						  ccIds.addAll(userRepository.findUserIdByUserRole(userRole));
+					}
+				}
+				if (workflowStepPending.getUserRole() != null) {
+					String[] workflowUserRoles = workflowStepPending.getUserRole()
+							.split(",");
+					List<String> workflowUserRolesList = Arrays.asList(workflowUserRoles);
+					List<UserT> userList = userRepository.findByUserRoles(workflowUserRolesList);
+					List<String> userIdList = new ArrayList<String>();
+					
+					for(UserT user : userList){
+						userIdList.add(user.getUserId());
+					}
+					recepientIds.addAll(userIdList);
+					userGroupOrUserRoleOrUserId = workflowStepPending.getUserRole();
+
+				}
+				if (workflowStepPending.getUserId() != null) {
+					String[] workflowUserIds = workflowStepPending.getUserId()
+							.split(",");
+					List<String> workflowUserIdList = Arrays
+							.asList(workflowUserIds);
+					
+					recepientIds.addAll(workflowUserIdList);
+				}
+				break;
+
+			default:
+				break;
+			}
+
+			message.setRecipients(listMailIdsFromUserIds(recepientIds));
+			message.setCcList(listMailIdsFromUserIds(ccIds));
+
+			Map<String, Object> workflowMap = new HashMap<String, Object>();
+
+			workflowMap.put("userGroupOrUserRole", userGroupOrUserRoleOrUserId);
+
+			workflowMap.put("userName", userName);
+			workflowMap.put("opportunityId", opportunityId);
+			workflowMap.put("opportunityName", oppName);
+			workflowMap.put("crmId", crmId);
+			workflowMap.put("dealValue", dealValueUSDInNumberScale);
+			workflowMap.put("customerName", customerName);
+
+			String tmpl = workflowPendingBFMStep1TemplateLoc;
+
+			String text = mergeTmplWithData(workflowMap, tmpl);
+
+			logger.info("framed text for mail :" + text);
+			message.setSubject(formatSubject(subject.toString()));
+			message.setMessage(text);
+
+			destMailSender.send(message);
+			logger.info("Mail Sent for request"
+					+ workflowRequestT.getRequestId());
+
+		} else {
+			logger.error("request not fetched");
+		}
+	}
+	
+	
 
 	/**
 	 * This method is used to send the mail on approval of a workflow entity
@@ -1379,6 +1547,7 @@ public class DestinationMailUtils {
 		String dealClosureDateStr = "";
 		BigDecimal dealValueUSD = new BigDecimal(dealValue);
 		OpportunityT opportunity = opportunityRepository.findOne(entityId);
+		
 		if (opportunity != null) {
 			String customerName = opportunity.getCustomerMasterT()
 					.getCustomerName();
@@ -1923,4 +2092,1551 @@ public class DestinationMailUtils {
 		return new BigInteger(130, new SecureRandom()).toString(32);
 	}
 
-}
+	/**
+	 * This method is used to send approved/rejected BFM mail notification 
+	 * 
+	 * @param requestId
+	 * @param entityTypeId
+	 * @param status
+	 * @throws Exception
+	 */
+	public void sendEmailNotificationforBFMStep1ApproveOrReject(
+			Integer requestId, Integer entityTypeId, String status) throws Exception{
+		
+			logger.info("Inside sendEmailNotificationforBFMStep1ApproveOrReject method");
+
+			DestinationMailMessage message = new DestinationMailMessage();
+
+			List<String> recepientIds = new ArrayList<String>();
+			List<String> ccIds = new ArrayList<String>();
+			
+			String userGroupOrUserRoleOrUserId = null;
+			String customerName = null;
+			String oppName = null;
+			String opportunityId = null;
+			String comments = null;
+			String salesStageCode = null;
+			String reqStatus = null;
+
+			StringBuffer subject = new StringBuffer("");
+			String userName = null;
+
+			logger.info("sendEmailNotificationforBFMStep1ApproveOrReject :: RequestId" + requestId);
+			
+			WorkflowRequestT workflowRequestT = workflowRequestRepository
+					.findOne(requestId);
+			
+			if (workflowRequestT != null) {
+				String createdById = workflowRequestT.getCreatedBy();
+				UserT createdByUser = userRepository.findOne(createdById);
+				userName = createdByUser.getUserName();
+				String entityId = workflowRequestT.getEntityId();
+				logger.debug("Request fetched:");
+				logger.debug("EntityId:" + entityId);
+				switch (EntityTypeId.valueOf(EntityTypeId.getName(entityTypeId))) {
+				case BFM:
+					WorkflowBfmT workflowBfmT = workflowBfmTRepository.findOne(entityId);
+					OpportunityT opportunityT = workflowBfmT.getOpportunityT();
+					opportunityId = workflowBfmT.getOpportunityId();
+					
+					CustomerMasterT customerMasterT = opportunityT
+							.getCustomerMasterT();
+					customerName = customerMasterT.getCustomerName();
+					oppName = opportunityT.getOpportunityName();
+                    
+					salesStageCode = SalesStageCode.valueOf(opportunityT.getSalesStageCode()).getDescription(); 
+					
+					userName = userRepository.findUserNameByUserId(workflowBfmT
+							.getCreatedBy());
+					
+					WorkflowStepT approvedRejectedStep = null;
+					if(status.equalsIgnoreCase("Approved")){
+						approvedRejectedStep = workflowStepRepository
+								.findByRequestIdAndStepStatus(requestId,
+										WorkflowStatus.APPROVED.getStatus());
+						if(comments==null){
+							comments = "No Comments";
+						}
+						subject.append(Constants.WORKFLOW_BFM_STEP1_APPROVED_SUBJECT);
+						
+						reqStatus = "Approved";
+						salesStageCode = SalesStageCode.valueOf(opportunityT.getSalesStageCode()).getDescription(); 
+					} else {
+						approvedRejectedStep = workflowStepRepository
+								.findByRequestIdAndStepStatus(requestId,
+										WorkflowStatus.REJECTED.getStatus());
+						subject.append(Constants.WORKFLOW_BFM_STEP1_REJECTED_SUBJECT);
+						
+						reqStatus = "Rejected";
+						salesStageCode = SalesStageCode.valueOf(SalesStageCode.RFP_IN_PROGRESS.getCode()).getDescription(); 
+					}
+					subject.append(getCustomerOpportunitySubString(opportunityId,customerName));
+					comments = approvedRejectedStep.getComments();
+
+					WorkflowStepT requestRaisedStep = workflowStepRepository
+							.findByRequestIdAndStep(requestId, 1);
+					if (requestRaisedStep.getUserRole() != null) {
+						String userRolesStr = requestRaisedStep.getUserRole();
+						String[] userRoles = userRolesStr.split(",");
+						recepientIds.add(createdById);
+						for(String userRole : userRoles){
+						  if(!userRole.equalsIgnoreCase("User"))	
+							  ccIds.addAll(userRepository.findUserIdByUserRole(userRole));
+						}
+					}
+					
+					if (approvedRejectedStep.getUserRole() != null) {
+						String[] workflowUserRoles = approvedRejectedStep.getUserRole()
+								.split(",");
+						List<String> workflowUserRolesList = Arrays.asList(workflowUserRoles);
+						List<UserT> userList = userRepository.findByUserRoles(workflowUserRolesList);
+						List<String> userIdList = new ArrayList<String>();
+						
+						for(UserT user : userList){
+							userIdList.add(user.getUserId());
+						}
+						ccIds.addAll(userIdList);
+						userGroupOrUserRoleOrUserId = approvedRejectedStep.getUserRole();
+
+					}
+					if (approvedRejectedStep.getUserId() != null) {
+						String[] workflowUserIds = approvedRejectedStep.getUserId()
+								.split(",");
+						List<String> workflowUserIdList = Arrays
+								.asList(workflowUserIds);
+						
+						ccIds.addAll(workflowUserIdList);
+					}
+					break;
+
+				default:
+					break;
+				}
+
+				message.setRecipients(listMailIdsFromUserIds(recepientIds));
+				message.setCcList(listMailIdsFromUserIds(ccIds));
+
+				Map<String, Object> workflowMap = new HashMap<String, Object>();
+
+				workflowMap.put("userGroupOrUserRole", userGroupOrUserRoleOrUserId);
+
+				workflowMap.put("userName", userName);
+				workflowMap.put("opportunityId", opportunityId);
+				workflowMap.put("opportunityName", oppName);
+				workflowMap.put("salesStageCode", salesStageCode);
+				workflowMap.put("customerName", customerName);
+				workflowMap.put("comments", comments);
+				
+				workflowMap.put("status",reqStatus);
+
+				String tmpl = workflowApprovedRejectedBFMStep1TemplateLoc;
+
+				String text = mergeTmplWithData(workflowMap, tmpl);
+
+				logger.info("framed text for mail :" + text);
+				message.setSubject(formatSubject(subject.toString()));
+				message.setMessage(text);
+
+				destMailSender.send(message);
+				logger.info("Mail Sent for request"
+						+ workflowRequestT.getRequestId());
+
+			} else {
+				logger.error("request not fetched");
+			}
+		}
+
+	
+	/**
+	 * this method returns opportunity id and customer in the desired format
+	 * @param opportunityId
+	 * @param customerName
+	 * @return
+	 */
+	private String getCustomerOpportunitySubString(String opportunityId,
+			String customerName) {
+		StringBuffer subString=new StringBuffer("");
+		subString.append("["+opportunityId+"]");
+		subString.append("- ["+customerName+"]");
+		return subString.toString();
+		
+	}
+
+	/**
+	 * this method is used to send mail during the escalation to GeoHead
+	 * @param requestId
+	 * @param entityTypeId
+	 * @throws Exception
+	 */
+	public void sendWorkflowPendingBFMEscalateMail(Integer requestId,
+			Integer entityTypeId) throws Exception{
+		logger.info("Inside sendWorkflowPendingBFMEscalateMail method");
+
+		DestinationMailMessage message = new DestinationMailMessage();
+
+		List<String> recepientIds = new ArrayList<String>();
+		List<String> ccIds = new ArrayList<String>();
+		String userGroupOrUserRoleOrUserId = null;
+		String customerName = null;
+		String oppName = null;
+		String opportunityId = null;
+		String crmId = null;
+		String dealValueUSDInNumberScale = null;
+		String comments = null;
+		String geography = null;
+		String exceptions = null;
+
+		StringBuffer subject = new StringBuffer("");
+		String userName = null;
+
+		logger.info("sendWorkflowPendingBFMEscalateMail :: RequestId" + requestId);
+		WorkflowRequestT workflowRequestT = workflowRequestRepository
+				.findOne(requestId);
+		
+		if (workflowRequestT != null) {
+			String createdById = workflowRequestT.getCreatedBy();
+			UserT createdByUser = userRepository.findOne(createdById);
+			userName = createdByUser.getUserName();
+			ccIds.add(createdById);
+			String entityId = workflowRequestT.getEntityId();
+			logger.debug("Request fetched:");
+			logger.debug("EntityId:" + entityId);
+			switch (EntityTypeId.valueOf(EntityTypeId.getName(entityTypeId))) {
+			case ESCALATION_A:
+			case ESCALATION_B:
+				WorkflowBfmT workflowBfmT = workflowBfmTRepository
+						.findOne(entityId);
+				exceptions = workflowBfmT.getExceptions();
+				OpportunityT opportunityT = workflowBfmT.getOpportunityT();
+				opportunityId = workflowBfmT.getOpportunityId();
+				crmId = opportunityT.getCrmId();
+				CustomerMasterT customerMasterT = opportunityT
+						.getCustomerMasterT();
+				customerName = customerMasterT.getCustomerName();
+				geography = customerMasterT.getGeography();
+				oppName = opportunityT.getOpportunityName();
+				
+				Integer dealValue = opportunityT.getDigitalDealValue();
+				String dealCurrency = opportunityT.getDealCurrency();
+				BigDecimal newDealValueInUSD = opportunityDownloadService
+						.convertCurrencyToUSD(dealCurrency, dealValue);
+				dealValueUSDInNumberScale = NumericUtil
+						.toUSDinNumberScale(newDealValueInUSD);
+
+				userName = userRepository.findUserNameByUserId(workflowBfmT
+						.getCreatedBy());
+				subject.append(Constants.WORKFLOW_BFM_ESCALATE_PENDING_SUBJECT);
+				subject.append("["+customerName+"]");
+				
+				
+				WorkflowStepT workflowStepPending = workflowStepRepository
+						.findByRequestIdAndStepStatus(requestId,
+								WorkflowStatus.PENDING.getStatus());
+				
+				
+				WorkflowStepT escalatedStep = workflowStepRepository
+						.findByRequestIdAndStep(requestId, workflowStepPending.getStep()-1);
+				comments = escalatedStep.getComments();
+				
+				if (escalatedStep.getUserRole() != null) {
+					 List<String> userIdsByRole = getUserIdsByRole(escalatedStep);
+					 ccIds.addAll(userIdsByRole);
+					}
+					if (escalatedStep.getUserId() != null) {
+					 List<String> userIdsByIds = getUserIdsById(escalatedStep);
+					 ccIds.addAll(userIdsByIds);
+					}
+					
+					if (escalatedStep.getUserGroup() != null) {
+						switch (escalatedStep.getUserGroup()) {
+						case Constants.WORKFLOW_GEO_HEADS:
+							ccIds
+									.addAll(userAccessPrivilegesRepository
+											.findUserIdsForWorkflowUserGroup(geography,
+													Constants.Y,
+													UserGroup.GEO_HEADS.getValue()));
+							logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+							userGroupOrUserRoleOrUserId = Constants.WORKFLOW_GEO_HEADS;
+							ccIds.addAll(userAccessPrivilegesRepository
+									.findUserIdsForWorkflowUserGroup(geography,
+											Constants.Y, UserGroup.PMO.getValue()));
+							logger.debug("CCIds for PMO :" + ccIds);
+							break;
+						case Constants.WORKFLOW_PMO:
+							ccIds.addAll(userAccessPrivilegesRepository
+									.findUserIdsForWorkflowUserGroup(geography,
+											Constants.Y, UserGroup.PMO.getValue()));
+							userGroupOrUserRoleOrUserId = Constants.WORKFLOW_PMO;
+						default:
+							break;
+						}
+					}
+				
+				if (workflowStepPending.getUserRole() != null) {
+				 List<String> userIdsByRole = getUserIdsByRole(workflowStepPending);
+				 recepientIds.addAll(userIdsByRole);
+				}
+				if (workflowStepPending.getUserId() != null) {
+				 List<String> userIdsByIds = getUserIdsById(workflowStepPending);
+				 recepientIds.addAll(userIdsByIds);
+				}
+				
+				if (workflowStepPending.getUserGroup() != null) {
+					switch (workflowStepPending.getUserGroup()) {
+					case Constants.WORKFLOW_GEO_HEADS:
+						recepientIds
+								.addAll(userAccessPrivilegesRepository
+										.findUserIdsForCustomerUserGroup(geography,
+												Constants.Y,
+												UserGroup.GEO_HEADS.getValue()));
+						logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+						userGroupOrUserRoleOrUserId = Constants.WORKFLOW_GEO_HEADS;
+						ccIds.addAll(userAccessPrivilegesRepository
+								.findUserIdsForCustomerUserGroup(geography,
+										Constants.Y, UserGroup.PMO.getValue()));
+						logger.debug("CCIds for PMO :" + ccIds);
+						break;
+					case Constants.WORKFLOW_PMO:
+						recepientIds.addAll(userAccessPrivilegesRepository
+								.findUserIdsForCustomerUserGroup(geography,
+										Constants.Y, UserGroup.PMO.getValue()));
+						userGroupOrUserRoleOrUserId = Constants.WORKFLOW_PMO;
+					default:
+						break;
+					}
+				}
+				
+				break;
+
+			default:
+				break;
+			}
+
+			message.setRecipients(listMailIdsFromUserIds(recepientIds));
+			message.setCcList(listMailIdsFromUserIds(ccIds));
+
+			Map<String, Object> workflowMap = new HashMap<String, Object>();
+
+			workflowMap.put("userGroupOrUserRole", userGroupOrUserRoleOrUserId);
+
+			workflowMap.put("userName", userName);
+			workflowMap.put("opportunityId", opportunityId);
+			workflowMap.put("opportunityName", oppName);
+			workflowMap.put("crmId", crmId);
+			workflowMap.put("dealValue", dealValueUSDInNumberScale);
+			workflowMap.put("customerName", customerName);
+			workflowMap.put("exceptions", exceptions);
+			workflowMap.put("comments",comments);
+
+			String tmpl = workflowPendingBFMEscalateTemplateLoc;
+
+			String text = mergeTmplWithData(workflowMap, tmpl);
+
+			logger.info("framed text for mail :" + text);
+			message.setSubject(formatSubject(subject.toString()));
+			message.setMessage(text);
+
+			destMailSender.send(message);
+			logger.info("Mail Sent for request"
+					+ workflowRequestT.getRequestId());
+
+		} else {
+			logger.error("request not fetched");
+		}
+		
+	}
+
+	
+	/**
+	 * this method returns userIds by userId from step
+	 * @param workflowStep
+	 * @return
+	 */
+	private List<String> getUserIdsById(WorkflowStepT workflowStep) {
+		String[] workflowUserIds = workflowStep.getUserId()
+				.split(",");
+		List<String> workflowUserIdList = Arrays
+				.asList(workflowUserIds);
+		return workflowUserIdList;
+	}
+
+	/**
+	 * this method returns user Ids by user role from step
+	 * @param workflowStep
+	 * @return
+	 */
+	private List<String> getUserIdsByRole(WorkflowStepT workflowStep) {
+		String[] workflowUserRoles = workflowStep.getUserRole()
+				.split(",");
+		
+		List<String> workflowUserRolesList = Arrays.asList(workflowUserRoles);
+		
+		workflowUserRolesList.remove("User");
+		
+		List<UserT> userList = userRepository.findByUserRoles(workflowUserRolesList);
+		List<String> userIdList = new ArrayList<String>();
+		
+		for(UserT user : userList){
+			userIdList.add(user.getUserId());
+		}
+
+		return userIdList;
+	}
+	
+	/**
+	 * this method is used to send mail when BFM workflow is approved/rejected in pathB 
+	 * @param requestId
+	 * @param entityTypeId
+	 * @param status
+	 * @throws Exception
+	 */
+	public void sendEmailNotificationforBFM_PathB_ApproveOrReject(
+			Integer requestId, Integer entityTypeId, String status) throws Exception {
+		logger.info("destinationmailutils - inside sendEmailNotificationforBFM_PathB_ApproveOrReject method");
+		String entityId = null;
+		String exceptions = null;
+		String opportunityId = null;
+		String crmId = null;
+		String opportunityName = null;
+		String customerName = null;
+		String dealValueUSDInNumberScale = null;
+		String geography = null;
+		
+		WorkflowRequestT workflowRequestT = workflowRequestRepository
+				.findOne(requestId);
+		
+		if(workflowRequestT!=null){
+		entityId = workflowRequestT.getEntityId();
+		
+		//populate content map
+		Map<String, Object> workflowMap = new HashMap<String, Object>();
+		
+				
+		WorkflowBfmT workflowBfmT = workflowBfmTRepository.findOne(entityId);
+		exceptions = workflowBfmT.getExceptions();
+		
+		OpportunityT opportunityT = workflowBfmT.getOpportunityT();
+		opportunityId = opportunityT.getOpportunityId();
+		crmId = opportunityT.getCrmId();
+		opportunityName = opportunityT.getOpportunityName();
+		Integer dealValue = opportunityT.getDigitalDealValue();
+		String dealCurrency = opportunityT.getDealCurrency();
+		BigDecimal newDealValueInUSD = opportunityDownloadService
+				.convertCurrencyToUSD(dealCurrency, dealValue);
+		dealValueUSDInNumberScale = NumericUtil
+				.toUSDinNumberScale(newDealValueInUSD);
+		
+		CustomerMasterT customer = opportunityT.getCustomerMasterT();
+		customerName = customer.getCustomerName();
+		geography = customer.getGeography();
+		
+		workflowMap.put("opportunityId",opportunityId);
+		workflowMap.put("crmId",crmId);
+		workflowMap.put("opportunityName",opportunityName);
+		workflowMap.put("customerName",customerName);
+		workflowMap.put("dealValue",dealValueUSDInNumberScale);
+		workflowMap.put("exceptions", exceptions);
+		workflowMap.put("geography", geography);
+		
+		
+		
+		WorkflowStepT pendingStep = workflowStepRepository
+				.findByRequestIdAndStepStatus(requestId,
+						WorkflowStatus.PENDING.getStatus());
+		
+		if(pendingStep == null){
+			//the request flow is completed
+			//check if rejected
+			WorkflowStepT rejectedStep = workflowStepRepository
+					.findByRequestIdAndStepStatus(requestId,
+							WorkflowStatus.REJECTED.getStatus());
+			String salesStageCode = null;
+			if(rejectedStep != null) {
+				switch(rejectedStep.getStep()){
+				case 3 :
+					salesStageCode=SalesStageCode.valueOf(SalesStageCode.RFP_IN_PROGRESS.getCode()).getDescription();
+					workflowMap.put("salesStageCode",salesStageCode);
+					    sendPathAGEOHeadRejectedMail(workflowMap,workflowRequestT,workflowBfmT,rejectedStep);
+					    break;
+				case PATH_B_LAST_STEP_NUMBER:
+					salesStageCode=SalesStageCode.valueOf(SalesStageCode.RFP_IN_PROGRESS.getCode()).getDescription();
+					workflowMap.put("salesStageCode",salesStageCode);
+					 sendPathAFinalStepRejectedEmail(workflowMap,workflowRequestT,workflowBfmT,rejectedStep);
+					 break;
+				}
+			} else {
+				// approved final step by Shrilakshmi
+				salesStageCode=SalesStageCode.valueOf(opportunityT.getSalesStageCode()).getDescription();
+				workflowMap.put("salesStageCode",salesStageCode);
+				WorkflowStepT approvedStep = workflowStepRepository
+						.findByRequestIdAndStep(requestId,
+								PATH_B_LAST_STEP_NUMBER);
+				sendPathAFinalStepApprovedEmail(workflowMap,workflowRequestT,workflowBfmT,approvedStep);
+			}
+		} else {
+			//approved by geohead and pending with shrilakshmi
+			WorkflowStepT approvedStep = workflowStepRepository
+					.findByRequestIdAndStepStatus(requestId,
+							WorkflowStatus.APPROVED.getStatus());
+			
+			sendPathBGEOHeadApprovedMail(workflowMap,workflowRequestT,workflowBfmT,approvedStep);
+			
+		}
+		} else {
+			logger.error("Request not found");
+		}
+	}
+
+	/**
+	 * this method is used to send mail when BFM workflow is approved/rejected in pathA
+	 * @param requestId
+	 * @param entityTypeId
+	 * @param status
+	 * @throws Exception
+	 */
+	public void sendEmailNotificationforBFM_PathA_ApproveOrReject(
+			Integer requestId, Integer entityTypeId, String status) throws Exception {
+		logger.info("destinationmailutils - inside sendEmailNotificationforBFM_PathA_ApproveOrReject method");
+		String entityId = null;
+		String exceptions = null;
+		String opportunityId = null;
+		String crmId = null;
+		String opportunityName = null;
+		String customerName = null;
+		String dealValueUSDInNumberScale = null;
+		String geography = null;
+		
+		WorkflowRequestT workflowRequestT = workflowRequestRepository
+				.findOne(requestId);
+		if(workflowRequestT!=null){
+		entityId = workflowRequestT.getEntityId();
+		
+		//populate content map
+		Map<String, Object> workflowMap = new HashMap<String, Object>();
+		
+				
+		WorkflowBfmT workflowBfmT = workflowBfmTRepository.findOne(entityId);
+		exceptions = workflowBfmT.getExceptions();
+		
+		OpportunityT opportunityT = workflowBfmT.getOpportunityT();
+		opportunityId = opportunityT.getOpportunityId();
+		crmId = opportunityT.getCrmId();
+		opportunityName = opportunityT.getOpportunityName();
+		Integer dealValue = opportunityT.getDigitalDealValue();
+		String dealCurrency = opportunityT.getDealCurrency();
+		BigDecimal newDealValueInUSD = opportunityDownloadService
+				.convertCurrencyToUSD(dealCurrency, dealValue);
+		dealValueUSDInNumberScale = NumericUtil
+				.toUSDinNumberScale(newDealValueInUSD);
+		
+		CustomerMasterT customer = opportunityT.getCustomerMasterT();
+		customerName = customer.getCustomerName();
+		geography = customer.getGeography();
+		
+		workflowMap.put("opportunityId",opportunityId);
+		workflowMap.put("crmId",crmId);
+		workflowMap.put("opportunityName",opportunityName);
+		workflowMap.put("customerName",customerName);
+		workflowMap.put("dealValue",dealValueUSDInNumberScale);
+		workflowMap.put("exceptions", exceptions);
+		workflowMap.put("geography", geography);
+		
+		String salesStageCode=null;
+		
+		WorkflowStepT pendingStep = workflowStepRepository
+				.findByRequestIdAndStepStatus(requestId,
+						WorkflowStatus.PENDING.getStatus());
+		
+		if(pendingStep == null){
+			//the request flow is completed
+			//check if rejected
+			WorkflowStepT rejectedStep = workflowStepRepository
+					.findByRequestIdAndStepStatus(requestId,
+							WorkflowStatus.REJECTED.getStatus());
+			if(rejectedStep != null) {
+				//check which step it was rejected
+				int rejectedStepNumber = rejectedStep.getStep();
+				if(PATH_A_LAST_STEP_NUMBER == rejectedStepNumber){
+					//rejected at the last step by shrilakshmi
+					salesStageCode=SalesStageCode.valueOf(SalesStageCode.RFP_IN_PROGRESS.getCode()).getDescription();
+					workflowMap.put("salesStageCode",salesStageCode);
+					sendPathAFinalStepRejectedEmail(workflowMap,workflowRequestT,workflowBfmT,rejectedStep);
+				} else {
+					switch (rejectedStepNumber) {
+					case 3:
+						// rejected by GEO Head
+						salesStageCode=SalesStageCode.valueOf(SalesStageCode.RFP_IN_PROGRESS.getCode()).getDescription();
+						workflowMap.put("salesStageCode",salesStageCode);
+						sendPathAGEOHeadRejectedMail(workflowMap,workflowRequestT,workflowBfmT,rejectedStep);
+						break;
+					case 4:
+						// rejected by DESS Head
+						salesStageCode=SalesStageCode.valueOf(SalesStageCode.RFP_IN_PROGRESS.getCode()).getDescription();
+						workflowMap.put("salesStageCode",salesStageCode);
+						sendPathADESSHeadRejectedMail(workflowMap,workflowRequestT,workflowBfmT,rejectedStep);
+						break;
+					default:
+
+					}
+				}
+			} else {
+				// approved final step by Shrilakshmi
+				salesStageCode=SalesStageCode.valueOf(opportunityT.getSalesStageCode()).getDescription();
+				workflowMap.put("salesStageCode",salesStageCode);
+				WorkflowStepT approvedStep = workflowStepRepository
+						.findByRequestIdAndStep(requestId,PATH_A_LAST_STEP_NUMBER
+								);
+				sendPathAFinalStepApprovedEmail(workflowMap,workflowRequestT,workflowBfmT,approvedStep);
+			}
+		} else {
+			// workflow process is still in progress
+			WorkflowStepT approvedStep = null;
+			int pendingStepNumber = pendingStep.getStep();
+			
+			if(pendingStepNumber==(PATH_A_LAST_STEP_NUMBER)){
+				//last pending - satya approved, last-1 pending - geohead approved
+				approvedStep = workflowStepRepository
+						.findByRequestIdAndStep(requestId,pendingStepNumber-1
+								);
+			} else {
+				//escalated step is already intimated via another thread, so it must be approved step
+				approvedStep = workflowStepRepository
+						.findByRequestIdAndStepStatus(requestId,
+								WorkflowStatus.APPROVED.getStatus());
+			}
+			
+			int approvedStepNumber = approvedStep.getStep();
+			
+			switch(approvedStepNumber){
+			  case 3 : //approved by GEO Head
+				   salesStageCode=SalesStageCode.valueOf(opportunityT.getSalesStageCode()).getDescription();
+					workflowMap.put("salesStageCode",salesStageCode);
+				       sendPathAGEOHeadApprovedMail(workflowMap,workflowRequestT,workflowBfmT,approvedStep);
+				       break;
+			  case 4 : //approved by DESS Head
+				  salesStageCode=SalesStageCode.valueOf(opportunityT.getSalesStageCode()).getDescription();
+					workflowMap.put("salesStageCode",salesStageCode);
+				       sendPathADESSHeadApprovedMail(workflowMap,workflowRequestT,workflowBfmT,approvedStep);
+				       break;
+			  default :
+				  
+			}
+			
+		}
+		} else {
+			logger.error("Request not found");
+		}
+	}
+
+	
+	/**
+	 * this method is used to send mail when BFM workflow is rejected by DESS Head 
+	 * @param workflowMap
+	 * @param workflowRequestT
+	 * @param workflowBfmT
+	 * @param rejectedStep
+	 * @throws Exception
+	 */
+	private void sendPathADESSHeadRejectedMail(Map<String, Object> workflowMap,
+			WorkflowRequestT workflowRequestT, WorkflowBfmT workflowBfmT,
+			WorkflowStepT rejectedStep) throws Exception {
+		logger.info("destinationmailutils - inside sendPathADESSHeadRejectedMail method");
+		DestinationMailMessage message = new DestinationMailMessage();
+		List<String> recepientIds = new ArrayList<String>();
+		List<String> ccIds = new ArrayList<String>();
+		
+		String templateLoc = workflowBFMEscalatePathADESSHeadApproveTemplateLoc;
+		
+		OpportunityT opportunity = workflowBfmT.getOpportunityT();
+		CustomerMasterT customer = opportunity.getCustomerMasterT();
+		String customerName = customer.getCustomerName();
+		String geography = customer.getGeography();
+		// populate subject
+		StringBuffer subject = new StringBuffer("");
+		subject.append(Constants.WORKFLOW_BFM_ESCALATE_PATH_A_REJECTED_SUBJECT);
+		subject.append("["+customerName+"]");
+		String mailSubject = formatSubject(subject.toString());
+		message.setSubject(mailSubject);
+		
+		if(StringUtils.isEmpty(rejectedStep.getComments())){
+			workflowMap.put("comments","Not Provided");	
+		} else {
+		    workflowMap.put("comments",rejectedStep.getComments());
+		}
+		workflowMap.put("status","rejected");
+		
+		WorkflowStepT pendingStepFinal =workflowStepRepository
+				.findByRequestIdAndStep(workflowRequestT.getRequestId(),rejectedStep.getStep()+1);
+		
+		WorkflowStepT previousForRejectedStep =workflowStepRepository
+				.findByRequestIdAndStep(workflowRequestT.getRequestId(),rejectedStep.getStep()-1);
+		
+		// populate recepients
+		if (pendingStepFinal.getUserRole() != null) {
+					List<String> userIdsByRole = getUserIdsByRole(pendingStepFinal);
+					recepientIds.addAll(userIdsByRole);
+		}
+		if (pendingStepFinal.getUserId() != null) {
+					List<String> userIdsByIds = getUserIdsById(pendingStepFinal);
+					recepientIds.addAll(userIdsByIds);
+		}
+							
+		if (pendingStepFinal.getUserGroup() != null) {
+						switch (pendingStepFinal.getUserGroup()) {
+							    case Constants.WORKFLOW_GEO_HEADS:
+							    	recepientIds
+											.addAll(userAccessPrivilegesRepository
+													.findUserIdsForCustomerUserGroup(geography,
+															Constants.Y,
+															UserGroup.GEO_HEADS.getValue()));
+									logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+							ccIds.addAll(userAccessPrivilegesRepository
+											.findUserIdsForCustomerUserGroup(geography,
+													Constants.Y, UserGroup.PMO.getValue()));
+									logger.debug("CCIds for PMO :" + ccIds);
+									break;
+								case Constants.WORKFLOW_PMO:
+									ccIds.addAll(userAccessPrivilegesRepository
+											.findUserIdsForCustomerUserGroup(geography,
+													Constants.Y, UserGroup.PMO.getValue()));
+						default:
+									break;
+								}
+		}
+		
+		String createdById = workflowRequestT.getCreatedBy();
+		ccIds.add(createdById);
+		
+		// populate recepients
+		if (previousForRejectedStep.getUserRole() != null) {
+							List<String> userIdsByRole = getUserIdsByRole(previousForRejectedStep);
+							ccIds.addAll(userIdsByRole);
+		}
+		if (previousForRejectedStep.getUserId() != null) {
+							List<String> userIdsByIds = getUserIdsById(previousForRejectedStep);
+							ccIds.addAll(userIdsByIds);
+		}
+									
+		if (previousForRejectedStep.getUserGroup() != null) {
+								switch (previousForRejectedStep.getUserGroup()) {
+									    case Constants.WORKFLOW_GEO_HEADS:
+									    	ccIds.addAll(userAccessPrivilegesRepository
+															.findUserIdsForCustomerUserGroup(geography,
+																	Constants.Y,
+																	UserGroup.GEO_HEADS.getValue()));
+											logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+									ccIds.addAll(userAccessPrivilegesRepository
+													.findUserIdsForCustomerUserGroup(geography,
+															Constants.Y, UserGroup.PMO.getValue()));
+											logger.debug("CCIds for PMO :" + ccIds);
+											break;
+										case Constants.WORKFLOW_PMO:
+											ccIds.addAll(userAccessPrivilegesRepository
+													.findUserIdsForCustomerUserGroup(geography,
+															Constants.Y, UserGroup.PMO.getValue()));
+								default:
+											break;
+										}
+		}
+		
+		if (rejectedStep.getUserRole() != null) {
+			List<String> userIdsByRole = getUserIdsByRole(rejectedStep);
+			ccIds.addAll(userIdsByRole);
+		}
+		if (rejectedStep.getUserId() != null) {
+			List<String> userIdsByIds = getUserIdsById(rejectedStep);
+			ccIds.addAll(userIdsByIds);
+		}
+					
+		if (rejectedStep.getUserGroup() != null) {
+				switch (rejectedStep.getUserGroup()) {
+					    case Constants.WORKFLOW_GEO_HEADS:
+					    	ccIds
+									.addAll(userAccessPrivilegesRepository
+											.findUserIdsForCustomerUserGroup(geography,
+													Constants.Y,
+													UserGroup.GEO_HEADS.getValue()));
+							logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+					ccIds.addAll(userAccessPrivilegesRepository
+									.findUserIdsForCustomerUserGroup(geography,
+											Constants.Y, UserGroup.PMO.getValue()));
+							logger.debug("CCIds for PMO :" + ccIds);
+							break;
+						case Constants.WORKFLOW_PMO:
+							ccIds.addAll(userAccessPrivilegesRepository
+									.findUserIdsForCustomerUserGroup(geography,
+											Constants.Y, UserGroup.PMO.getValue()));
+				default:
+							break;
+						}
+		}
+		
+		message.setRecipients(listMailIdsFromUserIds(recepientIds));
+		message.setCcList(listMailIdsFromUserIds(ccIds));
+		
+		// populate template
+		String text = mergeTmplWithData(workflowMap, templateLoc);
+		logger.info("framed text for mail :" + text);
+		message.setMessage(text);
+
+		// send mail
+		destMailSender.send(message);
+		logger.info("Mail Sent for request"
+							+ workflowRequestT.getRequestId());
+	}
+	
+	/**
+	 * this method is used to send mail when BFM workflow is approved by GEO Head in PathB
+	 * @param workflowMap
+	 * @param workflowRequestT
+	 * @param workflowBfmT
+	 * @param approvedStep
+	 * @throws Exception
+	 */
+	private void sendPathBGEOHeadApprovedMail(Map<String, Object> workflowMap,
+			WorkflowRequestT workflowRequestT, WorkflowBfmT workflowBfmT,
+			WorkflowStepT approvedStep) throws Exception {
+		logger.info("destinationmailutils - inside sendPathBGEOHeadApprovedMail method");
+		DestinationMailMessage message = new DestinationMailMessage();
+		List<String> recepientIds = new ArrayList<String>();
+		List<String> ccIds = new ArrayList<String>();
+		
+		String templateLoc = workflowPendingBFMEscalateBApproveRejectTemplateLoc;
+		
+		OpportunityT opportunity = workflowBfmT.getOpportunityT();
+		CustomerMasterT customer = opportunity.getCustomerMasterT();
+		String customerName = customer.getCustomerName();
+		String geography = customer.getGeography();
+		// populate subject
+		StringBuffer subject = new StringBuffer("");
+		subject.append(Constants.WORKFLOW_BFM_ESCALATE_PATH_A_APPROVED_SUBJECT);
+		subject.append("["+customerName+"]");
+		String mailSubject = formatSubject(subject.toString());
+		message.setSubject(mailSubject);
+		
+		if(StringUtils.isEmpty(approvedStep.getComments())){
+			workflowMap.put("comments","Not Provided");	
+		} else {
+		    workflowMap.put("comments",approvedStep.getComments());
+		}
+		workflowMap.put("status","approved");
+		
+		//pending last step
+		WorkflowStepT pendingStep =workflowStepRepository
+				.findByRequestIdAndStep(workflowRequestT.getRequestId(),approvedStep.getStep()+1);
+		
+				
+		if (approvedStep.getUserRole() != null) {
+					List<String> userIdsByRole = getUserIdsByRole(approvedStep);
+					ccIds.addAll(userIdsByRole);
+		}
+	    if (approvedStep.getUserId() != null) {
+					List<String> userIdsByIds = getUserIdsById(approvedStep);
+					ccIds.addAll(userIdsByIds);
+		}
+							
+		if (approvedStep.getUserGroup() != null) {
+						switch (approvedStep.getUserGroup()) {
+							    case Constants.WORKFLOW_GEO_HEADS:
+							    	ccIds
+											.addAll(userAccessPrivilegesRepository
+													.findUserIdsForCustomerUserGroup(geography,
+															Constants.Y,
+															UserGroup.GEO_HEADS.getValue()));
+									logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+							ccIds.addAll(userAccessPrivilegesRepository
+											.findUserIdsForCustomerUserGroup(geography,
+													Constants.Y, UserGroup.PMO.getValue()));
+									logger.debug("CCIds for PMO :" + ccIds);
+									break;
+								case Constants.WORKFLOW_PMO:
+									ccIds.addAll(userAccessPrivilegesRepository
+											.findUserIdsForCustomerUserGroup(geography,
+													Constants.Y, UserGroup.PMO.getValue()));
+						default:
+									break;
+								}
+		}
+		
+		if (pendingStep.getUserRole() != null) {
+			List<String> userIdsByRole = getUserIdsByRole(pendingStep);
+			recepientIds.addAll(userIdsByRole);
+		}
+		if (pendingStep.getUserId() != null) {
+			List<String> userIdsByIds = getUserIdsById(pendingStep);
+			recepientIds.addAll(userIdsByIds);
+		}
+					
+		if (pendingStep.getUserGroup() != null) {
+				switch (pendingStep.getUserGroup()) {
+					    case Constants.WORKFLOW_GEO_HEADS:
+					    	recepientIds
+									.addAll(userAccessPrivilegesRepository
+											.findUserIdsForCustomerUserGroup(geography,
+													Constants.Y,
+													UserGroup.GEO_HEADS.getValue()));
+							logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+					ccIds.addAll(userAccessPrivilegesRepository
+									.findUserIdsForCustomerUserGroup(geography,
+											Constants.Y, UserGroup.PMO.getValue()));
+							logger.debug("CCIds for PMO :" + ccIds);
+							break;
+						case Constants.WORKFLOW_PMO:
+							recepientIds.addAll(userAccessPrivilegesRepository
+									.findUserIdsForCustomerUserGroup(geography,
+											Constants.Y, UserGroup.PMO.getValue()));
+				default:
+							break;
+						}
+		}
+		
+		String createdById = workflowRequestT.getCreatedBy();
+		ccIds.add(createdById);
+		
+		message.setRecipients(listMailIdsFromUserIds(recepientIds));
+		message.setCcList(listMailIdsFromUserIds(ccIds));
+		
+		// populate template
+		String text = mergeTmplWithData(workflowMap, templateLoc);
+		logger.info("framed text for mail :" + text);
+		message.setMessage(text);
+
+		// send mail
+		destMailSender.send(message);
+		logger.info("Mail Sent for request"
+							+ workflowRequestT.getRequestId());
+		
+	}
+
+	
+	/**
+	 * this method is used to send mail when BFM workflow is rejected by GEO Head in path A
+	 * @param workflowMap
+	 * @param workflowRequestT
+	 * @param workflowBfmT
+	 * @param rejectedStep
+	 * @throws Exception
+	 */
+	private void sendPathAGEOHeadRejectedMail(Map<String, Object> workflowMap,
+			WorkflowRequestT workflowRequestT, WorkflowBfmT workflowBfmT,
+			WorkflowStepT rejectedStep) throws Exception {
+		logger.info("destinationmailutils - inside sendPathAGEOHeadRejectedMail method");
+		DestinationMailMessage message = new DestinationMailMessage();
+		List<String> recepientIds = new ArrayList<String>();
+		List<String> ccIds = new ArrayList<String>();
+		
+		String templateLoc = workflowPendingBFMEscalateBApproveRejectTemplateLoc;
+		
+		OpportunityT opportunity = workflowBfmT.getOpportunityT();
+		CustomerMasterT customer = opportunity.getCustomerMasterT();
+		String customerName = customer.getCustomerName();
+		String geography = customer.getGeography();
+		
+		// populate subject
+		StringBuffer subject = new StringBuffer("");
+		subject.append(Constants.WORKFLOW_BFM_ESCALATE_PATH_A_REJECTED_SUBJECT);
+		subject.append("["+customerName+"]");
+		String mailSubject = formatSubject(subject.toString());
+		message.setSubject(mailSubject);
+		
+		if(StringUtils.isEmpty(rejectedStep.getComments())){
+			workflowMap.put("comments","Not Provided");	
+		} else {
+		    workflowMap.put("comments",rejectedStep.getComments());
+		}
+		workflowMap.put("status","rejected");
+		
+		WorkflowStepT previousForRejectedStep =workflowStepRepository
+				.findByRequestIdAndStep(workflowRequestT.getRequestId(),rejectedStep.getStep()-1);
+		
+		// populate recepients
+		if (previousForRejectedStep.getUserRole() != null) {
+									List<String> userIdsByRole = getUserIdsByRole(previousForRejectedStep);
+									recepientIds.addAll(userIdsByRole);
+		}
+		if (previousForRejectedStep.getUserId() != null) {
+									List<String> userIdsByIds = getUserIdsById(previousForRejectedStep);
+									recepientIds.addAll(userIdsByIds);
+		}
+											
+		if (previousForRejectedStep.getUserGroup() != null) {
+										switch (previousForRejectedStep.getUserGroup()) {
+											    case Constants.WORKFLOW_GEO_HEADS:
+											    	recepientIds
+															.addAll(userAccessPrivilegesRepository
+																	.findUserIdsForCustomerUserGroup(geography,
+																			Constants.Y,
+																			UserGroup.GEO_HEADS.getValue()));
+													logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+											ccIds.addAll(userAccessPrivilegesRepository
+															.findUserIdsForCustomerUserGroup(geography,
+																	Constants.Y, UserGroup.PMO.getValue()));
+													logger.debug("CCIds for PMO :" + ccIds);
+													break;
+												case Constants.WORKFLOW_PMO:
+													ccIds.addAll(userAccessPrivilegesRepository
+															.findUserIdsForCustomerUserGroup(geography,
+																	Constants.Y, UserGroup.PMO.getValue()));
+										default:
+													break;
+												}
+		}
+				
+		if (rejectedStep.getUserRole() != null) {
+					List<String> userIdsByRole = getUserIdsByRole(rejectedStep);
+					ccIds.addAll(userIdsByRole);
+		}
+	    if (rejectedStep.getUserId() != null) {
+					List<String> userIdsByIds = getUserIdsById(rejectedStep);
+					ccIds.addAll(userIdsByIds);
+		}
+							
+		if (rejectedStep.getUserGroup() != null) {
+						switch (rejectedStep.getUserGroup()) {
+							    case Constants.WORKFLOW_GEO_HEADS:
+							    	ccIds
+											.addAll(userAccessPrivilegesRepository
+													.findUserIdsForCustomerUserGroup(geography,
+															Constants.Y,
+															UserGroup.GEO_HEADS.getValue()));
+									logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+							ccIds.addAll(userAccessPrivilegesRepository
+											.findUserIdsForCustomerUserGroup(geography,
+													Constants.Y, UserGroup.PMO.getValue()));
+									logger.debug("CCIds for PMO :" + ccIds);
+									break;
+								case Constants.WORKFLOW_PMO:
+									ccIds.addAll(userAccessPrivilegesRepository
+											.findUserIdsForCustomerUserGroup(geography,
+													Constants.Y, UserGroup.PMO.getValue()));
+						default:
+									break;
+								}
+		}
+		
+		String createdById = workflowRequestT.getCreatedBy();
+		ccIds.add(createdById);
+		
+		message.setRecipients(listMailIdsFromUserIds(recepientIds));
+		message.setCcList(listMailIdsFromUserIds(ccIds));
+		
+		// populate template
+		String text = mergeTmplWithData(workflowMap, templateLoc);
+		logger.info("framed text for mail :" + text);
+		message.setMessage(text);
+
+		// send mail
+		destMailSender.send(message);
+		logger.info("Mail Sent for request"
+							+ workflowRequestT.getRequestId());
+		
+	}
+
+	
+	/**
+	 * this method is used to send mail when BFM workflow is approved by DESS Head
+	 * @param workflowMap
+	 * @param workflowRequestT
+	 * @param workflowBfmT
+	 * @param approvedStep
+	 * @throws Exception
+	 */
+	private void sendPathADESSHeadApprovedMail(Map<String, Object> workflowMap,
+			WorkflowRequestT workflowRequestT, WorkflowBfmT workflowBfmT,
+			WorkflowStepT approvedStep) throws Exception {
+		logger.info("destinationmailutils - inside sendPathADESSHeadApprovedMail method");
+		DestinationMailMessage message = new DestinationMailMessage();
+		List<String> recepientIds = new ArrayList<String>();
+		List<String> ccIds = new ArrayList<String>();
+		
+		String templateLoc = workflowBFMEscalatePathADESSHeadApproveTemplateLoc;
+		
+		OpportunityT opportunity = workflowBfmT.getOpportunityT();
+		CustomerMasterT customer = opportunity.getCustomerMasterT();
+		String customerName = customer.getCustomerName();
+		String geography = customer.getGeography();
+		
+		// populate subject
+		StringBuffer subject = new StringBuffer("");
+		subject.append(Constants.WORKFLOW_BFM_ESCALATE_PATH_A_APPROVED_SUBJECT);
+		subject.append("["+customerName+"]");
+		String mailSubject = formatSubject(subject.toString());
+		message.setSubject(mailSubject);
+		
+		if(StringUtils.isEmpty(approvedStep.getComments())){
+			workflowMap.put("comments","Not Provided");	
+		} else {
+		    workflowMap.put("comments",approvedStep.getComments());
+		}
+		workflowMap.put("status","approved");
+		
+		WorkflowStepT pendingStepFinal =workflowStepRepository
+				.findByRequestIdAndStep(workflowRequestT.getRequestId(),approvedStep.getStep()+1);
+		
+		WorkflowStepT previousForApprovedStep =workflowStepRepository
+				.findByRequestIdAndStep(workflowRequestT.getRequestId(),approvedStep.getStep()-1);
+		
+		// populate recepients
+		if (pendingStepFinal.getUserRole() != null) {
+					List<String> userIdsByRole = getUserIdsByRole(pendingStepFinal);
+					recepientIds.addAll(userIdsByRole);
+		}
+		if (pendingStepFinal.getUserId() != null) {
+					List<String> userIdsByIds = getUserIdsById(pendingStepFinal);
+					recepientIds.addAll(userIdsByIds);
+		}
+							
+		if (pendingStepFinal.getUserGroup() != null) {
+						switch (pendingStepFinal.getUserGroup()) {
+							    case Constants.WORKFLOW_GEO_HEADS:
+							    	recepientIds
+											.addAll(userAccessPrivilegesRepository
+													.findUserIdsForCustomerUserGroup(geography,
+															Constants.Y,
+															UserGroup.GEO_HEADS.getValue()));
+									logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+							ccIds.addAll(userAccessPrivilegesRepository
+											.findUserIdsForCustomerUserGroup(geography,
+													Constants.Y, UserGroup.PMO.getValue()));
+									logger.debug("CCIds for PMO :" + ccIds);
+									break;
+								case Constants.WORKFLOW_PMO:
+									ccIds.addAll(userAccessPrivilegesRepository
+											.findUserIdsForCustomerUserGroup(geography,
+													Constants.Y, UserGroup.PMO.getValue()));
+						default:
+									break;
+								}
+		}
+		
+		String createdById = workflowRequestT.getCreatedBy();
+		ccIds.add(createdById);
+		
+		// populate recepients
+		if (previousForApprovedStep.getUserRole() != null) {
+							List<String> userIdsByRole = getUserIdsByRole(previousForApprovedStep);
+							ccIds.addAll(userIdsByRole);
+		}
+		if (previousForApprovedStep.getUserId() != null) {
+							List<String> userIdsByIds = getUserIdsById(previousForApprovedStep);
+							ccIds.addAll(userIdsByIds);
+		}
+									
+		if (previousForApprovedStep.getUserGroup() != null) {
+								switch (previousForApprovedStep.getUserGroup()) {
+									    case Constants.WORKFLOW_GEO_HEADS:
+									    	ccIds
+													.addAll(userAccessPrivilegesRepository
+															.findUserIdsForCustomerUserGroup(geography,
+																	Constants.Y,
+																	UserGroup.GEO_HEADS.getValue()));
+											logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+									ccIds.addAll(userAccessPrivilegesRepository
+													.findUserIdsForCustomerUserGroup(geography,
+															Constants.Y, UserGroup.PMO.getValue()));
+											logger.debug("CCIds for PMO :" + ccIds);
+											break;
+										case Constants.WORKFLOW_PMO:
+											ccIds.addAll(userAccessPrivilegesRepository
+													.findUserIdsForCustomerUserGroup(geography,
+															Constants.Y, UserGroup.PMO.getValue()));
+								default:
+											break;
+										}
+		}
+		
+		if (approvedStep.getUserRole() != null) {
+			List<String> userIdsByRole = getUserIdsByRole(approvedStep);
+			ccIds.addAll(userIdsByRole);
+		}
+		if (approvedStep.getUserId() != null) {
+			List<String> userIdsByIds = getUserIdsById(approvedStep);
+			ccIds.addAll(userIdsByIds);
+		}
+					
+		if (approvedStep.getUserGroup() != null) {
+				switch (approvedStep.getUserGroup()) {
+					    case Constants.WORKFLOW_GEO_HEADS:
+					    	ccIds
+									.addAll(userAccessPrivilegesRepository
+											.findUserIdsForCustomerUserGroup(geography,
+													Constants.Y,
+													UserGroup.GEO_HEADS.getValue()));
+							logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+					ccIds.addAll(userAccessPrivilegesRepository
+									.findUserIdsForCustomerUserGroup(geography,
+											Constants.Y, UserGroup.PMO.getValue()));
+							logger.debug("CCIds for PMO :" + ccIds);
+							break;
+						case Constants.WORKFLOW_PMO:
+							ccIds.addAll(userAccessPrivilegesRepository
+									.findUserIdsForCustomerUserGroup(geography,
+											Constants.Y, UserGroup.PMO.getValue()));
+				default:
+							break;
+						}
+		}
+		
+		message.setRecipients(listMailIdsFromUserIds(recepientIds));
+		message.setCcList(listMailIdsFromUserIds(ccIds));
+		
+		// populate template
+		String text = mergeTmplWithData(workflowMap, templateLoc);
+		logger.info("framed text for mail :" + text);
+		message.setMessage(text);
+
+		// send mail
+		destMailSender.send(message);
+		logger.info("Mail Sent for request"
+							+ workflowRequestT.getRequestId());
+	}
+
+	
+	/**
+	 * this method is used to send mail when BFM workflow is approved by GEO Head in path A
+	 * @param workflowMap
+	 * @param workflowRequestT
+	 * @param workflowBfmT
+	 * @param approvedStep
+	 * @throws Exception
+	 */
+	private void sendPathAGEOHeadApprovedMail(Map<String, Object> workflowMap,
+			WorkflowRequestT workflowRequestT, WorkflowBfmT workflowBfmT,
+			WorkflowStepT approvedStep) throws Exception {
+		logger.info("destinationmailutils - inside sendPathAGEOHeadApprovedMail method");
+		DestinationMailMessage message = new DestinationMailMessage();
+		List<String> recepientIds = new ArrayList<String>();
+		List<String> ccIds = new ArrayList<String>();
+		
+		String templateLoc = workflowBFMEscalatePathAGEOHeadApproveTemplateLoc;
+		
+		OpportunityT opportunity = workflowBfmT.getOpportunityT();
+		CustomerMasterT customer = opportunity.getCustomerMasterT();
+		String customerName = customer.getCustomerName();
+		String geography = customer.getGeography();
+		
+		// populate subject
+		StringBuffer subject = new StringBuffer("");
+		subject.append(Constants.WORKFLOW_BFM_ESCALATE_PENDING_SUBJECT);
+		subject.append("["+customerName+"]");
+		String mailSubject = formatSubject(subject.toString());
+		message.setSubject(mailSubject);
+		
+		WorkflowStepT pendingStepDESSHead =workflowStepRepository
+				.findByRequestIdAndStep(workflowRequestT.getRequestId(),approvedStep.getStep()+1);
+		
+		WorkflowStepT escalatedStep =workflowStepRepository
+				.findByRequestIdAndStep(workflowRequestT.getRequestId(),approvedStep.getStep()-1);
+		
+		if(StringUtils.isEmpty(approvedStep.getComments())){
+			workflowMap.put("comments","Not Provided");	
+		} else {
+		    workflowMap.put("comments",approvedStep.getComments());
+		}
+		
+		// populate recepients
+		if (pendingStepDESSHead.getUserRole() != null) {
+			List<String> userIdsByRole = getUserIdsByRole(pendingStepDESSHead);
+			recepientIds.addAll(userIdsByRole);
+		}
+		if (pendingStepDESSHead.getUserId() != null) {
+			List<String> userIdsByIds = getUserIdsById(pendingStepDESSHead);
+			recepientIds.addAll(userIdsByIds);
+		}
+					
+		if (pendingStepDESSHead.getUserGroup() != null) {
+				switch (pendingStepDESSHead.getUserGroup()) {
+					    case Constants.WORKFLOW_GEO_HEADS:
+					    	recepientIds
+									.addAll(userAccessPrivilegesRepository
+											.findUserIdsForCustomerUserGroup(geography,
+													Constants.Y,
+													UserGroup.GEO_HEADS.getValue()));
+							logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+					ccIds.addAll(userAccessPrivilegesRepository
+									.findUserIdsForCustomerUserGroup(geography,
+											Constants.Y, UserGroup.PMO.getValue()));
+							logger.debug("CCIds for PMO :" + ccIds);
+							break;
+						case Constants.WORKFLOW_PMO:
+							ccIds.addAll(userAccessPrivilegesRepository
+									.findUserIdsForCustomerUserGroup(geography,
+											Constants.Y, UserGroup.PMO.getValue()));
+				default:
+							break;
+						}
+		}
+		
+		if (approvedStep.getUserRole() != null) {
+			List<String> userIdsByRole = getUserIdsByRole(approvedStep);
+			ccIds.addAll(userIdsByRole);
+		}
+		if (approvedStep.getUserId() != null) {
+			List<String> userIdsByIds = getUserIdsById(approvedStep);
+			ccIds.addAll(userIdsByIds);
+		}
+					
+		if (approvedStep.getUserGroup() != null) {
+				switch (approvedStep.getUserGroup()) {
+					    case Constants.WORKFLOW_GEO_HEADS:
+					    	ccIds
+									.addAll(userAccessPrivilegesRepository
+											.findUserIdsForCustomerUserGroup(geography,
+													Constants.Y,
+													UserGroup.GEO_HEADS.getValue()));
+							logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+					ccIds.addAll(userAccessPrivilegesRepository
+									.findUserIdsForCustomerUserGroup(geography,
+											Constants.Y, UserGroup.PMO.getValue()));
+							logger.debug("CCIds for PMO :" + ccIds);
+							break;
+						case Constants.WORKFLOW_PMO:
+							ccIds.addAll(userAccessPrivilegesRepository
+									.findUserIdsForCustomerUserGroup(geography,
+											Constants.Y, UserGroup.PMO.getValue()));
+				default:
+							break;
+						}
+		}
+		
+		if (escalatedStep.getUserRole() != null) {
+			List<String> userIdsByRole = getUserIdsByRole(escalatedStep);
+			ccIds.addAll(userIdsByRole);
+		}
+		if (escalatedStep.getUserId() != null) {
+			List<String> userIdsByIds = getUserIdsById(escalatedStep);
+			ccIds.addAll(userIdsByIds);
+		}
+					
+		if (escalatedStep.getUserGroup() != null) {
+				switch (escalatedStep.getUserGroup()) {
+					    case Constants.WORKFLOW_GEO_HEADS:
+					    	ccIds
+									.addAll(userAccessPrivilegesRepository
+											.findUserIdsForCustomerUserGroup(geography,
+													Constants.Y,
+													UserGroup.GEO_HEADS.getValue()));
+							logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+					ccIds.addAll(userAccessPrivilegesRepository
+									.findUserIdsForCustomerUserGroup(geography,
+											Constants.Y, UserGroup.PMO.getValue()));
+							logger.debug("CCIds for PMO :" + ccIds);
+							break;
+						case Constants.WORKFLOW_PMO:
+							ccIds.addAll(userAccessPrivilegesRepository
+									.findUserIdsForCustomerUserGroup(geography,
+											Constants.Y, UserGroup.PMO.getValue()));
+				default:
+							break;
+						}
+		}
+		
+		 UserT approvedUser = userRepository.findOne(approvedStep.getUserId());
+		 String geoHead = approvedUser.getUserName();
+		 workflowMap.put("geoHead", geoHead);
+		
+		String createdById = workflowRequestT.getCreatedBy();
+		ccIds.add(createdById);
+		
+		message.setRecipients(listMailIdsFromUserIds(recepientIds));
+		message.setCcList(listMailIdsFromUserIds(ccIds));
+		
+		// populate template
+		String text = mergeTmplWithData(workflowMap, templateLoc);
+		logger.info("framed text for mail :" + text);
+		message.setMessage(text);
+
+		// send mail
+		destMailSender.send(message);
+		logger.info("Mail Sent for request"
+							+ workflowRequestT.getRequestId());
+		
+	}
+
+	
+	/**
+	 * this method is used to send mail when BFM workflow is approved finally (Path A and B)
+	 * @param workflowMap
+	 * @param workflowRequestT
+	 * @param workflowBfmT
+	 * @param approvedStep
+	 * @throws Exception
+	 */
+	private void sendPathAFinalStepApprovedEmail(
+			Map<String, Object> workflowMap, WorkflowRequestT workflowRequestT,
+			WorkflowBfmT workflowBfmT, WorkflowStepT approvedStep) throws Exception {
+		logger.info("destinationmailutils - inside sendPathAFinalStepApprovedEmail method");
+        DestinationMailMessage message = new DestinationMailMessage();
+		
+		String status = "approved";
+		workflowMap.put("status", status);
+		
+		if(StringUtils.isEmpty(approvedStep.getComments())){
+			workflowMap.put("comments","Not Provided");	
+		} else {
+		    workflowMap.put("comments",approvedStep.getComments());
+		}
+		
+		OpportunityT opportunity = workflowBfmT.getOpportunityT();
+		String opportunityId = opportunity.getOpportunityId();
+		CustomerMasterT customer = opportunity.getCustomerMasterT();
+		String customerName = customer.getCustomerName();
+		String geography = customer.getGeography();
+		
+		// populate subject
+		StringBuffer subject = new StringBuffer("");
+		subject.append(Constants.WORKFLOW_BFM_STEP1_APPROVED_SUBJECT);
+		subject.append(getCustomerOpportunitySubString(opportunityId,customerName));
+		String mailSubject = formatSubject(subject.toString());
+		message.setSubject(mailSubject);
+		
+		List<String> recepientIds = new ArrayList<String>();
+		List<String> ccIds = new ArrayList<String>();
+		
+		// populate recepients
+		if (approvedStep.getUserRole() != null) {
+			 List<String> userIdsByRole = getUserIdsByRole(approvedStep);
+			 ccIds.addAll(userIdsByRole);
+			}
+			if (approvedStep.getUserId() != null) {
+			 List<String> userIdsByIds = getUserIdsById(approvedStep);
+			 ccIds.addAll(userIdsByIds);
+			}
+			
+			if (approvedStep.getUserGroup() != null) {
+				switch (approvedStep.getUserGroup()) {
+				case Constants.WORKFLOW_GEO_HEADS:
+					ccIds
+							.addAll(userAccessPrivilegesRepository
+									.findUserIdsForCustomerUserGroup(geography,
+											Constants.Y,
+											UserGroup.GEO_HEADS.getValue()));
+					logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+					ccIds.addAll(userAccessPrivilegesRepository
+							.findUserIdsForCustomerUserGroup(geography,
+									Constants.Y, UserGroup.PMO.getValue()));
+					logger.debug("CCIds for PMO :" + ccIds);
+					break;
+				case Constants.WORKFLOW_PMO:
+					ccIds.addAll(userAccessPrivilegesRepository
+							.findUserIdsForCustomerUserGroup(geography,
+									Constants.Y, UserGroup.PMO.getValue()));
+				default:
+					break;
+				}
+			}
+		
+			String createdById = workflowRequestT.getCreatedBy();
+			recepientIds.add(createdById);
+			
+			message.setRecipients(listMailIdsFromUserIds(recepientIds));
+			message.setCcList(listMailIdsFromUserIds(ccIds));
+			
+			// populate template
+			String templateLoc = workflowApprovedRejectedBFMStep1TemplateLoc;	
+			String text = mergeTmplWithData(workflowMap, templateLoc);
+			logger.info("framed text for mail :" + text);
+			message.setMessage(text);
+
+			// send mail
+			destMailSender.send(message);
+			logger.info("Mail Sent for request"
+					+ workflowRequestT.getRequestId());
+		
+	}
+
+	/**
+	 * this method is used to send mail when BFM workflow is rejected finally
+	 * @param workflowMap
+	 * @param workflowRequestT
+	 * @param workflowBfmT
+	 * @param rejectedStep
+	 * @throws Exception
+	 */
+	private void sendPathAFinalStepRejectedEmail(
+			Map<String, Object> workflowMap, WorkflowRequestT workflowRequestT,
+			WorkflowBfmT workflowBfmT, WorkflowStepT rejectedStep) throws Exception {
+		logger.info("destinationmailutils - inside sendPathAFinalStepRejectedEmail method");
+
+		DestinationMailMessage message = new DestinationMailMessage();
+		
+		String status = "rejected";
+		workflowMap.put("status", status);
+		
+		OpportunityT opportunity = workflowBfmT.getOpportunityT();
+		String opportunityId = opportunity.getOpportunityId();
+		CustomerMasterT customer = opportunity.getCustomerMasterT();
+		String customerName = customer.getCustomerName();
+		String geography = customer.getGeography();
+		
+		// populate subject
+		StringBuffer subject = new StringBuffer("");
+		subject.append(Constants.WORKFLOW_BFM_STEP1_REJECTED_SUBJECT);
+		subject.append(getCustomerOpportunitySubString(opportunityId,customerName));
+		String mailSubject = formatSubject(subject.toString());
+		message.setSubject(mailSubject);
+		
+		List<String> recepientIds = new ArrayList<String>();
+		List<String> ccIds = new ArrayList<String>();
+		
+		if(StringUtils.isEmpty(rejectedStep.getComments())){
+			workflowMap.put("comments","Not Provided");	
+		} else {
+		    workflowMap.put("comments",rejectedStep.getComments());
+		}
+		
+		// populate recepients
+		if (rejectedStep.getUserRole() != null) {
+			 List<String> userIdsByRole = getUserIdsByRole(rejectedStep);
+			 ccIds.addAll(userIdsByRole);
+			}
+			if (rejectedStep.getUserId() != null) {
+			 List<String> userIdsByIds = getUserIdsById(rejectedStep);
+			 ccIds.addAll(userIdsByIds);
+			}
+			
+			if (rejectedStep.getUserGroup() != null) {
+				switch (rejectedStep.getUserGroup()) {
+				case Constants.WORKFLOW_GEO_HEADS:
+					ccIds
+							.addAll(userAccessPrivilegesRepository
+									.findUserIdsForCustomerUserGroup(geography,
+											Constants.Y,
+											UserGroup.GEO_HEADS.getValue()));
+					logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+					ccIds.addAll(userAccessPrivilegesRepository
+							.findUserIdsForCustomerUserGroup(geography,
+									Constants.Y, UserGroup.PMO.getValue()));
+					logger.debug("CCIds for PMO :" + ccIds);
+					break;
+				case Constants.WORKFLOW_PMO:
+					ccIds.addAll(userAccessPrivilegesRepository
+							.findUserIdsForCustomerUserGroup(geography,
+									Constants.Y, UserGroup.PMO.getValue()));
+				default:
+					break;
+				}
+			}
+		
+			String createdById = workflowRequestT.getCreatedBy();
+			recepientIds.add(createdById);
+			
+			message.setRecipients(listMailIdsFromUserIds(recepientIds));
+			message.setCcList(listMailIdsFromUserIds(ccIds));
+			
+			// populate template
+			String templateLoc = workflowApprovedRejectedBFMStep1TemplateLoc;	
+			String text = mergeTmplWithData(workflowMap, templateLoc);
+			logger.info("framed text for mail :" + text);
+			message.setMessage(text);
+
+			// send mail
+			destMailSender.send(message);
+			logger.info("Mail Sent for request"
+					+ workflowRequestT.getRequestId());
+			
+	}
+		
+	}
+
+

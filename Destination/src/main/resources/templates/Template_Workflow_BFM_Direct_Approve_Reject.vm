@@ -1,0 +1,28 @@
+<html>
+	<body>
+		<h3>Dear user,</h3>
+		<p>
+			 Your deal financial request for opportunity : ${opportunityName} with customer : ${customerName} and Opportunity ID [${opportunityId}] is ${status}. 	
+		</p>
+		<p>
+		   Please see the comments below:
+		<br>
+		   ${comments}     
+		</p>    
+		<p>
+		   This opportunity is now moved to ${salesStageCode}
+		</p>   
+		<p>
+		Regards,<br>
+		Destination Team.
+		</p>
+		<br>
+		<p>
+		Note: This is a system-generated e-mail. Please do not respond to this mail.
+		</p>
+	</body>
+</html>
+
+
+
+

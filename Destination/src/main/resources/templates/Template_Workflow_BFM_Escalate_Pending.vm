@@ -1,0 +1,34 @@
+<html>
+	<body>
+		<h3>Dear user,</h3>
+		<p>
+			 BFM has initiated an exception for deal financial approval of an opportunity with following details:	
+		</p>    
+		<p>
+		   Exception Category: ${exceptions} <br>
+		   Opportunity Id: ${opportunityId} <br>
+		   CRM Id: ${crmId} <br>
+		   Customer Name: ${customerName} <br>
+		   Opportunity Name: ${opportunityName} <br>
+		   Deal Value: ${dealValue}
+		</p> 
+		<p>
+		   Please see the comments below:
+		<br>
+		   ${comments}     
+		</p>   
+		  <p>
+		  Please log into Destination and respond.
+		  </p>
+		  
+		  
+		<p>
+		Regards,<br>
+		Destination Team.
+		</p>
+		<br>
+		<p>
+		Note: This is a system-generated e-mail. Please do not respond to this mail.
+		</p>
+	</body>
+</html>

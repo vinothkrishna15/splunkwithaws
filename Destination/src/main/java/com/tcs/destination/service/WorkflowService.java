@@ -3776,7 +3776,7 @@ public class WorkflowService {
 		if (workflowRequest != null) {
 			if (workflowRequest.getStatus().equals(
 					WorkflowStatus.PENDING.getStatus())) {
-				//sendEmailNotificationforPending(workflowRequest.getRequestId(),new Date(), entityTypeId);
+				sendEmailNotificationforBFMStep1Pending(workflowRequest.getRequestId(), entityTypeId);
 				status.setStatus(
 						Status.SUCCESS,
 						"Your request to approve the BFM file for the opportunity :" + createdOpportunity.getOpportunityId() + " - "
@@ -3784,6 +3784,42 @@ public class WorkflowService {
 			} 
 		}
 	}
+	
+	/**
+	 * This method triggers email notification asynchronously on 
+	 * BFM Workflow submission during opportunity update
+	 * @param reqId
+	 * @param entityTypeId
+	 */
+	private void sendEmailNotificationforBFMStep1Pending(Integer reqId,Integer entityTypeId){
+		class WorkflowNotificationForBFMStep1Pending implements Runnable {
+			Integer requestId;
+			Integer entityTypeId;
+
+			WorkflowNotificationForBFMStep1Pending(Integer requestId, Integer entityTypeId) {
+				this.requestId = requestId;
+				this.entityTypeId = entityTypeId;
+				
+			}
+
+			@Override
+			public void run() {
+				try {
+					logger.debug("Inside run() method of WorkflowNotificationForPending");
+					Thread.sleep(15000);
+					mailUtils.sendWorkflowPendingBFMStep1Mail(requestId, entityTypeId);
+				} catch (Exception e) {
+					logger.error("Error sending email " , e);
+				}
+			}
+
+		}
+		WorkflowNotificationForBFMStep1Pending workflowNotificationForPending = new WorkflowNotificationForBFMStep1Pending(
+				reqId, entityTypeId);
+		mailTaskExecutor.execute(workflowNotificationForPending);
+		logger.debug("End:Inside sendEmailNotification of workflow pending");
+	}
+
 
 	/**
 	 * Method to take action on the bfm request based on the status
@@ -3842,7 +3878,7 @@ public class WorkflowService {
 						if (workflowRequest.getStatus().equals(WorkflowStatus.PENDING.getStatus())) {
 							// update the status to Escalated after shrilakshmi initiates exception
 							updateEscalted(workflowRequest.getRequestId(), workflowBfmT);
-							//sendEmailNotificationforPending(workflowRequest.getRequestId(),new Date(), entityTypeId);
+							sendEmailNotificationBFMEscalatePending(workflowRequest.getRequestId(), workflowRequest.getEntityTypeId());
 							status.setStatus(
 									Status.SUCCESS,
 									"The request for BFM is Escalated to IOU Head !!!");
@@ -3857,7 +3893,7 @@ public class WorkflowService {
 						if (workflowRequest.getStatus().equals(WorkflowStatus.PENDING.getStatus())) {
 							// update the status to Escalated after shrilakshmi initiates exception
 							updateEscalted(workflowRequest.getRequestId(), workflowBfmT);
-							//sendEmailNotificationforPending(workflowRequest.getRequestId(),new Date(), entityTypeId);
+							sendEmailNotificationBFMEscalatePending(workflowRequest.getRequestId(), workflowRequest.getEntityTypeId());
 							status.setStatus(
 									Status.SUCCESS,
 									"The request for BFM is Escalated to Geo Head !!!");
@@ -3872,6 +3908,45 @@ public class WorkflowService {
 					"Exceptions cannot be empty");
 		}
 	}
+	
+	
+	/**
+	 * This method is used to send email notification asychronously during escalation in BFM workflow
+	 * @param requestId
+	 * @param entityTypeId
+	 */
+	private void sendEmailNotificationBFMEscalatePending(Integer requestId,
+			Integer entityTypeId) {
+		class WorkflowNotificationForBFMEscalatePending implements Runnable {
+			Integer requestId;
+			Integer entityTypeId;
+
+			WorkflowNotificationForBFMEscalatePending(Integer requestId, Integer entityTypeId) {
+				this.requestId = requestId;
+				this.entityTypeId = entityTypeId;
+				
+			}
+
+			@Override
+			public void run() {
+				try {
+					logger.debug("Inside run() method of WorkflowNotificationForPending");
+					Thread.sleep(15000);
+					mailUtils.sendWorkflowPendingBFMEscalateMail(requestId, entityTypeId);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					logger.error("Error sending email " ,e);
+				}
+			}
+
+		}
+		WorkflowNotificationForBFMEscalatePending workflowNotificationBFMEscalatePending = new WorkflowNotificationForBFMEscalatePending(
+				requestId, entityTypeId);
+		mailTaskExecutor.execute(workflowNotificationBFMEscalatePending);
+		logger.debug("End:Inside sendEmailNotification of workflow BFM Escalate pending");
+		
+	}
+	
 
 	private void updateEscalted(Integer requestId, WorkflowBfmT workflowBfmT) {
 		List<WorkflowStepT> workflowSteps = workflowStepRepository.findStepsByRequestId(requestId);
@@ -4101,18 +4176,130 @@ public class WorkflowService {
 					workflowStaus.getStatus())) {
 				status.setStatus(Status.SUCCESS,
 						"The requested workflow bfm is finally" + masterRequest.getStatus() + "!!!");
-				//				sendEmailNotificationforApprovedOrRejectMail(
-				//						workflowPartnerApprovedSubject,
-				//						masterRequest.getRequestId(),
-				//						masterRequest.getCreatedDatetime(),
-				//						masterRequest.getEntityTypeId());
 			} else {
 				status.setStatus(Status.SUCCESS,
 						"The requested workflow bfm is intermediately" + masterRequest.getStatus() + "!!!");
 			}
+			
+				if(masterRequest.getEntityTypeId() == 4){
+				    sendEmailNotificationforBFMStep1ApproveOrReject(masterRequest.getRequestId(), entityTypeId, masterRequest.getStatus());
+				}else if(masterRequest.getEntityTypeId()==5){
+					sendEmailNotificationforBFM_PathA_ApproveOrReject(masterRequest.getRequestId(), entityTypeId, masterRequest.getStatus());	
+				}else if(masterRequest.getEntityTypeId()==6){
+					sendEmailNotificationforBFM_PathB_ApproveOrReject(masterRequest.getRequestId(), entityTypeId, masterRequest.getStatus());	
+				}
 		
 		}
 		return status;
+	}
+	
+	
+	/**
+	 * This method is used to send email asynchronously for approve or reject in path B for BFM workflow
+	 * @param reqId
+	 * @param entityTypeId
+	 * @param status
+	 */
+	private void sendEmailNotificationforBFM_PathB_ApproveOrReject(Integer reqId,Integer entityTypeId,String status){
+		class sendEmailNotificationforBFM_PathB_ApproveOrReject implements Runnable {
+			Integer requestId;
+			Integer entityTypeId;
+			String status;
+
+			sendEmailNotificationforBFM_PathB_ApproveOrReject(Integer requestId, Integer entityTypeId,String status) {
+				this.requestId = requestId;
+				this.entityTypeId = entityTypeId;
+				this.status = status;
+			}
+
+			@Override
+			public void run() {
+				try {
+					logger.debug("Inside run() method of sendEmailNotificationforBFM_PathB_ApproveOrReject");
+					Thread.sleep(15000);
+					mailUtils.sendEmailNotificationforBFM_PathB_ApproveOrReject(requestId, entityTypeId,status);
+				} catch (Exception e) {
+					logger.error("Error sending email ",e);
+				}
+			}
+
+		}
+		sendEmailNotificationforBFM_PathB_ApproveOrReject workflowNotificationFor_PathB_ApprovedRejected = new sendEmailNotificationforBFM_PathB_ApproveOrReject(
+				reqId, entityTypeId,status);
+		mailTaskExecutor.execute(workflowNotificationFor_PathB_ApprovedRejected);
+		logger.debug("End:Inside sendEmailNotificationforBFM_PathB_ApproveOrReject of workflow Approved/Rejected");
+	}
+	
+	/**
+	 * This method is used to send email asynchronously for approve or reject in path A for BFM workflow
+	 * @param reqId
+	 * @param entityTypeId
+	 * @param status
+	 */
+	private void sendEmailNotificationforBFM_PathA_ApproveOrReject(Integer reqId,Integer entityTypeId,String status){
+		class sendEmailNotificationforBFM_PathA_ApproveOrReject implements Runnable {
+			Integer requestId;
+			Integer entityTypeId;
+			String status;
+
+			sendEmailNotificationforBFM_PathA_ApproveOrReject(Integer requestId, Integer entityTypeId,String status) {
+				this.requestId = requestId;
+				this.entityTypeId = entityTypeId;
+				this.status = status;
+			}
+
+			@Override
+			public void run() {
+				try {
+					logger.debug("Inside run() method of sendEmailNotificationforBFM_PathA_ApproveOrReject");
+					Thread.sleep(15000);
+					mailUtils.sendEmailNotificationforBFM_PathA_ApproveOrReject(requestId, entityTypeId,status);
+				} catch (Exception e) {
+					logger.error("Error sending email ",e);
+				}
+			}
+
+		}
+		sendEmailNotificationforBFM_PathA_ApproveOrReject workflowNotificationFor_PathA_ApprovedRejected = new sendEmailNotificationforBFM_PathA_ApproveOrReject(
+				reqId, entityTypeId,status);
+		mailTaskExecutor.execute(workflowNotificationFor_PathA_ApprovedRejected);
+		logger.debug("End:Inside sendEmailNotificationforBFM_PathA_ApproveOrReject of workflow Approved/Rejected");
+	}
+
+	/**
+	 * This method is used to send email asynchronously for direct approve or reject in BFM workflow
+	 * @param reqId
+	 * @param entityTypeId
+	 * @param status
+	 */
+	private void sendEmailNotificationforBFMStep1ApproveOrReject(Integer reqId,Integer entityTypeId,String status){
+		class sendEmailNotificationforBFMStep1ApproveOrReject implements Runnable {
+			Integer requestId;
+			Integer entityTypeId;
+			String status;
+
+			sendEmailNotificationforBFMStep1ApproveOrReject(Integer requestId, Integer entityTypeId,String status) {
+				this.requestId = requestId;
+				this.entityTypeId = entityTypeId;
+				this.status = status;
+			}
+
+			@Override
+			public void run() {
+				try {
+					logger.debug("Inside run() method of sendEmailNotificationforBFMStep1ApproveOrReject");
+					Thread.sleep(15000);
+					mailUtils.sendEmailNotificationforBFMStep1ApproveOrReject(requestId, entityTypeId,status);
+				} catch (Exception e) {
+					logger.error("Error sending email " , e);
+				}
+			}
+
+		}
+		sendEmailNotificationforBFMStep1ApproveOrReject workflowNotificationForApprovedRejected = new sendEmailNotificationforBFMStep1ApproveOrReject(
+				reqId, entityTypeId,status);
+		mailTaskExecutor.execute(workflowNotificationForApprovedRejected);
+		logger.debug("End:Inside sendEmailNotificationforBFMStep1ApproveOrReject of workflow Approved/Rejected");
 	}
 
 	/**
