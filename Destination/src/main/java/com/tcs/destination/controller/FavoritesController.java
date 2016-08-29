@@ -152,5 +152,45 @@ public class FavoritesController {
 		}
 
 	}
+	
+	/**
+	 * This method is used to get the favorites for user
+	 * 
+	 * @param entityType
+	 * @param page
+	 * @param count
+	 * @param fields
+	 * @param view
+	 * @return favorites
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/user", method = RequestMethod.GET)
+	public @ResponseBody String findFavoritesForUser(
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "10") int count,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		logger.info("Inside favorites controller : Start of retrieving the favourites for user");
+		try {
+			// if page and count are negative
+			if (page < 0 && count < 0) {
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Invalid pagination request");
+			}
+			// calling service
+			PaginatedResponse favourites = myFavService.findFavoritesForUser(userId, page, count);
+			logger.info("Inside favorites controller : End of retrieving the favourites for user");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, favourites);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the favourites for " + userId);
+		}
+	}
 
 }

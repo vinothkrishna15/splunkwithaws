@@ -1202,5 +1202,92 @@ public interface OpportunityRepository extends
 					+"AND ((OPP.sales_stage_code between 0 and 8) OR (OPP.deal_closure_date between (:fromDate) AND (:toDate)))",nativeQuery=true)
 	List<OpportunityT> getAllOpportunitiesBySearchedIdQuery(@Param("searchedUserIdList") List<String> searchedUserId,@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
 	
+	/* ---------- repository methods for smart search --------- */
+	
+	@Query(value = "SELECT * FROM opportunity_t "
+			+ "WHERE UPPER(opportunity_id) LIKE UPPER(:term) "
+			+ "ORDER BY modified_datetime DESC "
+			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<OpportunityT> searchById(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	@Query(value = "SELECT * FROM opportunity_t "
+			+ "WHERE UPPER(opportunity_name) LIKE UPPER(:term) "
+			+ "ORDER BY modified_datetime DESC "
+			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<OpportunityT> searchByName(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	@Query(value = "SELECT * FROM opportunity_t "
+			+ "WHERE customer_id IN (SELECT customer_id FROM customer_master_t WHERE UPPER(customer_name) LIKE UPPER(:term)) "
+			+ "ORDER BY modified_datetime DESC "
+			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<OpportunityT> searchByCustomerName(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	@Query(value = "SELECT * FROM opportunity_t "
+			+ "WHERE opportunity_id IN (SELECT DISTINCT(opportunity_id) FROM opportunity_sub_sp_link_t WHERE UPPER(sub_sp) LIKE UPPER(:term)) "
+			+ "ORDER BY modified_datetime DESC "
+			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<OpportunityT> searchBySubsp(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	@Query(value = "SELECT * FROM opportunity_t "
+			+ "WHERE opportunity_owner IN (SELECT user_id FROM user_t WHERE UPPER(user_name) LIKE UPPER(:term)) "
+			+ "ORDER BY modified_datetime DESC "
+			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<OpportunityT> searchByPrimaryOwner(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	/* ---------- ends - repository methods for smart search --------- */
+	
+	/**
+	 * Fetch the opportunities for the for the customerId and opportunity name like
+	 *  and after request received date
+	 * @param customerId
+	 * @param fromDate
+	 * @param term
+	 * @return
+	 */
+	@Query(value="SELECT * FROM opportunity_t WHERE customer_id =?1 AND opportunity_request_receive_date > ?2 "
+			+ " AND UPPER(opportunity_name) LIKE ?3 ORDER BY modified_datetime DESC ", nativeQuery = true)
+	List<OpportunityT> findByCustomerIdAndOpportunityRequestReceiveDateAfterAndOpportunityNameLike(
+			String customerId, Date fromDate, String term);
+
+	/**
+	 * Fetch the opportunities for the for the customerId and opportunityId like
+	 *  and after request received date
+	 * @param customerId
+	 * @param fromTimestamp
+	 * @param term
+	 * @return
+	 */
+	@Query(value="SELECT * FROM opportunity_t WHERE customer_id =?1 AND opportunity_request_receive_date > ?2 "
+			+ " AND UPPER(opportunity_id) LIKE ?3 ORDER BY modified_datetime DESC ", nativeQuery = true)
+	List<OpportunityT> findByCustomerIdAndOpportunityRequestReceiveDateAfterAndOpportunityIdLike(
+			String customerId, Timestamp fromTimestamp, String term);
+
+	/**
+	 * Fetch the opportunities for the for the customerId and opportunityOwner like
+	 *  and after request received date
+	 * @param customerId
+	 * @param fromTimestamp
+	 * @param term
+	 * @return
+	 */
+	@Query(value="SELECT (OPP.*) FROM opportunity_t OPP JOIN user_t U ON U.user_id=OPP.opportunity_owner "
+			+ " WHERE customer_id =?1 AND opportunity_request_receive_date > ?2  "
+			+ " AND UPPER(U.user_name) LIKE ?3 ORDER BY modified_datetime DESC ",nativeQuery=true)
+	List<OpportunityT> findByCustomerIdAndOpportunityRequestReceiveDateAfterAndOpportunityOwnerLike(
+			String customerId, Timestamp fromTimestamp, String term);
+
+	/**
+	 * Fetch the opportunities for the for the customerId and opportunitySubSp like
+	 *  and after request received date
+	 * @param customerId
+	 * @param fromTimestamp
+	 * @param term
+	 * @return
+	 */
+	@Query(value="SELECT (OPP.*) FROM opportunity_t OPP JOIN opportunity_sub_sp_link_t OPPSPL ON OPP.opportunity_id=OPPSPL.opportunity_id "
+			+ " WHERE customer_id =?1 AND opportunity_request_receive_date > ?2 AND UPPER(OPPSPL.sub_sp) LIKE ?3 "
+			+ " ORDER BY modified_datetime DESC ",nativeQuery=true)
+	List<OpportunityT> findByCustomerIdAndOpportunityRequestReceiveDateAfterAndSubSpLike(
+			String customerId, Timestamp fromTimestamp, String term);
 	
 }

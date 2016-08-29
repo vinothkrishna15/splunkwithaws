@@ -24,5 +24,14 @@ public interface FavoritesSearchedRepository extends
 	UserFavoritesT findByDocumentIdAndUserId(String documentId,String userId);
 
 	UserFavoritesT findByContactIdAndUserId(String contactId,String userId);
+	
+	/**
+	 * Find Favorites for user
+	 * 
+	 * @param userId
+	 * @param pageable
+	 * @return
+	 */
+	Page<UserFavoritesT> findByUserIdOrderByCreatedDatetimeDesc(String userId, Pageable pageable);
 
 }

@@ -132,7 +132,18 @@ public class DataProcessingService {
 		break;
 		case 18: entity = EntityType.BEACON.name();
 		break;
-		
+		case 20:
+		case 21:
+			entity = EntityType.PRODUCT.name();
+		break;
+		case 22: 
+		case 23:	
+			entity = EntityType.PRODUCT_CONTACT.name();
+		break;
+		case 24:
+		case 25:	
+			entity = EntityType.PARTNER_MASTER.name();
+		break;
 		}
 		return entity;
 	}

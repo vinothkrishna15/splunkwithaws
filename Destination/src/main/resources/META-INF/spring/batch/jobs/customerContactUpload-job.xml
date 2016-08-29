@@ -54,6 +54,15 @@
 	<bean id="customerContactFlowdecider" class="com.tcs.destination.decider.CustomerDecider" />
 
 	<bean id="uploadErrorReport" class="com.tcs.destination.service.UploadErrorReport" />
+	
+	<!-- scheduler  -->
+	<bean id="customerContactUploadScheduler" class="com.tcs.destination.scheduler.JobScheduler">
+		<property name="job" ref="customerContactUpload"/>
+	</bean>
+	
+	<task:scheduled-tasks>
+        <task:scheduled ref="customerContactUploadScheduler" method="run" cron="${customerContact.upload.job.cron}"/>
+    </task:scheduled-tasks>
 
 </beans>
 	

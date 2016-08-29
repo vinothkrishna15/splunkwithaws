@@ -94,6 +94,9 @@ public class ConnectT implements Serializable {
 
 	private String location;
 	
+	@Transient
+	private String productId; 
+
 	@ManyToOne
 	@JoinColumn(name="location", insertable=false, updatable=false)
 	private CityMapping cityMapping;
@@ -209,10 +212,10 @@ public class ConnectT implements Serializable {
 
 	@Transient
 	private List<ConnectOpportunityLinkIdT> deleteConnectOpportunityLinkIdTs;
-	
+
 	@Transient
 	private List<SearchKeywordsT> deleteSearchKeywordsTs;
-	
+
 	@Transient	
 	private boolean enableEditAccess;	
 
@@ -833,21 +836,29 @@ public class ConnectT implements Serializable {
 			List<ConnectOpportunityLinkIdT> deleteConnectOpportunityLinkIdTs) {
 		this.deleteConnectOpportunityLinkIdTs = deleteConnectOpportunityLinkIdTs;
 	}
-	
+
 	public List<SearchKeywordsT> getDeleteSearchKeywordsTs() {
 		return deleteSearchKeywordsTs;
 	}
-	
+
 	public void setDeleteSearchKeywordsTs(
 			List<SearchKeywordsT> deleteSearchKeywordsTs) {
 		this.deleteSearchKeywordsTs = deleteSearchKeywordsTs;
 	}
-	
+
 	public boolean isEnableEditAccess() {
 		return enableEditAccess;
 	}
 
 	public void setEnableEditAccess(boolean enableEditAccess) {
 		this.enableEditAccess = enableEditAccess;
+	}
+
+	public String getProductId() {
+		return productId;
+	}
+
+	public void setProductId(String productId) {
+		this.productId = productId;
 	}
 }

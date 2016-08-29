@@ -54,44 +54,44 @@
 	</batch:job>
 	
 	<!-- Readers -->
-	<bean id="customerDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="customerDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 		<property name="repository" ref="customerRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>
-	<bean id="customerBeaconDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="customerBeaconDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 		<property name="repository" ref="beaconCustomerMappingRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>
-	<bean id="customerRevenueDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="customerRevenueDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 		<property name="repository" ref="revenueCustomerMappingTRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>
-	<bean id="customerIouDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="customerIouDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 		<property name="repository" ref="customerIOUMappingRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>
-	<bean id="customerIouBeaconDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="customerIouBeaconDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 		<property name="repository" ref="iouBeaconMappingTRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>
 	
 	<!-- Writers -->
-	<bean id="customerDwldWriter" class="com.tcs.destination.writer.CustomerDwldWriter">
+	<bean id="customerDwldWriter" class="com.tcs.destination.writer.CustomerDwldWriter" scope="step">
 		<property name="template" value="${customerSheetTemplate}"/>
 		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
 		<property name="fileServerPath" value="${fileserver.path}" />
 		<property name="dataProcessingService" ref="dataProcessingService" />
 	</bean>
 	
-	<bean id="customerBeaconDwldWriter" class="com.tcs.destination.writer.BeaconDwldWriter">
+	<bean id="customerBeaconDwldWriter" class="com.tcs.destination.writer.BeaconDwldWriter" scope="step">
 		<property name="commonHelper" ref="commonHelper" />
 	</bean>
 	
-	<bean id="customerRevenueDwldWriter" class="com.tcs.destination.writer.RevenueDwldWriter"/>
+	<bean id="customerRevenueDwldWriter" class="com.tcs.destination.writer.RevenueDwldWriter" scope="step"/>
 	
-	<bean id="customerIouDwldWriter" class="com.tcs.destination.writer.IouDwldWriter" />
+	<bean id="customerIouDwldWriter" class="com.tcs.destination.writer.IouDwldWriter" scope="step"/>
 	
-	<bean id="customerIouBeaconDwldWriter" class="com.tcs.destination.writer.IouBeaconDwldWriter">
+	<bean id="customerIouBeaconDwldWriter" class="com.tcs.destination.writer.IouBeaconDwldWriter" scope="step">
 		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
 	</bean>
 		

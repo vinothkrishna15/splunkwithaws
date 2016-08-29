@@ -1,3 +1,4 @@
+
 package com.tcs.destination.service;
 
 import java.util.ArrayList;
@@ -8,6 +9,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,10 +17,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.Lists;
+import com.tcs.destination.bean.GeographyCountryMappingT;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
+import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
+import com.tcs.destination.bean.PartnerContactLinkT;
 import com.tcs.destination.bean.PartnerMasterT;
+import com.tcs.destination.bean.PartnerSubSpMappingT;
+import com.tcs.destination.bean.PartnerSubspProductMappingT;
+import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BeaconConvertorRepository;
 import com.tcs.destination.data.repository.ConnectCustomerContactLinkTRepository;
@@ -26,13 +35,18 @@ import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.OpportunityPartnerLinkTRepository;
+import com.tcs.destination.data.repository.PartnerDao;
 import com.tcs.destination.data.repository.PartnerRepository;
+import com.tcs.destination.data.repository.PartnerSubSpMappingTRepository;
+import com.tcs.destination.data.repository.PartnerSubSpProductMappingTRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.enums.SmartSearchType;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.CommonHelper;
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
 
@@ -76,6 +90,15 @@ public class PartnerService {
 
 	@Autowired
 	private CommonHelper commonHelper;
+	
+	@Autowired @Lazy
+	private PartnerDao partnerDao;
+	
+	@Autowired 
+	private PartnerSubSpMappingTRepository partnerSubSpMappingTRepository;
+	
+	@Autowired 
+	PartnerSubSpProductMappingTRepository partnerSubSpProductMappingTRepository;
 
 	@Autowired
 	UserAccessPrivilegesRepository userAccessPrivilegesRepository;
@@ -84,6 +107,8 @@ public class PartnerService {
 	private GeographyRepository geoRepository;
 
 	private Map<String, GeographyMappingT> geographyMapping = null;
+
+	private Map<String, GeographyCountryMappingT> geographyCountryMapping = null;
 
 
 
@@ -94,10 +119,31 @@ public class PartnerService {
 	 * @param keyword
 	 * @throws Exception
 	 */
-	public void save(List<PartnerMasterT> insertList) throws Exception {
+	public void save(List<PartnerMasterT> partnerList) throws Exception {
 		logger.debug("Begin:Inside save method of PartnerService");
-		partnerRepository.save(insertList);
+		partnerRepository.save(partnerList);
 		logger.debug("End:Inside save method of PartnerService");
+	}
+
+	/**
+	 * 
+	 * @param childList
+	 * @param mapOfPartnerAndHqLink
+	 */
+	public void saveChild(List<PartnerMasterT>childList,Map<String, String> mapOfPartnerAndHqLink)
+	{
+		logger.debug("Begin:Inside save method of PartnerService");
+		List<PartnerMasterT> childPartnerList=new ArrayList<PartnerMasterT>();
+		for(PartnerMasterT partner:childList)
+		{
+			String hqPartnerLinkName=mapOfPartnerAndHqLink.get(partner.getPartnerName());
+			String hqPartnerLinkId=partnerRepository.findPartnerIdByName(hqPartnerLinkName);
+			partner.setHqPartnerLinkId(hqPartnerLinkId);
+ 			childPartnerList.add(partner);
+		}
+	partnerRepository.save(childPartnerList);
+	logger.debug("End:Inside save method of PartnerService");
+		
 	}
 
 	/**
@@ -151,6 +197,27 @@ public class PartnerService {
 		partnerRepository.save(partnerList);
 		logger.debug("End:Inside deletePartner method of PartnerService");
 	}
+	
+	/**
+	 * This service deletes partner subsp details from partner_subsp_mapping_t
+	 * @param deleteList
+	 */
+	public void deletePartnerSubSp(List<PartnerSubSpMappingT> deleteList) {
+		logger.debug("Begin:Inside deletePartnerSubSp method of PartnerService");
+		partnerSubSpMappingTRepository.delete(deleteList);
+		logger.debug("End:Inside deletePartnerSubSp method of PartnerService");
+	}
+	
+	
+	/**
+	 * This service deletes partner subsp details from  partner_subsp_product_mapping_t
+	 * @param deleteList
+	 */
+	public void deletePartnerSubSpProduct(List<PartnerSubspProductMappingT> deleteList) {
+	  logger.debug("Begin:Inside deletePartnerSubSpProduct method of PartnerService");
+	  partnerSubSpProductMappingTRepository.delete(deleteList);
+	  logger.debug("End:Inside deletePartnerSubSpProduct method of PartnerService");
+	}
 
 	/*
 	 * @Transactional public boolean save(PartnerMasterT partner, boolean
@@ -193,8 +260,9 @@ public class PartnerService {
 					.getPartnerName());
 			partnerMasterT.setCorporateHqAddress(partnerToInsert
 					.getCorporateHqAddress());
-			partnerMasterT.setCreatedModifiedBy(partnerToInsert
-					.getCreatedModifiedBy());
+			partnerMasterT.setCreatedBy(partnerToInsert.getCreatedBy());
+			partnerMasterT.setModifiedBy(partnerToInsert.getModifiedBy());
+
 			if (partners.isEmpty()) {
 				partnerMasterT.setPartnerName(partnerToInsert.getPartnerName());
 			} else {
@@ -204,9 +272,16 @@ public class PartnerService {
 			}
 			partnerMasterT.setWebsite(partnerToInsert.getWebsite());
 			partnerMasterT.setFacebook(partnerToInsert.getFacebook());
-			partnerMasterT.setGeographyMappingT(partnerToInsert
-					.getGeographyMappingT());
+			partnerMasterT.setGeography(partnerToInsert.getGeography());
 			partnerMasterT.setDocumentsAttached("NO");
+			partnerMasterT.setCountry(partnerToInsert.getCountry());
+			partnerMasterT.setCity(partnerToInsert.getCity());
+			partnerMasterT.setText1(partnerToInsert.getText1());
+			partnerMasterT.setText2(partnerToInsert.getText2());
+			partnerMasterT.setText3(partnerToInsert.getText3());
+			partnerMasterT.setGroupPartnerName(partnerToInsert.getGroupPartnerName());
+			partnerMasterT.setNotes(partnerToInsert.getNotes());
+			partnerMasterT.setHqPartnerLinkId(partnerToInsert.getHqPartnerLinkId());
 
 			validateInactiveIndicators(partnerMasterT);
 
@@ -225,7 +300,7 @@ public class PartnerService {
 	public void validateInactiveIndicators(PartnerMasterT partner) {
 
 		//createdModifiedBy, 
-		String createdBy = partner.getCreatedModifiedBy();
+		String createdBy = partner.getCreatedBy();
 		if(StringUtils.isNotBlank(createdBy) && userRepository.findByActiveTrueAndUserId(createdBy) == null) {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "The user createdBy is inactive");
 		}
@@ -453,9 +528,11 @@ public class PartnerService {
 			if(findPartnerName!=null && !findPartnerName.isEmpty()){
 				PartnerMasterT partnerExistingByName = findPartnerName.get(0);
 				if(!partnerExistingByName.getPartnerId().equals(partner.getPartnerId())){
-					logger.error("Partner Name already exists");
-					throw new DestinationException(HttpStatus.BAD_REQUEST,
-							"Partner Name already exists");
+					if(partnerExistingByName.getPartnerName().equals(partner.getPartnerName())){
+						logger.error("Partner Name already exists");
+						throw new DestinationException(HttpStatus.BAD_REQUEST,
+								"Partner Name already exists");
+					}
 				}
 			} else {
 				if(!isBdmWithAccess)
@@ -504,10 +581,77 @@ public class PartnerService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Geography should not be empty");
 		}
+
+		// mandatory validations for group partner name
+
+		// group Partner Name
+		/*String groupPartnerName = partnerMaster.getGroupPartnerName();
+		if (!StringUtils.isEmpty(groupPartnerName)) {
+			if(!(partner.getGroupPartnerName().equals(partnerMaster.getGroupPartnerName()))){
+
+				if(!isBdmWithAccess)
+				{
+					partner.setGroupPartnerName(groupPartnerName);
+					isUpdate=true;
+				}
+				else
+				{
+					logger.error("NOT_AUTHORISED: user is not authorised to update the group Partner name");
+					throw new DestinationException(HttpStatus.UNAUTHORIZED, "user is not authorised to update the partner name" );
+				}
+			}
+		}
+		else {
+			logger.error("group Partner name should not be empty");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"group Partner name should not be empty");
+		}*/
+		// country
+		/*String countryStr = partnerMaster.getCountry();
+		if (!StringUtils.isEmpty(countryStr)) {
+			geographyCountryMapping = commonHelper.getGeographyCountryMappingT();
+			if (geographyCountryMapping.containsKey(partnerMaster.getCountry())) {
+				if(!(partner.getCountry().equals(partnerMaster.getCountry())))
+				{
+					if(!isBdmWithAccess)
+					{
+						partner.setCountry(countryStr);
+						isUpdate=true;
+					}
+					else
+					{
+						logger.error("NOT_AUTHORISED: user is not authorised to update the country");
+						throw new DestinationException(HttpStatus.UNAUTHORIZED, "user is not authorised to update the country" );
+					}
+				}
+			} else {
+				logger.error("Invalid country");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"Country :" + partnerMaster.getCountry()
+						+ "is not found");
+			}
+		} else {
+			logger.error("Country should not be empty");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Country should not be empty");
+		}*/
+
+		////notes edited
+		//		if(!StringUtils.isEmpty(oldCustomerObj.getNotes())){
+		//			notes = oldCustomerObj.getNotes();
+		//		}
+		//		if (!customerMaster.getNotes().equals(notes)) {
+		//			oldCustomerObj.setNotes(customerMaster.getNotes());
+		//			isCustomerModifiedFlag = true;
+		//		}
+
 		// Website
-		String website = partnerMaster.getWebsite();
-		if (!StringUtils.isEmpty(website)) {
-			partner.setWebsite(website);
+		String website = "";
+		if (!StringUtils.isEmpty(partner.getWebsite())) {
+			website = partner.getWebsite();
+		}
+		if (!partnerMaster.getWebsite().equals(website)) {
+			partner.setWebsite(partnerMaster.getWebsite());
 			isUpdate=true;
 		}
 
@@ -542,7 +686,51 @@ public class PartnerService {
 			isUpdate=true;
 		}
 
-		partner.setCreatedModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+		// added for partne rdata model chnages
+		//text1,text2 and text3
+		String text1 = partnerMaster.getText1();
+		if (!StringUtils.isEmpty(text1)) {
+			partner.setText1(text1);
+			isUpdate=true;
+		}
+		String text2 = partnerMaster.getText2();
+		if (!StringUtils.isEmpty(text2)) {
+			partner.setText2(text2);
+			isUpdate=true;
+		}
+		String text3 = partnerMaster.getText3();
+		if (!StringUtils.isEmpty(text3)) {
+			partner.setText3(text3);
+			isUpdate=true;
+		}
+		// hq partner link Id
+		String hqPartnerLinkId = partnerMaster.getHqPartnerLinkId();
+		if (!StringUtils.isEmpty(hqPartnerLinkId)) {
+			partner.setHqPartnerLinkId(hqPartnerLinkId);
+			isUpdate=true;
+		}
+
+		// city
+		String city = partnerMaster.getCity();
+		if (!StringUtils.isEmpty(city)) {
+			partner.setCity(city);
+			isUpdate=true;
+		}
+
+		//country
+		String country = partnerMaster.getCountry();
+		if (!StringUtils.isEmpty(country)) {
+			partner.setCountry(country);
+			isUpdate=true;
+		}
+		//groupPartnerName
+		String groupPartnerNamestr = partnerMaster.getGroupPartnerName();
+		if (!StringUtils.isEmpty(groupPartnerNamestr)) {
+			partner.setGroupPartnerName(groupPartnerNamestr);
+			isUpdate=true;
+		}
+
+		partner.setModifiedBy(DestinationUtils.getCurrentUserId());
 
 		if(isUpdate)
 		{
@@ -550,6 +738,173 @@ public class PartnerService {
 			logger.info(partner.getPartnerId() + " Partner details updated");
 		}
 		return isUpdate;
+	}
 
+	public PageDTO<SearchResultDTO<PartnerMasterT>> smartSearch(
+			SmartSearchType smartSearchType, String term, boolean getAll,
+			int page, int count) {
+		logger.info("PartnerService::smartSearch type {}",smartSearchType);
+		PageDTO<SearchResultDTO<PartnerMasterT>> res = new PageDTO<SearchResultDTO<PartnerMasterT>>();
+		List<SearchResultDTO<PartnerMasterT>> resList = Lists.newArrayList();
+		SearchResultDTO<PartnerMasterT> searchResultDTO = new SearchResultDTO<PartnerMasterT>();
+		if(smartSearchType != null) {
+
+			switch(smartSearchType) {
+			case ALL:
+				resList.add(getPartnersByPartnerName(term, getAll));
+				resList.add(getPartnersByCountry(term, getAll));
+				resList.add(getPartnersBySubSp(term, getAll));
+				break;
+			case PARTNER:
+				searchResultDTO = getPartnersByPartnerName(term, getAll);
+				break;
+			case COUNTRY:
+				searchResultDTO = getPartnersByCountry(term, getAll);
+				break;
+			case SUBSP:
+				searchResultDTO = getPartnersBySubSp(term, getAll);
+				break;
+			default:
+				break;
+
+			}
+
+			if(smartSearchType != SmartSearchType.ALL) {//paginate the result if it is fetching entire record(ie. getAll=true)
+				if(getAll) {
+					List<PartnerMasterT> values = searchResultDTO.getValues();
+					searchResultDTO.setValues(PaginationUtils.paginateList(page, count, values));
+					res.setTotalCount(values.size());
+				}
+				resList.add(searchResultDTO);
+			}
+		}
+		res.setContent(resList);
+		return res;
+	}
+
+	private SearchResultDTO<PartnerMasterT> getPartnersByPartnerName(String term,
+			boolean getAll) {
+		List<PartnerMasterT> records = partnerRepository.searchByPartnerName("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.PARTNER);
+	}
+
+	private SearchResultDTO<PartnerMasterT> getPartnersBySubSp(
+			String term, boolean getAll) {
+		List<PartnerMasterT> records = partnerRepository.searchBySubSp("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.SUBSP);
+	}
+	
+	private SearchResultDTO<PartnerMasterT> getPartnersByCountry(String term, boolean getAll) {
+		List<PartnerMasterT> records = partnerRepository.searchByCountry("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.COUNTRY);
+	}
+
+	
+     private SearchResultDTO<PartnerMasterT> createSearchResultFrom(
+			List<PartnerMasterT> records, SmartSearchType type) {
+		SearchResultDTO<PartnerMasterT> conRes = new SearchResultDTO<PartnerMasterT>();
+		conRes.setSearchType(type);
+		conRes.setValues(records);
+		return conRes;
+	}
+	
+	/**
+	 * This service saves partner supsp details into partner_sub_sp_mapping_t
+	 * 
+	 * @param insertList
+	 * @param keyword
+	 * @throws Exception
+	 */
+	public void savePartnerSubsp(List<PartnerSubSpMappingT> partnerList) throws Exception {
+		logger.debug("Begin:Inside save method of PartnerService");
+		partnerSubSpMappingTRepository.save(partnerList);
+		logger.debug("End:Inside save method of PartnerService");
+	}
+	
+	/**
+	 * 
+	 * @param partnerList
+	 * @throws Exception
+	 */
+	public void savePartnerSubSpProduct(List<PartnerSubspProductMappingT> partnerList) throws Exception {
+		logger.debug("Begin:Inside save method of PartnerService");
+		partnerSubSpProductMappingTRepository.save(partnerList);
+		logger.debug("End:Inside save method of PartnerService");
+	}
+
+	/**
+	 * To retrieve the list of partners based on group partner name
+	 * @param nameWith
+	 * @return
+	 */
+	public List<PartnerMasterT> findByGroupPartnerName(String groupPartnerName) {
+		logger.debug("Inside findByGroupPartnerName() service");
+		List<PartnerMasterT> partnerList = partnerRepository
+				.findByGroupPartnerNameIgnoreCaseContainingAndGroupPartnerNameIgnoreCaseNotLikeAndActiveOrderByGroupPartnerNameAsc(
+						groupPartnerName, Constants.UNKNOWN_PARTNER,true);
+		if (partnerList.isEmpty()) {
+			logger.error(
+					"NOT_FOUND: Customer not found with given group customer name: {}",
+					groupPartnerName);
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Customer not found with given group customer name: "
+							+ groupPartnerName);
+		}
+		preparePartnerDetails(partnerList);
+		return partnerList;
+	}
+
+	private void preparePartnerDetails(List<PartnerMasterT> partnerList) {
+		logger.debug("Inside preparePartnerDetails() method");
+
+		if (partnerList != null && !partnerList.isEmpty()) {
+			ArrayList<String> partnerNameList = new ArrayList<String>();
+			for (PartnerMasterT partnerMasterT : partnerList) {
+				partnerNameList.add(partnerMasterT.getPartnerName());
+			}
+			partnerNameList =  partnerDao.getPreviledgedPartnerName(DestinationUtils
+					.getCurrentUserDetails().getUserId(), partnerNameList,
+					true);
+
+			for (PartnerMasterT partnerMasterT : partnerList) {
+				preparePartnerDetails(partnerMasterT, partnerNameList);
+			}
+		}
+	}
+
+	private void preparePartnerDetails(PartnerMasterT partnerMasterT,
+			ArrayList<String> partnerNameList) throws DestinationException {
+		logger.debug("Inside preparePartnerDetails() method");
+
+		removeCyclicForLinkedContactTs(partnerMasterT);
+		try {
+			if (partnerNameList == null) {
+				partnerNameList = new ArrayList<String>();
+				partnerNameList.add(partnerMasterT.getPartnerName());
+				partnerNameList =  partnerDao.getPreviledgedPartnerName(DestinationUtils
+						.getCurrentUserDetails().getUserId(), partnerNameList,
+						true);
+			}
+			if (partnerNameList == null
+					|| partnerNameList.isEmpty()
+					|| (!partnerNameList.contains(partnerMasterT
+							.getPartnerName()))) {
+			}
+		} catch (Exception e) {
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
+	}
+	
+	private void removeCyclicForLinkedContactTs(PartnerMasterT partnerMasterT) {
+		if (partnerMasterT != null) {
+			if (partnerMasterT.getPartnerContactLinkTs() != null) {
+				for (PartnerContactLinkT partnerContactLinkT : partnerMasterT
+						.getPartnerContactLinkTs()) {
+					partnerContactLinkT.getContactT()
+					.setPartnerContactLinkTs(null);
+				}
+			}
+		}
 	}
 }

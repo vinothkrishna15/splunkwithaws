@@ -2,7 +2,6 @@ package com.tcs.destination.utils;
 
 import static com.tcs.destination.utils.DateUtils.ACTUAL_FORMAT;
 
-import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.security.SecureRandom;
@@ -19,7 +18,6 @@ import java.util.Set;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 import org.apache.velocity.app.VelocityEngine;
@@ -29,10 +27,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.velocity.VelocityEngineUtils;
+import org.springframework.util.StreamUtils;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.tcs.destination.bean.BidDetailsT;
+import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.DestinationMailMessage;
@@ -50,6 +50,7 @@ import com.tcs.destination.bean.WorkflowPartnerT;
 import com.tcs.destination.bean.WorkflowRequestT;
 import com.tcs.destination.bean.WorkflowStepT;
 import com.tcs.destination.data.repository.BidDetailsTRepository;
+import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.OpportunityReopenRequestRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
@@ -65,6 +66,7 @@ import com.tcs.destination.data.repository.WorkflowPartnerRepository;
 import com.tcs.destination.data.repository.WorkflowProcessTemplateRepository;
 import com.tcs.destination.data.repository.WorkflowRequestTRepository;
 import com.tcs.destination.data.repository.WorkflowStepTRepository;
+import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.EntityTypeId;
 import com.tcs.destination.enums.RequestType;
 import com.tcs.destination.enums.SalesStageCode;
@@ -169,7 +171,20 @@ public class DestinationMailUtils {
 
 	@Value("${contractNegotiation.mail.subject.highvalue}")
 	private String contractNegotiationHighValueMailSub;
-
+	
+	//collaboration link share changes
+	@Value("${shareConnectTemplate}")
+	private String shareConnectTemplate;
+	
+	@Value("${shareOpportunityTemplate}")
+	private String shareOpportunityTemplate;
+	
+	@Value("${shareOpportunitySubject}")
+	private String shareOpportunitySubject;
+	
+	@Value("${shareConnectSubject}")
+	private String shareConnectSubject;
+	
 	@Autowired
 	private UserService userService;
 
@@ -229,6 +244,9 @@ public class DestinationMailUtils {
 
 	@Autowired
 	SubSpRepository subSpRepository;
+	
+	@Autowired
+	ConnectRepository connectRepository;
 
 	@Autowired
 	private DestinationMailSender destMailSender;
@@ -356,14 +374,18 @@ public class DestinationMailUtils {
 			}
 		}
 
-		if (requestType > 0 && requestType < 10) { // upload
+		if ((requestType > 0 && requestType < 10) || requestType == RequestType.PARTNER_MASTER_UPLOAD.getType()
+				|| requestType == RequestType.PRODUCT_UPLOAD.getType() ||
+				requestType == RequestType.PRODUCT_CONTACT_UPLOAD.getType()) { // upload
 			template = uploadTemplateLoc;
 			requestId = request.getProcessRequestId().toString();
 			uploadedFileName = request.getFileName();
 			attachmentFilePath = request.getErrorFilePath()
 					+ request.getErrorFileName();
 			attachmentFileName = request.getErrorFileName();
-		} else if (requestType > 9 && requestType < 19) { // download
+		} else if ((requestType > 9 && requestType < 19) || requestType == RequestType.PARTNER_MASTER_DOWNLOAD.getType()
+				|| requestType == RequestType.PRODUCT_DOWNLOAD.getType() ||
+				requestType == RequestType.PRODUCT_CONTACT_DOWNLOAD.getType()) { // download
 			template = downloadTemplateLoc;
 			attachmentFilePath = request.getFilePath() + request.getFileName();
 			attachmentFileName = request.getFileName();
@@ -1785,6 +1807,73 @@ public class DestinationMailUtils {
 
 
 	 }
+	 
+	 /**
+		 * This method is used to share an entity through email to group of users  
+		 * @param entityId
+		 * @param entityType
+		 * @param recipientIds
+		 * @param sender
+		 * @param url
+		 */
+	 public void sendShareEmail(String entityId, String entityType, String recipientIds,String sender,String url) throws Exception{
+		 recipientIds = recipientIds.substring(1);
+		 String[] recipients = recipientIds.split(",");
+		 for(String recipient : recipients){
+			 UserT recipientUser = userRepository.findOne(recipient);	   
+      	     String recipientName = recipientUser.getUserName();
+      	     String recipientEmailId = recipientUser.getUserEmailId();
+      	     if(!StringUtils.isEmpty(recipientEmailId)){
+      	       UserT senderUser = userRepository.findOne(sender);	   
+          	   String senderName = senderUser.getUserName();
+          	   
+          	   Map<String, Object> map = new HashMap<String, Object>();
+          	   map.put("sender", senderName);
+          	   map.put("recipient", recipientName);
+          	   map.put("url", url);
+          	   
+          	   DestinationMailMessage message = new DestinationMailMessage();
+          	   
+          	   List<String> recipientMailIds = Lists.newArrayList();
+ 	           recipientMailIds.add(recipientEmailId);
+     	       message.setRecipients(recipientMailIds);
+     	       
+          	   switch (EntityType.valueOf(entityType)) {
+          	 	 case CONNECT : 
+          	 		 ConnectT connect = connectRepository.findOne(entityId);
+          	 		 String connectName = connect.getConnectName();
+          	 		 map.put("connectName", connectName);
+          	 		 String textConnect = mergeTmplWithData(map, shareConnectTemplate);
+          	 		 logger.info("framed text for mail :" + textConnect);
+          	 		 message.setMessage(textConnect);
+			         message.setSubject(new StringBuffer(mailSubjectAppendEnvName).append(shareConnectSubject).toString());
+			         break;
+			         
+          	 	 case OPPORTUNITY :   
+          	 		 OpportunityT opportunity = opportunityRepository.findOne(entityId);
+				     String opportunityName = opportunity.getOpportunityName();
+				 	 map.put("opportunityName", opportunityName);
+				 	 String textOpp = mergeTmplWithData(map, shareOpportunityTemplate);
+				   	 logger.info("framed text for mail :" + textOpp);
+				 	 message.setMessage(textOpp);
+				   	 message.setSubject(new StringBuffer(mailSubjectAppendEnvName).append(shareOpportunitySubject).toString());
+				   	 break;
+				  
+				 default :
+				   		 break;
+          	   }
+          	 try{
+          		 destMailSender.send(message);
+          		 logger.info("Mail Sent for {} Id : {} to {}",entityType,entityId,recipientName);
+          	   } catch(Exception e){
+          		 logger.error("Error sending mail : {}", e.getMessage());
+          	   }
+      	     }
+		 }
+		 
+		 
+	 }
+
 
 	public void sendSampleEmail() throws Exception {
 		DestinationMailMessage message = new DestinationMailMessage();
@@ -1805,7 +1894,7 @@ public class DestinationMailUtils {
 		 String text = mergeTmplWithData(map, sampleEmailTemplateLoc);
 		 logger.info("mail for image with cid " + text);
 		 message.setMessage(text);
-		 destMailSender.send(message); 
+		 destMailSender.sendMultiPart(message); 
 	}
 
 	public void sendSampleEmail2() throws Exception {
@@ -1814,8 +1903,9 @@ public class DestinationMailUtils {
 		message.setSubject("data email");
 		
 		
-		File imgFile = new File(DestinationMailUtils.class.getResource("/templates/img/MountView.png").getPath());
-		byte[] fileBinary = FileUtils.readFileToByteArray(imgFile);
+		//File imgFile = new File(DestinationMailUtils.class.getResource("/templates/img/MountView.png").getPath());
+		//byte[] fileBinary = FileUtils.readFileToByteArray(imgFile);
+		byte[] fileBinary = StreamUtils.copyToByteArray(getClass().getResourceAsStream("/templates/img/MountView.png"));
 		
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put("userNotifications", "You are added as a owner of opportunity : test");

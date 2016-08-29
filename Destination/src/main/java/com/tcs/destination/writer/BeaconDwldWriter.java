@@ -144,6 +144,9 @@ public class BeaconDwldWriter implements ItemWriter<BeaconCustomerMappingT>,
 
 				Cell active = row.createCell(8);//TODO inactive indicator - adding a column for active flag - done
 				active.setCellValue(beacon.isActive());
+				
+				Cell beaconCustomerMapId = row.createCell(9);//TODO beaconCustomerMapId
+				beaconCustomerMapId.setCellValue(beacon.getBeaconCustomerMapId());
 
 				// Increment row counter
 				rowCount++;

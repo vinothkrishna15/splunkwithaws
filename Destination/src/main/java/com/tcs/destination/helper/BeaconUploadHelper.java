@@ -1,7 +1,6 @@
 package com.tcs.destination.helper;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -11,7 +10,6 @@ import org.springframework.stereotype.Component;
 import com.tcs.destination.bean.BeaconCustomerMappingT;
 import com.tcs.destination.bean.BeaconDataT;
 import com.tcs.destination.bean.IouBeaconMappingT;
-import com.tcs.destination.bean.IouCustomerMappingT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.data.repository.BeaconDataTRepository;
 import com.tcs.destination.data.repository.BeaconRepository;

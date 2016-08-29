@@ -15,6 +15,6 @@ CrudRepository<GeographyCountryMappingT, String> {
     @Query(value="select geography, country from GeographyCountryMappingT")
     List<Object[]> getGeographyCountry();
     
-    
+    GeographyCountryMappingT findByCountry(String country);
 
 }

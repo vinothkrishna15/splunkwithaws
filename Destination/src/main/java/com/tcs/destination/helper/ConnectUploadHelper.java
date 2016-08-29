@@ -16,6 +16,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -51,7 +53,6 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.ConnectService;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
-import com.tcs.destination.utils.StringUtils;
 
 /**
  * This ConnectUploadHelper class holds the functionality to aid connect upload
@@ -229,11 +230,12 @@ public class ConnectUploadHelper {
 
 		// CONNECT START DATE OF CONNECT
 		String startDate = data[9];
+		String startTime = data[10];
+		String endTime = data[11];
 		if (!StringUtils.isEmpty(startDate)) {
-			Date startDateOfConnect = DateUtils.getNewTimestampFormat(startDate
-					.trim());
-			connectT.setStartDatetimeOfConnect(new Timestamp(startDateOfConnect
-					.getTime()));
+			Date date = DateUtils.parse(startDate, DateUtils.FORMAT_DATE_WITH_SLASH);
+			Date time = DateUtils.parse(startTime, DateUtils.FORMAT_HH_COLON_MM);
+			connectT.setStartDatetimeOfConnect(new Timestamp(DateUtils.mergeDateWithTime(date, time).getTime()));
 		} else {
 			error.setRowNumber(rowNumber);
 			error.setMessage("start Date Of Connect Is Mandatory; ");
@@ -242,10 +244,9 @@ public class ConnectUploadHelper {
 		// CONNECT END DATE OF CONNECT
 		String endDate = data[9];
 		if (!StringUtils.isEmpty(endDate)) {
-			Date endDateOfConnect = DateUtils.getNewTimestampFormat(endDate
-					.trim());
-			connectT.setEndDatetimeOfConnect(new Timestamp(endDateOfConnect
-					.getTime()));
+			Date date = DateUtils.parse(endDate, DateUtils.FORMAT_DATE_WITH_SLASH);
+			Date time = DateUtils.parse(endTime, DateUtils.FORMAT_HH_COLON_MM);
+			connectT.setEndDatetimeOfConnect((new Timestamp(DateUtils.mergeDateWithTime(date, time).getTime())));
 		} else {
 			error.setRowNumber(rowNumber);
 			error.setMessage("End Date Of Connect Is Mandatory; ");
@@ -261,6 +262,9 @@ public class ConnectUploadHelper {
 
 			if (timeZoneMap.containsKey(timezone.trim())) {
 				connectT.setTimeZone(timezone.trim());
+			} else {
+				error.setRowNumber(rowNumber);
+				error.setMessage("Invalid Timezone ");
 			}
 		} else {
 			error.setRowNumber(rowNumber);
@@ -314,9 +318,15 @@ public class ConnectUploadHelper {
 			
 			List<ConnectSecondaryOwnerLinkT> secondaryOwnerList = new ArrayList<ConnectSecondaryOwnerLinkT>();
 			for(String secondaryOwner : secondaryOwners){
-				secondaryOwnerList.add(constructConnectSecondaryOwnerLink(
-						secondaryOwner, userId));
-			
+				String userIdSec = userRepository.findUserIdByUserName(secondaryOwner);
+				if(StringUtils.isEmpty(userIdSec)) {
+					error.setRowNumber(rowNumber);
+					error.setMessage("Invalid Secondary Owner :" +secondaryOwner);
+				}
+				else {
+					secondaryOwnerList.add(constructConnectSecondaryOwnerLink(
+							userIdSec, userId));
+				}
 			}
 			connectT.setConnectSecondaryOwnerLinkTs(secondaryOwnerList);
 		}
@@ -327,7 +337,7 @@ public class ConnectUploadHelper {
 
 			List<ContactT> contacts = contactRepository
 					.findByContactNames(tcsAccContact.split(","));
-			if (!contacts.isEmpty()) {
+			if (CollectionUtils.isNotEmpty(contacts)) {
 				connectT.setConnectTcsAccountContactLinkTs(constructConnectTCSContactLink(
 						contacts, userId));
 			} else {
@@ -342,9 +352,15 @@ public class ConnectUploadHelper {
 
 			List<ContactT> custContactList = contactRepository
 					.findByContactNames(custContacts.split(","));
-
-			connectT.setConnectCustomerContactLinkTs(constructConnectCustomerContactLink(
-					custContactList, userId));
+			if(CollectionUtils.isNotEmpty(custContactList)) {
+				connectT.setConnectCustomerContactLinkTs(constructConnectCustomerContactLink(
+						custContactList, userId));
+			}
+			else {
+				error.setRowNumber(rowNumber);
+				error.setMessage("Invalid customer contact");
+			}
+			
 		} else {
 			error.setRowNumber(rowNumber);
 			error.setMessage("Connect Customer Contact Is Mandatory; ");
@@ -386,11 +402,9 @@ public class ConnectUploadHelper {
 		SubSpMappingT subSpMappingT = getSubSpMappingTMapValuesForKey(
 				mapOfSubSpMappingT, subSp);
 		cslt.setSubSpMappingT(subSpMappingT);
+		cslt.setSubSp(subSpMappingT.getSubSp());
 		cslt.setCreatedBy(userId);
 		cslt.setModifiedBy(userId);
-		
-		//System.out.println(cslt.getSubSpMappingT().getSubSp());
-
 		return cslt;
 	}
 
@@ -412,6 +426,7 @@ public class ConnectUploadHelper {
 				OfferingMappingT offeringMappingT = getOfferingMappingTMapValuesForKey(
 						mapOfOfferingMappingT, Offering);
 				colt.setOfferingMappingT(offeringMappingT);
+				colt.setOffering(offeringMappingT.getOffering());
 				colt.setCreatedBy(userId);
 				colt.setModifiedBy(userId);
 				
@@ -432,24 +447,11 @@ public class ConnectUploadHelper {
 
 		
 				ConnectSecondaryOwnerLinkT oclt = new ConnectSecondaryOwnerLinkT();
-				oclt.setConnectSecondaryOwnerLinkId(validateAndRectifyValue(secondaryOwner
-						.trim()));
+				oclt.setSecondaryOwner(secondaryOwner);
 				oclt.setCreatedBy(userId);
 				oclt.setModifiedBy(userId);
 				
 		return oclt;
-	}
-
-	private String validateAndRectifyValue(String value) {
-		String val = value;
-		System.out.println(value.substring(value.length() - 2, value.length()));
-		if (value != null) {
-			if (value.substring(value.length() - 2, value.length())
-					.equals(".0")) {
-				val = value.substring(0, value.length() - 2);
-			}
-		}
-		return val;
 	}
 
 	private List<ConnectTcsAccountContactLinkT> constructConnectTCSContactLink(
@@ -459,6 +461,7 @@ public class ConnectUploadHelper {
 		for (ContactT contact : contacts) {
 			ConnectTcsAccountContactLinkT occlt = new ConnectTcsAccountContactLinkT();
 			occlt.setContactT(contact);
+			occlt.setContactId(contact.getContactId());
 			occlt.setCreatedBy(userId);
 			occlt.setModifiedBy(userId);
 			listTcsContactLinkT.add(occlt);
@@ -473,6 +476,7 @@ public class ConnectUploadHelper {
 		for (ContactT contact : custContacts) {
 			ConnectCustomerContactLinkT ccclt = new ConnectCustomerContactLinkT();
 			ccclt.setContactT(contact);
+			ccclt.setContactId(contact.getContactId());
 			ccclt.setCreatedBy(userId);
 			ccclt.setModifiedBy(userId);
 			listConnectCustomerLinkT.add(ccclt);
@@ -510,7 +514,6 @@ public class ConnectUploadHelper {
 
 	public UploadServiceErrorDetailsDTO validateConnectId(String[] data,
 			ConnectT connect) {
-		// TODO Auto-generated method stub
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
 		String connectId = data[2];
 
@@ -530,7 +533,6 @@ public class ConnectUploadHelper {
 
 	public UploadServiceErrorDetailsDTO validateConnectDataUpdate(
 			String[] data, String userId, ConnectT connect) throws Exception {
-		// TODO Auto-generated method stub
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
 
 		// Connect
@@ -690,29 +692,28 @@ public class ConnectUploadHelper {
 		}
 
 		// CONNECT START DATE OF CONNECT
-		String startDate = data[9];
-		if (!StringUtils.isEmpty(startDate)) {
-			Date startDateOfConnect = DateUtils
-					.getNewTimestampFormat(startDate.trim());
-			connect.setStartDatetimeOfConnect(new Timestamp(
-					startDateOfConnect.getTime()));
-		} else {
-			error.setRowNumber(rowNumber);
-			error.setMessage("start Date Of Connect Is Mandatory; ");
-		}
+				String startDate = data[9];
+				String startTime = data[10];
+				String endTime = data[11];
+				if (!StringUtils.isEmpty(startDate)) {
+					Date date = DateUtils.parse(startDate, DateUtils.FORMAT_DATE_WITH_SLASH);
+					Date time = DateUtils.parse(startTime, DateUtils.FORMAT_HH_COLON_MM);
+					connect.setStartDatetimeOfConnect(new Timestamp(DateUtils.mergeDateWithTime(date, time).getTime()));
+				} else {
+					error.setRowNumber(rowNumber);
+					error.setMessage("start Date Of Connect Is Mandatory; ");
+				}
 
-		// CONNECT END DATE OF CONNECT
-		String endDate = data[9];
-		if (!StringUtils.isEmpty(endDate)) {
-			Date endDateOfConnect = DateUtils
-					.getNewTimestampFormat(endDate.trim());
-			connect.setEndDatetimeOfConnect(new Timestamp(
-					endDateOfConnect.getTime()));
-		} else {
-			error.setRowNumber(rowNumber);
-			error.setMessage("End Date Of Connect Is Mandatory; ");
-		}
-
+				// CONNECT END DATE OF CONNECT
+				String endDate = data[9];
+				if (!StringUtils.isEmpty(endDate)) {
+					Date date = DateUtils.parse(endDate, DateUtils.FORMAT_DATE_WITH_SLASH);
+					Date time = DateUtils.parse(endTime, DateUtils.FORMAT_HH_COLON_MM);
+					connect.setEndDatetimeOfConnect(new Timestamp(DateUtils.mergeDateWithTime(date, time).getTime()));
+				} else {
+					error.setRowNumber(rowNumber);
+					error.setMessage("End Date Of Connect Is Mandatory; ");
+				}
 		// TIME ZONE
 		String timezone = data[12];
 		if (!StringUtils.isEmpty(timezone)) {
@@ -723,6 +724,10 @@ public class ConnectUploadHelper {
 
 			if (timeZoneMap.containsKey(timezone.trim())) {
 				connect.setTimeZone(timezone.trim());
+			}
+			else {
+				error.setRowNumber(rowNumber);
+				error.setMessage("Invalid timezone");
 			}
 		} else {
 			error.setRowNumber(rowNumber);
@@ -793,9 +798,17 @@ public class ConnectUploadHelper {
 			}
 			if (!secondaryOwnersFromExcel.isEmpty()) {
 				for (String secondaryOwner : secondaryOwnersFromExcel) {
-					ConnectSecondaryOwnerLinkT connectSecondaryOwnerLinkT = constructConnectSecondaryOwnerLinkUpdate(
-							secondaryOwner, userId, connect);
-					updateList.add(connectSecondaryOwnerLinkT);
+					String userIdSec = userRepository.findUserIdByUserName(secondaryOwner);
+					if(StringUtils.isEmpty(secondaryOwner)) {
+						error.setRowNumber(rowNumber);
+						error.setMessage("Invalid Secondary owner " +secondaryOwner);
+					}
+					else {
+						ConnectSecondaryOwnerLinkT connectSecondaryOwnerLinkT = constructConnectSecondaryOwnerLinkUpdate(
+								userIdSec, userId, connect);
+						updateList.add(connectSecondaryOwnerLinkT);
+					}
+					
 
 				}
 			}
@@ -922,11 +935,9 @@ public class ConnectUploadHelper {
 
 	private ConnectSecondaryOwnerLinkT constructConnectSecondaryOwnerLinkUpdate(
 			String secondaryOwner, String userId, ConnectT connect) {
-		// TODO Auto-generated method stub
 		
 		ConnectSecondaryOwnerLinkT oclt = new ConnectSecondaryOwnerLinkT();
-		oclt.setConnectSecondaryOwnerLinkId(validateAndRectifyValue(secondaryOwner
-				.trim()));
+		oclt.setSecondaryOwner(secondaryOwner);
 		oclt.setConnectId(connect.getConnectId());
 		oclt.setCreatedBy(userId);
 		oclt.setModifiedBy(userId);
@@ -938,11 +949,11 @@ return oclt;
 			String offering, String userId,
 			Map<String, OfferingMappingT> mapOfOfferingMappingT,
 			ConnectT connect) {
-		// TODO Auto-generated method stub
 		ConnectOfferingLinkT colt = new ConnectOfferingLinkT();
 		OfferingMappingT offeringMappingT = getOfferingMappingTMapValuesForKey(
 				mapOfOfferingMappingT, offering);
 		colt.setOfferingMappingT(offeringMappingT);
+		colt.setOffering(offeringMappingT.getOffering());
 		colt.setConnectId(connect.getConnectId());
 		colt.setCreatedBy(userId);
 		colt.setModifiedBy(userId);
@@ -953,18 +964,16 @@ return colt;
 	private ConnectSubSpLinkT constructConnectSubSpLinkUpdate(String subSp,
 			String userId, Map<String, SubSpMappingT> mapOfSubSpMappingT,
 			ConnectT connect) {
-		// TODO Auto-generated method stub
 		
 		ConnectSubSpLinkT cslt = new ConnectSubSpLinkT();
 
 		SubSpMappingT subSpMappingT = getSubSpMappingTMapValuesForKey(
 				mapOfSubSpMappingT, subSp);
 		cslt.setSubSpMappingT(subSpMappingT);
+		cslt.setSubSp(subSpMappingT.getSubSp());
 		cslt.setConnectId(connect.getConnectId());
 		cslt.setCreatedBy(userId);
 		cslt.setModifiedBy(userId);
-		
-		//System.out.println(cslt.getSubSpMappingT().getSubSp());
 
 		return cslt;
 		
@@ -972,10 +981,10 @@ return colt;
 
 	private ConnectTcsAccountContactLinkT constructConnectTCSContactLinkUpdate(
 			ContactT contact, String userId, ConnectT connect) {
-		// TODO Auto-generated method stub
 		
 			ConnectTcsAccountContactLinkT occlt = new ConnectTcsAccountContactLinkT();
 			occlt.setContactT(contact);
+			occlt.setContactId(contact.getContactId());
 			occlt.setCreatedBy(userId);
 			occlt.setModifiedBy(userId);
 			occlt.setConnectId(connect.getConnectId());
@@ -987,10 +996,10 @@ return colt;
 
 	private ConnectCustomerContactLinkT constructConnectCustomerContactLinkUpdate(
 			ContactT contact, String userId, ConnectT connect) {
-		// TODO Auto-generated method stub
 		
 			ConnectCustomerContactLinkT ccclt = new ConnectCustomerContactLinkT();
 			ccclt.setContactT(contact);
+			ccclt.setContactId(contact.getContactId());
 			ccclt.setCreatedBy(userId);
 			ccclt.setModifiedBy(userId);
 			ccclt.setConnectId(connect.getConnectId());
@@ -1000,50 +1009,3 @@ return colt;
 		
 	}
 }
-
-	// private List<ConnectSubSpLinkT> constructConnectSubSpLinkUpdate(String
-	// values,
-	// String userId, Map<String, SubSpMappingT> mapOfSubSpMappingT, String
-	// connectId) {
-	//
-	// List<ConnectSubSpLinkT> listOfOppSubSpLink = new
-	// ArrayList<ConnectSubSpLinkT>();
-	// List<String> subSpsFromExcel = new ArrayList<String>();
-	// List<String> subSpsFromDB = new ArrayList<String>();
-	// List<ConnectSubSpLinkT> deleteList = new ArrayList<ConnectSubSpLinkT>();
-	// if (values != null) {
-	//
-	// listOfOppSubSpLink =
-	// connectSubSpLinkRepository.findByConnectId(connectId);
-	// String[] valuesArray = values.split(",");
-	// subSpsFromExcel = Arrays.asList(valuesArray);
-	// for(ConnectSubSpLinkT connectSubSpLinkT : listOfOppSubSpLink)
-	// {
-	//
-	// if(!subSpsFromExcel.contains(connectSubSpLinkT.getSubSpMappingT().getSubSp()))
-	// {
-	// deleteList.add(connectSubSpLinkT);
-	// }
-	// subSpsFromDB.add(connectSubSpLinkT.getSubSpMappingT().getSubSp());
-	// }
-	// connectSubSpLinkRepository.delete(deleteList);
-	// for (String value : subSpsFromExcel)
-	// {
-	// if(!subSpsFromDB.contains(value))
-	// {
-	// ConnectSubSpLinkT cslt = new ConnectSubSpLinkT();
-	//
-	// SubSpMappingT subSpMappingT = getSubSpMappingTMapValuesForKey(
-	// mapOfSubSpMappingT, value);
-	// cslt.setSubSpMappingT(subSpMappingT);
-	// cslt.setCreatedBy(userId);
-	// cslt.setModifiedBy(userId);
-	// listOfOppSubSpLink.add(cslt);
-	// }
-	//
-	// }
-	//
-	// }
-	// return listOfOppSubSpLink;
-	// }
-

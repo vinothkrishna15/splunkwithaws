@@ -74,7 +74,7 @@ public class UserT implements Serializable {
 
 	@Column(name = "active")
 	private boolean active = true;
-	
+
 	@Column(name = "status")
     private int status; // added to mark whether password is default or notified or changed
 	
@@ -88,7 +88,7 @@ public class UserT implements Serializable {
 	public void setUserMobile(String userMobile) {
 		this.userMobile = userMobile;
 	}
-
+	
 	public int getStatus() {
 		return status;
 	}
@@ -197,11 +197,6 @@ public class UserT implements Serializable {
 	// private List<ConnectTcsAccountContactLinkT>
 	// connectTcsAccountContactLinkTs;
 
-	// bi-directional many-to-one association to ContactT
-	@JsonIgnore
-	@OneToMany(mappedBy = "createdModifiedByUser")
-	private List<ContactT> contactTs;
-
 	// bi-directional many-to-one association to CustomerMasterT
 	@OneToMany(mappedBy = "createdModifiedByUser")
 	private List<CustomerMasterT> customerMasterTs;
@@ -252,10 +247,6 @@ public class UserT implements Serializable {
 	@OneToMany(mappedBy = "userT")
 	private List<OpportunityTimelineHistoryT> opportunityTimelineHistoryTs;
 
-	// bi-directional many-to-one association to PartnerMasterT
-	@JsonIgnore
-	@OneToMany(mappedBy = "createdModifiedByUser")
-	private List<PartnerMasterT> partnerMasterTs;
 
 	// bi-directional one-to-one association to PushNotificationRegistrationT
 	@OneToOne(mappedBy = "userT")
@@ -380,11 +371,11 @@ public class UserT implements Serializable {
 	//bi-directional many-to-one association to WorkflowCompetitorT
 	@OneToMany(mappedBy="createdByUser")
 	private List<WorkflowCompetitorT> workflowCompetitorTs1;
-	
+
 	//bi-directional many-to-one association to WorkflowCompetitorT
 	@OneToMany(mappedBy="modifiedByUser")
 	private List<WorkflowCompetitorT> workflowCompetitorTs2;
-	
+
 	//bi-directional many-to-one association to WorkflowStepT
 	@OneToMany(mappedBy="modifiedByUser")
 	private List<WorkflowStepT> workflowStepTs3;
@@ -395,6 +386,60 @@ public class UserT implements Serializable {
 
 	@Transient
 	private String newPassword;
+
+	//added for partner changes
+	//bi-directional many-to-one association to PartnerSubSpMappingT
+	@OneToMany(mappedBy="createdByUser")
+	private List<PartnerSubSpMappingT> partnerSubSpMappingTs1;
+
+	//bi-directional many-to-one association to PartnerSubSpMappingT
+	@OneToMany(mappedBy="modifiedByUser")
+	private List<PartnerSubSpMappingT> partnerSubSpMappingTs2;
+
+	//bi-directional many-to-one association to PartnerSubspProductMappingT
+	@OneToMany(mappedBy="createdByUser")
+	private List<PartnerSubspProductMappingT> partnerSubspProductMappingTs1;
+
+	//bi-directional many-to-one association to PartnerSubspProductMappingT
+	@OneToMany(mappedBy="modifiedByUser")
+	private List<PartnerSubspProductMappingT> partnerSubspProductMappingTs2;
+
+	//bi-directional many-to-one association to ProductContactLinkT
+	@OneToMany(mappedBy="createdByUser")
+	private List<ProductContactLinkT> productContactLinkTs1;
+
+	//bi-directional many-to-one association to ProductContactLinkT
+	@OneToMany(mappedBy="modifiedByUser")
+	private List<ProductContactLinkT> productContactLinkTs2;
+	
+	//bi-directional many-to-one association to ProductMasterT
+	@OneToMany(mappedBy="createdByUser")
+	private List<ProductMasterT> productMasterTs1;
+
+	//bi-directional many-to-one association to ProductMasterT
+	@OneToMany(mappedBy="modifiedByUser")
+	private List<ProductMasterT> productMasterTs2;
+
+	//bi-directional many-to-one association to PartnerContactLinkT
+	@OneToMany(mappedBy="createdByUser")
+	private List<PartnerContactLinkT> partnerContactLinkTs1;
+		
+	@OneToMany(mappedBy="modifiedByUser")
+	private List<PartnerContactLinkT> partnerContactLinkTs2;
+	
+	//bi-directional many-to-one association to PartnerContactLinkT
+	@OneToMany(mappedBy="createdByUser")
+	private List<PartnerMasterT> partnerTs1;
+			
+	@OneToMany(mappedBy="modifiedByUser")
+	private List<PartnerMasterT> partnerTs2;
+		
+	//bi-directional many-to-one association to PartnerContactLinkT
+	@OneToMany(mappedBy="createdByUser")
+	private List<ContactT> contactTs1;
+			
+	@OneToMany(mappedBy="modifiedByUser")
+	private List<ContactT> contactTs2;
 
 	public UserT() {
 	}
@@ -780,28 +825,6 @@ public class UserT implements Serializable {
 	// return connectTcsAccountContactLinkT;
 	// }
 
-	public List<ContactT> getContactTs() {
-		return this.contactTs;
-	}
-
-	public void setContactTs(List<ContactT> contactTs) {
-		this.contactTs = contactTs;
-	}
-
-	public ContactT addContactT(ContactT contactT) {
-		getContactTs().add(contactT);
-		contactT.setCreatedModifiedByUser(this);
-
-		return contactT;
-	}
-
-	public ContactT removeContactT(ContactT contactT) {
-		getContactTs().remove(contactT);
-		contactT.setCreatedModifiedByUser(null);
-
-		return contactT;
-	}
-
 	public List<CustomerMasterT> getCustomerMasterTs() {
 		return this.customerMasterTs;
 	}
@@ -992,27 +1015,7 @@ public class UserT implements Serializable {
 		return opportunityTimelineHistoryT;
 	}
 
-	public List<PartnerMasterT> getPartnerMasterTs() {
-		return this.partnerMasterTs;
-	}
 
-	public void setPartnerMasterTs(List<PartnerMasterT> partnerMasterTs) {
-		this.partnerMasterTs = partnerMasterTs;
-	}
-
-	public PartnerMasterT addPartnerMasterT(PartnerMasterT partnerMasterT) {
-		getPartnerMasterTs().add(partnerMasterT);
-		partnerMasterT.setCreatedModifiedByUser(this);
-
-		return partnerMasterT;
-	}
-
-	public PartnerMasterT removePartnerMasterT(PartnerMasterT partnerMasterT) {
-		getPartnerMasterTs().remove(partnerMasterT);
-		partnerMasterT.setCreatedModifiedByUser(null);
-
-		return partnerMasterT;
-	}
 
 	public PushNotificationRegistrationT getPushNotificationRegistrationT() {
 		return this.pushNotificationRegistrationT;
@@ -1748,6 +1751,126 @@ public class UserT implements Serializable {
 
 	public void setUserSubscriptions(List<UserSubscriptions> userSubscriptions) {
 		this.userSubscriptions = userSubscriptions;
+	}
+
+	public List<PartnerSubSpMappingT> getPartnerSubSpMappingTs1() {
+		return partnerSubSpMappingTs1;
+	}
+
+	public void setPartnerSubSpMappingTs1(
+			List<PartnerSubSpMappingT> partnerSubSpMappingTs1) {
+		this.partnerSubSpMappingTs1 = partnerSubSpMappingTs1;
+	}
+
+	public List<PartnerSubSpMappingT> getPartnerSubSpMappingTs2() {
+		return partnerSubSpMappingTs2;
+	}
+
+	public void setPartnerSubSpMappingTs2(
+			List<PartnerSubSpMappingT> partnerSubSpMappingTs2) {
+		this.partnerSubSpMappingTs2 = partnerSubSpMappingTs2;
+	}
+
+	public List<PartnerSubspProductMappingT> getPartnerSubspProductMappingTs1() {
+		return partnerSubspProductMappingTs1;
+	}
+
+	public void setPartnerSubspProductMappingTs1(
+			List<PartnerSubspProductMappingT> partnerSubspProductMappingTs1) {
+		this.partnerSubspProductMappingTs1 = partnerSubspProductMappingTs1;
+	}
+
+	public List<PartnerSubspProductMappingT> getPartnerSubspProductMappingTs2() {
+		return partnerSubspProductMappingTs2;
+	}
+
+	public void setPartnerSubspProductMappingTs2(
+			List<PartnerSubspProductMappingT> partnerSubspProductMappingTs2) {
+		this.partnerSubspProductMappingTs2 = partnerSubspProductMappingTs2;
+	}
+
+	public List<ProductContactLinkT> getProductContactLinkTs1() {
+		return productContactLinkTs1;
+	}
+
+	public void setProductContactLinkTs1(
+			List<ProductContactLinkT> productContactLinkTs1) {
+		this.productContactLinkTs1 = productContactLinkTs1;
+	}
+
+	public List<ProductContactLinkT> getProductContactLinkTs2() {
+		return productContactLinkTs2;
+	}
+
+	public void setProductContactLinkTs2(
+			List<ProductContactLinkT> productContactLinkTs2) {
+		this.productContactLinkTs2 = productContactLinkTs2;
+	}
+
+	public List<ProductMasterT> getProductMasterTs1() {
+		return productMasterTs1;
+	}
+
+	public void setProductMasterTs1(List<ProductMasterT> productMasterTs1) {
+		this.productMasterTs1 = productMasterTs1;
+	}
+
+	public List<ProductMasterT> getProductMasterTs2() {
+		return productMasterTs2;
+	}
+
+	public void setProductMasterTs2(List<ProductMasterT> productMasterTs2) {
+		this.productMasterTs2 = productMasterTs2;
+	}
+
+	public List<PartnerContactLinkT> getPartnerContactLinkTs1() {
+		return partnerContactLinkTs1;
+	}
+
+	public void setPartnerContactLinkTs1(
+			List<PartnerContactLinkT> partnerContactLinkTs1) {
+		this.partnerContactLinkTs1 = partnerContactLinkTs1;
+	}
+
+	public List<PartnerContactLinkT> getPartnerContactLinkTs2() {
+		return partnerContactLinkTs2;
+	}
+
+	public void setPartnerContactLinkTs2(
+			List<PartnerContactLinkT> partnerContactLinkTs2) {
+		this.partnerContactLinkTs2 = partnerContactLinkTs2;
+	}
+
+	public List<PartnerMasterT> getPartnerTs1() {
+		return partnerTs1;
+	}
+
+	public void setPartnerTs1(List<PartnerMasterT> partnerTs1) {
+		this.partnerTs1 = partnerTs1;
+	}
+
+	public List<PartnerMasterT> getPartnerTs2() {
+		return partnerTs2;
+	}
+
+	public void setPartnerTs2(List<PartnerMasterT> partnerTs2) {
+		this.partnerTs2 = partnerTs2;
+	}
+
+	public List<ContactT> getContactTs1() {
+		return contactTs1;
+	}
+
+	public void setContactTs1(List<ContactT> contactTs1) {
+		this.contactTs1 = contactTs1;
+	}
+
+	public List<ContactT> getContactTs2() {
+		return contactTs2;
+	}
+
+	public void setContactTs2(List<ContactT> contactTs2) {
+		this.contactTs2 = contactTs2;
 	}
 
 

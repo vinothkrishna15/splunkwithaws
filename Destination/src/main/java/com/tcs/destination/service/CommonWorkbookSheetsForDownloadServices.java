@@ -2,6 +2,7 @@ package com.tcs.destination.service;
 
 import java.util.List;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -10,9 +11,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.tcs.destination.bean.ProductMasterT;
+import com.tcs.destination.bean.SubSpMappingT;
 import com.tcs.destination.data.repository.CompetitorRepository;
 import com.tcs.destination.data.repository.GeographyCountryRepository;
 import com.tcs.destination.data.repository.OfferingRepository;
+import com.tcs.destination.data.repository.ProductRepository;
+import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.UserRepository;
 
 /**
@@ -33,6 +38,12 @@ public class CommonWorkbookSheetsForDownloadServices {
     
     @Autowired
     UserRepository userRepository;
+    
+    @Autowired
+    SubSpRepository subSpRepository;
+    
+    @Autowired
+    ProductRepository productRepository;
     
     private static final Logger logger = LoggerFactory
 			.getLogger(CommonWorkbookSheetsForDownloadServices.class);
@@ -154,5 +165,76 @@ public class CommonWorkbookSheetsForDownloadServices {
 	 }
  	logger.debug("End: Inside populateUserRefSheet() of CommonWorkbookSheetsForDownloadServices");
     }
+    
+    /**
+     * This method populates the SubSp sheet
+     * 
+     * @param subSpSheet
+     */
+    public void populateSubSpSheet(Sheet subSpSheet) throws Exception{
+    	logger.debug("Begin:Inside populateSubSpSheet of CommonWorkbookSheetsForDownloadServices");
+	List<SubSpMappingT> listOfSubSp = (List<SubSpMappingT>) subSpRepository.findAll();
+
+	if(listOfSubSp!=null) {
+	int rowCount = 1; // Excluding the header, header starts with index 0
+	for (SubSpMappingT ssmt : listOfSubSp) {
+	    // Create row with rowCount
+	    Row row = subSpSheet.createRow(rowCount);
+
+	    // Create new Cell and set cell value
+	    Cell cellActualSp = row.createCell(0);
+	    cellActualSp.setCellValue(ssmt.getActualSubSp().trim());
+
+	    Cell cellSp = row.createCell(1);
+	    cellSp.setCellValue(ssmt.getSubSp().trim());
+
+	    Cell cellDisplaySp = row.createCell(2);
+	    cellDisplaySp.setCellValue(ssmt.getDisplaySubSp());
+
+	    Cell cellSpCode = row.createCell(3);
+	    if(ssmt.getSpCode()!=null){
+		cellSpCode.setCellValue(ssmt.getSpCode());
+	    } 
+	    
+	    Cell cellActive = row.createCell(4);
+	    cellActive.setCellValue(ssmt.isActive());
+
+	    // Increment row counter
+	    rowCount++;
+	}
+	}
+	logger.debug("End:Inside populateSubSpSheet of CommonWorkbookSheetsForDownloadServices");
+    }
+
+    /***
+     * Populates the product reference sheet
+     * @param productSheet
+     */
+	public void populateProductSheet(Sheet productSheet) {
+		logger.debug("Begin:Inside populateProductSheet of CommonWorkbookSheetsForDownloadServices");
+		List<ProductMasterT> products = (List<ProductMasterT>) productRepository.findAll();
+		if(CollectionUtils.isNotEmpty(products)) {
+			int rowCount = 1;
+			for (ProductMasterT productMasterT : products) {
+				Row row = productSheet.createRow(rowCount);
+				
+				//Product Name
+				Cell productName = row.createCell(0);
+				productName.setCellValue(productMasterT.getProductName());
+				
+				//Product Description
+				Cell productDescription = row.createCell(1);
+				productDescription.setCellValue(productMasterT.getProductDescription());
+				
+				//Active
+				Cell active = row.createCell(2);
+				active.setCellValue(productMasterT.isActive());
+				
+				// Increment row counter
+			    rowCount++;
+			}
+		}
+		logger.debug("End:Inside populateProductSheet of CommonWorkbookSheetsForDownloadServices");
+	}
 
 }

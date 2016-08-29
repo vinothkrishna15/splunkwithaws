@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.tcs.destination.bean.GoalMappingT;
 import com.tcs.destination.bean.LoginHistoryT;
 import com.tcs.destination.bean.NotificationTypeEventMappingT;
 import com.tcs.destination.bean.PageDTO;
@@ -63,7 +62,6 @@ import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationMailUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
-import com.tcs.destination.utils.PropertyUtil;
 import com.tcs.destination.utils.StringUtils;
 
 /**
@@ -632,9 +630,6 @@ public class UserService {
 	{
 		logger.debug("Inside save access privileges method");
 
-		List<UserAccessPrivilegesT> userAccessPrivilegeList=new ArrayList<UserAccessPrivilegesT>();
-
-
 		for(UserAccessPrivilegeDTO accessPrivilegeDTO:userAccessPrivilegeDTOList)
 		{
 
@@ -700,8 +695,6 @@ public class UserService {
 	{
 		logger.debug("******Inside save user goals method*******");
 
-		UploadServiceErrorDetailsDTO errorDTO=new UploadServiceErrorDetailsDTO();
-
 		for(UserGoalsT userGoalTToBeUpdated:goalList)
 		{
 			String userIdGoalSheet=userGoalTToBeUpdated.getUserId();
@@ -710,22 +703,25 @@ public class UserService {
 			String goalId=goalMappingRepository.findGoalId(goalName);
 			String financialYear=userGoalTToBeUpdated.getFinancialYear();
 			List<UserGoalsT> userGoalsList = userGoalsRepository.getUserGoals(userIdGoalSheet, goalId, financialYear);
-			UserGoalsT userGoalT = userGoalsList.get(0);
-			userGoalT.setTargetValue(targetValueInExcel);
+			if(CollectionUtils.isNotEmpty(userGoalsList)){
 			if(!goalId.equals("G5")){
+				UserGoalsT userGoalT = userGoalsList.get(0);
+				userGoalT.setTargetValue(targetValueInExcel);
 				userGoalsRepository.save(userGoalT);
-			} else {
-				errorDTO.setMessage("Pipeline value provided is ignored for " + userIdGoalSheet);
-				errorList.add(errorDTO);
+			}
 			}
 			if(goalId.equals("G4"))
 			{
 				List<UserGoalsT> goalG5List=userGoalsRepository.getUserGoals(userIdGoalSheet, "G5", financialYear);//(userIdGoalSheet,financialYear);
+				if(CollectionUtils.isNotEmpty(goalG5List)){
 				UserGoalsT goalG5 = goalG5List.get(0);
 				goalG5.setTargetValue(targetValueInExcel.multiply(new BigDecimal(5)));
-				userGoalsRepository.save(goalG5);
+				UserGoalsT savedGoal = userGoalsRepository.save(goalG5);
+				logger.info("{}  - g5 - multiplied value :  {}",userIdGoalSheet , savedGoal.getTargetValue().toString());
+				}
 			}
 		}
+		logger.info("** user goals saved **");
    }
 	/**
 	 * This service saves default user goal details into user_goals_t
@@ -734,6 +730,7 @@ public class UserService {
 	 */
 
 	public void insertDefaultGoals(List<UserT> usersList,String createdModifiedBy){
+		if(usersList!=null){
 		for(UserT userT:usersList)
 		{
 			String userId=userT.getUserId();
@@ -744,7 +741,6 @@ public class UserService {
 			financialyear.append("'");
 			financialyear.append(currentFinancialYear.substring(3,currentFinancialYear.length()));
 			List<Object[]> goalGroupMappingList= goalGroupMappingRepository.findByUserGroupFinancialyear(userGroup,currentFinancialYear);
-			List<GoalMappingT> goalMappingT=goalMappingRepository.findByFinancialyear(currentFinancialYear);	
 			for(Object[] goalGroupMappingT:goalGroupMappingList)
 			{
 				UserGoalsT userGoalT=new UserGoalsT();
@@ -755,7 +751,7 @@ public class UserService {
 				userGoalT.setCreatedModifiedBy(createdModifiedBy);
 				userGoalsRepository.save(userGoalT);
 			}
-
+		}
 		}
 	}
 
@@ -1426,6 +1422,35 @@ public class UserService {
 		logger.debug("End : Update Photo service");
 		
 		return status;
+	}
+
+
+	/**
+	 * This service retrieves the user details based on the fields provided
+	 * 
+	 * @param userId
+	 * @return
+	 */
+	
+	public UserT getUserDetailsById(String userId) {
+		
+		UserT userT = userRepository.findByUserId(userId);
+	
+		if(StringUtils.isEmpty(userId)){ // If userId is empty
+			logger.error("BAD_REQUEST: userId cannot be Empty");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,"userId cannot be Empty");
+		} else {
+			// Hiding the password
+			if(userT!=null){
+				userT.setTempPassword("");
+			} else { // If NO user matches the userId
+				logger.error("NOT FOUND: user details NOT found : {} ",userId);
+				throw new DestinationException(HttpStatus.NOT_FOUND,"user NOT found : "+userId);
+			}
+		}
+		
+		return userT;
+		
 	}
 
 }

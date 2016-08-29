@@ -14,6 +14,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.joda.time.DateTime;
+import org.joda.time.LocalTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -29,15 +31,52 @@ public class DateUtils {
 	private static final Logger logger = LoggerFactory
 			.getLogger(DateUtils.class);
 
+	/**
+	 * yyyy-MM-dd
+	 */
 	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat(
 			"yyyy-MM-dd");
+	
+	/**
+	 * MMM-yy
+	 */
 	private static final SimpleDateFormat DB_DATE_FORMAT = new SimpleDateFormat(
 			"MMM-yy");
+
+	/**
+	 * yyyy-MM-dd HH:mm
+	 */
 	private static final SimpleDateFormat COMMENT_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+
+	/**
+	 * dd/MM/yyyy HH:mm
+	 */
 	private static final Format DT_BATCH_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+	
+	/**
+	 * dd-MMM-yyyy
+	 */
 	public static final DateFormat ACTUAL_FORMAT = new SimpleDateFormat("dd-MMM-yyyy");
+	
+	/**
+	 * MM/dd/yyyy
+	 */
 	public static final DateFormat DESIRED_FORMAT = new SimpleDateFormat("MM/dd/yyyy");
+
+	/**
+	 * Format dd/MM/yyyy HH:mm:ss
+	 */
 	public static final DateFormat AUDIT_HISTORY_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+	
+	/**
+	 * Fromat HH:mm 
+	 */
+	public static final DateFormat FORMAT_HH_COLON_MM = new SimpleDateFormat("HH:mm");
+	
+	/**
+	 * Fromat dd/MM/yyyy 
+	 */
+	public static final DateFormat FORMAT_DATE_WITH_SLASH = new SimpleDateFormat("dd/MM/yyyy");
 
 	
 	private static final Map<String, Integer> monthMap = new HashMap<String, Integer>();
@@ -767,6 +806,11 @@ public class DateUtils {
 	public static Date truncateSeconds(Date date) {
 		Date truncatedDate = org.apache.commons.lang.time.DateUtils.truncate(date, Calendar.SECOND);
 		return truncatedDate;
+	}
+	
+	public static Date mergeDateWithTime(Date date, Date time) {
+		LocalTime localTime = new LocalTime(time);
+		return new DateTime(date).withHourOfDay(localTime.getHourOfDay()).withMinuteOfHour(localTime.getMinuteOfHour()).toDate();
 	}
 	
 }

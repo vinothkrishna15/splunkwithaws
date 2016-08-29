@@ -12,4 +12,6 @@ import com.tcs.destination.bean.IouBeaconMappingT;
 public interface IouBeaconMappingTRepository extends CrudRepository<IouBeaconMappingT, String>{
 	
 	List<IouBeaconMappingT> findByActiveTrue();
+
+	IouBeaconMappingT findByActiveTrueAndBeaconIou(String beaconIou);
 }

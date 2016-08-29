@@ -139,6 +139,7 @@
 			<list>
 				<ref bean="bidDwldReader"/>
 				<ref bean="dealDwldReader"/>
+				<ref bean="salesStageDwldReader"/>
 			</list>
 		</property>
 	</bean>
@@ -150,6 +151,11 @@
 	
 	<bean id="dealDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="prototype">
 		<property name="repository" ref="dealTypeRepository"/>
+		<property name="methodName" value="findAll"/>
+	</bean>
+	
+	<bean id="salesStageDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="prototype">
+	     <property name="repository" ref="salesStageMappingRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>
 	
