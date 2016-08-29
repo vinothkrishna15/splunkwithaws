@@ -45,6 +45,7 @@ import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
+import com.tcs.destination.bean.ProductContactLinkT;
 import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.TaskT;
@@ -766,16 +767,16 @@ public class ConnectService {
 					.getCurrentUserDetails().getUserId());
 
 			// for saving into product_contact_link_t
-			/*if(connect.getConnectCategory().equals(EntityType.PARTNER.name())){
-				ProductContactLinkT productContactLinkT = new ProductContactLinkT();
-				productContactLinkT.setContactId(conCustConLink.getContactId());
-				productContactLinkT.setProductId(connect.getProductId());
-				productContactLinkT.setCreatedBy(DestinationUtils
-						.getCurrentUserDetails().getUserId());
-				productContactLinkT.setModifiedBy(DestinationUtils
-						.getCurrentUserDetails().getUserId());
-				productContactLinkTRepository.save(productContactLinkT);
-			}*/
+//			if(connect.getConnectCategory().equals(EntityType.PARTNER)){
+//				ProductContactLinkT productContactLinkT = new ProductContactLinkT();
+//				productContactLinkT.setContactId(conCustConLink.getContactId());
+//				productContactLinkT.setProductId(connect.getProductId());
+//				productContactLinkT.setCreatedBy(DestinationUtils
+//						.getCurrentUserDetails().getUserId());
+//				productContactLinkT.setModifiedBy(DestinationUtils
+//						.getCurrentUserDetails().getUserId());
+//				productContactLinkTRepository.save(productContactLinkT);
+//			}
 		}
 	}
 
@@ -1870,11 +1871,97 @@ public class ConnectService {
 	 */
 	public void validateInactiveIndicators(ConnectT connect) {
 
+		// createdBy,
+		String createdBy = connect.getCreatedBy();
+		if(StringUtils.isNotBlank(createdBy) && userRepository.findByActiveTrueAndUserId(createdBy) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The user createdBy is inactive");
+		}
+
+		// modifiedBy,
+		String modifiedBy = connect.getModifiedBy();
+		if(StringUtils.isNotBlank(modifiedBy) && userRepository.findByActiveTrueAndUserId(modifiedBy) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The user modifiedBy is inactive");
+		}
+
 		// primaryOwner,
 		String primaryOwner = connect.getPrimaryOwner();
 		if(StringUtils.isNotBlank(primaryOwner) && userRepository.findByActiveTrueAndUserId(primaryOwner) == null) {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "Please assign an active primary owner before making any changes.");
 		}
+
+		// customerId,
+		String customerId = connect.getCustomerId();
+		if(StringUtils.isNotBlank(customerId) && customerRepository.findByActiveTrueAndCustomerId(customerId) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The customer is inactive");
+		}
+
+		// partnerId,
+		String partnerId = connect.getPartnerId();
+		if(StringUtils.isNotBlank(partnerId) && partnerRepository.findByActiveTrueAndPartnerId(partnerId) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The partner is inactive");
+		}
+
+		//connectCustomerContactLinkTs,
+		List<ConnectCustomerContactLinkT> connectCustomerContactLinkTs = connect.getConnectCustomerContactLinkTs();
+		if(CollectionUtils.isNotEmpty(connectCustomerContactLinkTs)) {
+			for (ConnectCustomerContactLinkT contact : connectCustomerContactLinkTs) {
+				String contactId = contact.getContactId();
+				if(StringUtils.isNotBlank(contactId) && contactRepository.findByActiveTrueAndContactId(contactId) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The customer contact is inactive");
+				}
+			}
+		}
+
+		// connectOfferingLinkTs,
+		List<ConnectOfferingLinkT> connectOfferingLinkTs = connect.getConnectOfferingLinkTs();
+		if(CollectionUtils.isNotEmpty(connectOfferingLinkTs)) {
+			for (ConnectOfferingLinkT offeringLink : connectOfferingLinkTs) {
+				String offering = offeringLink.getOffering();
+				if(StringUtils.isNotBlank(offering) && offeringRepository.findByActiveTrueAndOffering(offering) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The offering is inactive");
+				}
+			}
+		}
+
+		//connectSecondaryOwnerLinkTs,
+		List<ConnectSecondaryOwnerLinkT> connectSecondaryOwnerLinkTs = connect.getConnectSecondaryOwnerLinkTs();
+		if(CollectionUtils.isNotEmpty(connectSecondaryOwnerLinkTs)) {
+			for (ConnectSecondaryOwnerLinkT secOwnerLink : connectSecondaryOwnerLinkTs) {
+				String owner = secOwnerLink.getSecondaryOwner();
+				if(StringUtils.isNotBlank(owner) && userRepository.findByActiveTrueAndUserId(owner) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The secondary owner is inactive");
+				}
+			}
+		}
+
+		//connectSubSpLinkTs,
+		List<ConnectSubSpLinkT> connectSubSpLinkTs = connect.getConnectSubSpLinkTs();
+		if(CollectionUtils.isNotEmpty(connectSubSpLinkTs)) {
+			for (ConnectSubSpLinkT subSpLink : connectSubSpLinkTs) {
+				String subSp = subSpLink.getSubSp();
+				if(StringUtils.isNotBlank(subSp) && subSpRepository.findByActiveTrueAndSubSp(subSp) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The subsp is inactive");
+				}
+			}
+		}
+
+		//List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs,
+		List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs = connect.getConnectTcsAccountContactLinkTs();
+		if(CollectionUtils.isNotEmpty(connectTcsAccountContactLinkTs)) {
+			for (ConnectTcsAccountContactLinkT contactLink : connectTcsAccountContactLinkTs) {
+				String contactId = contactLink.getContactId();
+				if(StringUtils.isNotBlank(contactId) && contactRepository.findByActiveTrueAndContactId(contactId) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The account contact is inactive");
+				}
+			}
+		}
+
+		// country
+		String country = connect.getCountry();
+		if(StringUtils.isNotBlank(country) && countryRepository.findByActiveTrueAndCountry(country) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The country is inactive");
+		}
+
 	}
 
 	/**

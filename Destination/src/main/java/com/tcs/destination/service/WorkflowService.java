@@ -2618,6 +2618,11 @@ public class WorkflowService {
 			productcontactLinkT.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 			productcontactLinkT.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 			productContactLinkTRepository.save(productcontactLinkT);
+			partnercontactLinkT.setContactId(contactId);
+			partnercontactLinkT.setPartnerId(partnerId);
+			partnercontactLinkT.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			partnercontactLinkT.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			partnerContactLinkTRepository.save(partnercontactLinkT);
 		}
 		else{
 			partnercontactLinkT.setContactId(contactId);
@@ -3021,9 +3026,10 @@ public class WorkflowService {
 			if (!parentPartner.isEmpty()){
 			oldPartnerMaster.setHqPartnerLinkId(parentPartner.get(0).getPartnerId());
 			} else {
-				logger.error("This group partner name is not valid and not approved partner");
+				logger.error("INVALId! On edit, groupPartnerName must be equal to partnerName!");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"This group partner name is not valid and not approved partner!");			}
+						"INVALId! On edit, groupPartnerName must be equal to partnerName!");		
+				}
 		}
 		partnerRepository.save(oldPartnerMaster);
 	}

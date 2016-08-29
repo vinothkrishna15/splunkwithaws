@@ -400,9 +400,13 @@ public class PartnerService {
 				opportunityPartnerLinkT.getOpportunityT().getCustomerMasterT()
 				.setOpportunityTs(null);
 			}
-
+			
+			//remove cyclic partnerContactLinkTs
+			List<PartnerContactLinkT> partnerContactLinkTs = partner.getPartnerContactLinkTs();
+			for (PartnerContactLinkT partnerContactLinkT : partnerContactLinkTs) {
+				partnerContactLinkT.getContactT().setPartnerContactLinkTs(null);
+			}
 		}
-
 	}
 
 	/**
