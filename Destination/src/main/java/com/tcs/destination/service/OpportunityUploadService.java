@@ -46,6 +46,7 @@ import com.tcs.destination.bean.OpportunitySubSpLinkT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.OpportunityTcsAccountContactLinkT;
 import com.tcs.destination.bean.OpportunityWinLossFactorsT;
+import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.SubSpMappingT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
@@ -227,6 +228,7 @@ public class OpportunityUploadService {
 
 			    try {
 				OpportunityT opp = new OpportunityT();
+				Status status = new Status();
 
 				// CUSTOMER ID
 				if (!StringUtils.isEmpty(listOfCellValues.get(2))) {
@@ -527,7 +529,7 @@ public class OpportunityUploadService {
 			    }
 			    
 				opportunityService.createOpportunity(opp,
-					isBulkDataLoad, bidRequestType, actualSubmissionDate);
+					isBulkDataLoad, bidRequestType, actualSubmissionDate, status);
 				remarks.clear();
 				
 				listOfCellValues.clear();

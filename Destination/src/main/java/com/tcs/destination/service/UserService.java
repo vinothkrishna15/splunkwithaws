@@ -1107,7 +1107,7 @@ public class UserService {
 				searchResultDTO = getUserByLocation(term, getAll);
 				break;
 			default:
-				break;
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid search type");
 
 			}
 			

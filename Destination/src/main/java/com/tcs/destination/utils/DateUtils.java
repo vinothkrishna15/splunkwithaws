@@ -15,7 +15,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
+import org.joda.time.Weeks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -811,6 +813,49 @@ public class DateUtils {
 	public static Date mergeDateWithTime(Date date, Date time) {
 		LocalTime localTime = new LocalTime(time);
 		return new DateTime(date).withHourOfDay(localTime.getHourOfDay()).withMinuteOfHour(localTime.getMinuteOfHour()).toDate();
+	}
+	
+	/**
+	 * calculates number of week between the current financial year start(1st Apr) and given date
+	 * @param date
+	 * @return
+	 */
+	public static int weekOfFinancialYr(Date date) {
+		LocalDate dateTime1 = new LocalDate().withMonthOfYear(4).withDayOfMonth(1);
+
+		LocalDate dateTime2 = new LocalDate(date);
+		if(dateTime2.year().get() == dateTime1.year().get() && dateTime2.monthOfYear().get() < 4) {
+			dateTime1 = dateTime1.minusYears(1);
+		}
+
+		return Weeks.weeksBetween(dateTime1, dateTime2).getWeeks();
+	}
+
+	/**
+	 * calculates number of week between the current financial year start(1st Apr) and given date
+	 * @param date
+	 * @return
+	 */
+	public static String getFinancialYr() {
+		//FY 2016-17
+		int startYr;
+		int endYr;
+		LocalDate dateTime = new LocalDate();
+		
+		int currentYr = dateTime.getYear();
+		if(dateTime.monthOfYear().get() < 4) {
+			startYr = currentYr-1;
+			endYr = currentYr;
+		} else {
+			startYr = currentYr;
+			endYr = currentYr + 1;
+		}
+
+		return String.format("FY %d-%d", startYr, endYr%100) ;
+	}
+	
+	public static void main(String[] args) {
+		System.out.println(getFinancialYr());
 	}
 	
 }

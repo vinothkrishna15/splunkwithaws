@@ -1,6 +1,7 @@
 package com.tcs.destination.controller;
 
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,16 +23,11 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.enums.SmartSearchType;
-import com.tcs.destination.bean.CustomerMasterT;
-import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
-import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
-import com.tcs.destination.bean.UserT;
-import com.tcs.destination.enums.SmartSearchType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.PartnerDownloadService;
 import com.tcs.destination.service.PartnerService;
@@ -172,12 +168,12 @@ public class PartnerController {
 			throws DestinationException {
 		logger.info("Inside PartnerController: Start of retrieving the Group partner names");
 		String response = null;
-		List<PartnerMasterT> partner;
+		Set<String> groupPartnerNamesSet;
 		try {
-			partner = (List<PartnerMasterT>) partnerService
+			groupPartnerNamesSet =  partnerService
 				.findByGroupPartnerName(nameWith);
 			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
-					view, partner);
+					view, groupPartnerNamesSet);
 			logger.info("Inside PartnerController: Start of retrieving the Group partner names");
 		} catch (DestinationException e) {
 			throw e;
@@ -425,6 +421,8 @@ public class PartnerController {
 			logger.info("Inside PartnerController: End - smart search by search term");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, res, !getAll);
+		} catch (DestinationException e) {
+			throw e;
 		} catch (Exception e) {
 			logger.error("Error on Partner smartSearch", e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,

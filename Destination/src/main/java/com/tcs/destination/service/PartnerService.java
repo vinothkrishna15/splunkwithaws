@@ -2,9 +2,12 @@
 package com.tcs.destination.service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -765,14 +768,17 @@ public class PartnerService {
 				searchResultDTO = getPartnersBySubSp(term, getAll);
 				break;
 			default:
-				break;
-
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid search type");
 			}
 
 			if(smartSearchType != SmartSearchType.ALL) {//paginate the result if it is fetching entire record(ie. getAll=true)
 				if(getAll) {
 					List<PartnerMasterT> values = searchResultDTO.getValues();
-					searchResultDTO.setValues(PaginationUtils.paginateList(page, count, values));
+					List<PartnerMasterT> records = PaginationUtils.paginateList(page, count, values);
+					if(CollectionUtils.isNotEmpty(records)) {
+						preparePartner(records);
+					}
+					searchResultDTO.setValues(records);
 					res.setTotalCount(values.size());
 				}
 				resList.add(searchResultDTO);
@@ -837,21 +843,25 @@ public class PartnerService {
 	 * @param nameWith
 	 * @return
 	 */
-	public List<PartnerMasterT> findByGroupPartnerName(String groupPartnerName) {
+	public Set<String> findByGroupPartnerName(String groupPartnerName) {
 		logger.debug("Inside findByGroupPartnerName() service");
+		Set<String> groupPartnerNameSet = new HashSet<String>();
 		List<PartnerMasterT> partnerList = partnerRepository
-				.findByGroupPartnerNameIgnoreCaseContainingAndGroupPartnerNameIgnoreCaseNotLikeAndActiveOrderByGroupPartnerNameAsc(
+				.findDistinctByGroupPartnerNameIgnoreCaseContainingAndGroupPartnerNameIgnoreCaseNotLikeAndActiveOrderByGroupPartnerNameAsc(
 						groupPartnerName, Constants.UNKNOWN_PARTNER,true);
-		if (partnerList.isEmpty()) {
+		//retrieving distinct groupPartnerNames from the queried result
+		for (PartnerMasterT partner : partnerList) {
+			groupPartnerNameSet.add(partner.getGroupPartnerName());
+		}
+		if (groupPartnerNameSet.isEmpty()) {
 			logger.error(
-					"NOT_FOUND: Customer not found with given group customer name: {}",
+					"NOT_FOUND: Partner not found with given group Partner name: {}",
 					groupPartnerName);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Customer not found with given group customer name: "
+					"Partner not found with given group Partner name: "
 							+ groupPartnerName);
 		}
-		preparePartnerDetails(partnerList);
-		return partnerList;
+		return groupPartnerNameSet;
 	}
 
 	private void preparePartnerDetails(List<PartnerMasterT> partnerList) {

@@ -71,8 +71,8 @@ import com.tcs.destination.data.repository.NotificationEventGroupMappingTReposit
 import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
 import com.tcs.destination.data.repository.OfferingRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
-import com.tcs.destination.data.repository.PartnerSubSpMappingRepository;
-import com.tcs.destination.data.repository.PartnerSubSpProductMappingRepository;
+import com.tcs.destination.data.repository.PartnerSubSpMappingTRepository;
+import com.tcs.destination.data.repository.PartnerSubSpProductMappingTRepository;
 import com.tcs.destination.data.repository.ProductContactLinkTRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
 import com.tcs.destination.data.repository.SubSpRepository;
@@ -232,10 +232,10 @@ public class ConnectService {
 	CountryRepository countryRepository;
 
 	@Autowired
-	PartnerSubSpMappingRepository partnerSubSpMappingRepository;
+	PartnerSubSpMappingTRepository partnerSubSpMappingRepository;
 
 	@Autowired
-	PartnerSubSpProductMappingRepository partnerSubSpProductMappingRepository;
+	PartnerSubSpProductMappingTRepository partnerSubSpProductMappingRepository;
 
 	@Autowired
 	ProductContactLinkTRepository productContactLinkTRepository;
@@ -1914,7 +1914,7 @@ public class ConnectService {
 				searchResultDTO = getConnectSubSps(term, getAll);
 				break;
 			default:
-				break;
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid search type");
 
 			}
 

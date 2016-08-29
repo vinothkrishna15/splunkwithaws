@@ -2,7 +2,8 @@ package com.tcs.destination.enums;
 
 public enum EntityTypeId {
 	
-	CUSTOMER(0, "New Customer"), PARTNER(1, "New Partner"), COMPETITOR(2, "New Competitor"), OPPORTUNITY(3, "New Opportunity Reopen");
+	CUSTOMER(0, "New Customer"), PARTNER(1, "New Partner"), COMPETITOR(2, "New Competitor"), OPPORTUNITY(3, "New Opportunity Reopen"), 
+	BFM(4, "New BFM Request"), ESCALATION_A(5, "Escalation Flow A"), ESCALATION_B(6, "Escalation Flow B");
 
 	private final Integer type;
 	private final String displayName;

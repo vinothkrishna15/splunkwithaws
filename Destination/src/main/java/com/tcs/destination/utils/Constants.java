@@ -248,6 +248,9 @@ public class Constants {
 	public static final int CONSTANT_ONE = 1;
 	public static final int CONSTANT_TWO = 2;
 	public static final int CONSTANT_NINE = 9;
+	public static final int CONSTANT_FOUR = 4;
+	public static final int CONSTANT_FIVE = 5;
+	public static final int CONSTANT_SIX = 6;
 	
 	//For Opportunity win/loss mail
 	public static final String 	WITH_SUPPORT_FROM = "with support from";
@@ -309,5 +312,10 @@ public class Constants {
 	public static final String shareConnectPortal="<User> has shared Connect: <ConnectName> with you";
 	public static final String shareOpportunityPortal="<User> has shared Opportunity: <OpportunityName> with you";
 	
-	
+	//Workflow BFM
+	public static final String E1 = "E1";
+	public static final String E2 = "E2";
+	public static final String E3 = "E3";
+	public static final String E4 = "E4";
+	public static final String E5 = "E5";
 }

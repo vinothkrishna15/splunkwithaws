@@ -5,11 +5,8 @@ import static com.tcs.destination.enums.EntityTypeId.CUSTOMER;
 import static com.tcs.destination.enums.EntityTypeId.PARTNER;
 
 import java.sql.Timestamp;
-
-import com.tcs.destination.bean.WorkflowCompetitorDetailsDTO;
-import com.tcs.destination.bean.WorkflowCompetitorT;
-
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -22,6 +19,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,13 +42,19 @@ import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PaginatedResponse;
+import com.tcs.destination.bean.PartnerContactLinkT;
 import com.tcs.destination.bean.PartnerMasterT;
+import com.tcs.destination.bean.PartnerProductDetailsDTO;
 import com.tcs.destination.bean.PartnerSubSpMappingT;
 import com.tcs.destination.bean.PartnerSubspProductMappingT;
 import com.tcs.destination.bean.ProductContactLinkT;
 import com.tcs.destination.bean.RevenueCustomerMappingT;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.bean.WorkflowBfmDetailsDTO;
+import com.tcs.destination.bean.WorkflowBfmT;
+import com.tcs.destination.bean.WorkflowCompetitorDetailsDTO;
+import com.tcs.destination.bean.WorkflowCompetitorT;
 import com.tcs.destination.bean.WorkflowCustomerDetailsDTO;
 import com.tcs.destination.bean.WorkflowCustomerT;
 import com.tcs.destination.bean.WorkflowPartnerDetailsDTO;
@@ -58,18 +62,21 @@ import com.tcs.destination.bean.WorkflowPartnerT;
 import com.tcs.destination.bean.WorkflowProcessTemplate;
 import com.tcs.destination.bean.WorkflowRequestT;
 import com.tcs.destination.bean.WorkflowStepT;
+import com.tcs.destination.bean.WorklistDTO;
 import com.tcs.destination.data.repository.BeaconCustomerMappingRepository;
 import com.tcs.destination.data.repository.CompetitorRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
+import com.tcs.destination.data.repository.PartnerContactLinkTRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
-import com.tcs.destination.data.repository.PartnerSubSpProductMappingRepository;
-import com.tcs.destination.data.repository.PartnerSubSpMappingRepository;
+import com.tcs.destination.data.repository.PartnerSubSpMappingTRepository;
+import com.tcs.destination.data.repository.PartnerSubSpProductMappingTRepository;
 import com.tcs.destination.data.repository.ProductContactLinkTRepository;
 import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.data.repository.WorkflowBfmTRepository;
 import com.tcs.destination.data.repository.WorkflowCompetitorTRepository;
 import com.tcs.destination.data.repository.WorkflowCustomerTRepository;
 import com.tcs.destination.data.repository.WorkflowPartnerRepository;
@@ -87,7 +94,7 @@ import com.tcs.destination.utils.DestinationMailUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
 import com.tcs.destination.utils.QueryConstants;
-import com.tcs.destination.utils.StringUtils;
+//import com.tcs.destination.utils.StringUtils;
 
 /**
  * This service contains workflow related functionalities
@@ -150,6 +157,9 @@ public class WorkflowService {
 	CustomerUploadService customerUploadService;
 
 	@Autowired
+	PartnerService partnerService;
+
+	@Autowired
 	UserRepository userRepository;
 
 	@Autowired
@@ -183,19 +193,25 @@ public class WorkflowService {
 	CompetitorRepository competitorRepository;
 
 	@Autowired
-	PartnerSubSpMappingRepository partnerSubSpMappingRepository;
+	PartnerSubSpMappingTRepository partnerSubSpMappingRepository;
 
 	@Autowired
-	PartnerSubSpProductMappingRepository partnerSubSpProductMappingRepository;
+	PartnerSubSpProductMappingTRepository partnerSubSpProductMappingRepository;
 
 	@Autowired
 	ProductContactLinkTRepository productContactLinkTRepository;
+
+	@Autowired
+	PartnerContactLinkTRepository partnerContactLinkTRepository;
 
 	@Autowired
 	ContactRepository contactRepository;
 
 	@PersistenceContext
 	private EntityManager entityManager;
+
+	@Autowired
+	WorkflowBfmTRepository workflowBfmTRepository;
 
 	Map<String, GeographyMappingT> mapOfGeographyMappingT = null;
 	Map<String, IouCustomerMappingT> mapOfIouCustomerMappingT = null;
@@ -312,6 +328,583 @@ public class WorkflowService {
 		}
 		return true;
 	}
+
+	/**
+	 * This service is used to retrieve the worklist of the logged in user based upon the type
+	 * @param type 
+	 * 
+	 * @param status
+	 * @param page
+	 * @param count
+	 * @return
+	 */
+	public PaginatedResponse getMyWorklistByType(EntityTypeId type, String status, int page, int count)
+			throws DestinationException {
+		try
+		{
+			logger.debug("Start of getMyWorklistByType service");
+			// userId of the logged in user is retrieved
+			String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+			PaginatedResponse worklistResponse = new PaginatedResponse();
+			// Contains list of all requests including customer, partner etc
+			List<WorklistDTO<Object>> myWorklist = new ArrayList<WorklistDTO<Object>>();
+			// Contains all the lists of customer requests
+			List<List<Object[]>> listOfCustomerRequests = new ArrayList<>();
+			// Contains all the lists of partner requests
+			List<List<Object[]>> listOfPartnerRequests = new ArrayList<>();
+			// Contains all the lists of competitor requests
+			List<List<Object[]>> listOfCompetitorRequests = new ArrayList<>();
+			// Contains all the lists of opportunity requests
+			List<List<Object[]>> listOfOpportunityReopenRequests = new ArrayList<>();
+			// Contains all the lists of bfm requests
+			List<List<Object[]>> listOfBfmRequests = new ArrayList<>();
+
+			Set<WorklistDTO<Object>> submittedAndApprovedRequests = new HashSet<WorklistDTO<Object>>();
+			List<Integer> typeList=new ArrayList<Integer>();		
+
+
+			// Populate the response object
+
+			switch (type) {
+			case BFM:
+				if (status.equalsIgnoreCase("ALL")
+						|| status.equalsIgnoreCase(WorkflowStatus.PENDING
+								.getStatus())) {
+					List<Object[]> pendingBfmRequests = getPendingBfmRequests(userId);	
+					// Add all the lists of bfm requests
+					listOfBfmRequests.add(pendingBfmRequests);
+				}
+				typeList.add(type.getType());
+				submittedAndApprovedRequests=getSubmittedAndApprovedRequest(status, userId,typeList);
+
+				populateResponse(listOfBfmRequests,
+						EntityType.BFM.toString(), myWorklist);
+				break;
+			case CUSTOMER:
+			case PARTNER:
+			case COMPETITOR:
+				if (status.equalsIgnoreCase("ALL")
+						|| status.equalsIgnoreCase(WorkflowStatus.PENDING
+								.getStatus())) {
+					//pending customer requests
+					List<Object[]> pendingCustomerRequests = getPendingCustomerRequests(userId);
+					// Add all the lists of customer requests
+					listOfCustomerRequests.add(pendingCustomerRequests);
+					// pending partner requests
+					List<Object[]> pendingPartnerRequests = getPendingPartnerRequests(userId);
+					// Add all the lists of partner requests
+					listOfPartnerRequests.add(pendingPartnerRequests);
+					//pending competitor requests
+					List<Object[]> pendingCompetitorRequests = getPendingCompetitorRequests(userId);
+					// Add all the lists of competitor requests
+					listOfCompetitorRequests.add(pendingCompetitorRequests);
+
+				}
+				typeList.add(CUSTOMER.getType());
+				typeList.add(PARTNER.getType());
+				typeList.add(COMPETITOR.getType());
+				submittedAndApprovedRequests=getSubmittedAndApprovedRequest(status, userId,typeList);
+
+				populateResponse(listOfCustomerRequests,
+						EntityType.CUSTOMER.toString(), myWorklist);
+				populateResponse(listOfPartnerRequests,
+						EntityType.PARTNER.toString(), myWorklist);
+				populateResponse(listOfCompetitorRequests,
+						EntityType.COMPETITOR.toString(), myWorklist);
+				break;
+			case OPPORTUNITY:
+				if (status.equalsIgnoreCase("ALL")
+						|| status.equalsIgnoreCase(WorkflowStatus.PENDING
+								.getStatus())) {
+					List<Object[]> pendingOpportunityReopenRequests = getPendingOpportunityReopenRequests(userId);
+					// Add all the lists of opportunity re-open requests
+					listOfOpportunityReopenRequests
+					.add(pendingOpportunityReopenRequests);
+				}
+				typeList.add(type.getType());
+				submittedAndApprovedRequests=getSubmittedAndApprovedRequest(status, userId,typeList);
+				populateResponse(listOfOpportunityReopenRequests,
+						EntityType.OPPORTUNITY.toString(), myWorklist);
+				break;
+			default:
+				logger.debug("Invalid Type");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"No such type found ");
+
+			}
+
+			// Add submitted and actioned by requests
+			myWorklist.addAll(Lists.newArrayList(submittedAndApprovedRequests));
+
+			// Sort the list based on modified date time
+			//	Collections.sort(myWorklist);
+			if (myWorklist.isEmpty()) {
+				logger.debug("No items in worklist for the user" + userId);
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"No requests found with stage - " + status);
+			}
+			if (myWorklist != null && myWorklist.isEmpty()) {
+				logger.debug("No items in worklist for the user" + userId);
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"No requests found with stage - " + status);
+			}
+			worklistResponse.setTotalCount(myWorklist.size());
+			myWorklist = paginateWorklist(page, count, myWorklist);
+			worklistResponse.setWorklists(myWorklist);
+			logger.debug("End of getMyWorklist service");
+			return worklistResponse;
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while retrieving worklist details");
+		}
+
+
+	}
+
+	private List<Object[]> getPendingBfmRequests(String userId) {
+		logger.debug("Start: Fetching pending Bfm requests");
+		List<Object[]> resultList = null;
+		UserT user = userRepository.findByUserId(userId);
+		String userRole = user.getUserRole();
+		String userGroup = user.getUserGroup();
+		String userRoleLike = "%" + userRole + "%";
+		String userGroupLike = "%" + userGroup + "%";
+		List<Object[]> resultForGroupPending = null;
+		Query query = null;
+		switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+		case IOU_HEADS: {
+			// Query to get bfm requests pending based on IOU
+			StringBuffer queryBuffer = new StringBuffer(
+					QueryConstants.BFM_PENDING_WITH_IOU_GROUP_QUERY);
+			query = entityManager.createNativeQuery(queryBuffer.toString());
+			query.setParameter("userId", userId);
+			query.setParameter("userGroup", userGroupLike);
+			break;
+		}
+		case GEO_HEADS: {
+			// Query to get bfm requests pending based on Geography
+			StringBuffer queryBuffer = new StringBuffer(
+					QueryConstants.BFM_PENDING_WITH_GEO_GROUP_QUERY);
+			query = entityManager.createNativeQuery(queryBuffer.toString());
+			query.setParameter("userId", userId);
+			query.setParameter("userGroup", userGroupLike);
+			break;
+		}
+		case STRATEGIC_INITIATIVES: 
+		case REPORTING_TEAM:
+		{
+			// Query to get bfm requests pending for a SI or Reporting Team 
+			StringBuffer queryBuffer = new StringBuffer(
+					QueryConstants.BFM_PENDING_WITH_SI_QUERY);
+			query = entityManager.createNativeQuery(queryBuffer.toString());
+			query.setParameter("userRole", userRoleLike);
+			query.setParameter("userGroup", userGroupLike);
+			break;
+		}
+		default:
+			break;
+		}
+		if (userGroup.equals(UserGroup.PMO.getValue()))
+		{
+			StringBuffer queryBuffer = new StringBuffer(QueryConstants.BFM_PENDING_WITH_GEO_GROUP_QUERY);
+			query = entityManager.createNativeQuery(queryBuffer.toString());
+			query.setParameter("userId", userId);
+			query.setParameter("userGroup", userGroupLike);
+		}
+		if (query != null) {
+			resultForGroupPending = query.getResultList();
+		}
+
+		resultList = resultForGroupPending;
+
+		// Query to get pending bfm requests for specific user's approval/rejection
+		StringBuffer queryBuffer = new StringBuffer(
+				QueryConstants.BFM_PENDING_WITH_USER_QUERY);
+		query = entityManager.createNativeQuery(queryBuffer.toString());
+		query.setParameter("userId", userId);
+		if (resultList != null) {
+			if (resultList.isEmpty()) {
+				resultList = query.getResultList();
+			} else {
+				List<Object[]> resultForUserPending = query.getResultList();
+				resultList.addAll(resultForUserPending);
+			}
+		} else {
+			resultList = query.getResultList();
+		}
+		logger.debug("Inside getPendingBfmRequests method : End");
+		return resultList;
+	}
+
+	/**
+	 * This method is used to retrieve workflow bfm details based on Id.
+	 * 
+	 * @param requestedBfmId
+	 * @return
+	 */
+	public WorkflowBfmDetailsDTO findRequestedBfmDetailsById(Integer requestedBfmId) {
+		logger.debug("Inside findRequestedBfmDetailsById() service: Start");
+		try {
+			String userId = DestinationUtils.getCurrentUserDetails()
+					.getUserId();
+			WorkflowBfmDetailsDTO workflowBfmDetailsDTO = new WorkflowBfmDetailsDTO();
+			if (requestedBfmId != null) {
+				// Request details are retrieved based on Id
+				WorkflowRequestT workflowRequest = workflowRequestRepository
+						.findByRequestId(requestedBfmId);
+				if (workflowRequest != null) {
+
+					// Check if the particular request is a new BFM request
+					EntityTypeId typeId = EntityTypeId.getFrom(workflowRequest.getEntityTypeId());
+					if (typeId != null && 
+							(typeId == EntityTypeId.BFM 
+							|| typeId == EntityTypeId.ESCALATION_A 
+							|| typeId == EntityTypeId.ESCALATION_B)) {
+						// Get the status of the new deal financial request
+						workflowBfmDetailsDTO.setStatus(workflowRequest
+								.getStatus());
+
+						// Get the workflow bfm Id from request table
+						String workflowBfmId = workflowRequest
+								.getEntityId();
+						// Get the new bfm details for the request
+						WorkflowBfmT workflowBfm = workflowBfmTRepository.findOne(workflowBfmId);
+
+						if (workflowBfm != null) {
+							workflowBfmDetailsDTO.setRequestedBfm(workflowBfm);
+
+							// Get the workflow steps associated with the new
+							// bfm request
+							List<WorkflowStepT> workflowSteps = workflowRequest
+									.getWorkflowStepTs();
+							if (workflowSteps != null) {
+								workflowBfmDetailsDTO
+								.setWorkflowSteps(workflowSteps);
+								// Check if user is authorized to access the
+								// request details
+								checkAuthorizedUser(workflowSteps, userId);
+							} else {
+								logger.info("No step details found for workflow bfm id: "
+										+ workflowBfmId);
+								throw new DestinationException(
+										HttpStatus.INTERNAL_SERVER_ERROR,
+										"Backend error in retrieving BFM details");
+							}
+						} else {
+							logger.info("Workflow Bfm id: "
+									+ workflowBfmId
+									+ " is not a valid workflow bfm id");
+							throw new DestinationException(
+									HttpStatus.INTERNAL_SERVER_ERROR,
+									"Backend error in retrieving deal financial details");
+						}
+					} else {
+						logger.info("Request id: " + requestedBfmId
+								+ " is not a valid opportunity deal financial request id");
+						throw new DestinationException(HttpStatus.NOT_FOUND,
+								"Request id is not a opportunity deal financial request");
+					}
+				} else {
+					logger.info("No request found for the given request id");
+					throw new DestinationException(HttpStatus.NOT_FOUND,
+							"No request found for the given request id");
+				}
+			} else {
+				logger.info("Request Id cannot be null");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Request id is not valid or empty");
+			}
+			logger.debug("Inside findRequestedBfmDetailsById() service: End");
+			return workflowBfmDetailsDTO;
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while retrieving requested deal financial details");
+		}
+	}
+
+
+
+	/**
+	 * This method performs pagination for the getMyWorklist service
+	 * 
+	 * @param page
+	 * @param count
+	 * @param myWorklist
+	 * @return
+	 */
+	private List<WorklistDTO<Object>> paginateWorklist(int page, int count,
+			List<WorklistDTO<Object>> myWorklist) {
+		if (PaginationUtils.isValidPagination(page, count, myWorklist.size())) {
+			int fromIndex = PaginationUtils.getStartIndex(page, count,
+					myWorklist.size());
+			int toIndex = PaginationUtils.getEndIndex(page, count,
+					myWorklist.size()) + 1;
+			myWorklist = myWorklist.subList(fromIndex, toIndex);
+			logger.debug("MyWorklist after pagination size is "
+					+ myWorklist.size());
+		} else {
+			myWorklist = null;
+		}
+		return myWorklist;
+	}
+
+
+	/**
+	 * This method is used to fetch the submitted and approved requests for a user
+	 * @param status
+	 * @param userId
+	 * @return
+	 */
+	private Set<WorklistDTO<Object>> getSubmittedAndApprovedRequest(String status,
+			String userId,List<Integer> type) {
+		logger.info("Starting getSubmittedAndApprovedRequests");
+
+		Set<WorkflowRequestT> workFlowRequest = new HashSet<WorkflowRequestT>();
+		List<WorkflowRequestT> workFlowSubmittedRequest = null;
+		List<WorkflowRequestT> workFlowActionedRequest = null;
+
+		if (status.equalsIgnoreCase("ALL")) {
+			workFlowActionedRequest = workflowRequestTRepository
+					.getModifiedByType(userId,type);
+			workFlowSubmittedRequest = workflowRequestTRepository.findByCreatedByAndEntityTypeIdIn(userId,type);
+
+		} else {
+			workFlowActionedRequest = workflowRequestTRepository
+					.getModifiedByAndStatusAndType(userId, status,type);
+
+			workFlowSubmittedRequest = workflowRequestTRepository
+					.findByCreatedByAndStatusAndEntityTypeIdIn(userId, status,type);
+		}
+
+		if (CollectionUtils.isNotEmpty(workFlowSubmittedRequest)) {
+			workFlowRequest.addAll(workFlowSubmittedRequest);
+		}
+		if (CollectionUtils.isNotEmpty(workFlowActionedRequest)) {
+			workFlowRequest.addAll(workFlowActionedRequest);
+		}
+		logger.info("Ending getSubmittedAndApprovedRequests");
+		return populateSubmittedAndApprovedRequest(workFlowRequest);
+	}
+
+	/**
+	 * This method is used to populate submitted and approved request for worklist of the logged in user
+	 * @param workFlowRequest
+	 * @return List<MyWorklistDTO>
+	 */
+	private Set<WorklistDTO<Object>> populateSubmittedAndApprovedRequest(
+			Set<WorkflowRequestT> workFlowRequest) {
+
+		logger.info("Starting populateSubmittedAndApprovedRequest");
+
+		Set<WorklistDTO<Object>> myWorklistDTOs = new HashSet<WorklistDTO<Object>>();
+		if (CollectionUtils.isNotEmpty(workFlowRequest)) {
+			for (WorkflowRequestT requestT : workFlowRequest) {
+				WorklistDTO<Object> myWorklistDTO = new WorklistDTO<Object>();
+
+				switch (EntityTypeId.valueOf(EntityTypeId.getName(requestT
+						.getEntityTypeId()))) {
+						case CUSTOMER:
+							myWorklistDTO.setEntityType(CUSTOMER.getDisplayName());
+							myWorklistDTO.setEntity(workflowCustomerRepository.findOne(requestT.getEntityId()));
+							break;
+						case PARTNER:
+							myWorklistDTO.setEntityType(PARTNER.getDisplayName());
+							myWorklistDTO.setEntity(workflowPartnerRepository.findOne(requestT.getEntityId()));
+							break;
+						case COMPETITOR:
+							myWorklistDTO.setEntityType(COMPETITOR.getDisplayName());
+							myWorklistDTO.setEntity(workflowCompetitorRepository.findOne(requestT.getEntityId()));
+							break;
+						case OPPORTUNITY:
+							myWorklistDTO.setEntityType(EntityTypeId.OPPORTUNITY.getDisplayName());
+							myWorklistDTO.setEntity(workflowOpportunityRepository.findOne(requestT.getEntityId()));
+							break;
+						case BFM:
+							myWorklistDTO.setEntityType(EntityTypeId.BFM.getDisplayName());
+							myWorklistDTO.setEntity(workflowBfmTRepository.findOne(requestT.getEntityId()));
+							break;
+
+				}
+				myWorklistDTO.setRequestId(requestT.getRequestId());
+				WorkflowStepT stepT = workflowStepRepository
+						.findFirstByRequestIdAndStepStatusNotOrderByStepIdDesc(
+								requestT.getRequestId(),
+								WorkflowStatus.NOT_APPLICABLE.getStatus());
+				if(stepT!=null)
+				{
+					myWorklistDTO.setWorkflowStep(stepT);
+					myWorklistDTO.setModifiedDatetime(stepT.getModifiedDatetime());
+				}
+				myWorklistDTOs.add(myWorklistDTO);
+			}
+		}
+
+		logger.debug("Ending populateSubmittedAndApprovedRequest");
+
+		return myWorklistDTOs;
+	}
+
+	/**
+	 * This method is used to populate the response object
+	 * 
+	 * @param listOfEntityRequests
+	 * @param EntityType
+	 * @param myWorklist
+	 */
+	private void populateResponse(
+			List<List<Object[]>> listOfEntityRequests, String entityType,
+			List<WorklistDTO<Object>> myWorklist) {
+		logger.debug("Start of populating response for worklist");
+		for (int i = 0; i < listOfEntityRequests.size(); i++) {
+			List<Object[]> tempRequestObject = listOfEntityRequests.get(i);
+			if (tempRequestObject != null) {
+
+				WorklistDTO<Object> worklist=new WorklistDTO<Object>(); 
+
+				// Iterate the result and set the response object
+				for (Object[] MyWorklistDTOArray : tempRequestObject) {
+
+
+					if (entityType.equalsIgnoreCase(EntityType.CUSTOMER
+							.toString())) {
+
+						// All customer requests
+						worklist.setEntityType("New Customer");
+						if (MyWorklistDTOArray[2] != null) 
+						{
+							worklist.setEntity(workflowCustomerRepository.findOne(MyWorklistDTOArray[2].toString()));
+						} 
+						else 
+						{
+							worklist.setEntity(null);
+						}
+					} else if (entityType.equalsIgnoreCase(EntityType.PARTNER
+							.toString())) {
+
+						// All Partner requests
+						worklist.setEntityType("New Partner");
+						if (MyWorklistDTOArray[2] != null) 
+						{
+							worklist.setEntity(workflowPartnerRepository.findOne(MyWorklistDTOArray[2].toString()));
+						} 
+						else 
+						{
+							worklist.setEntity(null);
+						}
+
+					} else if (entityType
+							.equalsIgnoreCase(EntityType.COMPETITOR.toString())) {
+
+						// All Competitor requests
+						worklist.setEntityType("New Competitor");
+						if (MyWorklistDTOArray[2] != null) 
+						{
+							worklist.setEntity(workflowCompetitorRepository.findOne(MyWorklistDTOArray[2].toString()));
+						} 
+						else 
+						{
+							worklist.setEntity(null);
+						}
+
+					} else if (entityType
+							.equalsIgnoreCase(EntityType.OPPORTUNITY.toString())) {
+
+						// All Opportunity Reopen requests
+						worklist.setEntityType("New Opportunity Reopen");
+						if (MyWorklistDTOArray[2] != null) 
+						{
+							worklist.setEntity(opportunityRepository.findOne(MyWorklistDTOArray[2].toString()));
+						} 
+						else 
+						{
+							worklist.setEntity(null);
+						}
+
+					}
+					else if (entityType
+							.equalsIgnoreCase(EntityType.BFM.toString())) {
+
+						// All BFM requests
+						worklist.setEntityType("Opportunity Deal Financial");
+
+					}
+
+					WorkflowStepT workflowStep = new WorkflowStepT();
+
+					if (MyWorklistDTOArray[3] != null) {
+						String s = MyWorklistDTOArray[3].toString();
+						workflowStep.setStepId(Integer.parseInt(s));
+					}
+					if (MyWorklistDTOArray[4] != null) {
+						String s = MyWorklistDTOArray[4].toString();
+						workflowStep.setRequestId(Integer.parseInt(s));
+					}
+					if (MyWorklistDTOArray[5] != null) {
+						String s = MyWorklistDTOArray[5].toString();
+						workflowStep.setStep(Integer.parseInt(s));
+					}
+					if (MyWorklistDTOArray[6] != null) {
+						workflowStep
+						.setUserId(MyWorklistDTOArray[6].toString());
+						workflowStep
+						.setUser(userRepository
+								.findByUserId(MyWorklistDTOArray[6]
+										.toString()));
+					}
+					if (MyWorklistDTOArray[1] != null) {
+						workflowStep.setStepStatus(MyWorklistDTOArray[1]
+								.toString());
+					}
+					/*
+					 * if (MyWorklistDTOArray[7] != null) {
+					 * workflowStep.setComments(MyWorklistDTOArray[7]
+					 * .toString()); }
+					 */
+					if (MyWorklistDTOArray[9] != null) {
+						workflowStep.setCreatedBy(MyWorklistDTOArray[9]
+								.toString());
+						workflowStep
+						.setCreatedByUser(userRepository
+								.findByUserId(MyWorklistDTOArray[9]
+										.toString()));
+					}
+					if (MyWorklistDTOArray[10] != null) {
+						String s = MyWorklistDTOArray[10].toString();
+						workflowStep.setCreatedDatetime(Timestamp.valueOf(s));
+					}
+					if (MyWorklistDTOArray[11] != null) {
+						workflowStep.setModifiedBy(MyWorklistDTOArray[11]
+								.toString());
+					}
+					if (MyWorklistDTOArray[12] != null) {
+						String s = MyWorklistDTOArray[12].toString();
+						workflowStep.setModifiedDatetime(Timestamp.valueOf(s));
+						worklist.setModifiedDatetime(Timestamp.valueOf(s));
+					}
+
+					if (MyWorklistDTOArray[13] != null) {
+						workflowStep.setUserGroup(MyWorklistDTOArray[13]
+								.toString());
+					}
+					if (MyWorklistDTOArray[14] != null) {
+						workflowStep.setUserRole(MyWorklistDTOArray[14]
+								.toString());
+					}
+					worklist.setWorkflowStep(workflowStep);
+					myWorklist.add(worklist);
+
+				}
+			}
+		}
+		logger.debug("End of populating response for worklist");
+	}
+
 
 	/**
 	 * to check whether a customer object is modified
@@ -924,31 +1517,33 @@ public class WorkflowService {
 		workflowRequest.setModifiedBy(userId);
 
 		List<WorkflowProcessTemplate> workflowTemplates = new ArrayList<WorkflowProcessTemplate>();
+
 		// Getting workflow templates for a particular entity
 		workflowTemplates = workflowProcessTemplateRepository
 				.findByEntityTypeIdOrderByStepAsc(entityTypeId);
 		int templateStep = 0;
 		for (WorkflowProcessTemplate wfpt : workflowTemplates) {
-			if (wfpt.getUserGroup() != null || wfpt.getUserRole() != null
-					|| wfpt.getUserId() != null) {
-				if (!StringUtils.isEmpty(wfpt.getUserGroup())) {
-					if (wfpt.getUserGroup().contains(userGroup)) {
-						// if (wfpt.getUserGroup().contains(userGroup)) {
-						templateStep = wfpt.getStep();
+			if (templateStep ==0 ) {
+				if (wfpt.getUserGroup() != null || wfpt.getUserRole() != null
+						|| wfpt.getUserId() != null) {
+					if (!StringUtils.isEmpty(wfpt.getUserGroup())) {
+						if (wfpt.getUserGroup().contains(userGroup)) {
+							// if (wfpt.getUserGroup().contains(userGroup)) {
+							templateStep = wfpt.getStep();
+						}
 					}
-				}
-				if (!StringUtils.isEmpty(wfpt.getUserRole())) {
-					if (wfpt.getUserRole().contains(userRole)) {
-						templateStep = wfpt.getStep();
+					if (!StringUtils.isEmpty(wfpt.getUserRole())) {
+						if (wfpt.getUserRole().contains(userRole)) {
+							templateStep = wfpt.getStep();
+						}
 					}
-				}
-				if (!StringUtils.isEmpty(wfpt.getUserId())) {
-					if (wfpt.getUserId().contains(userId)) {
-						templateStep = wfpt.getStep();
+					if (!StringUtils.isEmpty(wfpt.getUserId())) {
+						if (wfpt.getUserId().contains(userId)) {
+							templateStep = wfpt.getStep();
+						}
 					}
 				}
 			}
-
 		}
 		if (templateStep == 0) {
 			throw new DestinationException(HttpStatus.FORBIDDEN,
@@ -1912,7 +2507,7 @@ public class WorkflowService {
 				} else {
 					// Saving workflow Partner details to PartnerMasterT
 					// for Admin
-					savePartnerMaster(requestedPartner);
+					savePartnerMaster(requestedPartner,workflowPartner);
 					status.setStatus(Status.SUCCESS, "Partner "
 							+ requestedPartner.getPartnerName()
 							+ " added successfully");
@@ -1928,8 +2523,9 @@ public class WorkflowService {
 	 * PartnerMasterT
 	 * 
 	 * @param requestedPartner
+	 * @param workflowPartner 
 	 */
-	private void savePartnerMaster(WorkflowPartnerT requestedPartner) {
+	private void savePartnerMaster(WorkflowPartnerT requestedPartner, WorkflowPartnerT workflowPartner) {
 		// TODO Auto-generated method stub
 		PartnerMasterT partnerMaster = new PartnerMasterT();
 		partnerMaster.setCreatedBy(requestedPartner.getCreatedBy());
@@ -1950,61 +2546,111 @@ public class WorkflowService {
 		partnerMaster.setText1(requestedPartner.getText1());
 		partnerMaster.setText2(requestedPartner.getText2());
 		partnerMaster.setText3(requestedPartner.getText3());
-		if(!requestedPartner.getPartnerName().equalsIgnoreCase(requestedPartner.getGroupPartnerName())){
-			List<PartnerMasterT> parentPartner = partnerRepository.findByPartnerName(requestedPartner.getGroupPartnerName());
-			if(!parentPartner.isEmpty())
-				partnerMaster.setHqPartnerLinkId(parentPartner.get(0).getPartnerId());
+		if(requestedPartner.getHqPartnerLinkId() != null) {
+			partnerMaster.setHqPartnerLinkId(requestedPartner.getHqPartnerLinkId());
 		}
 		PartnerMasterT partnerCreated = partnerRepository.save(partnerMaster);
-		/*if(!requestedPartner.getPartnerSubSpMappingTs().isEmpty()){
-			for(PartnerSubSpMappingT partnerSubsp : requestedPartner.getPartnerSubSpMappingTs()){
-				partnerSubsp.setPartnerId(partnerCreated.getPartnerId());
-				partnerSubsp.setCreatedBy(requestedPartner.getCreatedBy());
-				partnerSubsp.setModifiedBy(requestedPartner.getModifiedBy());
-				savePartnerSubspAndProduct(partnerSubsp);
+
+		if(!workflowPartner.getPartnerProductDetailsDTOs().isEmpty()){
+			for(PartnerProductDetailsDTO partnerProductDetailsDTO : workflowPartner.getPartnerProductDetailsDTOs()){
+				// processing subsps for the new partner
+				if(partnerProductDetailsDTO.getSubspList().size() > 0 ){
+					for(Integer subSpId : partnerProductDetailsDTO.getSubspList()){
+						PartnerSubSpMappingT partnerSubsp = new PartnerSubSpMappingT();
+						partnerSubsp.setPartnerId(partnerCreated.getPartnerId());
+						partnerSubsp.setSubSpId(subSpId);
+						partnerSubsp.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+						partnerSubsp.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+						PartnerSubSpMappingT partnerSubspSaved = partnerSubSpMappingRepository.save(partnerSubsp);
+
+						//If product available for this partner then this partner subsp has to be persisted along with its product in partner_subsp_product_mapping_t
+						if(partnerProductDetailsDTO.getProductId() != null){
+							savePartnerSubspAndProduct(partnerSubspSaved, partnerProductDetailsDTO.getProductId());
+						}
+					}
+				}
+
+				//Processing contacts for partner and Products
+				if(partnerProductDetailsDTO.getPartnerProductContact() != null ){
+					ContactT productcontactSaved = new ContactT();
+					String contactId = null;
+					if (partnerProductDetailsDTO.getPartnerProductContact().getContactId() == null ) {
+						productcontactSaved = saveNewContact(partnerProductDetailsDTO);
+						if(productcontactSaved != null && productcontactSaved.getContactId() != null){
+							contactId = productcontactSaved.getContactId();
+							populateAsProductOrPartnerContact(partnerProductDetailsDTO, contactId, partnerCreated.getPartnerId());
+						}
+					}
+					else if(partnerProductDetailsDTO.getPartnerProductContact().getContactId() != null){
+						contactId = partnerProductDetailsDTO.getPartnerProductContact().getContactId();
+						populateAsProductOrPartnerContact(partnerProductDetailsDTO, contactId, partnerCreated.getPartnerId());
+					}			 
+				}
 			}
-		}*/
+		}
 	}
 
-	/*private void savePartnerSubspAndProduct(
-			PartnerSubSpMappingT partnerSubSpMappingTs) {
-		PartnerSubSpMappingT partnerSubspSaved = partnerSubSpMappingRepository.save(partnerSubSpMappingTs);
-		if(!partnerSubSpMappingTs.getPartnerSubspProductMappingTs().isEmpty()){
-			PartnerSubspProductMappingT partnerSubspProductObj = partnerSubSpMappingTs.getPartnerSubspProductMappingTs().get(0);
-			partnerSubspProductObj.setPartnerSubspMappingId(partnerSubspSaved.getPartnerSubspMappingId());
-			partnerSubspProductObj.setCreatedBy(partnerSubSpMappingTs.getCreatedBy());
-			partnerSubspProductObj.setModifiedBy(partnerSubSpMappingTs.getModifiedBy());
-			partnerSubSpProductMappingRepository.save(partnerSubspProductObj);
-			if (!partnerSubspProductObj.getProductContact().isEmpty()){
-				saveProductcontact(partnerSubspProductObj);
-			}
-		}
-	}*/
+	private ContactT saveNewContact(PartnerProductDetailsDTO partnerProductDetailsDTO) {
+		ContactT partnerProductContact = partnerProductDetailsDTO.getPartnerProductContact();
+		partnerProductContact.setContactCategory("PARTNER");
+		partnerProductContact.setContactType("EXTERNAL");
+		partnerProductContact.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+		partnerProductContact.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+		ContactT productcontactSaved = contactRepository.save(partnerProductContact);
+		return productcontactSaved;
+	}
 
-
-	/*private void saveProductcontact(PartnerSubspProductMappingT partnerSubspProductObj) {
+	/**
+	 * Method to populate the contacts as either a productContact 
+	 * or as a partnerContact
+	 * 
+	 * @param partnerProductDetailsDTO
+	 * @param contactId
+	 * @param partnerId
+	 */
+	private void populateAsProductOrPartnerContact(
+			PartnerProductDetailsDTO partnerProductDetailsDTO, String contactId, String partnerId) {
 		ProductContactLinkT productcontactLinkT = new ProductContactLinkT();
-		productcontactLinkT.setProductId(partnerSubspProductObj.getProductId());
-		ContactT productcontactSaved = new ContactT();
-		if (partnerSubspProductObj.getProductContact().get(0).getContactId() == null) {
-			ContactT newProductContact = partnerSubspProductObj.getProductContact().get(0);
-			newProductContact.setContactCategory("PARTNER");
-			newProductContact.setContactType("EXTERNAL");
-			newProductContact.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
-			newProductContact.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
-			productcontactSaved = contactRepository.save(newProductContact);
-			if(productcontactSaved != null && productcontactSaved.getContactId() != null){
-				productcontactLinkT.setContactId(productcontactSaved.getContactId());
-			}
+		PartnerContactLinkT partnercontactLinkT = new PartnerContactLinkT();
+		if(partnerProductDetailsDTO.getProductId() != null){
+			productcontactLinkT.setContactId(contactId);
+			productcontactLinkT.setProductId(partnerProductDetailsDTO.getProductId());
+			productcontactLinkT.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			productcontactLinkT.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			productContactLinkTRepository.save(productcontactLinkT);
 		}
-		else if(partnerSubspProductObj.getProductContact().get(0).getContactId() != null){
-			productcontactLinkT.setContactId(partnerSubspProductObj.getProductContact().get(0).getContactId());
-		}			 
-		productcontactLinkT.setCreatedBy(partnerSubspProductObj.getCreatedBy());
-		productcontactLinkT.setModifiedBy(partnerSubspProductObj.getModifiedBy());
-		productContactLinkTRepository.save(productcontactLinkT);
-	}*/
+		else{
+			partnercontactLinkT.setContactId(contactId);
+			partnercontactLinkT.setPartnerId(partnerId);
+			partnercontactLinkT.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			partnercontactLinkT.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			partnerContactLinkTRepository.save(partnercontactLinkT);
+		}
+	}
 
+	/**
+	 * To enter into partner_subsp_product_mapping_t table the values of partner_subsp_mapping_id 
+	 * and product_id if product details is available for the given partner
+	 * @param partnerSubspSaved
+	 * @param productId
+	 */
+	private void savePartnerSubspAndProduct(
+			PartnerSubSpMappingT partnerSubspSaved, String productId) {
+		if(partnerSubspSaved != null ){
+			PartnerSubspProductMappingT partnerSubspProductObj = new PartnerSubspProductMappingT();
+			partnerSubspProductObj.setPartnerSubspMappingId(partnerSubspSaved.getPartnerSubspMappingId());
+			partnerSubspProductObj.setProductId(productId);
+			partnerSubspProductObj.setCreatedBy(partnerSubspSaved.getCreatedBy());
+			partnerSubspProductObj.setModifiedBy(partnerSubspSaved.getModifiedBy());
+			partnerSubSpProductMappingRepository.save(partnerSubspProductObj);
+		}
+	}
+
+	/**
+	 * Method to validate the workflow partner request
+	 * @param reqPartner
+	 * @throws Exception
+	 */
 	private void validateRequestedPartner(WorkflowPartnerT reqPartner)
 			throws Exception {
 
@@ -2037,12 +2683,15 @@ public class WorkflowService {
 		}
 
 		//validation for partner group name, country, city => partner changes
-		/*String groupPartnerName = reqPartner.getGroupPartnerName();
-		if (StringUtils.isEmpty(groupPartnerName)) {
+		if (!StringUtils.isEmpty(reqPartner.getGroupPartnerName())) {
+			if (!reqPartner.getPartnerName().equalsIgnoreCase(reqPartner.getGroupPartnerName())){
+				reqPartner.setHqPartnerLinkId(partnerRepository.findPartnerIdByName(reqPartner.getGroupPartnerName()));
+			}
+		}else{
 			logger.error("Group Partner Name should not be empty");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Group Partner Name Should not be empty");
-		} 
+		}
 
 		String country = reqPartner.getCountry();
 		if (StringUtils.isEmpty(country)) {
@@ -2050,13 +2699,6 @@ public class WorkflowService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Country Should not be empty");
 		} 
-
-		String city = reqPartner.getCity();
-		if (StringUtils.isEmpty(city)) {
-			logger.error("city should not be empty");
-			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"city Should not be empty");
-		} */
 	}
 
 	/**
@@ -2130,10 +2772,14 @@ public class WorkflowService {
 			List<Object[]> resultForGroupPending = query.getResultList();
 			resultList.addAll(resultForGroupPending);
 		}
-
 		return resultList;
 	}
 
+	/**
+	 * Method to approve workflow partner
+	 * @param workflowPartnerT
+	 * @return
+	 */
 	public boolean approvePartnerWorkflowEntity(
 			WorkflowPartnerT workflowPartnerT) {
 
@@ -2241,6 +2887,12 @@ public class WorkflowService {
 		return true;
 	}
 
+	/**
+	 * Method to check whether a partner is modified or not
+	 * @param oldObject
+	 * @param workflowPartnerT
+	 * @return
+	 */
 	private boolean isPartnerModified(WorkflowPartnerT oldObject,
 			WorkflowPartnerT workflowPartnerT) {
 
@@ -2249,9 +2901,9 @@ public class WorkflowService {
 		String website = "";
 		String facebook = "";
 		String notes = "";
-//		String country = "";
-//		String city = "";
-//		String groupPartnerName = "";
+		String country = "";
+		String city = "";
+		String groupPartnerName = "";
 
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 
@@ -2304,29 +2956,29 @@ public class WorkflowService {
 
 		//partner changes - need to check whether text1,2 and 3 also to be validated
 		//country
-		/*if (!StringUtils.isEmpty(oldObject.getCountry())) {
+		if (!StringUtils.isEmpty(oldObject.getCountry())) {
 			country = oldObject.getCountry();
 		}
 		if (!workflowPartnerT.getCountry().equals(country)) {
 			oldObject.setCountry(workflowPartnerT.getCountry());
 			isPartnerModifiedFlag = true;
-		}*/
+		}
 		//city
-		/*if (!StringUtils.isEmpty(oldObject.getCity())) {
+		if (!StringUtils.isEmpty(oldObject.getCity())) {
 			city = oldObject.getCity();
 		}
 		if (!workflowPartnerT.getCity().equals(city)) {
-			oldObject.setCountry(workflowPartnerT.getCity());
+			oldObject.setCity(workflowPartnerT.getCity());
 			isPartnerModifiedFlag = true;
-		}*/
+		}
 		//group Partner name
-		/*if (!StringUtils.isEmpty(oldObject.getGroupPartnerName())) {
+		if (!StringUtils.isEmpty(oldObject.getGroupPartnerName())) {
 			groupPartnerName = oldObject.getGroupPartnerName();
 		}
 		if (!workflowPartnerT.getGroupPartnerName().equals(groupPartnerName)) {
-			oldObject.setCountry(workflowPartnerT.getGroupPartnerName());
+			oldObject.setGroupPartnerName(workflowPartnerT.getGroupPartnerName());
 			isPartnerModifiedFlag = true;
-		}*/
+		}
 		return isPartnerModifiedFlag;
 	}
 
@@ -2364,13 +3016,23 @@ public class WorkflowService {
 		oldPartnerMaster.setText1(workflowPartnerT.getText1());
 		oldPartnerMaster.setText2(workflowPartnerT.getText2());
 		oldPartnerMaster.setText3(workflowPartnerT.getText3());
-//		if(!workflowPartnerT.getPartnerName().equalsIgnoreCase(workflowPartnerT.getGroupPartnerName())){
-//			List<PartnerMasterT> parentPartner = partnerRepository.findByPartnerName(workflowPartnerT.getGroupPartnerName());
-//			oldPartnerMaster.setHqPartnerLinkId(parentPartner.get(0).getPartnerId());
-//		}
+		if(!workflowPartnerT.getPartnerName().equalsIgnoreCase(workflowPartnerT.getGroupPartnerName())){
+			List<PartnerMasterT> parentPartner = partnerRepository.findByPartnerName(workflowPartnerT.getGroupPartnerName());
+			if (!parentPartner.isEmpty()){
+			oldPartnerMaster.setHqPartnerLinkId(parentPartner.get(0).getPartnerId());
+			} else {
+				logger.error("This group partner name is not valid and not approved partner");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"This group partner name is not valid and not approved partner!");			}
+		}
 		partnerRepository.save(oldPartnerMaster);
 	}
 
+	/**
+	 * Validate workflow partner master details
+	 * @param requestedPartner
+	 * @return
+	 */
 	private boolean validateWorkflowPartnerMasterDetails(
 			WorkflowPartnerT requestedPartner) {
 		boolean validated = true;
@@ -2416,28 +3078,20 @@ public class WorkflowService {
 
 		// validation for groupPartnerName, country, city - partner changes
 		// Group Partner name should not be empty
-		/*if (StringUtils.isEmpty(requestedPartner.getGroupPartnerName())) {
+		if (StringUtils.isEmpty(requestedPartner.getGroupPartnerName())) {
 			logger.error("Group Partner Name should not be empty");
 			validated = false;
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Group Partner Name should not be empty");
-		}*/
+		}
 
 		// country should not be empty
-		/*if (StringUtils.isEmpty(requestedPartner.getCountry())) {
+		if (StringUtils.isEmpty(requestedPartner.getCountry())) {
 			logger.error("Country should not be empty");
 			validated = false;
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Country should not be empty");
-		}*/
-
-		// city should not be empty
-		/*if (StringUtils.isEmpty(requestedPartner.getCity())) {
-			logger.error("City should not be empty");
-			validated = false;
-			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"City should not be empty");
-		}*/
+		}
 		return validated;
 	}
 
@@ -2494,6 +3148,13 @@ public class WorkflowService {
 		}
 	}
 
+	/**
+	 * Method to insert workflow competitor
+	 * @param workflowCompetitorT
+	 * @param status
+	 * @return
+	 * @throws Exception
+	 */
 	@Transactional
 	public boolean insertWorkflowCompetitor(
 			WorkflowCompetitorT workflowCompetitorT, Status status)
@@ -2536,14 +3197,18 @@ public class WorkflowService {
 		return true;
 	}
 
+	/**
+	 * Method to save competitor to master table
+	 * @param requestedCompetitor
+	 */
 	private void saveToCompetitorTable(WorkflowCompetitorT requestedCompetitor) {
 		// TODO Auto-generated method stub
 		logger.info("Inside saveToCompetitorTable method");
 		CompetitorMappingT competitorMappingT = new CompetitorMappingT();
 		competitorMappingT.setCompetitorName(requestedCompetitor
 				.getWorkflowCompetitorName());
-				competitorMappingT.setWebsite(requestedCompetitor
-						.getWorkflowCompetitorWebsite());
+		competitorMappingT.setWebsite(requestedCompetitor
+				.getWorkflowCompetitorWebsite());
 		competitorMappingT.setActive(true);
 		competitorRepository.save(competitorMappingT);
 		logger.info("Competitor saved "
@@ -2551,6 +3216,10 @@ public class WorkflowService {
 
 	}
 
+	/**
+	 * Method to validate workflow competitor
+	 * @param workflowCompetitorT
+	 */
 	private void validateWorkflowCompetitor(
 			WorkflowCompetitorT workflowCompetitorT) {
 		// TODO Auto-generated method stub
@@ -2867,7 +3536,11 @@ public class WorkflowService {
 		return flag;
 	}
 
-	// competitor workflow
+	/**
+	 * Method to approve workflow competitor 
+	 * @param workflowCompetitorT
+	 * @return
+	 */
 	public boolean approveCompetitorWorkflowEntity(
 			WorkflowCompetitorT workflowCompetitorT) {
 		int stepId = -1;
@@ -2937,6 +3610,11 @@ public class WorkflowService {
 							masterRequest.setModifiedBy(userId);
 							masterRequest.setStatus(WorkflowStatus.APPROVED
 									.getStatus());
+							sendEmailNotificationforApprovedOrRejectMail(
+									workflowCompetitorApprovedSubject,
+									masterRequest.getRequestId(),
+									masterRequest.getCreatedDatetime(),
+									masterRequest.getEntityTypeId());
 							step = stepRecord.getStep() + 1;
 							rowIteration++;
 						}
@@ -2993,14 +3671,20 @@ public class WorkflowService {
 		// check for "" in db
 		if (!StringUtils.isEmpty(workflowCompetitorT
 				.getWorkflowCompetitorWebsite())) {
-						oldCompetitorMaster.setWebsite(workflowCompetitorT
-								.getWorkflowCompetitorWebsite());
+			oldCompetitorMaster.setWebsite(workflowCompetitorT
+					.getWorkflowCompetitorWebsite());
 		}
 		oldCompetitorMaster.setActive(true);
 		// oldCompetitorMaster.set(userId);
 		competitorRepository.save(oldCompetitorMaster);
 	}
 
+	/**
+	 * Method to check whether a competitor is modified or not
+	 * @param oldObject
+	 * @param workflowCompetitorT
+	 * @return
+	 */
 	private boolean isCompetitorModified(WorkflowCompetitorT oldObject,
 			WorkflowCompetitorT workflowCompetitorT) {
 		boolean isCompetitorModifiedFlag = false;
@@ -3064,9 +3748,401 @@ public class WorkflowService {
 			logger.error("competitor name already exists");
 			validated = false;
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"competitor name: " + competitorName + " already exists!");
+					"competitor name already exists" + competitorName);
 		}
 		return validated;
 	}
 
+	/**
+	 * method to populate workflow request and steps for the BFM request
+	 * @param worflowBfmId 
+	 * @param opportunityId
+	 * @param opportunityName
+	 * @param status
+	 * @throws Exception
+	 */
+	public void createworkflowBfmRequest(String worflowBfmId, OpportunityT createdOpportunity, Status status) throws Exception {
+		Integer entityTypeId = EntityTypeId.BFM.getType();
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+
+		WorkflowRequestT workflowRequest = populateWorkflowRequest(
+				worflowBfmId, entityTypeId, userId, "");
+		if (workflowRequest != null) {
+			if (workflowRequest.getStatus().equals(
+					WorkflowStatus.PENDING.getStatus())) {
+				//sendEmailNotificationforPending(workflowRequest.getRequestId(),new Date(), entityTypeId);
+				status.setStatus(
+						Status.SUCCESS,
+						"Your request to approve the BFM file for the opportunity :" + createdOpportunity.getOpportunityId() + " - "
+								+ createdOpportunity.getOpportunityName() + " is submitted");
+			} 
+		}
+	}
+
+	/**
+	 * Method to take action on the bfm request based on the status
+	 * - approved / rejected / escalated
+	 * @param workflowBfmT
+	 * @param status
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean approveOrEscalateBfm(WorkflowBfmT workflowBfmT, Status status) throws Exception {
+		// TODO Auto-generated method stub
+		logger.info("Inside approveOrEscalateBfm method");
+		OpportunityT opportunity = opportunityRepository.findOne(workflowBfmT.getOpportunityId());
+		if (opportunity != null) {
+			switch (workflowBfmT.getApproveOrRejectOrEscalate()) {
+			case "APPROVED" : approveOrRejectBfm(WorkflowStatus.APPROVED, workflowBfmT, status);
+			break;
+			case "REJECTED" : approveOrRejectBfm(WorkflowStatus.REJECTED, workflowBfmT, status);
+			break;
+			case "ESCALATED" : populateEscalateWorkflow(WorkflowStatus.ESCALATED, workflowBfmT, status);
+			break;
+			default:break;
+			}
+
+		}else{
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Opportunity not found");
+		}
+		return true;
+	}
+
+	/**
+	 * Method to populate work flow steps on escalation by Shrilakshmi
+	 * @param workflowStatus
+	 * @param workflowBfmT
+	 * @param status
+	 * @throws Exception
+	 */
+	private void populateEscalateWorkflow(WorkflowStatus workflowStatus, WorkflowBfmT workflowBfmT, Status status) throws Exception {
+		String Exceptions = workflowBfmT.getExceptions();
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+
+		if (Exceptions != null) {
+			List<String> exceptionArrayList = Arrays.asList(StringUtils.split(Exceptions, ","));
+			List<String> exceptionCombo1 = Arrays.asList(Constants.E1,Constants.E2);
+			List<String> exceptionCombo2 = Arrays.asList(Constants.E2,Constants.E3);
+			List<String> exceptionCombo3 = Arrays.asList(Constants.E3,Constants.E1);
+
+			if (exceptionArrayList.size() > 0) {
+				// On meeting the below conditions, It takes the path of Escalation A
+				if (exceptionArrayList.contains(Constants.E5) || exceptionArrayList.contains(exceptionCombo1) ||
+						exceptionArrayList.contains(exceptionCombo2) || exceptionArrayList.contains(exceptionCombo3)) {
+					WorkflowRequestT workflowRequest = populateEscalationWorkflowRequest(
+							workflowBfmT.getWorkflowBfmId(), EntityTypeId.ESCALATION_A.getType(), userId, "");	
+					if (workflowRequest != null) {
+						if (workflowRequest.getStatus().equals(WorkflowStatus.PENDING.getStatus())) {
+							// update the status to Escalated after shrilakshmi initiates exception
+							updateEscalted(workflowRequest.getRequestId(), workflowBfmT);
+							//sendEmailNotificationforPending(workflowRequest.getRequestId(),new Date(), entityTypeId);
+							status.setStatus(
+									Status.SUCCESS,
+									"The request for BFM is Escalated to IOU Head !!!");
+						} 
+					}
+				} 
+				// On meeting the below conditions, It takes the path of Escalation B
+				else {
+					WorkflowRequestT workflowRequest = populateEscalationWorkflowRequest(
+							workflowBfmT.getWorkflowBfmId(), EntityTypeId.ESCALATION_B.getType(), userId, "");
+					if (workflowRequest != null) {
+						if (workflowRequest.getStatus().equals(WorkflowStatus.PENDING.getStatus())) {
+							// update the status to Escalated after shrilakshmi initiates exception
+							updateEscalted(workflowRequest.getRequestId(), workflowBfmT);
+							//sendEmailNotificationforPending(workflowRequest.getRequestId(),new Date(), entityTypeId);
+							status.setStatus(
+									Status.SUCCESS,
+									"The request for BFM is Escalated to Geo Head !!!");
+						} 
+					}
+				}
+			}
+		}
+		else {
+			logger.error("Exceptions cannot be empty");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Exceptions cannot be empty");
+		}
+	}
+
+	private void updateEscalted(Integer requestId, WorkflowBfmT workflowBfmT) {
+		List<WorkflowStepT> workflowSteps = workflowStepRepository.findStepsByRequestId(requestId);
+		for (WorkflowStepT workflowStep : workflowSteps) {
+			if (workflowStep.getStepStatus().equals(WorkflowStatus.PENDING.getStatus())) {
+				workflowStep.setStepStatus(WorkflowStatus.ESCALATED.getStatus());
+				workflowStep.setComments(workflowBfmT.getComments());
+				break;
+			}
+		}
+		workflowStepRepository.save(workflowSteps);
+		
+		WorkflowBfmT workflowBfmToBeSaved = workflowBfmTRepository.findOne(workflowBfmT.getWorkflowBfmId());
+		workflowBfmToBeSaved.setGrossMargin(workflowBfmT.getGrossMargin());
+		workflowBfmToBeSaved.setExceptions(workflowBfmT.getExceptions());
+		workflowBfmTRepository.save(workflowBfmToBeSaved);
+	}
+
+	/**
+	 * Steps Of the work flow request and steps are dynamically updated based on the escalation path 
+	 * chosen based on the Exceptions selected.
+	 * 
+	 * @param workflowBfmId
+	 * @param entityTypeId
+	 * @param userId
+	 * @param comments
+	 * @return
+	 */
+	private WorkflowRequestT populateEscalationWorkflowRequest(
+			String workflowBfmId, Integer entityTypeId, String userId, String comments) {
+
+		logger.info("Inside Start of populateWorkflowRequest method");
+		List<WorkflowStepT> workflowSteps = null;
+		Integer bfmEntityTypeId = EntityTypeId.BFM.getType();
+		UserT user = userRepository.findByUserId(userId);
+		List<WorkflowProcessTemplate> workflowTemplates = new ArrayList<WorkflowProcessTemplate>();
+
+		//check whether the user is authorised to escalate
+		checkUserAuthorisedToEscalate(workflowTemplates, userId, bfmEntityTypeId);
+
+		// Getting workflow templates for a particular entity
+		workflowTemplates = workflowProcessTemplateRepository
+				.findByEntityTypeIdOrderByStepAsc(entityTypeId);
+		int templateStep = 0;
+		for (WorkflowProcessTemplate wfpt : workflowTemplates) {
+			templateStep = wfpt.getStep();
+			break;
+		}
+		WorkflowProcessTemplate workflowProcessTemplate = new WorkflowProcessTemplate();
+		workflowProcessTemplate = workflowProcessTemplateRepository
+				.findByEntityTypeIdAndStep(entityTypeId, templateStep);
+		WorkflowRequestT workflowRequest = workflowRequestRepository.findByEntityTypeIdAndEntityId(bfmEntityTypeId, workflowBfmId);
+		if (workflowRequest == null) {
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Not a valid workflow request !");
+		}
+		// Generating workflow steps from workflow process template for a
+		// request based on user role or user group or user id
+		workflowSteps = populateEscalationWorkFlowSteps(
+				workflowProcessTemplate, user, workflowRequest, comments);
+		// Saving the workflow steps and the setting the request id in each step
+		for (WorkflowStepT wfs : workflowSteps) {
+			wfs.setRequestId(workflowRequest.getRequestId());
+			workflowStepTRepository.saveAndFlush(wfs);
+		}
+		workflowRequest.setWorkflowStepTs(workflowSteps);
+		// updating the entityTypeId of the workflowRequest for escalation
+		workflowRequest.setEntityTypeId(entityTypeId);
+		workflowRequest.setModifiedBy(userId);
+		workflowRequestTRepository.saveAndFlush(workflowRequest);
+		logger.info("Inside End of populateWorkflowRequest method");
+		return workflowRequest;
+	}
+
+	/**
+	 * Populate the steps for escalation for Pending and Not Appplicable
+	 * @param workflowProcessTemplate
+	 * @param user
+	 * @param workflowRequest
+	 * @param comments
+	 * @return
+	 */
+	private List<WorkflowStepT> populateEscalationWorkFlowSteps(
+			WorkflowProcessTemplate workflowProcessTemplate, UserT user,
+			WorkflowRequestT workflowRequest, String comments) {
+
+		logger.info("Inside populateWorkFlowStepForUserRoleOrUserGroupOrUserId method");
+		String userId = user.getUserId();
+		List<WorkflowStepT> workflowSteps = new ArrayList<WorkflowStepT>();
+		List<WorkflowProcessTemplate> workflowTemplatesForNotapplicable = new ArrayList<WorkflowProcessTemplate>();
+		Integer stepPending = workflowProcessTemplate.getStep() + 1;
+		// Getting workflow template for pending
+		WorkflowProcessTemplate workflowTemplateForPending = workflowProcessTemplateRepository
+				.findByEntityTypeIdAndStep(
+						workflowProcessTemplate.getEntityTypeId(), stepPending);
+		workflowSteps.add(constructWorkflowStep(workflowProcessTemplate,
+				userId, WorkflowStatus.PENDING.getStatus(), comments));
+		workflowRequest.setStatus(WorkflowStatus.PENDING.getStatus());
+		//updating the status for pending - escalation
+		if (workflowTemplateForPending != null) {
+			// Getting workflow template for rest of the user categories as not
+			// applicable
+			workflowTemplatesForNotapplicable = workflowProcessTemplateRepository
+					.findByEntityTypeIdAndStepGreaterThan(
+							workflowProcessTemplate.getEntityTypeId(),
+							workflowProcessTemplate.getStep());
+			if (CollectionUtils.isNotEmpty(workflowTemplatesForNotapplicable)) {
+				for (WorkflowProcessTemplate workflowProcessTemplateForNotApplicable : workflowTemplatesForNotapplicable) {
+					workflowSteps
+					.add(constructWorkflowStep(
+							workflowProcessTemplateForNotApplicable,
+							userId,
+							WorkflowStatus.NOT_APPLICABLE.getStatus(),
+							comments));
+				}
+			}
+		}
+		return workflowSteps;
+	}
+
+	/**
+	 * validation to check authorization of the user to escalate
+	 * @param workflowTemplates
+	 * @param userId
+	 * @param entityTypeId
+	 */
+	private void checkUserAuthorisedToEscalate(
+			List<WorkflowProcessTemplate> workflowTemplates, String userId, Integer entityTypeId) {
+		// Getting workflow templates for a particular entity
+		workflowTemplates = workflowProcessTemplateRepository
+				.findByEntityTypeIdOrderByStepAsc(entityTypeId);
+		int templateStep = 0;
+		for (WorkflowProcessTemplate wfpt : workflowTemplates) {
+			if (templateStep ==0 ) {
+				if (wfpt.getUserId() != null) {
+					if (!StringUtils.isEmpty(wfpt.getUserId())) {
+						if (wfpt.getUserId().contains(userId)) {
+							templateStep = wfpt.getStep();
+						}
+					}
+				}
+			}
+		}
+		if (templateStep == 0) {
+			throw new DestinationException(HttpStatus.FORBIDDEN,
+					"User does not have access to Escalate the BFM request !");
+		}
+	}
+
+	/**
+	 * Method to approve or reject the work flow BFM request
+	 * @param workflowStaus
+	 * @param workflowBfmT
+	 * @param status
+	 * @return
+	 */
+	private Status approveOrRejectBfm(WorkflowStatus workflowStaus, WorkflowBfmT workflowBfmT, Status status) {
+		int stepId = -1;
+		int requestId = 0;
+		int rowIteration = 0;
+		int step = 0;
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		int[] bfmEntityTypeIds = {Constants.CONSTANT_FOUR,Constants.CONSTANT_FIVE,Constants.CONSTANT_SIX};
+		List<WorkflowStepT> requestSteps = new ArrayList<WorkflowStepT>();
+		WorkflowRequestT masterRequest = new WorkflowRequestT();
+		//
+		if (validateWorkflowBfmDetails(workflowBfmT)) {
+			masterRequest = workflowRequestTRepository.findByEntityIdAndEntityTypeIdIn(workflowBfmT.getWorkflowBfmId(),bfmEntityTypeIds);
+			Integer entityTypeId = masterRequest.getEntityTypeId();
+			requestSteps = workflowStepTRepository
+					.findStepForEditAndApprove(entityTypeId,workflowBfmT.getWorkflowBfmId());
+			
+			for (WorkflowStepT stepRecord : requestSteps) {
+				if (stepRecord.getStepStatus().equals(
+						WorkflowStatus.PENDING.getStatus())) {
+					stepId = stepRecord.getStepId();
+					requestId = stepRecord.getRequestId();
+					if (stepId != -1 && requestId != 0 && rowIteration == 0) {
+						stepRecord.setUserId(userId);
+						stepRecord.setStepStatus(workflowStaus.getStatus());
+						stepRecord.setModifiedBy(userId);
+						if (!StringUtils.isEmpty(workflowBfmT
+								.getComments())) {
+							stepRecord.setComments(workflowBfmT
+									.getComments());
+						}
+						// for updating the status in workflow_request_t
+						masterRequest.setModifiedBy(userId);
+						masterRequest.setStatus(workflowStaus.getStatus());
+						if (masterRequest.getStatus().equals(WorkflowStatus.APPROVED.getStatus()) || 
+								masterRequest.getStatus().equals(WorkflowStatus.REJECTED.getStatus())) {
+						WorkflowBfmT workflowBfmToBeSaved = workflowBfmTRepository.findOne(workflowBfmT.getWorkflowBfmId());
+						workflowBfmToBeSaved.setGrossMargin(workflowBfmT.getGrossMargin());
+						workflowBfmTRepository.save(workflowBfmToBeSaved);
+						}
+						step = stepRecord.getStep() + 1;
+						rowIteration++;
+					}
+				}
+
+				if (stepRecord.getStep().equals(step)
+						&& (rowIteration == 1)) {
+					stepRecord.setStepStatus(WorkflowStatus.PENDING
+							.getStatus());
+					// for updating the status in workflow_request_t
+					masterRequest.setModifiedBy(userId);
+					masterRequest.setStatus(WorkflowStatus.PENDING
+							.getStatus());
+					stepRecord.setModifiedBy(userId);
+					//					sendEmailNotificationforPending(
+					//							masterRequest.getRequestId(), new Date(),
+					//							masterRequest.getEntityTypeId());
+					rowIteration++;
+				}
+			}
+			workflowStepTRepository.save(requestSteps);
+			workflowRequestTRepository.save(masterRequest);
+			
+			//once the BFM request is rejected, revert the sales stage code of the given opportunity to 4.
+			if (masterRequest.getStatus().equals(WorkflowStatus.REJECTED.getStatus())) {
+				OpportunityT opportuntiy = opportunityRepository.findOne(workflowBfmT.getOpportunityId());
+				opportuntiy.setSalesStageCode(Constants.CONSTANT_FOUR);
+				opportunityRepository.save(opportuntiy);
+			}
+			
+			if (masterRequest.getStatus().equals(
+					workflowStaus.getStatus())) {
+				status.setStatus(Status.SUCCESS,
+						"The requested workflow bfm is finally" + masterRequest.getStatus() + "!!!");
+				//				sendEmailNotificationforApprovedOrRejectMail(
+				//						workflowPartnerApprovedSubject,
+				//						masterRequest.getRequestId(),
+				//						masterRequest.getCreatedDatetime(),
+				//						masterRequest.getEntityTypeId());
+			} else {
+				status.setStatus(Status.SUCCESS,
+						"The requested workflow bfm is intermediately" + masterRequest.getStatus() + "!!!");
+			}
+		
+		}
+		return status;
+	}
+
+	/**
+	 * Method to validate the workflow BFM Details
+	 * @param workflowBfmT
+	 * @return
+	 */
+	private boolean validateWorkflowBfmDetails(WorkflowBfmT workflowBfmT) {
+		boolean validated = false;
+		if (workflowBfmT.getGrossMargin() != null) {
+			validated = true;
+		} else{
+			logger.error("gross margin cannot be empty");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"gross margin cannot be empty");
+		}
+		return validated;
+	}
+
+	/**
+	 * Service method used to download the deal financial file
+	 * @param id - request id
+	 * @return
+	 */
+	public WorkflowBfmT downloadBFMFile(Integer id) {
+		WorkflowBfmDetailsDTO BfmDetailsDto = findRequestedBfmDetailsById(id);
+		if(BfmDetailsDto != null && BfmDetailsDto.getRequestedBfm() != null) {
+			byte[] dealFinancialFile = BfmDetailsDto.getRequestedBfm().getDealFinancialFile(); 
+			if(dealFinancialFile != null && dealFinancialFile.length > 0) {
+				return BfmDetailsDto.getRequestedBfm();
+				//return new InputStreamResource(new ByteArrayInputStream(dealFinancialFile));
+			} else {
+				throw new DestinationException(HttpStatus.NOT_FOUND, "BFM file not found");
+			}
+		} else {
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, "Backend error while retrieving BFM file");
+		}
+	}
 }
