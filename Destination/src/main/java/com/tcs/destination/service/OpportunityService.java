@@ -893,7 +893,7 @@ public class OpportunityService {
 				workflowService.createworkflowBfmRequest(workflowBfmSaved.getWorkflowBfmId(), createdOpportunity, status);
 			}
 		}else{
-			status.setStatus(Status.SUCCESS, opportunity.getOpportunityId() + " : " + opportunity.getOpportunityName() + " is Saved !!" );	
+			status.setStatus(Status.SUCCESS, opportunity.getOpportunityId());	
 		}
 	}
 

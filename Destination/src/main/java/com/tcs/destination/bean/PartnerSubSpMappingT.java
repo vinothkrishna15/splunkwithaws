@@ -38,13 +38,16 @@ public class PartnerSubSpMappingT implements Serializable {
 
 	@Column(name="sub_sp_id")
 	private Integer subSpId;
+	
+	@Column(name="sub_sp")
+	private String subSp;
 
 	@Column(name="partner_id")
 	private String partnerId;
 	
 	//bi-directional many-to-one association to PartnerMasterT
 	@ManyToOne(fetch=FetchType.LAZY)
-	@JoinColumn(name="sub_sp_id",insertable = false, updatable = false)
+	@JoinColumn(name="sub_sp",insertable = false, updatable = false)
 	private SubSpMappingT subSpMappingT;
 	
 	//bi-directional many-to-one association to PartnerMasterT
@@ -195,6 +198,14 @@ public class PartnerSubSpMappingT implements Serializable {
 
 	public void setSubSpMappingT(SubSpMappingT subSpMappingT) {
 		this.subSpMappingT = subSpMappingT;
+	}
+
+	public String getSubSp() {
+		return subSp;
+	}
+
+	public void setSubSp(String subSp) {
+		this.subSp = subSp;
 	}
 
 }

@@ -74,6 +74,7 @@ import com.tcs.destination.data.repository.PartnerSubSpMappingTRepository;
 import com.tcs.destination.data.repository.PartnerSubSpProductMappingTRepository;
 import com.tcs.destination.data.repository.ProductContactLinkTRepository;
 import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
+import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.data.repository.WorkflowBfmTRepository;
@@ -206,6 +207,9 @@ public class WorkflowService {
 
 	@Autowired
 	ContactRepository contactRepository;
+	
+	@Autowired
+	SubSpRepository subSpRepository;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -2559,6 +2563,7 @@ public class WorkflowService {
 						PartnerSubSpMappingT partnerSubsp = new PartnerSubSpMappingT();
 						partnerSubsp.setPartnerId(partnerCreated.getPartnerId());
 						partnerSubsp.setSubSpId(subSpId);
+						partnerSubsp.setSubSp(subSpRepository.findBySubSpId(subSpId).getSubSp());
 						partnerSubsp.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 						partnerSubsp.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 						PartnerSubSpMappingT partnerSubspSaved = partnerSubSpMappingRepository.save(partnerSubsp);
