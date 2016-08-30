@@ -631,7 +631,7 @@ public class WorkflowController {
 			
 			respHeaders = new HttpHeaders();
 			//TODO frame the file name from the details
-			String repName = "bfm_" + new Random().nextInt() + ".xlsx";
+			String repName = bfmT.getBfmFileName();
 			respHeaders.add("reportName", repName);
 			respHeaders.setContentDispositionFormData("attachment", repName);
 			respHeaders.setContentType(MediaType
