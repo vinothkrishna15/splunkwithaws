@@ -942,7 +942,8 @@ public class DestinationMailUtils {
 			default:
 				break;
 			}
-
+			
+			addSysAdminStrategicAdminCC(ccIds);
 			message.setRecipients(listMailIdsFromUserIds(recepientIds));
 			message.setCcList(listMailIdsFromUserIds(ccIds));
 
@@ -973,8 +974,6 @@ public class DestinationMailUtils {
 			logger.error("request not fetched");
 		}
 	}
-	
-	
 
 	/**
 	 * This method is used to send the mail on approval of a workflow entity
