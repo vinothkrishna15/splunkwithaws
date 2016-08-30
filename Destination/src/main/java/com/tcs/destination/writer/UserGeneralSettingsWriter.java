@@ -74,7 +74,8 @@ public class UserGeneralSettingsWriter implements ItemWriter<String[]>, StepExec
 					logger.debug("***USER_GENERAL_SETTINGS ADD***");
 					UserGeneralSettingsT userGeneralSettingsT =  new UserGeneralSettingsT();
 					UploadServiceErrorDetailsDTO errorDTO = helper.validateUserGeneralSettingsData(data, request.getUserT().getUserId() ,userGeneralSettingsT);
-					if (errorDTO.getMessage() != null) {
+					errorDTO.setSheetName(Constants.USER_TEMPLATE_USER_MASTER);
+					if (errorDTO.getMessage() != null && errorDTO.getDuplicateFlag() == 0) {
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 						errorList.add(errorDTO);
 					} else if (errorDTO.getMessage() == null) {

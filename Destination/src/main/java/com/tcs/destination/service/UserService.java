@@ -700,8 +700,10 @@ public class UserService {
 			String userIdGoalSheet=userGoalTToBeUpdated.getUserId();
 			BigDecimal targetValueInExcel=userGoalTToBeUpdated.getTargetValue();
 			String goalName=userGoalTToBeUpdated.getGoalMappingT().getGoalName();
-			String goalId=goalMappingRepository.findGoalId(goalName);
 			String financialYear=userGoalTToBeUpdated.getFinancialYear();
+			String goalId=goalMappingRepository.findGoalIdByGoalNameAndFinancialYear(goalName,financialYear);
+			
+			if(!StringUtils.isEmpty(goalId)){
 			List<UserGoalsT> userGoalsList = userGoalsRepository.getUserGoals(userIdGoalSheet, goalId, financialYear);
 			if(CollectionUtils.isNotEmpty(userGoalsList)){
 			if(!goalId.equals("G5")){
@@ -720,6 +722,9 @@ public class UserService {
 				logger.info("{}  - g5 - multiplied value :  {}",userIdGoalSheet , savedGoal.getTargetValue().toString());
 				}
 			}
+		} else {
+			logger.info("Unable to fetch Goal : {} for {}",goalName,financialYear);
+		}
 		}
 		logger.info("** user goals saved **");
    }

@@ -74,7 +74,8 @@ public class UserNotificationSettingsWriter implements ItemWriter<String[]>, Ste
 					logger.debug("***USER_NOTIFICATION_SETTINGS ADD***");
 					UserT userT =  new UserT();
 					UploadServiceErrorDetailsDTO errorDTO = helper.validateUserNotificationSettingsData(data, request.getUserT().getUserId(),userT);
-					if (errorDTO.getMessage() != null) {
+					errorDTO.setSheetName(Constants.USER_TEMPLATE_USER_MASTER);
+					if (errorDTO.getMessage() != null && errorDTO.getDuplicateFlag() == 0) {
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 						errorList.add(errorDTO);
 					} else if (errorDTO.getMessage() == null) {

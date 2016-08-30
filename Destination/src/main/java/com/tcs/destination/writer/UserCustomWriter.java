@@ -80,6 +80,7 @@ public class UserCustomWriter implements ItemWriter<String[]>, StepExecutionList
 					UserT user =  new UserT();
 					UploadServiceErrorDetailsDTO errorDTO = helper.validateUserData(data, request.getUserT().getUserId() ,user);
 					errorDTO.setSheetName(Constants.USER_TEMPLATE_USER_MASTER);
+					
 					if (errorDTO.getMessage() != null) {
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 						errorList.add(errorDTO);
@@ -92,6 +93,7 @@ public class UserCustomWriter implements ItemWriter<String[]>, StepExecutionList
 				{
 					logger.debug("***USER UPDATE***");
 					UploadServiceErrorDetailsDTO errorDTO = new UploadServiceErrorDetailsDTO();
+					errorDTO.setSheetName(Constants.USER_TEMPLATE_USER_MASTER);
 					if(data[2]!=null){
 					String userId =data[2].toString();
 					userId = userId.indexOf(".") < 0 ? userId : userId.replaceAll("0*$", "").replaceAll("\\.$", "");
@@ -102,6 +104,7 @@ public class UserCustomWriter implements ItemWriter<String[]>, StepExecutionList
 							UserT user= userRepository.findOne(userId);
 						    if (user != null) {
 							errorDTO = helper.validateUserDataUpdate(data, request.getUserT().getUserId() ,user);
+							errorDTO.setSheetName(Constants.USER_TEMPLATE_USER_MASTER);
 							if (errorDTO.getMessage() != null) {
 								errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 								errorList.add(errorDTO);
@@ -135,7 +138,7 @@ public class UserCustomWriter implements ItemWriter<String[]>, StepExecutionList
 					logger.debug("***USER DELETE***");
 					UserT user =  new UserT();
 					UploadServiceErrorDetailsDTO errorDTO =  helper.validateUserId(data, user);
-					 
+					errorDTO.setSheetName(Constants.USER_TEMPLATE_USER_MASTER);
 					 if (errorDTO.getMessage() != null) {
 							errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 							errorList.add(errorDTO);
