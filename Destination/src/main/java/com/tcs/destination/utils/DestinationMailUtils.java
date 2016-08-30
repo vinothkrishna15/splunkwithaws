@@ -2213,6 +2213,10 @@ public class DestinationMailUtils {
 					break;
 				}
 
+				
+				//adding system admin and strategic group admin in cc
+				addSysAdminStrategicAdminCC(ccIds);
+				
 				message.setRecipients(listMailIdsFromUserIds(recepientIds));
 				message.setCcList(listMailIdsFromUserIds(ccIds));
 
@@ -2245,6 +2249,16 @@ public class DestinationMailUtils {
 				logger.error("request not fetched");
 			}
 		}
+
+	private void addSysAdminStrategicAdminCC(List<String> ccIds) {
+		String[] workflowUserRoles = Constants.notifyUserRolesForBFM.split(",");
+		List<String> workflowUserRolesList = Arrays.asList(workflowUserRoles);
+		List<UserT> userList = userRepository.findByUserRoles(workflowUserRolesList);
+		
+		for(UserT user : userList){
+			ccIds.add(user.getUserId());
+		}
+	}
 
 	
 	/**
@@ -3529,6 +3543,9 @@ public class DestinationMailUtils {
 			String createdById = workflowRequestT.getCreatedBy();
 			recepientIds.add(createdById);
 			
+			//adding system admin and strategic group admin in cc
+			addSysAdminStrategicAdminCC(ccIds);
+			
 			message.setRecipients(listMailIdsFromUserIds(recepientIds));
 			message.setCcList(listMailIdsFromUserIds(ccIds));
 			
@@ -3620,6 +3637,9 @@ public class DestinationMailUtils {
 		
 			String createdById = workflowRequestT.getCreatedBy();
 			recepientIds.add(createdById);
+			
+			//adding system admin and strategic group admin in cc
+			addSysAdminStrategicAdminCC(ccIds);
 			
 			message.setRecipients(listMailIdsFromUserIds(recepientIds));
 			message.setCcList(listMailIdsFromUserIds(ccIds));
