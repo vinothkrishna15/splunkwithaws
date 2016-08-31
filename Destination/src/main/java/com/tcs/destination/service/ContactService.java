@@ -602,7 +602,12 @@ public class ContactService {
 			productcontatcLinkT.setProductId(contact.getProductId());
 			productcontatcLinkT.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 			productcontatcLinkT.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			List<ProductContactLinkT> productContactDuplicates = productContactLinkTRepository.findByProductIdAndContactId(productcontatcLinkT.getProductId(), productcontatcLinkT.getContactId());
+			if (productContactDuplicates.size() > 0) {
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "This Product and Contact detail already exists!!");
+			} else {
 			productContactLinkTRepository.save(productcontatcLinkT);
+			}
 		}
 		return contactRepository.save(contact);
 	}
