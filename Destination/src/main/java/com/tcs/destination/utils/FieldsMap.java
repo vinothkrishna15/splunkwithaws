@@ -27,9 +27,11 @@ public class FieldsMap {
 		fieldsMap.put("customerOrPartnerName", "Customer/Partner Name");
 		fieldsMap.put("tcsAccountContact", "Tcs Account Contact");
 		fieldsMap.put("custContactName", "Customer Contact Name");
+		fieldsMap.put("partnerContactName", "Partner Contact Name");
 		
 		fieldsMap.put("tcsAccountRole", "Tcs Account Role");
 		fieldsMap.put("custContactRole", "Customer Contact Role");
+		fieldsMap.put("partnerContactRole", "Partner Contact Role");
 		
 		fieldsMap.put("linkOpportunity", "Link Opportunity");
 		fieldsMap.put("connectNotes", "Connect Notes");
