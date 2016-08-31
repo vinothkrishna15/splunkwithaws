@@ -3875,8 +3875,8 @@ public class WorkflowService {
 
 			if (exceptionArrayList.size() > 0) {
 				// On meeting the below conditions, It takes the path of Escalation A
-				if (exceptionArrayList.contains(Constants.E5) || exceptionArrayList.contains(exceptionCombo1) ||
-						exceptionArrayList.contains(exceptionCombo2) || exceptionArrayList.contains(exceptionCombo3)) {
+				if (exceptionArrayList.contains(Constants.E5) || exceptionArrayList.containsAll(exceptionCombo1) ||
+						exceptionArrayList.containsAll(exceptionCombo2) || exceptionArrayList.containsAll(exceptionCombo3)) {
 					WorkflowRequestT workflowRequest = populateEscalationWorkflowRequest(
 							workflowBfmT.getWorkflowBfmId(), EntityTypeId.ESCALATION_A.getType(), userId, "");	
 					if (workflowRequest != null) {
@@ -4153,7 +4153,7 @@ public class WorkflowService {
 				}
 
 				if (stepRecord.getStep().equals(step)
-						&& (rowIteration == 1)) {
+						&& (rowIteration == 1) && (masterRequest.getStatus().equals(WorkflowStatus.APPROVED.getStatus()))) {
 					stepRecord.setStepStatus(WorkflowStatus.PENDING
 							.getStatus());
 					// for updating the status in workflow_request_t
@@ -4180,10 +4180,10 @@ public class WorkflowService {
 			if (masterRequest.getStatus().equals(
 					workflowStaus.getStatus())) {
 				status.setStatus(Status.SUCCESS,
-						"The requested workflow bfm is finally" + masterRequest.getStatus() + "!!!");
+						"The requested workflow bfm is finally " + masterRequest.getStatus() + "!!!");
 			} else {
 				status.setStatus(Status.SUCCESS,
-						"The requested workflow bfm is intermediately" + masterRequest.getStatus() + "!!!");
+						"The requested workflow bfm is intermediately " + masterRequest.getStatus() + "!!!");
 			}
 			
 				if(masterRequest.getEntityTypeId() == 4){

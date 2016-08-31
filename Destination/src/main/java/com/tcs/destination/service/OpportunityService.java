@@ -1540,7 +1540,8 @@ public class OpportunityService {
 		OpportunityT afterOpp = saveOpportunity(opportunity, true, userGroup,
 				opportunityBeforeEdit);
 		// check sales stage code and save deal financial file in workflowbfm_t  
-		if(afterOpp != null) {
+		
+		if(afterOpp.getOpportunityId() != null) {
 			saveBfmFile(afterOpp, opportunity, status);
 		}
 		if (afterOpp != null) {

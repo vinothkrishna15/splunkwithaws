@@ -93,13 +93,13 @@ public class PartnerService {
 
 	@Autowired
 	private CommonHelper commonHelper;
-	
+
 	@Autowired @Lazy
 	private PartnerDao partnerDao;
-	
+
 	@Autowired 
 	private PartnerSubSpMappingTRepository partnerSubSpMappingTRepository;
-	
+
 	@Autowired 
 	PartnerSubSpProductMappingTRepository partnerSubSpProductMappingTRepository;
 
@@ -142,11 +142,11 @@ public class PartnerService {
 			String hqPartnerLinkName=mapOfPartnerAndHqLink.get(partner.getPartnerName());
 			String hqPartnerLinkId=partnerRepository.findPartnerIdByName(hqPartnerLinkName);
 			partner.setHqPartnerLinkId(hqPartnerLinkId);
- 			childPartnerList.add(partner);
+			childPartnerList.add(partner);
 		}
-	partnerRepository.save(childPartnerList);
-	logger.debug("End:Inside save method of PartnerService");
-		
+		partnerRepository.save(childPartnerList);
+		logger.debug("End:Inside save method of PartnerService");
+
 	}
 
 	/**
@@ -200,7 +200,7 @@ public class PartnerService {
 		partnerRepository.save(partnerList);
 		logger.debug("End:Inside deletePartner method of PartnerService");
 	}
-	
+
 	/**
 	 * This service deletes partner subsp details from partner_subsp_mapping_t
 	 * @param deleteList
@@ -210,16 +210,16 @@ public class PartnerService {
 		partnerSubSpMappingTRepository.delete(deleteList);
 		logger.debug("End:Inside deletePartnerSubSp method of PartnerService");
 	}
-	
-	
+
+
 	/**
 	 * This service deletes partner subsp details from  partner_subsp_product_mapping_t
 	 * @param deleteList
 	 */
 	public void deletePartnerSubSpProduct(List<PartnerSubspProductMappingT> deleteList) {
-	  logger.debug("Begin:Inside deletePartnerSubSpProduct method of PartnerService");
-	  partnerSubSpProductMappingTRepository.delete(deleteList);
-	  logger.debug("End:Inside deletePartnerSubSpProduct method of PartnerService");
+		logger.debug("Begin:Inside deletePartnerSubSpProduct method of PartnerService");
+		partnerSubSpProductMappingTRepository.delete(deleteList);
+		logger.debug("End:Inside deletePartnerSubSpProduct method of PartnerService");
 	}
 
 	/*
@@ -400,11 +400,18 @@ public class PartnerService {
 				opportunityPartnerLinkT.getOpportunityT().getCustomerMasterT()
 				.setOpportunityTs(null);
 			}
-			
+
 			//remove cyclic partnerContactLinkTs
 			List<PartnerContactLinkT> partnerContactLinkTs = partner.getPartnerContactLinkTs();
 			for (PartnerContactLinkT partnerContactLinkT : partnerContactLinkTs) {
 				partnerContactLinkT.getContactT().setPartnerContactLinkTs(null);
+			}
+			for (PartnerSubSpMappingT partnerSubSpMappingT : partner.getPartnerSubSpMappingTs()){
+				for (PartnerSubspProductMappingT partnerSubspProductMappingT : partnerSubSpMappingT.getPartnerSubspProductMappingTs()) {
+					if (partnerSubspProductMappingT.getProductMasterT() != null) {
+						partnerSubspProductMappingT.getProductMasterT().setPartnerSubspProductMappingTs(null);
+					}
+				}
 			}
 		}
 	}
@@ -803,21 +810,21 @@ public class PartnerService {
 		List<PartnerMasterT> records = partnerRepository.searchBySubSp("%"+term+"%", getAll);
 		return createSearchResultFrom(records, SmartSearchType.SUBSP);
 	}
-	
+
 	private SearchResultDTO<PartnerMasterT> getPartnersByCountry(String term, boolean getAll) {
 		List<PartnerMasterT> records = partnerRepository.searchByCountry("%"+term+"%", getAll);
 		return createSearchResultFrom(records, SmartSearchType.COUNTRY);
 	}
 
-	
-     private SearchResultDTO<PartnerMasterT> createSearchResultFrom(
+
+	private SearchResultDTO<PartnerMasterT> createSearchResultFrom(
 			List<PartnerMasterT> records, SmartSearchType type) {
 		SearchResultDTO<PartnerMasterT> conRes = new SearchResultDTO<PartnerMasterT>();
 		conRes.setSearchType(type);
 		conRes.setValues(records);
 		return conRes;
 	}
-	
+
 	/**
 	 * This service saves partner supsp details into partner_sub_sp_mapping_t
 	 * 
@@ -830,7 +837,7 @@ public class PartnerService {
 		partnerSubSpMappingTRepository.save(partnerList);
 		logger.debug("End:Inside save method of PartnerService");
 	}
-	
+
 	/**
 	 * 
 	 * @param partnerList
@@ -909,7 +916,7 @@ public class PartnerService {
 					e.getMessage());
 		}
 	}
-	
+
 	private void removeCyclicForLinkedContactTs(PartnerMasterT partnerMasterT) {
 		if (partnerMasterT != null) {
 			if (partnerMasterT.getPartnerContactLinkTs() != null) {

@@ -54,6 +54,7 @@ import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
+import com.tcs.destination.utils.StringUtils;
 
 @Service
 public class ContactService {
@@ -595,7 +596,7 @@ public class ContactService {
 				partnerContactLinkT.setModifiedBy(userId);
 			}
 		}
-		if(contact.getContactCategory().equals(EntityType.PARTNER.toString())){
+		if(contact.getContactCategory().equals(EntityType.PARTNER.toString()) && !StringUtils.isEmpty(contact.getProductId())){
 			ProductContactLinkT productcontatcLinkT = new ProductContactLinkT();
 			productcontatcLinkT.setContactId(contact.getContactId());
 			productcontatcLinkT.setProductId(contact.getProductId());
