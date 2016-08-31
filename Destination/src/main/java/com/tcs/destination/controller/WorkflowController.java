@@ -2,7 +2,6 @@ package com.tcs.destination.controller;
 
 
 import java.io.ByteArrayInputStream;
-import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -630,10 +629,9 @@ public class WorkflowController {
 			bfmStream = new InputStreamResource(new ByteArrayInputStream(bfmT.getDealFinancialFile()));
 			
 			respHeaders = new HttpHeaders();
-			//TODO frame the file name from the details
-			String repName = bfmT.getBfmFileName();
-			respHeaders.add("reportName", repName);
-			respHeaders.setContentDispositionFormData("attachment", repName);
+			String fileName = bfmT.getOpportunityId() + "_" + bfmT.getOpportunityT().getCustomerMasterT().getCustomerName() + "." + DestinationUtils.getExtension(bfmT.getBfmFileName());
+			respHeaders.add("reportName", fileName);
+			respHeaders.setContentDispositionFormData("attachment", fileName);
 			respHeaders.setContentType(MediaType
 					.parseMediaType("application/octet-stream"));
 			logger.info("Inside WorkflowController: BFMFile Downloaded Successfully ");
