@@ -31,6 +31,7 @@ import com.tcs.destination.enums.RequestStatus;
 import com.tcs.destination.helper.RevenueUploadHelper;
 import com.tcs.destination.service.RevenueService;
 import com.tcs.destination.service.UploadErrorReport;
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.FileManager;
 import com.tcs.destination.utils.StringUtils;
 
@@ -117,8 +118,9 @@ public class RevenueCustomWriter implements ItemWriter<String[]>, StepExecutionL
 		List<ActualRevenuesDataT> addList = new ArrayList<ActualRevenuesDataT>();
 		for (String[] data: items) {
 			logger.info("***ADDING****");
-			ActualRevenuesDataT revenueT =  new ActualRevenuesDataT();;
+			ActualRevenuesDataT revenueT =  new ActualRevenuesDataT();
 			UploadServiceErrorDetailsDTO errorDTO = helper.validateRevenueAdd(data, request.getUserT().getUserId() ,revenueT);
+			errorDTO.setSheetName(Constants.ACTUAL_REVENUE_DATA);
 			if (errorDTO.getMessage() != null) {
 				errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 				errorList.add(errorDTO);
