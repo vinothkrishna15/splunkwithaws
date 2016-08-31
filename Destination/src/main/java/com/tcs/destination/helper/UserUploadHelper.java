@@ -37,7 +37,6 @@ import com.tcs.destination.enums.PrivilegeType;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.utils.Constants;
-import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.StringUtils;
 
 @Component("userUploadHelper")
@@ -110,7 +109,6 @@ public class UserUploadHelper {
 	    	if (isUserExists(usrId)) 
 	    	{
 	    		error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			    //error.setMessage("User Id Already Exists! ");
 			    errorMsg.append(" User Id Already Exists! ");
 			}
 	    	else
@@ -121,12 +119,10 @@ public class UserUploadHelper {
 		else
 		{
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("User Id Is Mandatory; ");
 			errorMsg.append(" User Id Is Mandatory; ");
 		}
 		} else {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("User Id Is Mandatory; ");
 			errorMsg.append(" User Id Is Mandatory; ");
 		}
 		
@@ -140,12 +136,10 @@ public class UserUploadHelper {
 				else
 				{
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					//error.setMessage("User Name Is Mandatory; ");
 					errorMsg.append(" User Name Is Mandatory; ");
 				}
 	            } else {
 	            	error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					//error.setMessage("User Name Is Mandatory; ");
 					errorMsg.append(" User Name Is Mandatory; ");
 	            }
 				
@@ -158,7 +152,6 @@ public class UserUploadHelper {
 				}
 				else{
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					//error.setMessage("Password Is Mandatory; ");
 					errorMsg.append(" Password Is Mandatory; ");
 				}
 				
@@ -176,7 +169,6 @@ public class UserUploadHelper {
 					}
 					if (!validGroup) {
 		                error.setRowNumber(Integer.parseInt(data[0]) + 1);
-    					//error.setMessage("User Group Is Invalid ");
     					errorMsg.append(" User Group Is Invalid; ");
 					}
 					else
@@ -186,12 +178,10 @@ public class UserUploadHelper {
 				}
 				else{
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					//error.setMessage("User Group Is Mandatory; ");
 					errorMsg.append(" User Group Is Mandatory; ");
 				}
 				} else {
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					//error.setMessage("User Group Is Mandatory; ");
 					errorMsg.append(" User Group Is Mandatory; ");
 				}
 				
@@ -210,7 +200,6 @@ public class UserUploadHelper {
                     if (!validRole) 
                     {
                     	error.setRowNumber(Integer.parseInt(data[0]) + 1);
-    					//error.setMessage("User Role Is Invalid ");
     					errorMsg.append(" User Role Is Invalid; ");
 					}
                     else
@@ -220,12 +209,10 @@ public class UserUploadHelper {
 				}
 				else{
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					//error.setMessage("User Role Is Mandatory; ");
 					errorMsg.append(" User Role Is Mandatory; ");
 				}
 				} else {
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					//error.setMessage("User Role Is Mandatory; ");
 					errorMsg.append(" User Role Is Mandatory; ");
 				}
 				
@@ -238,12 +225,10 @@ public class UserUploadHelper {
 				}
 				else{
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					//error.setMessage("User Location Is Mandatory; ");
 					errorMsg.append(" User Location Is Mandatory; ");
 				}
 				} else {
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					//error.setMessage("User Location Is Mandatory; ");
 					errorMsg.append(" User Location Is Mandatory; ");
 				}
 				
@@ -307,7 +292,6 @@ public class UserUploadHelper {
 			if (!isUserExists(usrId)) 
 			 {
 			   error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			   //error.setMessage("Invalid User Id ! ");
 			   errorMsg.append(" Invalid User Id ! ");
 			 }
 			 else
@@ -318,12 +302,10 @@ public class UserUploadHelper {
 		else
 		{
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					//error.setMessage("User Id Is Mandatory; ");
 					errorMsg.append(" User Id is mandatory; ");
 		}
 		} else {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("User Id Is Mandatory; ");
 			errorMsg.append(" User Id is mandatory; ");
 		}
 	 // USER_NAME 
@@ -336,12 +318,10 @@ public class UserUploadHelper {
 		else
 		{
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("User Name Is Mandatory; ");
 			errorMsg.append(" User Name is mandatory; ");
 		}
 		} else {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("User Name Is Mandatory; ");
 			errorMsg.append(" User Name is mandatory; ");
 		}
 		
@@ -354,12 +334,10 @@ public class UserUploadHelper {
 		}
 		else{
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("Password Is Mandatory; ");
 			errorMsg.append(" Password is mandatory; ");
 		}
 		} else {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("Password Is Mandatory; ");
 			errorMsg.append(" Password is mandatory; ");
 		}
 		
@@ -377,7 +355,6 @@ public class UserUploadHelper {
 			}
 			if (!validGroup) {
                 error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				//error.setMessage("User Group Is Invalid ");
 				errorMsg.append(" User Group is invalid; ");
 			}
 			else
@@ -387,12 +364,10 @@ public class UserUploadHelper {
 		}
 		else{
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("User Group Is Mandatory; ");
 			errorMsg.append(" User Group is mandatory; ");
 		}
 		} else {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("User Group Is Mandatory; ");
 			errorMsg.append(" User Group is mandatory; ");
 		}
 		
@@ -412,7 +387,6 @@ public class UserUploadHelper {
             if (!validRole) 
             {
             	error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				//error.setMessage("User Role Is Invalid ");
 				errorMsg.append(" User Role is invalid; ");
 			}
             else
@@ -422,12 +396,10 @@ public class UserUploadHelper {
 		}
 		else{
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("User Role Is Mandatory; ");
 			errorMsg.append(" User Role is mandatory; ");
 		}
 		} else {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("User Role Is Mandatory; ");
 			errorMsg.append(" User Role is mandatory; ");
 		}
 		
@@ -440,12 +412,10 @@ public class UserUploadHelper {
 		}
 		else{
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("User Location Is Mandatory; ");
 			errorMsg.append(" User Location is mandatory; ");
 		}
 		} else {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("User Location Is Mandatory; ");
 			errorMsg.append(" User Location is mandatory; ");
 		}
 		
@@ -501,7 +471,6 @@ public class UserUploadHelper {
 			UserT user)
 	{
 
-		// TODO Auto-generated method stub
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
 	
 		String userId = data[2];
@@ -554,7 +523,6 @@ public class UserUploadHelper {
 	    	else
 	    	{
 	    		error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			    //error.setMessage("User Id does not exist! ");
 			    errorMsg.append(" User Id does not exist! ");
 			    error.setDuplicateFlag(1);
 	    	}
@@ -562,13 +530,11 @@ public class UserUploadHelper {
 		else
 		{
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("User Id Is Mandatory; ");
 			errorMsg.append(" User Id is mandatory; ");
 			error.setDuplicateFlag(1);
 		}
 		} else {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("User Id Is Mandatory; ");
 			errorMsg.append(" User Id is mandatory; ");
 			error.setDuplicateFlag(1);
 		}
@@ -582,7 +548,6 @@ public class UserUploadHelper {
 					UserGroup userGroup = UserGroup.getUserGroup(userGrpData);
 					if (userGroup == null) {
 		                error.setRowNumber(Integer.parseInt(data[0]) + 1);
-    					//error.setMessage("User Group Is Invalid ");
     					errorMsg.append(" User Group is invalid; ");
     					error.setDuplicateFlag(1);
 					} else {
@@ -590,13 +555,11 @@ public class UserUploadHelper {
 					}
 				} else {
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					//error.setMessage("User Group Is Mandatory; ");
 					errorMsg.append(" User Group is mandatory; ");
 					error.setDuplicateFlag(1);
 				}
 		        } else {
 		        	error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					//error.setMessage("User Group Is Mandatory; ");
 					errorMsg.append(" User Group is mandatory; ");
 					error.setDuplicateFlag(1);
 		        }
@@ -636,7 +599,6 @@ public class UserUploadHelper {
 		{
 			if (!isValidTimeZone(timeZoneDescription)) {
 				error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				//error.setMessage("Invalid Time Zone Description;");
 				errorMsg.append(" Invalid Time Zone Description; ");
 			}
 			else
@@ -646,12 +608,10 @@ public class UserUploadHelper {
 		}
 		else{
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("Time Zone Description Is Mandatory; ");
 			errorMsg.append(" Time Zone Description is mandatory; ");
 		}
 		} else {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("Time Zone Description Is Mandatory; ");
 			errorMsg.append(" Time Zone Description is mandatory; ");
 		}
 		
@@ -668,7 +628,6 @@ public class UserUploadHelper {
 	    	else
 	    	{
 	    		error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			   // error.setMessage("User Id does not exist! ");
 			    errorMsg.append(" Invalid User Id; ");
 			    error.setDuplicateFlag(1);
 	    	}
@@ -676,13 +635,11 @@ public class UserUploadHelper {
 		else
 		{
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("User Id Is Mandatory; ");
 			errorMsg.append(" User Id is mandatory; ");
 			error.setDuplicateFlag(1);
 		}
 		} else {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("User Id Is Mandatory; ");
 			errorMsg.append(" User id is mandatory; ");
 			error.setDuplicateFlag(1);
 		}
@@ -731,19 +688,16 @@ public class UserUploadHelper {
 			    	else
 			    	{
 			    		error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					   // error.setMessage("User Id does not exist! ");
 					    errorMsg.append(" User Id does not exist! ");
 			    	}
 				}
 				else
 				{
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					//error.setMessage("User Id Is Mandatory; ");
 					 errorMsg.append(" User Id is mandatory ");
 				}
 		} else {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("User Id Is Mandatory; ");
 			 errorMsg.append(" User Id is mandatory ");
 		}
 		    
@@ -763,13 +717,11 @@ public class UserUploadHelper {
 
 			} else {
 				error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				//error.setMessage("Primary Privilege Type Is Mandatory");
 				errorMsg.append(" Primary privilege type is mandatory ");
 				isPrimaryTypeInvalid = true;
 			}
 		} else {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("Primary Privilege Type Is Mandatory");
 			errorMsg.append(" Primary privilege type is mandatory ");
 			isPrimaryTypeInvalid = true;
 		}
@@ -779,7 +731,6 @@ public class UserUploadHelper {
 		    {
 		    	if(isPrimaryTypeInvalid){
 		    		error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					//error.setMessage("privilege value cannot be set for invalid privilege type");
 					errorMsg.append(" primary privilege value cannot exist without primary privilege type ");
 		    	}else{
 		    	 userAccessPrivilegeDTO.setPrimaryPrivilegeValues(primaryPrivilegeValues); 
@@ -788,7 +739,6 @@ public class UserUploadHelper {
 		    else
 		    {
 		        error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			   //error.setMessage("Primary Privilege Values is invalid");
 			    errorMsg.append(" Primary privilege values is invalid ");
 		    }
 		    
@@ -799,7 +749,6 @@ public class UserUploadHelper {
 			if (!StringUtils.isEmpty(secondaryPrivilegeType)) {
 				if (!PrivilegeType.contains(secondaryPrivilegeType)) {
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					//error.setMessage("Invalid Secondary Privilege Type");
 					errorMsg.append(" Invalid Secondary Privilege Type ");
 					isSecondaryTypeInvalid = true;
 				} else {
@@ -823,12 +772,10 @@ public class UserUploadHelper {
 							.setSecondaryPrivilegeValues(secondaryPrivilegeValues);
 				} else {
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					//error.setMessage("Secondary Privilege Values is invalid");
 					errorMsg.append(" Secondary Privilege Values is invalid ");
 				}
 			} else {
 				error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				//error.setMessage("privilege value cannot be set for invalid privilege type");
 				errorMsg.append(" secondary privilege value cannot exist without secondary privilege type ");
 			}
 		}
@@ -856,7 +803,6 @@ public class UserUploadHelper {
 				logger.error("Privilege Value :Geography is invalid");
 				isValid = false;
 				break;
-				//errors.add(" Invalid Entry : " + privilegeValue);
 			} else {
 				isValid = true;
 			}
@@ -869,7 +815,6 @@ public class UserUploadHelper {
 				logger.error("Privilege Value :displaysubsp is invalid");
 				isValid = false;
 				break;
-				//errors.add(" Invalid Entry : " + privilegeValue);
 			} else {
 				isValid = true;
 			}
@@ -882,7 +827,6 @@ public class UserUploadHelper {
 				logger.error("Privilege Value :displayiou is invalid");
 				isValid = false;
 				break;
-				//errors.add(" Invalid Entry : " + privilegeValue);
 			} else {
 				isValid = true;
 			}
@@ -898,7 +842,6 @@ public class UserUploadHelper {
 							privilegeValue);
 					isValid = false;
 					break;
-					//errors.add(" Invalid Entry : " + privilegeValue);
 				} else {
 					isValid = true;
 				}
@@ -910,13 +853,12 @@ public class UserUploadHelper {
 					.findByGroupCustomerNameIgnoreCaseContainingAndGroupCustomerNameIgnoreCaseNotLikeOrderByGroupCustomerNameAsc(
 							privilegeValue, Constants.UNKNOWN_CUSTOMER);
 
-			if (customerList == null && customerList.isEmpty()) {
+			if (customerList == null || customerList.isEmpty()) {
 				logger.error(
 						"Customers not found for the group customer name: {}",
 						privilegeValue);
 				isValid = false;
 				break;
-				//errors.add(" Invalid Entry : " + privilegeValue);
 			} else {
 				isValid = true;
 			}
@@ -958,19 +900,16 @@ public class UserUploadHelper {
 	    	else
 	    	{
 	    		error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			   // error.setMessage("User Id does not exist! ");
 			    errorMsg.append(" User Id does not exist! ");
 	    	}
 		}
 		else
 		{
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("User Id Is Mandatory; ");
 			errorMsg.append(" User Id is mandatory; ");
 		}
 		} else {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("User Id Is Mandatory; ");
 			errorMsg.append(" User Id is mandatory; ");
 		}
 
@@ -980,7 +919,6 @@ public class UserUploadHelper {
 		if(StringUtils.isEmpty(userName))
 		{
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("User Name Is Empty ");
 			errorMsg.append(" User name is empty; ");
 		}
 		}
@@ -991,13 +929,11 @@ public class UserUploadHelper {
 		if(StringUtils.isEmpty(usrGroup))
 		{
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("User Group Is Empty ");
 			errorMsg.append(" User group is empty; ");
 			
 		}
 		} else {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("User Group Is Empty ");
 			errorMsg.append(" User group is empty; ");
 		}
 		
@@ -1008,7 +944,6 @@ public class UserUploadHelper {
 		if(StringUtils.isEmpty(goalName))
 		{
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("Goal Name Is Empty ");
 			errorMsg.append(" Goal name is empty ");
 		}
 		else
@@ -1020,13 +955,11 @@ public class UserUploadHelper {
 			userGoalsT.setGoalMappingT(goalMappingT);
 			} else {
 				error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				//error.setMessage("Invalid Goal Name ");
 				errorMsg.append(" Invalid Goal Name ");
 			}
 		}
 		} else {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("Goal Name Is Empty ");
 			errorMsg.append(" Goal Name is empty ");
 		}
 		
@@ -1040,7 +973,6 @@ public class UserUploadHelper {
 			String validGoalId=goalMappingRepository.findGoalIdByGoalNameAndFinancialYear(validGoalName,financialYear);
 			if(StringUtils.isEmpty(validGoalId)){
 				error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				//error.setMessage("Invalid Goal Name ");
 				errorMsg.append(" Invalid Goal Name for the given year ");
 			}
 		    }
@@ -1048,12 +980,10 @@ public class UserUploadHelper {
 		else
 		{
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("Financial Year Is Empty ");
 			errorMsg.append(" financial year is empty ");
 		}
 		} else {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("Financial Year Is Empty ");
 			errorMsg.append(" financial year is empty ");
 			
 		}
@@ -1070,12 +1000,10 @@ public class UserUploadHelper {
 		}
 		} catch(Exception e){
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("Invalid Target Value");
 			errorMsg.append(" invalid target value ");
 		}
 		} else {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("Target Value Is Empty ");
 			errorMsg.append(" target value is empty ");
 		}
 		

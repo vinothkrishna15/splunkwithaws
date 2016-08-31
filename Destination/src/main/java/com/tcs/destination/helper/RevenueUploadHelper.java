@@ -8,7 +8,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import com.tcs.destination.bean.ActualRevenuesDataT;
@@ -23,7 +22,6 @@ import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
 import com.tcs.destination.data.repository.SubSpRepository;
-import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.PropertyUtil;
 import com.tcs.destination.utils.StringUtils;
@@ -89,7 +87,6 @@ public class RevenueUploadHelper {
 		String financeCustomerName = data[11];
 		String customerGeography = data[9];
 		String financeIou = data[12];
-		//String financialYear = data[7];
 		String revenueAmount = data[7];
 		String clientCountryName = data[8];
 		String subSp = data[10];
@@ -118,12 +115,16 @@ public class RevenueUploadHelper {
 
 		// REVENUE AMOUNT
 		if (!StringUtils.isEmpty(revenueAmount)) {
-			BigDecimal target = new BigDecimal(revenueAmount);
-			actualRevenueT.setRevenue((target));
+			try {
+				BigDecimal target = new BigDecimal(revenueAmount);
+				actualRevenueT.setRevenue((target));
+			} catch (Exception e){
+				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				errorMsg.append(" invalid revenueAmount; ");
+			}
 		} else {
 
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("revenueAmount Is Mandatory; ");
 			errorMsg.append(" revenueAmount Is Mandatory; ");
 		}
 
@@ -133,7 +134,6 @@ public class RevenueUploadHelper {
 		} else {
 
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("clientCountryName Is Mandatory; ");
 			errorMsg.append(" clientCountryName Is Mandatory; ");
 
 		}
@@ -145,13 +145,11 @@ public class RevenueUploadHelper {
 			} else {
 
 				error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				//error.setMessage("sub sp not found in database");
 				errorMsg.append(" invalid subsp; ");
 			}
 		} else {
 
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("SUB SP Is Mandatory; ");
 			errorMsg.append(" subsp is mandatory; ");
 
 		}
@@ -159,29 +157,19 @@ public class RevenueUploadHelper {
 		// CUSTOMER GEOGRAPHY
 		if(StringUtils.isEmpty(customerGeography)) {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("Customer Geography is Empty");
 			errorMsg.append(" geography is mandatory; ");
-            //revenueT.setFinanceGeography(customerGeography);
 		}
 
 		// END CUSTOMER NAME
 		if (StringUtils.isEmpty(financeCustomerName)) {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			//error.setMessage("Customer Name is Empty");
 			errorMsg.append(" Customer Name is Empty ");
-			//revenueCustomerMappingT.setFinanceCustomerName(financeCustomerName);
-			//revenueT.setFinanceCustomerName(financeCustomerName);
 		}
 
 		// IOU
 		if (StringUtils.isEmpty(financeIou)) {
-		//	if (mapOfIouCustomerMappingT.containsKey(financeIou)) {
 				error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				//error.setMessage("Finance Iou is Empty");
 				errorMsg.append(" Finance Iou is Empty ");
-				//revenueCustomerMappingT.setFinanceIou(financeIou);
-				//revenueT.setFinanceIou(financeIou);
-		//	} 
 		}
         
 		//check if there are no errors
