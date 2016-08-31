@@ -541,13 +541,8 @@ public class WorkflowService {
 		if (resultList != null) {
 			if (resultList.isEmpty()) {
 				resultList = query.getResultList();
-			} else {
-				List<Object[]> resultForUserPending = query.getResultList();
-				resultList.addAll(resultForUserPending);
 			}
-		} else {
-			resultList = query.getResultList();
-		}
+		} 
 		logger.debug("Inside getPendingBfmRequests method : End");
 		return resultList;
 	}
@@ -778,10 +773,10 @@ public class WorkflowService {
 			List<Object[]> tempRequestObject = listOfEntityRequests.get(i);
 			if (tempRequestObject != null) {
 
-				WorklistDTO<Object> worklist=new WorklistDTO<Object>(); 
 
 				// Iterate the result and set the response object
 				for (Object[] MyWorklistDTOArray : tempRequestObject) {
+					WorklistDTO<Object> worklist=new WorklistDTO<Object>(); 
 
 
 					if (entityType.equalsIgnoreCase(EntityType.CUSTOMER
@@ -845,7 +840,14 @@ public class WorkflowService {
 
 						// All BFM requests
 						worklist.setEntityType("Opportunity Deal Financial");
-
+						if (MyWorklistDTOArray[2] != null) 
+						{
+							worklist.setEntity(workflowBfmTRepository.findOne(MyWorklistDTOArray[2].toString()));
+						} 
+						else 
+						{
+							worklist.setEntity(null);
+						}
 					}
 
 					WorkflowStepT workflowStep = new WorkflowStepT();
