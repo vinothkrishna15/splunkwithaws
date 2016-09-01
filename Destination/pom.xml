@@ -23,6 +23,7 @@
 		<start-class>com.tcs.destination.DestinationApplication</start-class>
 		<java.version>1.7</java.version>
 		<spring-security.version>3.2.0.RELEASE</spring-security.version>
+		<dynamic-reports.version>4.1.1</dynamic-reports.version>
 	</properties>
 
 	<dependencies>
@@ -147,13 +148,13 @@
 			<artifactId>wadl-client-plugin</artifactId>
 			<version>1.1.6</version>
 		</dependency>
-		<!-- For User Agent Handling --> 
+		<!-- For User Agent Handling -->
 		<dependency>
-   			<groupId>eu.bitwalker</groupId>
-   			<artifactId>UserAgentUtils</artifactId>
-   			<version>1.15</version>
+			<groupId>eu.bitwalker</groupId>
+			<artifactId>UserAgentUtils</artifactId>
+			<version>1.15</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi</artifactId>
@@ -175,70 +176,99 @@
 			<version>1.9.2</version>
 		</dependency>
 		<!-- For mail Handling -->
-	<dependency>
-		<groupId>javax.mail</groupId>
-		<artifactId>mail</artifactId>
-		<version>1.4.7</version>
-	</dependency>
-	<dependency>
-		<groupId>javax.activation</groupId>
-		<artifactId>activation</artifactId>
-		<version>1.1.1</version>
-	</dependency>
-	<dependency>
-		<groupId>org.springframework</groupId>
-		<artifactId>spring-context-support</artifactId>
-		<version>4.0.5.RELEASE</version>
-	</dependency>
-	<dependency>
-		<groupId>org.apache.velocity</groupId>
-		<artifactId>velocity</artifactId>
-		<version>1.7</version>
-	</dependency>
-	<dependency>
-		<groupId>org.apache.velocity</groupId>
-		<artifactId>velocity-tools</artifactId>
-		<version>2.0</version>
-	</dependency>
-	<dependency>
-		<groupId>org.springframework.session</groupId>
-		<artifactId>spring-session</artifactId>
-		<version>1.0.0.RELEASE</version>
-	</dependency>
-	<dependency>
-    	<groupId>org.springframework.session</groupId>
-    	<artifactId>spring-session-data-redis</artifactId>
-    	<version>1.0.1.RELEASE</version>
-  	</dependency>
-  	<dependency>
-	    <groupId>org.springframework.boot</groupId>
-    	<artifactId>spring-boot-starter-security</artifactId>
-    </dependency>
-	<dependency>
-    	<groupId>com.github.kstyrc</groupId>
-    	<artifactId>embedded-redis</artifactId>
-    	<version>0.6</version>
-  	</dependency>
-  	<dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-batch</artifactId>
-    </dependency>
-  	<dependency>
-  		<groupId>org.neo4j</groupId>
-  		<artifactId>neo4j-kernel</artifactId>
-  		<version>2.1.5</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.apache.activemq</groupId>
-  		<artifactId>activemq-client</artifactId>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.neo4j</groupId>
-  		<artifactId>neo4j-cypher-commons</artifactId>
-  		<version>2.1.5</version>
-  	</dependency>
+		<dependency>
+			<groupId>javax.mail</groupId>
+			<artifactId>mail</artifactId>
+			<version>1.4.7</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.activation</groupId>
+			<artifactId>activation</artifactId>
+			<version>1.1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context-support</artifactId>
+			<version>4.0.5.RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.velocity</groupId>
+			<artifactId>velocity</artifactId>
+			<version>1.7</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.velocity</groupId>
+			<artifactId>velocity-tools</artifactId>
+			<version>2.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.session</groupId>
+			<artifactId>spring-session</artifactId>
+			<version>1.0.0.RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.session</groupId>
+			<artifactId>spring-session-data-redis</artifactId>
+			<version>1.0.1.RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.kstyrc</groupId>
+			<artifactId>embedded-redis</artifactId>
+			<version>0.6</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-batch</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j-kernel</artifactId>
+			<version>2.1.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>activemq-client</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j-cypher-commons</artifactId>
+			<version>2.1.5</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/net.sourceforge.dynamicreports/dynamicreports-core -->
+		<dependency>
+			<groupId>net.sourceforge.dynamicreports</groupId>
+			<artifactId>dynamicreports-core</artifactId>
+			<version>${dynamic-reports.version}</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/net.sourceforge.dynamicreports/dynamicreports-parent -->
+		<dependency>
+			<groupId>net.sourceforge.dynamicreports</groupId>
+			<artifactId>dynamicreports-parent</artifactId>
+			<version>${dynamic-reports.version}</version>
+			<type>pom</type>
+		</dependency>
+		<dependency>
+			<groupId>net.sourceforge.dynamicreports</groupId>
+			<artifactId>dynamicreports-adhoc</artifactId>
+			<version>${dynamic-reports.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>net.sourceforge.dynamicreports</groupId>
+			<artifactId>dynamicreports-googlecharts</artifactId>
+			<version>${dynamic-reports.version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>com.lowagie</groupId>
+		    <artifactId>itext</artifactId>
+		    <version>2.1.7</version>
+		</dependency>
+		
 	</dependencies>
-	
 	<build>
 		<plugins>
 			<plugin>
