@@ -131,7 +131,12 @@ public class UserUploadHelper {
 				String userName = data[3].trim();
 				if(!StringUtils.isEmpty(userName))
 				{
-					userT.setUserName(userName);
+					if (!isUserNameExists(userName)) {
+					    userT.setUserName(userName);
+					} else {
+						error.setRowNumber(Integer.parseInt(data[0]) + 1);
+						errorMsg.append(" User Name already exists ");
+					}
 				 }
 				else
 				{
@@ -275,6 +280,10 @@ public class UserUploadHelper {
 				return error;
 	}
 	
+	private boolean isUserNameExists(String userName) {
+		return userRepository.findByUserName(userName) != null;
+	}
+
 	/**
 	 * This method validates User Data to be update
 	 */
@@ -920,7 +929,7 @@ public class UserUploadHelper {
 		{
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
 			errorMsg.append(" User name is empty; ");
-		}
+		} 
 		}
 		
         // USER_GROUP 

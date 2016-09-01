@@ -582,7 +582,16 @@ public class UserService {
 	 */
 	public void saveGeneralSettings(List<UserGeneralSettingsT> insertList) throws Exception {
 		logger.debug("Inside save method");
-		userGeneralSettingsRepository.save(insertList);
+		Set<String> userIds = new HashSet<String>();
+		List<UserGeneralSettingsT> settingsList = new ArrayList<UserGeneralSettingsT>();
+		for(UserGeneralSettingsT settingsT : insertList){
+			if(!userIds.contains(settingsT.getUserId())){
+				userIds.add(settingsT.getUserId());
+				settingsList.add(settingsT);
+			}
+		}
+		
+		userGeneralSettingsRepository.save(settingsList);
 	}
 
 	/**
@@ -597,9 +606,14 @@ public class UserService {
 		List<UserSubscriptions> userNotificationSettingsList=new ArrayList<UserSubscriptions>();
 		
 		Map<String, NotificationTypeEventMappingT> notifyTypeEventMap = getNotifyTypeEventMappings();
+		Set<String> userIds = new HashSet<String>();
+		
 		for(UserT user:userList)
 		{
-			userNotificationSettingsList.addAll(DestinationUserDefaultObjectsHelper.getUserNotificationSettingsList(user, notifyTypeEventMap));
+			if(!userIds.contains(user.getUserId())){
+			  userIds.add(user.getUserId());
+			  userNotificationSettingsList.addAll(DestinationUserDefaultObjectsHelper.getUserNotificationSettingsList(user, notifyTypeEventMap));
+			} 
 		}
 		userSubscriptionsRepository.save(userNotificationSettingsList);
 		logger.debug("User Notification Settings : saved");
