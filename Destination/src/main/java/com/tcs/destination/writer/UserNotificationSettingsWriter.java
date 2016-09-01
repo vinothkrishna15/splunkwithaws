@@ -13,6 +13,7 @@ import javax.servlet.WriteListener;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.parboiled.common.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.ExitStatus;
@@ -20,12 +21,15 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
+import com.tcs.destination.bean.UserSubscriptions;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.data.repository.UserSubscriptionsRepository;
 import com.tcs.destination.enums.Operation;
 import com.tcs.destination.enums.RequestStatus;
 import com.tcs.destination.helper.UserUploadHelper;
@@ -56,6 +60,9 @@ public class UserNotificationSettingsWriter implements ItemWriter<String[]>, Ste
 	
     private UserRepository userRepository;
     
+    @Autowired
+    private UserSubscriptionsRepository userSubscriptionsRepo;
+    
 	@Override
 	public void write(List<? extends String[]> items) throws Exception {
 		logger.debug("Inside write:");
@@ -79,7 +86,10 @@ public class UserNotificationSettingsWriter implements ItemWriter<String[]>, Ste
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 						errorList.add(errorDTO);
 					} else if (errorDTO.getMessage() == null) {
-						insertList.add(userT);
+						List<UserSubscriptions> userSubscriptions = userSubscriptionsRepo.findByUserId(userT.getUserId());
+						if(CollectionUtils.isEmpty(userSubscriptions)){
+						 insertList.add(userT);
+						} 
 					}
 					
 

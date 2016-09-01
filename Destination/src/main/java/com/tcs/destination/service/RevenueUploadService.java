@@ -353,10 +353,9 @@ public class RevenueUploadService {
 	 * @param deleteList
 	 */
 	public void makeInactive(List<RevenueCustomerMappingT> deleteList) {
-		for(RevenueCustomerMappingT financeCustomer : deleteList){
-			financeCustomer.setActive(false);
-			revenueCustomerMappingTRepository.save(financeCustomer);
-		}
+		
+			revenueCustomerMappingTRepository.save(deleteList);
+		
 	}
 
 	/**

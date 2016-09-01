@@ -89,6 +89,7 @@
 		<property name="helper" ref="beaconCustomerMappingUploadHelper" />
 		<property name="beaconCustomerUploadService" ref="beaconCustomerUploadService" />
 		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository" />
+		<property name="beaconCustomerMappingRepository" ref="beaconCustomerMappingRepository" />
 		<property name="uploadErrorReport" ref="uploadErrorReport" />
 	</bean>
 
@@ -99,6 +100,7 @@
 		<property name="helper" ref="financeCustomerMappingUploadHelper" />
 		<property name="RevenueUploadService" ref="revenueUploadService" />
 		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository" />
+		<property name="revenueCustomerMappingTRepository" ref="revenueCustomerMappingTRepository" />
 		<property name="uploadErrorReport" ref="uploadErrorReport" />
 	</bean>
 	

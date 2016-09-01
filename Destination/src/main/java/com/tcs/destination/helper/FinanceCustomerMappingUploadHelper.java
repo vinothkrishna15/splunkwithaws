@@ -56,6 +56,7 @@ public class FinanceCustomerMappingUploadHelper {
 		String financeGeography = data[8];
 		String active = data[9];
 		String revenuecustomerMapId = data[10];
+		StringBuffer errorMsg = new StringBuffer();
 
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
 
@@ -79,6 +80,12 @@ public class FinanceCustomerMappingUploadHelper {
 						: commonHelper.getIouMappingT();
 
 				CustomerMasterT customerObj = customerRepository.findByCustomerName(masterCustomerName);
+				
+				if(customerObj!=null)
+                {
+					
+				if(customerObj.isActive())
+				{
 
 				financeCustomer.setCustomerId(customerObj.getCustomerId());
 				financeCustomer.setActive( Boolean.parseBoolean(active));
@@ -87,7 +94,7 @@ public class FinanceCustomerMappingUploadHelper {
 					financeCustomer.setFinanceCustomerName(financeCustomerName);
 				} else {
 					error.setRowNumber(rowNumber);
-					error.setMessage("financeCustomerName Is Mandatory; ");
+					errorMsg.append("financeCustomerName Is Mandatory; ");
 				}
 
 
@@ -96,7 +103,7 @@ public class FinanceCustomerMappingUploadHelper {
 					financeCustomer.setFinanceIou(financeIou);
 				} else {
 					error.setRowNumber(rowNumber);
-					error.setMessage("financeIou Is Mandatory; ");
+					errorMsg.append("financeIou Is Mandatory; ");
 
 				}
 				if (!StringUtils.isEmpty(financeGeography)
@@ -105,12 +112,27 @@ public class FinanceCustomerMappingUploadHelper {
 
 				} else {
 					error.setRowNumber(rowNumber);
-					error.setMessage("financeGeography Is Mandatory; ");
+					errorMsg.append("financeGeography Is Mandatory; ");
 				}
-			} else {
+				}
+				else
+				{
+					error.setRowNumber(rowNumber);
+					errorMsg.append("The Customer is not active to be added;");
+				}
+                }
+                else
+                {
+                	error.setRowNumber(rowNumber);
+                	errorMsg.append("The Customer Is Not Valid;");
+                }
+				} else {
 				error.setRowNumber(rowNumber);
-				error.setMessage("Finance Customer details already exists");
+				errorMsg.append("Finance Customer details already exists");
 			}
+		}
+		if (!StringUtils.isEmpty(errorMsg.toString())) {
+			error.setMessage(errorMsg.toString());
 		}
 		return error;
 	}
@@ -120,30 +142,29 @@ public class FinanceCustomerMappingUploadHelper {
 
 		String revenueCustomerMapId = validateAndRectifyValue(data[10]);
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
+		StringBuffer errorMsg = new StringBuffer();
 		if(!StringUtils.isEmpty(revenueCustomerMapId)){
 			RevenueCustomerMappingT financeCustomers = revenueRepository.findOne(Long.parseLong(revenueCustomerMapId));
-			if (financeCustomers != null) {
-				if(finance!=null){
-					try {
-						BeanUtils.copyProperties(finance, financeCustomers);
-					} catch (Exception e) {
-						error.setRowNumber(Integer.parseInt(data[0]) + 1);
-						error.setMessage("Backend Error while cloning");
-					}
-				} 
-			}
-			else{
+			if (financeCustomers == null) {
+				
 				error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				error.setMessage("Finance Customer details not found for the given map id for deletion");
+				errorMsg.append("Finance Customer details not found for the given map id for deletion");
 			}
-		}else{
+			else
+			{
+				finance.setActive(false);
+			}
+		}else{ 
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			error.setMessage("Finance Customer map id cannot be empty for deletion");
+			errorMsg.append("Finance Customer map id cannot be empty for deletion");
+		}
+		if (!StringUtils.isEmpty(errorMsg.toString())) {
+			error.setMessage(errorMsg.toString());
 		}
 		return error;
 	}
 
-	private String validateAndRectifyValue(String value) {
+	public String validateAndRectifyValue(String value) {
 		String val = value;
 		System.out.println(value.substring(value.length() - 2, value.length()));
 		if (value != null) {
@@ -167,6 +188,7 @@ public class FinanceCustomerMappingUploadHelper {
 				: commonHelper.getIouMappingT();
 
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
+		StringBuffer errorMsg = new StringBuffer();
 
 		String masterCustomerName = data[3];
 		String financeCustomerName = data[6];
@@ -185,7 +207,7 @@ public class FinanceCustomerMappingUploadHelper {
 					.findOne(Long.parseLong(revenueCustomerMapId));
 			if (financeCustomer == null) {
 				error.setRowNumber(rowNumber);
-				error.setMessage("Finance customer details not found for the given map id ,hence it cannot be updated");
+				errorMsg.append("Finance customer details not found for the given map id ,hence it cannot be updated");
 
 			} else {
 				if(financeCustomer.isActive()){
@@ -196,7 +218,7 @@ public class FinanceCustomerMappingUploadHelper {
 							finance.setFinanceCustomerName(financeCustomerName);
 						} else {
 							error.setRowNumber(rowNumber);
-							error.setMessage("financeCustomerName Is Mandatory; ");
+							errorMsg.append("financeCustomerName Is Mandatory; ");
 						}
 
 
@@ -205,7 +227,7 @@ public class FinanceCustomerMappingUploadHelper {
 							finance.setFinanceIou(financeIou);;
 						} else {
 							error.setRowNumber(rowNumber);
-							error.setMessage("financeIou Is Mandatory; ");
+							errorMsg.append("financeIou Is Mandatory; ");
 						}
 
 						if (!StringUtils.isEmpty(financeGeography)
@@ -213,36 +235,36 @@ public class FinanceCustomerMappingUploadHelper {
 							finance.setCustomerGeography(financeGeography);
 						} else {
 							error.setRowNumber(rowNumber);
-							error.setMessage("financeGeography Is Mandatory; ");
+							errorMsg.append("financeGeography Is Mandatory; ");
 						}
 
 						if (!StringUtils.isEmpty(active)) {
 							finance.setActive(Boolean.parseBoolean(active));
-						} else {
-							error.setRowNumber(rowNumber);
-							error.setMessage("active Is Mandatory; ");
-						}
+						} 
 						//check for inactive records and log 
 						try {
 							revenueUploadService.validateInactiveIndicators(finance);
 						} catch(DestinationException e) {
 							error.setRowNumber(rowNumber);
-							error.setMessage(e.getMessage());
+							errorMsg.append(e.getMessage());
 						}
 
 					} else {
 						error.setRowNumber(rowNumber);
-						error.setMessage("Finance Customer details already exists");
+						errorMsg.append("Finance Customer details already exists");
 					}
 				}
 				else {
 					error.setRowNumber(rowNumber);
-					error.setMessage(" Finance / Revenue Customer is inactive and cannot be updated");
+					errorMsg.append(" Finance / Revenue Customer is inactive and cannot be updated");
 				}
 			}
 		} else {
 			error.setRowNumber(rowNumber);
-			error.setMessage("Revenue Customer Map Id cannot be empty for Update");
+			errorMsg.append("Revenue Customer Map Id cannot be empty for Update");
+		}
+		if (!StringUtils.isEmpty(errorMsg.toString())) {
+			error.setMessage(errorMsg.toString());
 		}
 		return error;
 	}

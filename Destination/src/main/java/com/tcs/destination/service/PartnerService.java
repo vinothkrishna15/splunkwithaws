@@ -30,6 +30,7 @@ import com.tcs.destination.bean.PartnerContactLinkT;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.PartnerSubSpMappingT;
 import com.tcs.destination.bean.PartnerSubspProductMappingT;
+import com.tcs.destination.bean.ProductContactLinkT;
 import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BeaconConvertorRepository;
@@ -405,7 +406,15 @@ public class PartnerService {
 			List<PartnerContactLinkT> partnerContactLinkTs = partner.getPartnerContactLinkTs();
 			for (PartnerContactLinkT partnerContactLinkT : partnerContactLinkTs) {
 				partnerContactLinkT.getContactT().setPartnerContactLinkTs(null);
+				if (partnerContactLinkT.getContactT() != null) {
+					for (ProductContactLinkT productContactLinkT : partnerContactLinkT.getContactT().getProductContactLinkTs() ) {
+						if (productContactLinkT.getProductMasterT() != null) {
+							productContactLinkT.getProductMasterT().setProductContactLinkTs(null);
+						}
+					}
+				}
 			}
+			//remove cyclic PartnerSubspProductMappingTs
 			for (PartnerSubSpMappingT partnerSubSpMappingT : partner.getPartnerSubSpMappingTs()){
 				for (PartnerSubspProductMappingT partnerSubspProductMappingT : partnerSubSpMappingT.getPartnerSubspProductMappingTs()) {
 					if (partnerSubspProductMappingT.getProductMasterT() != null) {

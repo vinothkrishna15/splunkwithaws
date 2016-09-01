@@ -22,16 +22,21 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 
 import com.tcs.destination.bean.BeaconCustomerMappingT;
+import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
+import com.tcs.destination.data.repository.BeaconCustomerMappingRepository;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
 import com.tcs.destination.enums.Operation;
 import com.tcs.destination.enums.RequestStatus;
 import com.tcs.destination.helper.BeaconCustomerMappingUploadHelper;
 import com.tcs.destination.service.BeaconCustomerUploadService;
 import com.tcs.destination.service.UploadErrorReport;
+import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.FileManager;
-import com.tcs.destination.utils.StringUtils;
+
+import org.apache.commons.lang.StringUtils;
 
 public class BeaconCustomerMappingWriter implements ItemWriter<String[]>,
 StepExecutionListener, WriteListener {
@@ -50,6 +55,8 @@ StepExecutionListener, WriteListener {
 	private UploadErrorReport uploadErrorReport;
 
 	private BeaconCustomerUploadService beaconCustomerUploadService;
+	
+	private BeaconCustomerMappingRepository beaconCustomerMappingRepository; 
 
 	@Override
 	public void onWritePossible() throws IOException {
@@ -72,39 +79,44 @@ StepExecutionListener, WriteListener {
 	@Override
 	public ExitStatus afterStep(StepExecution stepExecution) {
 		try {
-			logger.info("inside exit status");
-			ExecutionContext jobContext = stepExecution.getJobExecution()
-					.getExecutionContext();
-
+			ExecutionContext jobContext = stepExecution.getJobExecution().getExecutionContext();
+			
 			DataProcessingRequestT request = (DataProcessingRequestT) jobContext
 					.get(REQUEST);
-
 			if (errorList != null) {
-				logger.info("inside exit status if loop");
-				Workbook workbook = uploadErrorReport
-						.writeErrorToWorkbook(errorList);
-
 				String errorPath = request.getFilePath() + "ERROR"
 						+ FILE_DIR_SEPERATOR;
-				String errorFileName = "beaconCustomerMappingUpload_error.xlsx";
-
-				File file = FileManager.createFile(errorPath, errorFileName);
-				FileOutputStream outputStream = new FileOutputStream(file);
-				workbook.write(outputStream);
-				outputStream.flush();
-				outputStream.close();
-
+				String errorFileName = "customerUpload_error.xlsx";
+				File file = new File(errorPath + errorFileName);
+				if (!file.exists()) {
+					Workbook workbook = uploadErrorReport.writeErrorToWorkbook(
+							errorList,
+							Constants.BEACON_MAPPING_SHEET_NAME);
+					File file1 = FileManager.createFile(errorPath,
+							errorFileName);
+					logger.info("created file : " + file1.getAbsolutePath());
+					FileOutputStream outputStream = new FileOutputStream(file1);
+					workbook.write(outputStream);
+					outputStream.flush();
+					outputStream.close();
+				} else {
+					Workbook workbook = ExcelUtils.getWorkBook(file);
+					uploadErrorReport.writeErrorToWorkbook(errorList, workbook,
+							Constants.BEACON_MAPPING_SHEET_NAME);
+					FileOutputStream outputStream = new FileOutputStream(file);
+					workbook.write(outputStream); // write changes
+					outputStream.flush();
+					outputStream.close();
+				}
 				request.setErrorFileName(errorFileName);
 				request.setErrorFilePath(errorPath);
-
 			}
-			request.setStatus(RequestStatus.PROCESSED.getStatus());
-
+			request.setStatus(RequestStatus.INPROGRESS.getStatus());
 			dataProcessingRequestRepository.save(request);
 		} catch (Exception e) {
 			logger.error("Error while writing the error report: {}", e);
 		}
-		return ExitStatus.COMPLETED;
+		return stepExecution.getExitStatus();
 	}
 
 	@Override
@@ -122,31 +134,41 @@ StepExecutionListener, WriteListener {
 				if (operation.equalsIgnoreCase(Operation.ADD.name())) {
 					logger.info("executing " + operation + " operation");
 					BeaconCustomerMappingT beacon = new BeaconCustomerMappingT();
-					for (String a : data)//for testing
-						logger.info(a);
 					UploadServiceErrorDetailsDTO errorDTO = helper
 							.validateBeaconCustomerAdd(data, request.getUserT()
 									.getUserId(), beacon);
-					if (errorDTO.getMessage() != null) {
+					if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
 								: errorList;
 						errorList.add(errorDTO);
-					} else if (errorDTO.getMessage() == null) {
+					} else {
 						insertList.add(beacon);
 					}
 
 				} else if (operation.equalsIgnoreCase(Operation.DELETE.name())) {
 					logger.info("executing " + operation + " operation");
-					BeaconCustomerMappingT beacon = new BeaconCustomerMappingT();
-					UploadServiceErrorDetailsDTO errorDTO = helper
+					 UploadServiceErrorDetailsDTO errorDTO = new UploadServiceErrorDetailsDTO();
+					if(StringUtils.isNotEmpty(data[10]))
+					{
+					 Long beaconCustomerMapId=Long.parseLong(helper.validateAndRectifyValue(data[10]));
+					 BeaconCustomerMappingT beacon = new BeaconCustomerMappingT();
+				     beacon = beaconCustomerMappingRepository.findByBeaconCustomerMapId(beaconCustomerMapId);
+				      errorDTO = helper
 							.validateBeaconCustomerDelete(data, request.getUserT()
 									.getUserId(), beacon);
-					if (errorDTO.getMessage() != null) {
+					 if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
 								: errorList;
 						errorList.add(errorDTO);
-					} else if (errorDTO.getMessage() == null) {
+					 } else {
 						deleteList.add(beacon);
+					}
+					}
+					else {
+						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+						errorDTO.setRowNumber(Integer.parseInt(data[0]) + 1);
+						errorDTO.setMessage("Beacon Customer Mapping Id is mandatory");
+						errorList.add(errorDTO);
 					}
 				} else if (operation.equalsIgnoreCase(Operation.UPDATE.name())) {
 					logger.info("executing " + operation + " operation");
@@ -154,11 +176,11 @@ StepExecutionListener, WriteListener {
 					UploadServiceErrorDetailsDTO errorDTO = helper
 							.validateBeaconCustomerUpdate(data, request.getUserT()
 									.getUserId(), beacon);
-					if (errorDTO.getMessage() != null) {
+					if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
 								: errorList;
 						errorList.add(errorDTO);
-					} else if (errorDTO.getMessage() == null) {
+					} else {
 						updateList.add(beacon);
 					}
 				}
@@ -227,6 +249,16 @@ StepExecutionListener, WriteListener {
 			BeaconCustomerUploadService beaconCustomerUploadService) {
 		this.beaconCustomerUploadService = beaconCustomerUploadService;
 	}
+	
+	public BeaconCustomerMappingRepository getBeaconCustomerMappingRepository() {
+		return beaconCustomerMappingRepository;
+	}
+
+	public void setBeaconCustomerMappingRepository(
+			BeaconCustomerMappingRepository beaconCustomerMappingRepository) {
+		this.beaconCustomerMappingRepository = beaconCustomerMappingRepository;
+	}
+
 
 
 }

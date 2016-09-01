@@ -765,18 +765,6 @@ public class ConnectService {
 					.getCurrentUserDetails().getUserId());
 			conCustConLink.setModifiedBy(DestinationUtils
 					.getCurrentUserDetails().getUserId());
-
-			// for saving into product_contact_link_t
-//			if(connect.getConnectCategory().equals(EntityType.PARTNER)){
-//				ProductContactLinkT productContactLinkT = new ProductContactLinkT();
-//				productContactLinkT.setContactId(conCustConLink.getContactId());
-//				productContactLinkT.setProductId(connect.getProductId());
-//				productContactLinkT.setCreatedBy(DestinationUtils
-//						.getCurrentUserDetails().getUserId());
-//				productContactLinkT.setModifiedBy(DestinationUtils
-//						.getCurrentUserDetails().getUserId());
-//				productContactLinkTRepository.save(productContactLinkT);
-//			}
 		}
 	}
 
