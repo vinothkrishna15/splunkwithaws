@@ -53,6 +53,7 @@
     <import resource="/jobs/productContactDownload-job.xml" />
     
     <import resource="jobs/ShareEmail-job.xml"/>
+    <import resource="/jobs/weeklyReport-job.xml"/>
     
 </beans>
 	

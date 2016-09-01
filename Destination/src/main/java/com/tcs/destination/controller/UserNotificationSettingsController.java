@@ -179,63 +179,35 @@ public class UserNotificationSettingsController {
 	}
 	
 	/**
-	 * Sends mail with image cid
+	 * Sends weekly report
 	 * @param userSubscription
 	 * @param fields
 	 * @param view
 	 * @return
 	 * @throws DestinationException
 	 */
-	@RequestMapping(value = "/mailWithImageCid", method = RequestMethod.POST)
-	public @ResponseBody ResponseEntity<String> mailWithImage(
-			@RequestBody List<UserSubscriptions> userSubscription,
-			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view)
-			throws DestinationException {
-		logger.info("Start of update user notification settings");
-		Status status = new Status();
-		try {
-			destinationMailUtils.sendSampleEmail();
-			return new ResponseEntity<String>(
-					ResponseConstructors.filterJsonForFieldAndViews("all", "",
-							status), HttpStatus.OK);
-		} catch (DestinationException e) {
-			throw e;
-		} catch (Exception e) {
-			logger.error(e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					"Backend error while updating user notification settings");
-		}
-
-	}
-	
-	/**
-	 * Sends mail with image base 64
-	 * @param userSubscription
-	 * @param fields
-	 * @param view
-	 * @return
-	 * @throws DestinationException
-	 */
-	@RequestMapping(value = "/mailWithImageBase", method = RequestMethod.POST)
+	@RequestMapping(value = "/sendReport", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> mailWithImageBase64(
-			@RequestBody List<UserSubscriptions> userSubscription,
+			@RequestParam(value = "size", defaultValue = "0") int size,
+			@RequestParam(value = "ori", defaultValue = "0") int ori,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-		logger.info("Start of update user notification settings");
+		logger.info("Start of sending weekly report");
 		Status status = new Status();
 		try {
-			destinationMailUtils.sendSampleEmail2();
+			destinationMailUtils.sendWeeklyReport();
+			logger.info("End of sending weekly report");
+			status.setStatus(HttpStatus.OK.name(), "Weekly report sent");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",
 							status), HttpStatus.OK);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					"Backend error while updating user notification settings");
+					"Backend error while sending weekly report");
 		}
 
 	}

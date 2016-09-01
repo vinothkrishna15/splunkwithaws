@@ -2,9 +2,8 @@ package com.tcs.destination.utils;
 
 import static com.tcs.destination.utils.DateUtils.ACTUAL_FORMAT;
 
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.security.SecureRandom;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -16,7 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.codec.binary.Base64;
+import net.sf.dynamicreports.jasper.builder.JasperReportBuilder;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
@@ -27,7 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.velocity.VelocityEngineUtils;
-import org.springframework.util.StreamUtils;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -36,6 +35,7 @@ import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.DestinationMailMessage;
+import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.OpportunityCompetitorLinkT;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
@@ -52,6 +52,7 @@ import com.tcs.destination.bean.WorkflowStepT;
 import com.tcs.destination.data.repository.BidDetailsTRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ContactRepository;
+import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.OpportunityReopenRequestRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.OpportunitySalesSupportLinkTRepository;
@@ -68,12 +69,14 @@ import com.tcs.destination.data.repository.WorkflowRequestTRepository;
 import com.tcs.destination.data.repository.WorkflowStepTRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.EntityTypeId;
+import com.tcs.destination.enums.Geography;
 import com.tcs.destination.enums.RequestType;
 import com.tcs.destination.enums.SalesStageCode;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.enums.WorkflowStatus;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.helper.WeeklyReportHelper;
 import com.tcs.destination.service.NumericUtil;
 import com.tcs.destination.service.OpportunityDownloadService;
 import com.tcs.destination.service.OpportunityService;
@@ -185,6 +188,16 @@ public class DestinationMailUtils {
 	@Value("${shareConnectSubject}")
 	private String shareConnectSubject;
 	
+	// Weekly report
+	@Value("${weeklyReportEmailSubject}")
+	private String weeklyReportEmailSubject;
+
+	@Value("${weeklyReportEmailTemplateLoc}")
+	private String weeklyReportEmailTemplateLoc;
+
+	@Value("${weeklyReportEmailId}")
+	private String weeklyReportEmailId;
+	
 	@Autowired
 	private UserService userService;
 
@@ -238,6 +251,12 @@ public class DestinationMailUtils {
 	
 	@Autowired
 	OpportunitySubSpLinkTRepository opportunitySubSpLinkTRepository;
+	
+	@Autowired
+	GeographyRepository geographyRepository;
+	
+	@Autowired
+	WeeklyReportHelper weeklyReportHelper;
 
 	@Autowired
 	private OpportunityService oppService;
@@ -1866,57 +1885,99 @@ public class DestinationMailUtils {
           	   }
       	     }
 		 }
-		 
-		 
 	 }
+	 
+	/**
+	 * Method used to send the weekly report to Dr.Satya
+	 * 
+	 * @throws Exception
+	 */
+	public void sendWeeklyReport() throws Exception {
+		Date currentDate = DateUtils.getCurrentMidnightDate();
+		String currentDateString = ACTUAL_FORMAT.format(currentDate);
+		Date previousWeekDate = DateUtils.getPreviousWeekDate();
+		Date previousDate = DateUtils.getPreviousDate();
+		String previousDateString = ACTUAL_FORMAT.format(previousDate);
+		String previousWeekDateString = ACTUAL_FORMAT.format(previousWeekDate);
+		String financialYear = DateUtils.getFinancialYr();
+		int weekNumber = DateUtils.weekOfFinancialYr(new Date());
+		JasperReportBuilder reportAPAC;
+		JasperReportBuilder reportAmerica;
+		JasperReportBuilder reportUK;
+		List<String> apacGeos = Lists.newArrayList();
+		List<String> americaGeos = Lists.newArrayList();
+		List<String> euGeos = Lists.newArrayList();
+		List<GeographyMappingT> geographyMappingTs = (List<GeographyMappingT>) geographyRepository
+				.findAll();
+		for (GeographyMappingT geographyMappingT : geographyMappingTs) {
+			if (geographyMappingT.getDisplayGeography().equals(
+					Geography.APAC_IND_MEA.getDisplayGeography())) {
+				apacGeos.add(geographyMappingT.getGeography());
+			} else if (geographyMappingT.getDisplayGeography().equals(
+					Geography.AMERICAS.getDisplayGeography())) {
+				americaGeos.add(geographyMappingT.getGeography());
+			} else if (geographyMappingT.getDisplayGeography().equals(
+					Geography.EU_UK.getDisplayGeography())) {
+				euGeos.add(geographyMappingT.getGeography());
+			}
+		}
+		// Report for APAC India ME
+		reportAPAC = weeklyReportHelper.constructWeeklyReport(apacGeos,
+				currentDate, previousWeekDate,
+				Geography.APAC_IND_MEA.getDisplayGeography());
+		// Report for americas
+		reportAmerica = weeklyReportHelper.constructWeeklyReport(americaGeos,
+				currentDate, previousWeekDate,
+				Geography.AMERICAS.getDisplayGeography());
+		// Report for Europe
+		reportUK = weeklyReportHelper.constructWeeklyReport(euGeos,
+				currentDate, previousWeekDate,
+				Geography.EU_UK.getDisplayGeography());
 
+		ByteArrayOutputStream byteArrayOutputStreamAmer = new ByteArrayOutputStream();
+		ByteArrayOutputStream byteArrayOutputStreamAPAC = new ByteArrayOutputStream();
+		ByteArrayOutputStream byteArrayOutputStreamUK = new ByteArrayOutputStream();
 
-	public void sendSampleEmail() throws Exception {
+		reportAPAC.toPdf(byteArrayOutputStreamAPAC);
+		logger.info("Report for APAC produced");
+		reportAmerica.toPdf(byteArrayOutputStreamAmer);
+		logger.info("Report for America produced");
+		reportUK.toPdf(byteArrayOutputStreamUK);
+		logger.info("Report for EU/UK produced");
+
+		byte[] bytesAPAC = byteArrayOutputStreamAPAC.toByteArray();
+		byte[] bytesAmer = byteArrayOutputStreamAmer.toByteArray();
+		byte[] bytesUK = byteArrayOutputStreamUK.toByteArray();
+
+		Map<String, byte[]> byteMap = Maps.newHashMap();
+		byteMap.put("Weekly Report for APAC Ind ME from "
+				+ previousWeekDateString + " " + "to " + previousDateString
+				+ ".pdf", bytesAPAC);
+		byteMap.put("Weekly Report for Americas from " + previousWeekDateString
+				+ " " + "to " + previousDateString+ ".pdf", bytesAmer);
+		byteMap.put("Weekly Report for EU & UK from " + previousWeekDateString
+				+ " " + "to " + previousDateString+ ".pdf", bytesUK);
+		String templateLoc = weeklyReportEmailTemplateLoc;
+		String subject = new StringBuffer(mailSubjectAppendEnvName)
+				.append(weeklyReportEmailSubject).append(" ")
+				.append(currentDateString).toString();
+		Map<String, Object> data = new HashMap<String, Object>();
+		logger.info("Report for EU/UK produced");
+		data.put("weekNumber", weekNumber);
+		data.put("weekStartDate", previousWeekDateString);
+		data.put("weekEndDate", previousDateString);
+		data.put("financialYear", financialYear);
 		DestinationMailMessage message = new DestinationMailMessage();
-		message.setRecipients(Lists.newArrayList("manikandan.5@tcs.com"));
-		message.setSubject("cid email");
-		
-		String cid = generateCID();
-		message.setContentId(cid);
-		message.setAtchFileName("MountView.png");
-		message.setAtchFilePath(DestinationMailUtils.class.getResource("/templates/img/MountView.png").getPath());
-		
-		
-		 Map<String, Object> map = new HashMap<String, Object>();
-		 map.put("userNotifications", "You are added as a owner of opportunity : test");
-		 map.put("reminderNotifications", "connect owned by mani passed due date");
-		 map.put("collaborationNotifications", "Abi commented on your opportunity : test");
-		 map.put("imgSrc", "cid:<" + cid + ">");
-		 String text = mergeTmplWithData(map, sampleEmailTemplateLoc);
-		 logger.info("mail for image with cid " + text);
-		 message.setMessage(text);
-		 destMailSender.sendMultiPart(message); 
-	}
-
-	public void sendSampleEmail2() throws Exception {
-		DestinationMailMessage message = new DestinationMailMessage();
-		message.setRecipients(Lists.newArrayList("manikandan.5@tcs.com"));
-		message.setSubject("data email");
-		
-		
-		//File imgFile = new File(DestinationMailUtils.class.getResource("/templates/img/MountView.png").getPath());
-		//byte[] fileBinary = FileUtils.readFileToByteArray(imgFile);
-		byte[] fileBinary = StreamUtils.copyToByteArray(getClass().getResourceAsStream("/templates/img/MountView.png"));
-		
-		Map<String, Object> map = new HashMap<String, Object>();
-		map.put("userNotifications", "You are added as a owner of opportunity : test");
-		map.put("reminderNotifications", "connect owned by mani passed due date");
-		map.put("collaborationNotifications", "Abi commented on your opportunity : test");
-		String imgData = Base64.encodeBase64String(fileBinary);
-		map.put("imgSrc", "data:image/png;base64," + imgData );
-		String text = mergeTmplWithData(map, sampleEmailTemplateLoc);
-		logger.info("mail for image base 64 " + text);
+		message.setRecipients(Lists.newArrayList(weeklyReportEmailId));
+		logger.info("To email address : " + weeklyReportEmailId);
+		message.setSubject(subject.toString());
+		logger.info("Subject : " + subject.toString());
+		String text = mergeTmplWithData(data, templateLoc);
+		logger.info("framed text : " + text);
 		message.setMessage(text);
-		destMailSender.send(message); 
-	}
-
-	private String generateCID() {
-		return new BigInteger(130, new SecureRandom()).toString(32);
+		message.setAttachments(byteMap);
+		destMailSender.send(message);
+		logger.info("Weekly report mail sent");
 	}
 
 }

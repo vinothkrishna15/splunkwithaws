@@ -1,0 +1,17 @@
+<html>
+	<body>
+		Dear Dr.Satya,
+		<p>
+     	Please find the Sales Report for Digital Enterprise for week ${weekNumber} of ${financialYear}, 
+     	from ${weekStartDate} to ${weekEndDate}, attached with this email. <br/><br/> 
+        </p>		
+		<p>
+		Regards<br>
+		<b>Team Destination</b>
+		</p>
+		<br>
+		<p>
+		Note: This is a system-generated e-mail. Please do not respond to this mail.
+		</p>
+	</body>
+</html>

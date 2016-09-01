@@ -1,10 +1,11 @@
 package com.tcs.destination.utils;
 
 import java.util.List;
+import java.util.Map.Entry;
 
-import javax.activation.DataSource;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
+import javax.mail.util.ByteArrayDataSource;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -18,9 +19,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StreamUtils;
 
-import com.sun.istack.ByteArrayDataSource;
 import com.tcs.destination.bean.DestinationMailMessage;
 import com.tcs.destination.exception.DestinationException;
 
@@ -34,7 +33,7 @@ public class DestinationMailSender {
 	
 	private static final Logger logger = LoggerFactory
 			.getLogger(DestinationMailSender.class);
-
+	
 	@Value("${senderEmailId}")
 	private String senderEmailId;
 	
@@ -76,6 +75,13 @@ public class DestinationMailSender {
 					msgHelper.addAttachment(message.getAtchFileName(), new FileSystemResource(message.getAtchFilePath()));
 				}
 				
+				if(hasMultiAttachments(message)) {
+					for (Entry<String, byte[]> entry : message.getAttachments().entrySet()) {
+						String fileName = entry.getKey();
+						msgHelper.addAttachment(fileName, new ByteArrayDataSource(entry.getValue(), DestinationUtils.getMimeType(fileName)));
+					}
+				}
+				
 				if(StringUtils.isNotEmpty(message.getContentId())) {
 					mimeMessage.setContentID(message.getContentId());
 				}
@@ -97,55 +103,8 @@ public class DestinationMailSender {
 
 	}
 
-	/**
-	 * send a mail with the given message
-	 * @param message
-	 * @throws Exception
-	 */
-	public void sendMultiPart(final DestinationMailMessage message) throws Exception {
-		
-			try {
-				 MimeMessage mimeMessage = ((JavaMailSenderImpl) mailSender).createMimeMessage();
-				MimeMessageHelper msgHelper = new MimeMessageHelper(mimeMessage, true, Constants.UTF8);
-					
-					List<String> recipients = message.getRecipients();
-					List<String> ccList = message.getCcList();
-					List<String> bccList = message.getBccList();
-					String subject = message.getSubject();
-					String mailBody = message.getMessage();
-
-					msgHelper.setFrom(senderEmailId);
-					msgHelper.setTo(convertToArray(recipients));
-					if(CollectionUtils.isNotEmpty(ccList)) {
-						msgHelper.setCc(convertToArray(ccList));
-					}
-					if(CollectionUtils.isNotEmpty(bccList)) {
-						msgHelper.setBcc(convertToArray(bccList));
-					}
-					msgHelper.setSubject(subject);
-					msgHelper.setText("<html><body><h1>hello</h1><img src='cid:identifier1234'></body></html>", true);
-//					if(hasAttachment(message)) {
-//						msgHelper.addAttachment(message.getAtchFileName(), new FileSystemResource(message.getAtchFilePath()));
-//					}
-					
-					//Inline message
-					byte[] fileBinary = StreamUtils.copyToByteArray(getClass().getResourceAsStream("/templates/img/MountView.png"));
-
-					logger.info("file size ################ {}", fileBinary.length);
-					DataSource fds = new ByteArrayDataSource(fileBinary, "image/png");
-					msgHelper.addInline("identifier1234", fds);
-
-					//log the mail details
-					logMailDetails(recipients, ccList, bccList, subject, mailBody);
-					
-					mailSender.send(mimeMessage);
-					logger.info("mail sent, subject : {}", subject);
-								
-			} catch (Exception e ) {
-				logger.error("Error sending mail ", e);
-				throw e;
-			}
-		
+	private boolean hasMultiAttachments(DestinationMailMessage message) {
+		return message.getAttachments() != null && !message.getAttachments().isEmpty();
 	}
 
 	/**

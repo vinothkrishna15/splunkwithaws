@@ -255,6 +255,7 @@ public class Constants {
 	public static final String NOT_AVAILABLE = "Not Available";
 	public static final String LOSS_OTHER = "Loss - Other";
 	public static final String WIN_OTHER = "Win - Other";
+	public static final String OTHER = "Other";
 	
 	public static final String WORKFLOW_CUSTOMER_PENDING_SUBJECT = "Pending New Customer Request";
 	public static final String WORKFLOW_PARTNER_PENDING_SUBJECT = "Pending New Partner Request";
