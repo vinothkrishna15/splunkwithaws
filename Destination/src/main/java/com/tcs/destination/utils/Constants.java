@@ -79,7 +79,7 @@ public class Constants {
 	public static final String OPPORTUNITY_TEMPLATE_WIN_LOSS_SHEET_NAME = "Win Loss Factor(Ref)";
 	public static final String OPPORTUNITY_TEMPLATE_BID_REQUEST_DEAL_TYPE_SHEET_NAME = "Bid Request  & Deal Type(Ref)";
 	public static final String OPPORTUNITY_TEMPLATE_OPPORTUNITY_SHEET_NAME = "Opportunity";
-	
+	public static final String OPPORTUNITY_TEMPLATE_TCS_AND_CUSTOMER_SHEET_NAME = "TCS & Customer Contact(Ref)";
 	
 	public static final String CONNECT = "Connect";
 	public static final String OPPORTUNITY = "Opportunity";
