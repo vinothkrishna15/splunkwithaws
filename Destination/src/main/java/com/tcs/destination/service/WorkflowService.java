@@ -379,6 +379,8 @@ public class WorkflowService {
 					listOfBfmRequests.add(pendingBfmRequests);
 				}
 				typeList.add(type.getType());
+				typeList.add(type.ESCALATION_A.getType());
+				typeList.add(type.ESCALATION_B.getType());
 				submittedAndApprovedRequests=getSubmittedAndApprovedRequest(status, userId,typeList);
 
 				populateResponse(listOfBfmRequests,
