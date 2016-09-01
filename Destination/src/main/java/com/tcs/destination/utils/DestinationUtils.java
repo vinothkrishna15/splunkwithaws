@@ -139,7 +139,6 @@ public class DestinationUtils {
 
 	public static String getMimeType(String fileName) {
 		String extention = DestinationUtils.getExtension(fileName);
-		System.out.println("extention :: " + extention);
 		if(StringUtils.isNotEmpty(extention) && MIME_TYPE.containsKey(extention)) {
 			return MIME_TYPE.get(extention);
 		}

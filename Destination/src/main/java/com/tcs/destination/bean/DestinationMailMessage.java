@@ -1,6 +1,7 @@
 package com.tcs.destination.bean;
 
 import java.util.List;
+import java.util.Map;
 
 public class DestinationMailMessage {
 
@@ -14,6 +15,7 @@ public class DestinationMailMessage {
 	
 	private String atchFileName;
 	private String atchFilePath;
+	private Map<String, byte[]> attachments;
 	private String contentId;
 	
 	public List<String> getRecipients() {
@@ -81,6 +83,12 @@ public class DestinationMailMessage {
 	}
 	public void setContentId(String contentId) {
 		this.contentId = contentId;
+	}
+	public Map<String, byte[]> getAttachments() {
+		return attachments;
+	}
+	public void setAttachments(Map<String, byte[]> attachments) {
+		this.attachments = attachments;
 	}
 	
 }

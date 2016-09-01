@@ -61,6 +61,11 @@ public class DateUtils {
 	public static final DateFormat ACTUAL_FORMAT = new SimpleDateFormat("dd-MMM-yyyy");
 	
 	/**
+	 * dd-MMM-yyyy
+	 */
+	public static final DateFormat ACTUAL_FORMAT_MONTH = new SimpleDateFormat("dd MMMMM yyyy");
+	
+	/**
 	 * MM/dd/yyyy
 	 */
 	public static final DateFormat DESIRED_FORMAT = new SimpleDateFormat("MM/dd/yyyy");
@@ -79,6 +84,8 @@ public class DateUtils {
 	 * Fromat dd/MM/yyyy 
 	 */
 	public static final DateFormat FORMAT_DATE_WITH_SLASH = new SimpleDateFormat("dd/MM/yyyy");
+	
+	public static final DateFormat FORMAT_DATE_WITH_SECONDS = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	
 	private static final Map<String, Integer> monthMap = new HashMap<String, Integer>();
@@ -759,7 +766,7 @@ public class DateUtils {
 		try{
 			dateString = sdfr.format( indate );
 		}catch (Exception ex ){
-			System.out.println(ex);
+			logger.debug(ex.getMessage());
 		}
 		return dateString;
 	}
@@ -851,11 +858,31 @@ public class DateUtils {
 			endYr = currentYr + 1;
 		}
 
-		return String.format("FY %d-%d", startYr, endYr%100) ;
+		return String.format("FY [%d-%d]", startYr, endYr%100) ;
 	}
 	
-	public static void main(String[] args) {
-		System.out.println(getFinancialYr());
-	}
+	/**
+	 * gives the current date
+	 * @return
+	 */
+	public static Date getCurrentMidnightDate(){
+		return new LocalDate().toDate();
+		}
+	
+	/**
+	 * Gives the previous week date
+	 * @return
+	 */
+	public static Date getPreviousWeekDate() {
+		return new LocalDate().minusDays(7).toDate();
+		}
+	
+	/**
+	 * Gives the previous date
+	 * @return
+	 */
+	public static Date getPreviousDate() {
+		return new LocalDate().minusDays(1).toDate();
+		}
 	
 }

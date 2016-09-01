@@ -768,6 +768,48 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 			@Param("fromTimestamp") Timestamp fromTimestamp, 
 			@Param("customerId") String customerId, 
 			@Param("term") String term);
+
+	/**
+	 * Retrieves customer connects happened during a week based on the customer
+	 * geographies given
+	 * 
+	 * @param geos
+	 * @param previousWeekDate
+	 * @param currentWeekDate
+	 * @param connectCategory
+	 * @return
+	 */
+	@Query(value = "select CNN.* from connect_t CNN join customer_master_t CMT "
+			+ "on CNN.customer_id = CMT.customer_id where "
+			+ "CMT.geography in (:geographies) and CNN.start_datetime_of_connect between "
+			+ "(:previousWeekDate) and (:currentWeekDate) and "
+			+ "CNN.connect_category = (:connectCategory) order by CNN.start_datetime_of_connect desc", nativeQuery = true)
+	List<ConnectT> getCustomerConnectsForAWeek(
+			@Param("geographies") List<String> geos,
+			@Param("previousWeekDate") Timestamp previousWeekDate,
+			@Param("currentWeekDate") Timestamp currentWeekDate,
+			@Param("connectCategory") String connectCategory);
+
+	/**
+	 * Retrieves Partner connects happened during a week based on the Partner
+	 * geographies given
+	 * 
+	 * @param geos
+	 * @param previousWeekDate
+	 * @param currentWeekDate
+	 * @param connectCategory
+	 * @return
+	 */
+	@Query(value = "select CNN.* from connect_t CNN join partner_master_t PMT "
+			+ "on CNN.partner_id = PMT.partner_id where "
+			+ "PMT.geography in (:geographies) and CNN.start_datetime_of_connect between "
+			+ "(:previousWeekDate) and (:currentWeekDate) and "
+			+ "CNN.connect_category = (:connectCategory) order by CNN.start_datetime_of_connect desc", nativeQuery = true)
+	List<ConnectT> getPartnerConnectsForAWeek(
+			@Param("geographies") List<String> geos,
+			@Param("previousWeekDate") Timestamp previousWeekDate,
+			@Param("currentWeekDate") Timestamp currentWeekDate,
+			@Param("connectCategory") String connectCategory);
 	
 	
 }
