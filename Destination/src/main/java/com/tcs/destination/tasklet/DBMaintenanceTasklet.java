@@ -43,6 +43,12 @@ public class DBMaintenanceTasklet implements Tasklet {
 	@Value("${batch.table.purge.years}")
 	private int btchPrugeYears;
 	
+	@Value("${batch.table.purge.audit.month}")
+	private int purgeAuditMonths;
+	
+	@Value("${batch.table.purge.audit.years}")
+	private int purgeAuditYears;
+	
 	@Autowired
 	private BatchOpportunityRepository batchOpportunityRepository;
 
@@ -52,15 +58,17 @@ public class DBMaintenanceTasklet implements Tasklet {
 	@Override
 	public RepeatStatus execute(StepContribution contribution,
 			ChunkContext chunkContext) throws Exception {
-		
+
 		logger.debug("Inside execute method:");
-		
+
 		RepeatStatus status = null;
-		
-		if (batchOpportunityRepository.maintainDBTables(batchTablePurgeDays, btchPrugeNotification, btchPrugeCollaboration, btchPrugeYears) == 1 ) {
+
+		if (batchOpportunityRepository.maintainDBTables(batchTablePurgeDays,
+				btchPrugeNotification, btchPrugeCollaboration, btchPrugeYears,
+				purgeAuditMonths, purgeAuditYears) == 1) {
 			status = RepeatStatus.FINISHED;
 		}
-		
+
 		return status;
 	}
 
