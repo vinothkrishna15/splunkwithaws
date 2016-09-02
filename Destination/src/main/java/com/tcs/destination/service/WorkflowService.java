@@ -1871,13 +1871,20 @@ public class WorkflowService {
 						// Get the status of the new partner request
 						workflowPartnerDetailsDTO.setStatus(workflowRequest
 								.getStatus());
-
+						
 						// Get the workflow partner Id from request table
 						String workflowPartnerId = workflowRequest
 								.getEntityId();
+						//for setting partner product and contact and subsp details
+						WorkflowPartnerT partnerT = workflowPartnerRepository.findOne(workflowPartnerId);
+						List<PartnerMasterT> partnerMasterT =  partnerRepository.findByPartnerName(partnerT.getPartnerName());
+						
+						if (partnerMasterT.size() > 0 ) {
+						workflowPartnerDetailsDTO.setPartnerMasterT(partnerMasterT.get(0).getPartnerMasterT());
+						}
+						
 						// Get the new partner details for the request
-						WorkflowPartnerT workflowPartner = workflowPartnerRepository
-								.findOne(workflowPartnerId);
+						WorkflowPartnerT workflowPartner = workflowPartnerRepository.findOne(workflowPartnerId);
 
 						if (workflowPartner != null) {
 							workflowPartnerDetailsDTO
