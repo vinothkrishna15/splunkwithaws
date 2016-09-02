@@ -508,7 +508,7 @@ public class WorkflowService {
 			break;
 		}
 		case STRATEGIC_INITIATIVES: 
-		//
+			//
 		{
 			// Query to get bfm requests pending for a SI or Reporting Team 
 			StringBuffer queryBuffer = new StringBuffer(
@@ -3070,7 +3070,47 @@ public class WorkflowService {
 						"INVALId! On edit, groupPartnerName must be equal to partnerName!");		
 			}
 		}
-		partnerRepository.save(oldPartnerMaster);
+		PartnerMasterT partnerCreated = partnerRepository.save(oldPartnerMaster);
+
+		//saving additional partner details
+		if(!workflowPartnerT.getPartnerProductDetailsDTOs().isEmpty()){
+			for(PartnerProductDetailsDTO partnerProductDetailsDTO : workflowPartnerT.getPartnerProductDetailsDTOs()){
+				// processing subsps for the new partner
+				if(partnerProductDetailsDTO.getSubspList().size() > 0 ){
+					for(Integer subSpId : partnerProductDetailsDTO.getSubspList()){
+						PartnerSubSpMappingT partnerSubsp = new PartnerSubSpMappingT();
+						partnerSubsp.setPartnerId(partnerCreated.getPartnerId());
+						partnerSubsp.setSubSpId(subSpId);
+						partnerSubsp.setSubSp(subSpRepository.findBySubSpId(subSpId).getSubSp());
+						partnerSubsp.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+						partnerSubsp.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+						PartnerSubSpMappingT partnerSubspSaved = partnerSubSpMappingRepository.save(partnerSubsp);
+
+						//If product available for this partner then this partner subsp has to be persisted along with its product in partner_subsp_product_mapping_t
+						if(partnerProductDetailsDTO.getProductId() != null){
+							savePartnerSubspAndProduct(partnerSubspSaved, partnerProductDetailsDTO.getProductId());
+						}
+					}
+				}
+
+				//Processing contacts for partner and Products
+				if(partnerProductDetailsDTO.getPartnerProductContact() != null ){
+					ContactT productcontactSaved = new ContactT();
+					String contactId = null;
+					if (partnerProductDetailsDTO.getPartnerProductContact().getContactId() == null ) {
+						productcontactSaved = saveNewContact(partnerProductDetailsDTO);
+						if(productcontactSaved != null && productcontactSaved.getContactId() != null){
+							contactId = productcontactSaved.getContactId();
+							populateAsProductOrPartnerContact(partnerProductDetailsDTO, contactId, partnerCreated.getPartnerId());
+						}
+					}
+					else if(partnerProductDetailsDTO.getPartnerProductContact().getContactId() != null){
+						contactId = partnerProductDetailsDTO.getPartnerProductContact().getContactId();
+						populateAsProductOrPartnerContact(partnerProductDetailsDTO, contactId, partnerCreated.getPartnerId());
+					}	  
+				}
+			}
+		}
 	}
 
 	/**
