@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import net.sf.dynamicreports.jasper.builder.JasperReportBuilder;
@@ -35,6 +36,7 @@ import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.DestinationMailMessage;
+import com.tcs.destination.bean.DocumentsT;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.OpportunityCompetitorLinkT;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
@@ -53,6 +55,7 @@ import com.tcs.destination.bean.WorkflowStepT;
 import com.tcs.destination.data.repository.BidDetailsTRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ContactRepository;
+import com.tcs.destination.data.repository.DocumentsTRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.OpportunityReopenRequestRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
@@ -274,6 +277,9 @@ public class DestinationMailUtils {
 	
 	@Autowired
 	GeographyRepository geographyRepository;
+	
+	@Autowired
+	DocumentsTRepository documentsRepository;
 	
 	@Autowired
 	WeeklyReportHelper weeklyReportHelper;
@@ -2129,6 +2135,8 @@ public class DestinationMailUtils {
 				+ " " + "to " + previousDateString+ ".pdf", bytesAmer);
 		byteMap.put("Weekly Report for EU & UK from " + previousWeekDateString
 				+ " " + "to " + previousDateString+ ".pdf", bytesUK);
+		//Saving the weekly report to Documents
+		saveDocuments(byteMap);
 		String templateLoc = weeklyReportEmailTemplateLoc;
 		String subject = new StringBuffer(mailSubjectAppendEnvName)
 				.append(weeklyReportEmailSubject).append(" ")
@@ -2150,6 +2158,25 @@ public class DestinationMailUtils {
 		message.setAttachments(byteMap);
 		destMailSender.send(message);
 		logger.info("Weekly report mail sent");
+	}
+
+	/**
+	 * Method used to save the weekly report to Documents
+	 * @param byteMap
+	 */
+	private void saveDocuments(Map<String, byte[]> byteMap) {
+		logger.debug("Inside saveDocuments Method");
+		for (Entry<String, byte[]> map : byteMap.entrySet()) {
+			DocumentsT document = new DocumentsT();
+			document.setDocContent(map.getValue());
+			document.setDocName(map.getKey());
+			document.setVersion(1);
+			document.setCreatedBy(Constants.SYSTEM_USER);
+			document.setModifiedBy(Constants.SYSTEM_USER);
+			document.setEntityType(EntityType.WEEKLY_REPORT.getName());
+			documentsRepository.save(document);
+			logger.debug("Documents Saved");
+		}
 	}
 
 	/**
