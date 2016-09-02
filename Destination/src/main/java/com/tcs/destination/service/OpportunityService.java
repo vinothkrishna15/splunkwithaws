@@ -737,6 +737,7 @@ public class OpportunityService {
 		OpportunityT opportunity = opportunityRepository
 				.findByOpportunityId(opportunityId);
 		int[] bfmEntityTypeIds = {Constants.CONSTANT_FOUR,Constants.CONSTANT_FIVE,Constants.CONSTANT_SIX};
+		List<String> workflowBfmIds = new ArrayList<String>();
 		if (opportunity != null) {
 			// Add Search Keywords
 			List<SearchKeywordsT> searchKeywords = searchKeywordsRepository
@@ -759,8 +760,11 @@ public class OpportunityService {
 				opportunity.setWorkflowRequest(workflowRequests.get(0));
 			}
 			// flag to check whether workflow bfm is raised already for this opportunity
-			WorkflowBfmT workflowBfmT = workflowBfmTRepository.findByOpportunityId(opportunityId);
-			WorkflowRequestT workflowBfmRequest = workflowRequestRepository.findByEntityIdAndStatusAndEntityTypeIdIn(workflowBfmT.getWorkflowBfmId(),
+			List<WorkflowBfmT> workflowBfmTs = workflowBfmTRepository.findWorkflowBfmIdByOpportunityId(opportunityId);
+			for(WorkflowBfmT bfm : workflowBfmTs){
+				workflowBfmIds.add(bfm.getWorkflowBfmId());
+			}
+			WorkflowRequestT workflowBfmRequest = workflowRequestRepository.findByEntityIdInAndStatusAndEntityTypeIdIn(workflowBfmIds,
 							WorkflowStatus.PENDING.getStatus(), bfmEntityTypeIds);
 			if(workflowBfmRequest != null) {
 				isBfmRaied = true;

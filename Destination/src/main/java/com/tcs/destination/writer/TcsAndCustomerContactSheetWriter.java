@@ -135,9 +135,8 @@ StepExecutionListener {
 
 					Cell cellContactTelephone = row.createCell(6);
 					cellContactTelephone.setCellValue(contact.getContactTelephone());
-
-					// Increment row counter
 				}
+				// Increment row counter
 				rowCount++;
 			}
 		}
