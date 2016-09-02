@@ -721,23 +721,32 @@ public class WorkflowService {
 						.getEntityTypeId()))) {
 						case CUSTOMER:
 							myWorklistDTO.setEntityType(CUSTOMER.getDisplayName());
-							myWorklistDTO.setEntity(workflowCustomerRepository.findOne(requestT.getEntityId()));
+							WorkflowCustomerT customerEntity = workflowCustomerRepository.findOne(requestT.getEntityId());
+							myWorklistDTO.setEntity(customerEntity);
+							myWorklistDTO.setEntityName(customerEntity.getCustomerName());
 							break;
 						case PARTNER:
 							myWorklistDTO.setEntityType(PARTNER.getDisplayName());
-							myWorklistDTO.setEntity(workflowPartnerRepository.findOne(requestT.getEntityId()));
+							WorkflowPartnerT partnerEntity = workflowPartnerRepository.findOne(requestT.getEntityId());
+							myWorklistDTO.setEntity(partnerEntity);
+							myWorklistDTO.setEntityName(partnerEntity.getPartnerName());
 							break;
 						case COMPETITOR:
 							myWorklistDTO.setEntityType(COMPETITOR.getDisplayName());
-							myWorklistDTO.setEntity(workflowCompetitorRepository.findOne(requestT.getEntityId()));
+							WorkflowCompetitorT competitorEntity = workflowCompetitorRepository.findOne(requestT.getEntityId());
+							myWorklistDTO.setEntity(competitorEntity);
+							myWorklistDTO.setEntityName(competitorEntity.getWorkflowCompetitorName());
 							break;
 						case OPPORTUNITY:
 							myWorklistDTO.setEntityType(EntityTypeId.OPPORTUNITY.getDisplayName());
-							myWorklistDTO.setEntity(workflowOpportunityRepository.findOne(requestT.getEntityId()));
+							OpportunityT opportunityEntity = workflowOpportunityRepository.findOne(requestT.getEntityId());
+							myWorklistDTO.setEntity(opportunityEntity.getOpportunityName());
 							break;
 						case BFM:
 							myWorklistDTO.setEntityType(EntityTypeId.BFM.getDisplayName());
-							myWorklistDTO.setEntity(workflowBfmTRepository.findOne(requestT.getEntityId()));
+							WorkflowBfmT bfmEntity = workflowBfmTRepository.findOne(requestT.getEntityId());
+							myWorklistDTO.setEntity(bfmEntity);
+							myWorklistDTO.setEntity(bfmEntity.getBfmFileName());
 							break;
 
 				}
