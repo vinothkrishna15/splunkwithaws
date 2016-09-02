@@ -761,14 +761,17 @@ public class OpportunityService {
 			}
 			// flag to check whether workflow bfm is raised already for this opportunity
 			List<WorkflowBfmT> workflowBfmTs = workflowBfmTRepository.findWorkflowBfmIdByOpportunityId(opportunityId);
-			for(WorkflowBfmT bfm : workflowBfmTs){
-				workflowBfmIds.add(bfm.getWorkflowBfmId());
+			if(workflowBfmTs.size() > 0){
+				for(WorkflowBfmT bfm : workflowBfmTs){
+					workflowBfmIds.add(bfm.getWorkflowBfmId());
+				}
+				WorkflowRequestT workflowBfmRequest = workflowRequestRepository.findByEntityIdInAndStatusAndEntityTypeIdIn(workflowBfmIds,
+						WorkflowStatus.PENDING.getStatus(), bfmEntityTypeIds);
+				if(workflowBfmRequest != null) {
+					isBfmRaied = true;
+				}
 			}
-			WorkflowRequestT workflowBfmRequest = workflowRequestRepository.findByEntityIdInAndStatusAndEntityTypeIdIn(workflowBfmIds,
-							WorkflowStatus.PENDING.getStatus(), bfmEntityTypeIds);
-			if(workflowBfmRequest != null) {
-				isBfmRaied = true;
-			}
+			
 			opportunity.setWorkflowBfmRaised(isBfmRaied);
 			return opportunity;
 		} else {
