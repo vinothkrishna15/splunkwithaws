@@ -76,5 +76,8 @@ public interface WorkflowRequestTRepository extends
 
 	public WorkflowRequestT findByEntityIdAndEntityTypeIdIn(
 			String workflowBfmId, int[] bfmEntityTypeIds);
+	
+	public WorkflowRequestT findByEntityIdAndStatusAndEntityTypeIdIn(
+			String workflowBfmId, String status, int[] bfmEntityTypeIds);
 
 }

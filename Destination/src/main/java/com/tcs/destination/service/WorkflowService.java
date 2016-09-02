@@ -788,7 +788,9 @@ public class WorkflowService {
 						worklist.setEntityType("New Customer");
 						if (MyWorklistDTOArray[2] != null) 
 						{
-							worklist.setEntity(workflowCustomerRepository.findOne(MyWorklistDTOArray[2].toString()));
+							WorkflowCustomerT entity = workflowCustomerRepository.findOne(MyWorklistDTOArray[2].toString());
+							worklist.setEntity(entity);
+							worklist.setEntityName(entity.getCustomerName());
 						} 
 						else 
 						{
@@ -801,7 +803,9 @@ public class WorkflowService {
 						worklist.setEntityType("New Partner");
 						if (MyWorklistDTOArray[2] != null) 
 						{
-							worklist.setEntity(workflowPartnerRepository.findOne(MyWorklistDTOArray[2].toString()));
+							WorkflowPartnerT entity = workflowPartnerRepository.findOne(MyWorklistDTOArray[2].toString());
+							worklist.setEntity(entity);
+							worklist.setEntityName(entity.getPartnerName());
 						} 
 						else 
 						{
@@ -815,7 +819,9 @@ public class WorkflowService {
 						worklist.setEntityType("New Competitor");
 						if (MyWorklistDTOArray[2] != null) 
 						{
-							worklist.setEntity(workflowCompetitorRepository.findOne(MyWorklistDTOArray[2].toString()));
+							WorkflowCompetitorT entity = workflowCompetitorRepository.findOne(MyWorklistDTOArray[2].toString());
+							worklist.setEntity(entity);
+							worklist.setEntityName(entity.getWorkflowCompetitorName());
 						} 
 						else 
 						{
@@ -829,7 +835,9 @@ public class WorkflowService {
 						worklist.setEntityType("New Opportunity Reopen");
 						if (MyWorklistDTOArray[2] != null) 
 						{
-							worklist.setEntity(opportunityRepository.findOne(MyWorklistDTOArray[2].toString()));
+							OpportunityT entity = opportunityRepository.findOne(MyWorklistDTOArray[2].toString());
+							worklist.setEntity(entity);
+							worklist.setEntityName(entity.getOpportunityName());
 						} 
 						else 
 						{
@@ -844,7 +852,10 @@ public class WorkflowService {
 						worklist.setEntityType("Opportunity Deal Financial");
 						if (MyWorklistDTOArray[2] != null) 
 						{
-							worklist.setEntity(workflowBfmTRepository.findOne(MyWorklistDTOArray[2].toString()));
+							WorkflowBfmT entity = workflowBfmTRepository.findOne(MyWorklistDTOArray[2].toString());
+							worklist.setEntity(entity);
+							//OpportunityT opportunityBfm = opportunityRepository.findByOpportunityId(entity.getOpportunityId());
+							worklist.setEntityName(entity.getBfmFileName());
 						} 
 						else 
 						{

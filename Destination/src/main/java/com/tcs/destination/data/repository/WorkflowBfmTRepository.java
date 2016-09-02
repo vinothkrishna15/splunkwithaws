@@ -9,4 +9,5 @@ import com.tcs.destination.bean.WorkflowBfmT;
 @Repository
 public interface WorkflowBfmTRepository extends CrudRepository<WorkflowBfmT, String>{
 
+	WorkflowBfmT findByOpportunityId(String opportunityId);
 }
