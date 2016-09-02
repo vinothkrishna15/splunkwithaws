@@ -2148,7 +2148,9 @@ public class DestinationMailUtils {
 		data.put("weekEndDate", previousDateString);
 		data.put("financialYear", financialYear);
 		DestinationMailMessage message = new DestinationMailMessage();
-		message.setRecipients(Lists.newArrayList(weeklyReportEmailId));
+		List<String> recipientList = Lists.newArrayList();
+		recipientList = Arrays.asList(StringUtils.split(weeklyReportEmailId, ","));
+		message.setRecipients(recipientList);
 		logger.info("To email address : " + weeklyReportEmailId);
 		message.setSubject(subject.toString());
 		logger.info("Subject : " + subject.toString());
@@ -2170,6 +2172,8 @@ public class DestinationMailUtils {
 			DocumentsT document = new DocumentsT();
 			document.setDocContent(map.getValue());
 			document.setDocName(map.getKey());
+			document.setEntityId(Constants.NONE);
+			document.setDocType(Constants.NONE);
 			document.setVersion(1);
 			document.setCreatedBy(Constants.SYSTEM_USER);
 			document.setModifiedBy(Constants.SYSTEM_USER);
