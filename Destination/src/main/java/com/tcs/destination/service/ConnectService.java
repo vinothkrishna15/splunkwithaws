@@ -712,6 +712,17 @@ public class ConnectService {
 		}
 
 	}
+	
+	private void populateConnectTcsAccountContactBatch(String connectId,
+			List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList)
+					throws Exception {
+		logger.debug("Inside populateConnectTcsAccountContactLinks() method");
+		for (ConnectTcsAccountContactLinkT conTcsAccConLink : conTcsAccConLinkTList) {
+			// conTcsAccConLink.setCreatedModifiedBy(currentUserId);
+			conTcsAccConLink.setConnectId(connectId);
+		}
+
+	}
 
 	private void populateConnectSecondaryOwnerLinks(String connectId,
 			List<ConnectSecondaryOwnerLinkT> conSecOwnLinkTList) {
@@ -726,6 +737,17 @@ public class ConnectService {
 		}
 
 	}
+	
+	private void populateConnectSecondaryOwnerBatch(String connectId,
+			List<ConnectSecondaryOwnerLinkT> conSecOwnLinkTList) {
+		logger.debug("Inside populateConnectSecondaryOwnerLinks() method");
+		for (ConnectSecondaryOwnerLinkT conSecOwnLink : conSecOwnLinkTList) {
+			// conSecOwnLink.setCreatedModifiedBy(currentUserId);
+			conSecOwnLink.setConnectId(connectId);
+			
+		}
+
+	}
 
 	private void populateConnectSubSpLinks(String connectId,
 			List<ConnectSubSpLinkT> conSubSpLinkTList) {
@@ -736,6 +758,17 @@ public class ConnectService {
 					.getUserId());
 			conSubSpLink.setModifiedBy(DestinationUtils.getCurrentUserDetails()
 					.getUserId());
+			// conSubSpLink.setCreatedModifiedBy(currentUserId);
+		}
+
+	}
+	
+	private void populateConnectSubSpBatch(String connectId,
+			List<ConnectSubSpLinkT> conSubSpLinkTList) {
+		logger.debug("Inside populateConnectSubSpLinks() method");
+		for (ConnectSubSpLinkT conSubSpLink : conSubSpLinkTList) {
+			conSubSpLink.setConnectId(connectId);
+			
 			// conSubSpLink.setCreatedModifiedBy(currentUserId);
 		}
 
@@ -754,6 +787,16 @@ public class ConnectService {
 		}
 
 	}
+	
+	private void populateConnectOfferingBatch(String connectId,
+			List<ConnectOfferingLinkT> conOffLinkTList) {
+		logger.debug("Inside populateConnectOfferingLinks() method");
+		for (ConnectOfferingLinkT conOffLink : conOffLinkTList) {
+			// conOffLink.setCreatedModifiedBy(currentUserId);
+			conOffLink.setConnectId(connectId);
+		}
+
+	}
 
 	private void populateConnectCustomerContactLinks(ConnectT connect,
 			List<ConnectCustomerContactLinkT> conCustConLinkTList) {
@@ -767,6 +810,16 @@ public class ConnectService {
 					.getCurrentUserDetails().getUserId());
 		}
 	}
+	
+	private void populateConnectCustomerContactBatch(ConnectT connect,
+			List<ConnectCustomerContactLinkT> conCustConLinkTList) {
+		logger.debug("Inside populateConnectCustomerContactLinks() method");
+		for (ConnectCustomerContactLinkT conCustConLink : conCustConLinkTList) {
+			// conCustConLink.setCreatedModifiedBy(currentUserId);
+			conCustConLink.setConnectId(connect.getConnectId());
+		}
+	}
+
 
 	private void populateNotes(String customerId, String partnerId,
 			String categoryUpperCase, String connectId, List<NotesT> noteList) {
@@ -1577,7 +1630,7 @@ public class ConnectService {
 			ConnectT connectT = saveIterator.next();
 			List<ConnectOfferingLinkT> offeringList = mapConnectOffering.get(i);
 			if (CollectionUtils.isNotEmpty(offeringList)) {
-				populateConnectOfferingLinks(connectT.getConnectId(),
+				populateConnectOfferingBatch(connectT.getConnectId(),
 						offeringList);
 			}
 			List<ConnectOpportunityLinkIdT> oppourtunityList = mapOpportunityLink
@@ -1588,23 +1641,23 @@ public class ConnectService {
 			List<ConnectSecondaryOwnerLinkT> secOwnerList = mapSecondaryOwner
 					.get(i);
 			if (CollectionUtils.isNotEmpty(secOwnerList)) {
-				populateConnectSecondaryOwnerLinks(connectT.getConnectId(),
+				populateConnectSecondaryOwnerBatch(connectT.getConnectId(),
 						secOwnerList);
 			}
 			List<ConnectSubSpLinkT> subSpList = mapSubSp.get(i);
 			if (CollectionUtils.isNotEmpty(subSpList)) {
-				populateConnectSubSpLinks(connectT.getConnectId(), subSpList);
+				populateConnectSubSpBatch(connectT.getConnectId(), subSpList);
 			}
 			List<ConnectTcsAccountContactLinkT> tcsContactList = mapTcsContact
 					.get(i);
 			if (CollectionUtils.isNotEmpty(tcsContactList)) {
-				populateConnectTcsAccountContactLinks(connectT.getConnectId(),
+				populateConnectTcsAccountContactBatch(connectT.getConnectId(),
 						tcsContactList);
 			}
 			List<ConnectCustomerContactLinkT> custContactList = mapCustomerContact
 					.get(i);
 			if (CollectionUtils.isNotEmpty(custContactList)) {
-				populateConnectCustomerContactLinks(connectT,
+				populateConnectCustomerContactBatch(connectT,
 						custContactList);
 			}
 

@@ -232,24 +232,34 @@ public class ConnectUploadHelper {
 		String startDate = data[9];
 		String startTime = data[10];
 		String endTime = data[11];
-		if (!StringUtils.isEmpty(startDate)) {
+		if (!StringUtils.isEmpty(startDate) && !StringUtils.isEmpty(startTime)) {
 			Date date = DateUtils.parse(startDate, DateUtils.FORMAT_DATE_WITH_SLASH);
 			Date time = DateUtils.parse(startTime, DateUtils.FORMAT_HH_COLON_MM);
+			if(date!=null && time!=null){
 			connectT.setStartDatetimeOfConnect(new Timestamp(DateUtils.mergeDateWithTime(date, time).getTime()));
+			} else {
+				error.setRowNumber(rowNumber);
+				errorMsg.append("Invalid start Date/Time Format ");
+			}
 		} else {
 			error.setRowNumber(rowNumber);
-			errorMsg.append("start Date Of Connect Is Mandatory; ");
+			errorMsg.append("start Date/Time Of Connect Is Mandatory; ");
 		}
 
 		// CONNECT END DATE OF CONNECT
 		String endDate = data[9];
-		if (!StringUtils.isEmpty(endDate)) {
+		if (!StringUtils.isEmpty(endDate) && !StringUtils.isEmpty(endTime)) {
 			Date date = DateUtils.parse(endDate, DateUtils.FORMAT_DATE_WITH_SLASH);
 			Date time = DateUtils.parse(endTime, DateUtils.FORMAT_HH_COLON_MM);
+			if(date!=null && time!=null){
 			connectT.setEndDatetimeOfConnect((new Timestamp(DateUtils.mergeDateWithTime(date, time).getTime())));
+			} else {
+				error.setRowNumber(rowNumber);
+				errorMsg.append("Invalid end Date/Time Format ");
+			}	
 		} else {
 			error.setRowNumber(rowNumber);
-			errorMsg.append("End Date Of Connect Is Mandatory; ");
+			errorMsg.append("End Date/time Of Connect Is Mandatory; ");
 		}
 
 		// TIME ZONE
@@ -296,9 +306,10 @@ public class ConnectUploadHelper {
 
 		// PRIMARY OWNER
 		String primaryOwner = data[15];
-		if (!StringUtils.isEmpty(primaryOwner.trim())) {
+		
+		if (!StringUtils.isEmpty(primaryOwner)) {
 
-			UserT userT = userRepository.findByUserName(primaryOwner);
+			UserT userT = userRepository.findByUserName(primaryOwner.trim());
 			if (userT != null) {
 				connectT.setPrimaryOwner(userT.getUserId());
 			} else {
