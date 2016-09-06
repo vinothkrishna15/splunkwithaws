@@ -1,5 +1,6 @@
 package com.tcs.destination.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -13,6 +14,7 @@ import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DocumentsT;
 import com.tcs.destination.bean.OpportunityT;
+import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.TaskT;
@@ -26,6 +28,7 @@ import com.tcs.destination.data.repository.TaskRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.DestinationUtils;
+import com.tcs.destination.utils.PaginationUtils;
 import com.tcs.destination.utils.StringUtils;
 
 /**
@@ -247,6 +250,51 @@ public class DocumentsService {
 		  
 		  logger.info("DocumentsService - inside validateDocumentsT end");
 	}
+	
+	/**
+	 * This service is used to retrieve the document list of the logged in user
+	 * @param page
+	 * @param count
+	 * @return
+	 */
+	public PageDTO<DocumentsT> getMyDocumentList(int page, int count) throws DestinationException {
+		
+		logger.debug("getMyDocumentList:Start of retrieving document list");
+		PageDTO<DocumentsT> documentResponse = new PageDTO<DocumentsT>();
+		List<DocumentsT> documents = new ArrayList<DocumentsT>();
+	    documents= (List<DocumentsT>)documentsTRepository.findByEntityTypeNotIn("Weekly Report");
+	    documents = paginateDocumentList(page, count, documents);
+	    documentResponse.setTotalCount(documents.size());
+		documentResponse.setContent(documents);
+		logger.debug("getMyDocumentList:End of retrieving document list");
+		return documentResponse;
+	
+	}
+	
+	/**
+	 * This method performs pagination for the getMyDocumentList service
+	 * 
+	 * @param page
+	 * @param count
+	 * @param documents
+	 * @return
+	 */
+	private List<DocumentsT> paginateDocumentList(int page, int count,
+			List<DocumentsT> documents) {
+		if (PaginationUtils.isValidPagination(page, count, documents.size())) {
+			int fromIndex = PaginationUtils.getStartIndex(page, count,
+					documents.size());
+			int toIndex = PaginationUtils.getEndIndex(page, count,
+					documents.size()) + 1;
+			documents = documents.subList(fromIndex, toIndex);
+			logger.debug("My documents after pagination size is "
+					+ documents.size());
+		} else {
+			documents = null;
+		}
+		return documents;
+	}
+
 
 	
 	/**

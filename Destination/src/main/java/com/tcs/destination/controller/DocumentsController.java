@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.DocumentsT;
+import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.DocumentsService;
@@ -139,5 +140,39 @@ public class DocumentsController {
 					"Backend error in downloading the document");
 		}
 	}
+	
+	/**
+	 * This service is used to retrieve the details of document list
+	 * @param page
+	 * @param count
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/myDocumentList", method = RequestMethod.GET)
+	public @ResponseBody ResponseEntity<String> getMyWorklist(
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "30") int count,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Inside DocumentsController: Start of retrieving document list for a user");
+		PageDTO<DocumentsT> documentList = new PageDTO<DocumentsT>();
+		try {
+			documentList = documentsService.getMyDocumentList(page,count);
+			logger.info("Inside DocumentsController: End of retrieving document list for a user");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews(fields,
+							view, documentList), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while retrieving document list for a user");
+		}
+	}
+
 
 }
