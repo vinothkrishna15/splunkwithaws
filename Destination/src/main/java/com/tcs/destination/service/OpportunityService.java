@@ -889,16 +889,13 @@ public class OpportunityService {
 	private void saveBfmFile(OpportunityT createdOpportunity, OpportunityT opportunity, Status status) throws Exception {
 		List<Integer> bfmSalesStages = Arrays.asList(5,6,7,8,9);
 		WorkflowBfmT workflowBfmSaved = new WorkflowBfmT();
-		if( bfmSalesStages.contains(opportunity.getSalesStageCode())){
+		if( bfmSalesStages.contains(opportunity.getSalesStageCode()) 
+				&& opportunity.getDealFinancialFile() != null 
+				&& opportunity.getDealFinancialFile().length > 0) {
 			WorkflowBfmT workflowBfmt = new WorkflowBfmT();
-
-			if (opportunity.getDealFinancialFile() == null) {
-				throw new DestinationException(HttpStatus.BAD_REQUEST,"Deal Financial File should not be empty!");
-			}
-			if (opportunity.getDealFinancialFile() != null) {
-				if (opportunity.getBfmFileName() == null) {
-					throw new DestinationException(HttpStatus.BAD_REQUEST,"BFM file name should not be empty!");
-				}
+			
+			if (opportunity.getBfmFileName() == null) {
+				throw new DestinationException(HttpStatus.BAD_REQUEST,"BFM file name should not be empty!");
 			}
 			workflowBfmt.setBfmFileName(opportunity.getBfmFileName());
 			workflowBfmt.setDealFinancialFile(opportunity.getDealFinancialFile());
