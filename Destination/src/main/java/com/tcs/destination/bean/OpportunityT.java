@@ -119,6 +119,9 @@ public class OpportunityT implements Serializable, Cloneable {
 
 	@Column(name = "strategic_deal")
 	private String strategicDeal;
+	
+	@Column(name="delivery_team_flag")
+	private Boolean deliveryTeamFlag;
 
 	//bi-directional many-to-one association to OpportunityDeliveryOwnerCentreMappingT
 	@OneToMany(mappedBy="opportunityT")
@@ -139,6 +142,9 @@ public class OpportunityT implements Serializable, Cloneable {
 	
 	@Column(name = "delivery_ownership_id")
 	private Integer deliveryOwnershipId;
+	
+	@Column(name="delivery_type")
+	private String deliveryType;
 
 	// bi-directional many-to-one association to BidDetailsT
 	@OneToMany(mappedBy = "opportunityT")
@@ -219,6 +225,11 @@ public class OpportunityT implements Serializable, Cloneable {
 	@ManyToOne
 	@JoinColumn(name = "opportunity_owner", insertable = false, updatable = false)
 	private UserT primaryOwnerUser;
+	
+	// bi-directional many-to-one association to DeliveryTypeMappingT
+	@ManyToOne
+	@JoinColumn(name = "delivery_type", insertable = false, updatable = false)
+	private DeliveryTypeMappingT deliveryTypeMappingT;
 
 	// bi-directional many-to-one association to
 	// OpportunityTcsAccountContactLinkT
@@ -1284,4 +1295,35 @@ public class OpportunityT implements Serializable, Cloneable {
 		this.bfmFileName = bfmFileName;
 	}
 
+	public Boolean getDeliveryTeamFlag() {
+		return deliveryTeamFlag;
+	}
+
+	public void setDeliveryTeamFlag(Boolean deliveryTeamFlag) {
+		this.deliveryTeamFlag = deliveryTeamFlag;
+	}
+
+	public DeliveryTypeMappingT getDeliveryTypeMappingT() {
+		return deliveryTypeMappingT;
+	}
+
+	public void setDeliveryTypeMappingT(DeliveryTypeMappingT deliveryTypeMappingT) {
+		this.deliveryTypeMappingT = deliveryTypeMappingT;
+	}
+
+	public void setOpportunityDeliveryCentreMappingTs(
+			List<OpportunityDeliveryCentreMappingT> opportunityDeliveryCentreMappingTs) {
+		this.opportunityDeliveryCentreMappingTs = opportunityDeliveryCentreMappingTs;
+	}
+
+	public String getDeliveryType() {
+		return deliveryType;
+	}
+
+	public void setDeliveryType(String deliveryType) {
+		this.deliveryType = deliveryType;
+	}
+	
+	
+	
 }

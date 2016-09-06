@@ -39,16 +39,30 @@ public class DeliveryCentreT implements Serializable {
 
 	@Column(name="modified_datetime")
 	private Timestamp modifiedDatetime;
+	
+	@Column(name="created_by")
+	private String createdBy;
+	
+	@Column(name="modified_by")
+	private String modifiedBy;
+	
+	@Column(name="delivery_centre_head")
+	private String deliveryCentreHead;
 
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="created_by")
-	private UserT userT1;
+	@JoinColumn(name="created_by", insertable = false, updatable = false)
+	private UserT createdByUser;
 
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="modified_by")
-	private UserT userT2;
+	@JoinColumn(name="modified_by", insertable = false, updatable = false)
+	private UserT modifiedByUser;
+	
+	// bi-directional many-to-one association to UserT
+	@ManyToOne
+	@JoinColumn(name = "delivery_centre_head", insertable = false, updatable = false)
+	private UserT deliveryCentreHeadUser;
 
 	//bi-directional many-to-one association to OpportunityDeliveryCentreMappingT
 	@OneToMany(mappedBy="deliveryCentreT")
@@ -97,22 +111,6 @@ public class DeliveryCentreT implements Serializable {
 		this.modifiedDatetime = modifiedDatetime;
 	}
 
-	public UserT getUserT1() {
-		return this.userT1;
-	}
-
-	public void setUserT1(UserT userT1) {
-		this.userT1 = userT1;
-	}
-
-	public UserT getUserT2() {
-		return this.userT2;
-	}
-
-	public void setUserT2(UserT userT2) {
-		this.userT2 = userT2;
-	}
-
 	public List<OpportunityDeliveryCentreMappingT> getOpportunityDeliveryCentreMappingTs() {
 		return this.opportunityDeliveryCentreMappingTs;
 	}
@@ -134,5 +132,55 @@ public class DeliveryCentreT implements Serializable {
 
 		return opportunityDeliveryCentreMappingT;
 	}
+
+	public String getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(String createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	public String getModifiedBy() {
+		return modifiedBy;
+	}
+
+	public void setModifiedBy(String modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+
+	public String getDeliveryCentreHead() {
+		return deliveryCentreHead;
+	}
+
+	public void setDeliveryCentreHead(String deliveryCentreHead) {
+		this.deliveryCentreHead = deliveryCentreHead;
+	}
+
+	public UserT getCreatedByUser() {
+		return createdByUser;
+	}
+
+	public void setCreatedByUser(UserT createdByUser) {
+		this.createdByUser = createdByUser;
+	}
+
+	public UserT getModifiedByUser() {
+		return modifiedByUser;
+	}
+
+	public void setModifiedByUser(UserT modifiedByUser) {
+		this.modifiedByUser = modifiedByUser;
+	}
+
+	public UserT getDeliveryCentreHeadUser() {
+		return deliveryCentreHeadUser;
+	}
+
+	public void setDeliveryCentreHeadUser(UserT deliveryCentreHeadUser) {
+		this.deliveryCentreHeadUser = deliveryCentreHeadUser;
+	}
+	
+	
 
 }
