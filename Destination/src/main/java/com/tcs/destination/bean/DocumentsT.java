@@ -4,6 +4,11 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.tcs.destination.utils.Constants;
+
 import java.sql.Timestamp;
 
 
@@ -12,6 +17,8 @@ import java.sql.Timestamp;
  * 
  */
 @Entity
+@JsonFilter(Constants.FILTER)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "documentsId")
 @Table(name="documents_t")
 @NamedQuery(name="DocumentsT.findAll", query="SELECT d FROM DocumentsT d")
 public class DocumentsT implements Serializable {
