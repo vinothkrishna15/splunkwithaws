@@ -21,12 +21,10 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.DataProcessingRequestT;
-import com.tcs.destination.data.repository.ContactCustomerLinkTRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.utils.Constants;
 
@@ -47,9 +45,6 @@ StepExecutionListener {
 	private String filePath;
 
 	private FileInputStream fileInputStream;
-
-	@Autowired
-	ContactCustomerLinkTRepository contactCustomerLinkTRepository;
 
 	@Override
 	public void beforeStep(StepExecution stepExecution) {
@@ -135,12 +130,12 @@ StepExecutionListener {
 
 					Cell cellContactTelephone = row.createCell(6);
 					cellContactTelephone.setCellValue(contact.getContactTelephone());
+					
+					// Increment row counter
+					rowCount++;
 				}
-				// Increment row counter
-				rowCount++;
 			}
 		}
-
 	}
 
 	public StepExecution getStepExecution() {

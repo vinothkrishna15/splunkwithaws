@@ -771,7 +771,7 @@ public class OpportunityService {
 					isBfmRaied = true;
 				}
 			}
-			
+
 			opportunity.setWorkflowBfmRaised(isBfmRaied);
 			return opportunity;
 		} else {
@@ -891,11 +891,14 @@ public class OpportunityService {
 		WorkflowBfmT workflowBfmSaved = new WorkflowBfmT();
 		if( bfmSalesStages.contains(opportunity.getSalesStageCode())){
 			WorkflowBfmT workflowBfmt = new WorkflowBfmT();
-			if (opportunity.getBfmFileName() == null) {
-				throw new DestinationException(HttpStatus.BAD_REQUEST,"BFM file name should not be empty!");
-			}
+
 			if (opportunity.getDealFinancialFile() == null) {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,"Deal Financial File should not be empty!");
+			}
+			if (opportunity.getDealFinancialFile() != null) {
+				if (opportunity.getBfmFileName() == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST,"BFM file name should not be empty!");
+				}
 			}
 			workflowBfmt.setBfmFileName(opportunity.getBfmFileName());
 			workflowBfmt.setDealFinancialFile(opportunity.getDealFinancialFile());

@@ -237,10 +237,10 @@ public class OpportunityDownloadService {
 
 					Cell cellContactTelephone = row.createCell(6);
 					cellContactTelephone.setCellValue(contact.getContactTelephone());
+					
+					// Increment row counter
+					rowCount++;
 				}
-
-				// Increment row counter
-				rowCount++;
 			}
 		}
 		logger.debug("End:Inside populateTcsAndCustomerContactSheet of OpportunityDownloadService");
