@@ -379,8 +379,8 @@ public class WorkflowService {
 					listOfBfmRequests.add(pendingBfmRequests);
 				}
 				typeList.add(type.getType());
-				typeList.add(type.ESCALATION_A.getType());
-				typeList.add(type.ESCALATION_B.getType());
+				typeList.add(EntityTypeId.ESCALATION_A.getType());
+				typeList.add(EntityTypeId.ESCALATION_B.getType());
 				submittedAndApprovedRequests=getSubmittedAndApprovedRequest(status, userId,typeList);
 
 				populateResponse(listOfBfmRequests,
@@ -746,9 +746,10 @@ public class WorkflowService {
 							myWorklistDTO.setEntityType(EntityTypeId.BFM.getDisplayName());
 							WorkflowBfmT bfmEntity = workflowBfmTRepository.findOne(requestT.getEntityId());
 							myWorklistDTO.setEntity(bfmEntity);
-							myWorklistDTO.setEntity(bfmEntity.getBfmFileName());
+							myWorklistDTO.setEntityName(bfmEntity.getOpportunityT().getOpportunityName());
 							break;
-
+				default:
+					break;
 				}
 				myWorklistDTO.setRequestId(requestT.getRequestId());
 				WorkflowStepT stepT = workflowStepRepository
@@ -864,7 +865,7 @@ public class WorkflowService {
 							WorkflowBfmT entity = workflowBfmTRepository.findOne(MyWorklistDTOArray[2].toString());
 							worklist.setEntity(entity);
 							//OpportunityT opportunityBfm = opportunityRepository.findByOpportunityId(entity.getOpportunityId());
-							worklist.setEntityName(entity.getBfmFileName());
+							worklist.setEntityName(entity.getOpportunityT().getOpportunityName());
 						} 
 						else 
 						{
