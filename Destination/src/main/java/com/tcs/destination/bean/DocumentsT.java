@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 
 /**
@@ -67,6 +68,9 @@ public class DocumentsT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="modified_by", insertable = false, updatable = false)
 	private UserT modifiedByUser;
+	
+	@Transient
+	private List<SearchKeywordsT> searchKeywordsTs;
 
 	public DocumentsT() {
 	}
@@ -173,6 +177,14 @@ public class DocumentsT implements Serializable {
 
 	public void setModifiedByUser(UserT modifiedByUser) {
 		this.modifiedByUser = modifiedByUser;
+	}
+
+	public List<SearchKeywordsT> getSearchKeywordsTs() {
+		return searchKeywordsTs;
+	}
+
+	public void setSearchKeywordsTs(List<SearchKeywordsT> searchKeywordsTs) {
+		this.searchKeywordsTs = searchKeywordsTs;
 	}
 
     

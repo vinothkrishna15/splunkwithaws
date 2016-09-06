@@ -16,6 +16,7 @@ import com.tcs.destination.bean.DocumentsT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PartnerMasterT;
+import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.TaskT;
 import com.tcs.destination.data.repository.CollaborationCommentsRepository;
@@ -24,6 +25,7 @@ import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.DocumentsTRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
+import com.tcs.destination.data.repository.SearchKeywordsRepository;
 import com.tcs.destination.data.repository.TaskRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
@@ -63,6 +65,10 @@ public class DocumentsService {
 	
 	@Autowired
 	CollaborationCommentsRepository commentsRepository;
+	
+	@Autowired
+	SearchKeywordsRepository searchKeywordsRepository;
+
 
 	/**
 	 * This method is used to find the document using id
@@ -91,10 +97,37 @@ public class DocumentsService {
       	logger.info("DocumentsService - inside createDocument start");
 		validateDocumentsT(documentsT);
 		documentsT = documentsTRepository.save(documentsT);
+		
+		//save child object - search keywords
+		saveChildObjects(documentsT);
+		
 		status.setStatus(Status.SUCCESS, documentsT.getDocumentsId() + " : " + documentsT.getDocName() + " is Saved !!" );	
 		logger.info("DocumentsService - inside createDocument end");
 	}
 
+	/**
+	 * saves all child objects
+	 * @param documentsT
+	 */
+	private void saveChildObjects(DocumentsT documentsT) {
+		saveSearchKeywords(documentsT);
+	}
+
+	/**
+	 * saves search keywords entries for the document
+	 * @param documentsT
+	 */
+	private void saveSearchKeywords(DocumentsT documentsT) {
+		if (documentsT.getSearchKeywordsTs() != null) {
+			for (SearchKeywordsT searchKeywordT : documentsT
+					.getSearchKeywordsTs()) {
+				searchKeywordT.setEntityType(EntityType.DOCUMENT.toString());
+				searchKeywordT.setEntityId(documentsT.getDocumentsId());
+				searchKeywordT.setCreatedModifiedBy(documentsT.getModifiedBy());
+				searchKeywordsRepository.save(searchKeywordT);
+			}
+		}
+	}
 	
 	/**
 	 * Method to validate documents Object
