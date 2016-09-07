@@ -4,7 +4,8 @@ public enum UserGroup {
 	BDM("BDM"), BDM_SUPERVISOR("BDM Supervisor"), BID_OFFICE(
 			"Bid Office"), GEO_HEADS("GEO Heads"), STRATEGIC_INITIATIVES("Strategic Initiatives"),
 			SYSTEM("System"), IOU_HEADS("IOU Heads"), PRACTICE_HEAD("Practice Head"), PRACTICE_OWNER("Practice Owner"),
-			REPORTING_TEAM("Reporting Team"), PMO("PMO");
+			REPORTING_TEAM("Reporting Team"), PMO("PMO"), DELIVERY_CENTRE_HEAD("Delivery Centre Head"),
+			DELIVERY_CLUSTER_HEAD("Delivery Cluster Head");
 
 	private final String value;
 
@@ -28,7 +29,7 @@ public enum UserGroup {
 		}
 		return false;
 	}
-	
+
 	public static String getName(String value) {
 		UserGroup userGroup = getUserGroup(value);
 		if(userGroup != null) {
@@ -44,7 +45,7 @@ public enum UserGroup {
 		}
 		return null;
 	}
-	
+
 	public String getValue() {
 		return value;
 	}

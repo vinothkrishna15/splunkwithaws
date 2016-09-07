@@ -829,14 +829,19 @@ public class OpportunityService {
 			boolean isBulkDataLoad, String bidRequestType, String actualSubmissionDate, Status status) throws Exception {
 		logger.debug("Inside createOpportunity() service");
 		AsyncJobRequest asyncJobRequest = new AsyncJobRequest();
+		Boolean deliveryTeamFlag = false;
 		OpportunityT createdOpportunity = null;
 		if (opportunity != null) {
 			opportunity.setOpportunityId(null);
-			opportunity.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
-			opportunity.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 			String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 			UserT user = userRepository.findByUserId(userId);
 			String userGroup = user.getUserGroup();
+			if ((userGroup.equals(UserGroup.DELIVERY_CENTRE_HEAD.toString())) || (userGroup.equals(UserGroup.DELIVERY_CENTRE_HEAD.toString()))) {
+				deliveryTeamFlag = true;
+			}
+			opportunity.setDeliveryTeamFlag(deliveryTeamFlag);
+			opportunity.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			opportunity.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 			createdOpportunity = saveOpportunity(opportunity, false, userGroup,
 					null);
 			// check sales stage code and save deal financial file in workflowbfm_t  
