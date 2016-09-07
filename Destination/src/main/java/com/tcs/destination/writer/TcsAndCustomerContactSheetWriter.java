@@ -21,10 +21,12 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.DataProcessingRequestT;
+import com.tcs.destination.data.repository.ContactCustomerLinkTRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.utils.Constants;
 
@@ -32,7 +34,7 @@ public class TcsAndCustomerContactSheetWriter implements ItemWriter<ContactT>,
 StepExecutionListener {
 
 	private static final Logger logger = LoggerFactory
-			.getLogger(SubSpSheetWriter.class);
+			.getLogger(TcsAndCustomerContactSheetWriter.class);
 
 	private StepExecution stepExecution;
 
@@ -41,10 +43,13 @@ StepExecutionListener {
 	private Workbook workbook;
 
 	private int rowCount = 1;
-
+	
 	private String filePath;
 
 	private FileInputStream fileInputStream;
+	
+	@Autowired
+	ContactCustomerLinkTRepository contactCustomerLinkTRepository;
 
 	@Override
 	public void beforeStep(StepExecution stepExecution) {
@@ -99,18 +104,22 @@ StepExecutionListener {
 
 		if (items != null) {
 			for (ContactT contact : items) {
-				// Create row with rowCount
-				Row row = sheet.createRow(rowCount);
+				
 				String customerName = "";
 
 				// Create new Cell and set cell value
 				if (contact.getContactCategory().equalsIgnoreCase(EntityType.CUSTOMER.toString())) {
 
-					Cell cellCustomerName = row.createCell(0);
-					List<ContactCustomerLinkT> contactCustomerLinkTs =  contact.getContactCustomerLinkTs();
+					// Create row with rowCount
+					Row row = sheet.createRow(rowCount);
+					
+					List<ContactCustomerLinkT> contactCustomerLinkTs = contactCustomerLinkTRepository.findByContactId(contact.getContactId());
 					if (contactCustomerLinkTs.size() > 0) {
-						customerName = contactCustomerLinkTs.get(0).getCustomerMasterT().getCustomerName();
+						if (contactCustomerLinkTs.get(0).getCustomerMasterT() != null) {
+							customerName = contactCustomerLinkTs.get(0).getCustomerMasterT().getCustomerName();
+						}
 					}
+					Cell cellCustomerName = row.createCell(0);
 					cellCustomerName.setCellValue(customerName.trim());
 
 					Cell cellContactType = row.createCell(1);

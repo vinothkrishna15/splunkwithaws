@@ -221,6 +221,9 @@ public interface ContactRepository extends CrudRepository<ContactT, String> {
 			+ "ORDER BY contact_name DESC "
 			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
 	List<ContactT> getContactsByCustomer(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	@Query(value ="select distinct(CON.*) from contact_t CON, product_contact_link_t PRDCLT where CON.active='true' and ((CON.contact_id=PRDCLT.contact_id and PRDCLT.product_id = ?1) or ?1='')", nativeQuery = true)
+	List<ContactT> findContactsByProductId(String productId);
 	
 	/* ---------- ends - repository methods for smart search --------- */
 }

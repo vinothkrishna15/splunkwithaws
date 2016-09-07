@@ -387,7 +387,7 @@ public class ContactService {
 	 * @return contacts.
 	 */
 	public PaginatedResponse findContactsByContactType(String customerId,
-			String partnerId, String contactType, String userId,int page,
+			String partnerId, String productId, String contactType, String userId,int page,
 			int count)
 					throws Exception {
 		logger.debug("Inside findContactsByContactType Service");
@@ -396,6 +396,12 @@ public class ContactService {
 
 		List<ContactT> contactList = contactRepository.findByContactType(
 				customerId, partnerId, contactType);
+		List<ContactT> productContactList = contactRepository.findContactsByProductId(productId);
+		for (ContactT productContact : productContactList) {
+			if (!contactList.contains(productContact)){
+			contactList.addAll(productContactList);
+			}
+		}
 		contactResponse.setTotalCount(contactList.size());
 		contactList = paginateContacts(page, count, contactList);
 		contactResponse.setContactTs(contactList);
@@ -606,7 +612,7 @@ public class ContactService {
 			if (productContactDuplicates.size() > 0) {
 				throw new DestinationException(HttpStatus.BAD_REQUEST, "This Product and Contact detail already exists!!");
 			} else {
-			productContactLinkTRepository.save(productcontatcLinkT);
+				productContactLinkTRepository.save(productcontatcLinkT);
 			}
 		}
 		return contactRepository.save(contact);
