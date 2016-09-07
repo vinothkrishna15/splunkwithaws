@@ -1,6 +1,6 @@
 <html>
 	<body>
-		<h3>Dear user,</h3>
+		<p>Dear User,</p>
 		<p>
 			 Deal financial approval request for an opportunity has been submitted by ${userName}. 	
 		<br>

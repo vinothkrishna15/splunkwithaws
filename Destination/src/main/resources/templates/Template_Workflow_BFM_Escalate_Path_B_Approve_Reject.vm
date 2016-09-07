@@ -1,6 +1,6 @@
 <html>
 	<body>
-		<h3>Dear user,</h3>
+		<p>Dear User,</p>
 		<p>
 			 The exception initiated for deal financial approval of following opportunity, is ${status} by the Geo Head. 	
 		</p>

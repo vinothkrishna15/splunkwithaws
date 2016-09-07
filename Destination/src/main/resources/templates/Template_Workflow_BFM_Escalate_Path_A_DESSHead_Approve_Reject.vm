@@ -1,6 +1,6 @@
 <html>
 	<body>
-		<h3>Dear user,</h3>
+		<p>Dear User,</p>
 		<p>
         The exception initiated for deal financial submitted for the following opportunity, is ${status} by the DESS Head.
 		</p>

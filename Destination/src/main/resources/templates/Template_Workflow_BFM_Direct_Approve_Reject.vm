@@ -1,6 +1,6 @@
 <html>
 	<body>
-		<h3>Dear user,</h3>
+		<p>Dear User,</p>
 		<p>
 			 Your deal financial request for opportunity : ${opportunityName} with customer : ${customerName} and Opportunity ID [${opportunityId}] is ${status}. 	
 		</p>

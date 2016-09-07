@@ -2361,8 +2361,8 @@ public class DestinationMailUtils {
 	private String getCustomerOpportunitySubString(String opportunityId,
 			String customerName) {
 		StringBuffer subString=new StringBuffer("");
-		subString.append("["+opportunityId+"]");
-		subString.append("- ["+customerName+"]");
+		subString.append(opportunityId);
+		subString.append(" - "+customerName);
 		return subString.toString();
 		
 	}
