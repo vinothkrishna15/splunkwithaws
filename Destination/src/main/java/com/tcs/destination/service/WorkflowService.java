@@ -740,7 +740,8 @@ public class WorkflowService {
 						case OPPORTUNITY:
 							myWorklistDTO.setEntityType(EntityTypeId.OPPORTUNITY.getDisplayName());
 							OpportunityT opportunityEntity = workflowOpportunityRepository.findOne(requestT.getEntityId());
-							myWorklistDTO.setEntity(opportunityEntity.getOpportunityName());
+							myWorklistDTO.setEntity(opportunityEntity);
+							myWorklistDTO.setEntityName(opportunityEntity.getOpportunityName());
 							break;
 						case BFM:
 							myWorklistDTO.setEntityType(EntityTypeId.BFM.getDisplayName());
@@ -2147,12 +2148,7 @@ public class WorkflowService {
 			String userGroupParam = "%" + userGroup + "%";
 			query1.setParameter("userId", userId);
 			query1.setParameter("userGroup", userGroupParam);
-			if (resultList == null) {
-				resultList = query1.getResultList();
-			} else {
-				List<Object[]> resultForPMOPending = query1.getResultList();
-				resultList.addAll(resultForPMOPending);
-			}
+			resultList = query1.getResultList();
 			// query.setParameter("pmoValue", pmoValue);
 		}
 		// Query to get pending with group of users, based on user's role and
