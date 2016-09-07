@@ -224,7 +224,9 @@ public class OpportunityDownloadService {
 					cellContactType.setCellValue(contact.getContactType().trim());
 
 					Cell employeeNumber = row.createCell(2);
+					if (contact.getEmployeeNumber() != null) {
 					employeeNumber.setCellValue(contact.getEmployeeNumber().trim());
+					}
 
 					Cell cellContactName = row.createCell(3);
 					cellContactName.setCellValue(contact.getContactName());
