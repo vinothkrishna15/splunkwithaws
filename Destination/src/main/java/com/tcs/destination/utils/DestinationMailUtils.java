@@ -4,7 +4,6 @@ import static com.tcs.destination.utils.DateUtils.ACTUAL_FORMAT;
 import static com.tcs.destination.utils.DateUtils.DATE_FORMAT_MONTH_NAME;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -16,7 +15,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Random;
 import java.util.Set;
 
 import net.sf.dynamicreports.jasper.builder.JasperReportBuilder;
@@ -2138,14 +2136,6 @@ public class DestinationMailUtils {
 			+ ".pdf", bytesUK);
 	//Saving the weekly report to Documents
 	saveDocuments(byteMap);
-	
-	
-	File file1 = new File("/Users/bnpp/Desktop/Mani_PDF/pdf_Americas_" + new Random().nextInt()+".pdf");
-	File file2 = new File("/Users/bnpp/Desktop/Mani_PDF/pdf_APAC_" + new Random().nextInt()+".pdf");
-	File file3 = new File("/Users/bnpp/Desktop/Mani_PDF/pdf_UK_" + new Random().nextInt()+".pdf");
-	FileUtils.writeByteArrayToFile(file1 , bytesAmer);
-	FileUtils.writeByteArrayToFile(file2, bytesAPAC);
-	FileUtils.writeByteArrayToFile(file3, bytesUK);
 	
 	String templateLoc = weeklyReportEmailTemplateLoc;
 	String subject = new StringBuffer(mailSubjectAppendEnvName)
