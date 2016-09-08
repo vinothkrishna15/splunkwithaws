@@ -2432,7 +2432,7 @@ public class DestinationMailUtils {
 				userName = userRepository.findUserNameByUserId(workflowBfmT
 						.getCreatedBy());
 				subject.append(Constants.WORKFLOW_BFM_ESCALATE_PENDING_SUBJECT);
-				subject.append("["+customerName+"]");
+				subject.append(customerName);
 				
 				
 				WorkflowStepT workflowStepPending = workflowStepRepository
@@ -2860,7 +2860,7 @@ public class DestinationMailUtils {
 		// populate subject
 		StringBuffer subject = new StringBuffer("");
 		subject.append(Constants.WORKFLOW_BFM_ESCALATE_PATH_A_REJECTED_SUBJECT);
-		subject.append("["+customerName+"]");
+		subject.append(customerName);
 		String mailSubject = formatSubject(subject.toString());
 		message.setSubject(mailSubject);
 		
@@ -3016,7 +3016,7 @@ public class DestinationMailUtils {
 		// populate subject
 		StringBuffer subject = new StringBuffer("");
 		subject.append(Constants.WORKFLOW_BFM_ESCALATE_PATH_A_APPROVED_SUBJECT);
-		subject.append("["+customerName+"]");
+		subject.append(customerName);
 		String mailSubject = formatSubject(subject.toString());
 		message.setSubject(mailSubject);
 		
@@ -3141,7 +3141,7 @@ public class DestinationMailUtils {
 		// populate subject
 		StringBuffer subject = new StringBuffer("");
 		subject.append(Constants.WORKFLOW_BFM_ESCALATE_PATH_A_REJECTED_SUBJECT);
-		subject.append("["+customerName+"]");
+		subject.append(customerName);
 		String mailSubject = formatSubject(subject.toString());
 		message.setSubject(mailSubject);
 		
@@ -3265,7 +3265,7 @@ public class DestinationMailUtils {
 		// populate subject
 		StringBuffer subject = new StringBuffer("");
 		subject.append(Constants.WORKFLOW_BFM_ESCALATE_PATH_A_APPROVED_SUBJECT);
-		subject.append("["+customerName+"]");
+		subject.append(customerName);
 		String mailSubject = formatSubject(subject.toString());
 		message.setSubject(mailSubject);
 		
@@ -3424,7 +3424,7 @@ public class DestinationMailUtils {
 		// populate subject
 		StringBuffer subject = new StringBuffer("");
 		subject.append(Constants.WORKFLOW_BFM_ESCALATE_PENDING_SUBJECT);
-		subject.append("["+customerName+"]");
+		subject.append(customerName);
 		String mailSubject = formatSubject(subject.toString());
 		message.setSubject(mailSubject);
 		
