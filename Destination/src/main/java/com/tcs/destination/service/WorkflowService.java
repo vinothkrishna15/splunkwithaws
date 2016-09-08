@@ -385,6 +385,8 @@ public class WorkflowService {
 				typeList.add(type.getType());
 				typeList.add(EntityTypeId.ESCALATION_A.getType());
 				typeList.add(EntityTypeId.ESCALATION_B.getType());
+				typeList.add(EntityTypeId.CONSULTED_ESCALATION_A.getType());
+				typeList.add(EntityTypeId.CONSULTED_ESCALATION_B.getType());
 				submittedAndApprovedRequests=getSubmittedAndApprovedRequest(status, userId,typeList);
 
 				populateResponse(listOfBfmRequests,
@@ -576,7 +578,9 @@ public class WorkflowService {
 					if (typeId != null && 
 							(typeId == EntityTypeId.BFM 
 							|| typeId == EntityTypeId.ESCALATION_A 
-							|| typeId == EntityTypeId.ESCALATION_B)) {
+							|| typeId == EntityTypeId.ESCALATION_B
+							|| typeId == EntityTypeId.CONSULTED_ESCALATION_A
+							|| typeId == EntityTypeId.CONSULTED_ESCALATION_B)) {
 						// Get the status of the new deal financial request
 						workflowBfmDetailsDTO.setStatus(workflowRequest
 								.getStatus());
@@ -747,7 +751,7 @@ public class WorkflowService {
 							myWorklistDTO.setEntity(opportunityEntity);
 							myWorklistDTO.setEntityName(opportunityEntity.getOpportunityName());
 							break;
-						case BFM:
+						case BFM:	
 							myWorklistDTO.setEntityType(EntityTypeId.BFM.getDisplayName());
 							WorkflowBfmT bfmEntity = workflowBfmTRepository.findOne(requestT.getEntityId());
 							myWorklistDTO.setEntity(bfmEntity);
@@ -1038,7 +1042,6 @@ public class WorkflowService {
 	private void sendEmailNotificationforApprovedOrRejectMail(
 			final String approveOrRejectSubject, Integer requestId, Date date,
 			Integer entityTypeId) throws Exception {
-		// TODO Auto-generated method stub
 		class WorkflowNotificationForApproveOrReject implements Runnable {
 			Integer requestId;
 			Date date;
@@ -1059,7 +1062,6 @@ public class WorkflowService {
 							approveOrRejectSubject, requestId, date,
 							entityTypeId);
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
 					logger.error("Error sending email " + e.getMessage());
 				}
 			}
@@ -1072,7 +1074,6 @@ public class WorkflowService {
 
 	private void sendEmailNotificationforPending(Integer requestId, Date date,
 			Integer entityTypeId) throws Exception {
-		// TODO Auto-generated method stub
 		class WorkflowNotificationForPending implements Runnable {
 			Integer requestId;
 			Date date;
@@ -1093,7 +1094,6 @@ public class WorkflowService {
 					mailUtils.sendWorkflowPendingMail(requestId, date,
 							entityTypeId);
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
 					logger.error("Error sending email " + e.getMessage());
 				}
 			}
@@ -1486,7 +1486,6 @@ public class WorkflowService {
 	@Transactional
 	public boolean insertWorkflowCustomer(WorkflowCustomerT workflowCustomer,
 			Status status) throws Exception {
-		// TODO Auto-generated method stub
 		logger.debug("Inside insertWorkflowCustomer method");
 		boolean insertStatus = false;
 
@@ -2571,7 +2570,6 @@ public class WorkflowService {
 	 * @param workflowPartner 
 	 */
 	private void savePartnerMaster(WorkflowPartnerT requestedPartner, WorkflowPartnerT workflowPartner) {
-		// TODO Auto-generated method stub
 		PartnerMasterT partnerMaster = new PartnerMasterT();
 		partnerMaster.setCreatedBy(requestedPartner.getCreatedBy());
 		partnerMaster.setModifiedBy(requestedPartner.getModifiedBy());
@@ -3314,7 +3312,6 @@ public class WorkflowService {
 	 * @param requestedCompetitor
 	 */
 	private void saveToCompetitorTable(WorkflowCompetitorT requestedCompetitor) {
-		// TODO Auto-generated method stub
 		logger.info("Inside saveToCompetitorTable method");
 		CompetitorMappingT competitorMappingT = new CompetitorMappingT();
 		competitorMappingT.setCompetitorName(requestedCompetitor
@@ -3334,7 +3331,6 @@ public class WorkflowService {
 	 */
 	private void validateWorkflowCompetitor(
 			WorkflowCompetitorT workflowCompetitorT) {
-		// TODO Auto-generated method stub
 		if (!StringUtils.isEmpty(workflowCompetitorT
 				.getWorkflowCompetitorName())) {
 			if (competitorRepository.findOne(workflowCompetitorT
@@ -3363,7 +3359,6 @@ public class WorkflowService {
 	public boolean requestOpportunityReopen(
 			OpportunityReopenRequestT opportunityReopenRequestT, Status status)
 					throws Exception {
-		// TODO Auto-generated method stub
 		logger.info("Inside requestOpportunityReopen method");
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 
@@ -3472,7 +3467,6 @@ public class WorkflowService {
 	public boolean approveOrRejectOpportunityReopen(
 			OpportunityReopenRequestT opportunityReopenRequestT, Status status)
 					throws Exception {
-		// TODO Auto-generated method stub
 		logger.info("Inside approveOpportunityReopen method");
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		UserT user = userRepository.findByUserId(userId);
@@ -3936,7 +3930,6 @@ public class WorkflowService {
 	 * @throws Exception
 	 */
 	public boolean approveOrEscalateBfm(WorkflowBfmT workflowBfmT, Status status) throws Exception {
-		// TODO Auto-generated method stub
 		logger.info("Inside approveOrEscalateBfm method");
 		OpportunityT opportunity = opportunityRepository.findOne(workflowBfmT.getOpportunityId());
 		if (opportunity != null) {
@@ -4057,7 +4050,6 @@ public class WorkflowService {
 					Thread.sleep(15000);
 					mailUtils.sendWorkflowPendingBFMEscalateMail(requestId, entityTypeId);
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
 					logger.error("Error sending email " ,e);
 				}
 			}
@@ -4306,14 +4298,17 @@ public class WorkflowService {
 						"The requested workflow bfm is intermediately " + masterRequest.getStatus() + "!!!");
 			}
 
-			if(masterRequest.getEntityTypeId() == 4){
-				sendEmailNotificationforBFMStep1ApproveOrReject(masterRequest.getRequestId(), entityTypeId, masterRequest.getStatus());
-			}else if(masterRequest.getEntityTypeId()==5 
-					|| masterRequest.getEntityTypeId()==7){
-				sendEmailNotificationforBFM_PathA_ApproveOrReject(masterRequest.getRequestId(), entityTypeId, masterRequest.getStatus());	
-			}else if(masterRequest.getEntityTypeId()==6 
-					|| masterRequest.getEntityTypeId()==8){
-				sendEmailNotificationforBFM_PathB_ApproveOrReject(masterRequest.getRequestId(), entityTypeId, masterRequest.getStatus());	
+			if(entityTypeId == EntityTypeId.BFM.getType()){
+				sendEmailNotificationforBFMStep1ApproveOrReject
+				 (masterRequest.getRequestId(), entityTypeId, masterRequest.getStatus());
+			}else if(entityTypeId==EntityTypeId.ESCALATION_A.getType()
+					|| entityTypeId==EntityTypeId.CONSULTED_ESCALATION_A.getType()){
+				sendEmailNotificationforBFM_PathA_ApproveOrReject
+				 (masterRequest.getRequestId(), entityTypeId, masterRequest.getStatus());	
+			}else if(entityTypeId==EntityTypeId.ESCALATION_B.getType() 
+					|| entityTypeId==EntityTypeId.CONSULTED_ESCALATION_B.getType()){
+				sendEmailNotificationforBFM_PathB_ApproveOrReject
+				 (masterRequest.getRequestId(), entityTypeId, masterRequest.getStatus());	
 			}
 
 		}
