@@ -2587,8 +2587,11 @@ public class WorkflowService {
 		partnerMaster.setText1(requestedPartner.getText1());
 		partnerMaster.setText2(requestedPartner.getText2());
 		partnerMaster.setText3(requestedPartner.getText3());
-		if(requestedPartner.getHqPartnerLinkId() != null) {
-			partnerMaster.setHqPartnerLinkId(requestedPartner.getHqPartnerLinkId());
+		if(!requestedPartner.getPartnerName().equalsIgnoreCase(requestedPartner.getGroupPartnerName())){
+			List<PartnerMasterT> parentPartner = partnerRepository.findByPartnerName(requestedPartner.getGroupPartnerName());
+			if (!parentPartner.isEmpty()){
+				partnerMaster.setHqPartnerLinkId(parentPartner.get(0).getPartnerId());
+			} 
 		}
 		PartnerMasterT partnerCreated = partnerRepository.save(partnerMaster);
 
@@ -3088,11 +3091,7 @@ public class WorkflowService {
 			List<PartnerMasterT> parentPartner = partnerRepository.findByPartnerName(workflowPartnerT.getGroupPartnerName());
 			if (!parentPartner.isEmpty()){
 				oldPartnerMaster.setHqPartnerLinkId(parentPartner.get(0).getPartnerId());
-			} else {
-				logger.error("INVALId! On edit, groupPartnerName must be equal to partnerName!");
-				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"INVALId! On edit, groupPartnerName must be equal to partnerName!");		
-			}
+			} 
 		}
 		PartnerMasterT partnerCreated = partnerRepository.save(oldPartnerMaster);
 
