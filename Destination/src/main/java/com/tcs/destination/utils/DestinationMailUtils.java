@@ -2410,6 +2410,8 @@ public class DestinationMailUtils {
 			switch (EntityTypeId.valueOf(EntityTypeId.getName(entityTypeId))) {
 			case ESCALATION_A:
 			case ESCALATION_B:
+			case ESCALATION_C:
+			case ESCALATION_D:	
 				WorkflowBfmT workflowBfmT = workflowBfmTRepository
 						.findOne(entityId);
 				exceptions = workflowBfmT.getExceptions();
@@ -3113,7 +3115,6 @@ public class DestinationMailUtils {
 							+ workflowRequestT.getRequestId());
 		
 	}
-
 	
 	/**
 	 * this method is used to send mail when BFM workflow is rejected by GEO Head in path A
@@ -3237,7 +3238,6 @@ public class DestinationMailUtils {
 							+ workflowRequestT.getRequestId());
 		
 	}
-
 	
 	/**
 	 * this method is used to send mail when BFM workflow is approved by DESS Head

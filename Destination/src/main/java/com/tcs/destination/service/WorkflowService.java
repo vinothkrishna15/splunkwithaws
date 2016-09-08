@@ -4287,9 +4287,11 @@ public class WorkflowService {
 
 			if(masterRequest.getEntityTypeId() == 4){
 				sendEmailNotificationforBFMStep1ApproveOrReject(masterRequest.getRequestId(), entityTypeId, masterRequest.getStatus());
-			}else if(masterRequest.getEntityTypeId()==5){
+			}else if(masterRequest.getEntityTypeId()==5 
+					|| masterRequest.getEntityTypeId()==7){
 				sendEmailNotificationforBFM_PathA_ApproveOrReject(masterRequest.getRequestId(), entityTypeId, masterRequest.getStatus());	
-			}else if(masterRequest.getEntityTypeId()==6){
+			}else if(masterRequest.getEntityTypeId()==6 
+					|| masterRequest.getEntityTypeId()==8){
 				sendEmailNotificationforBFM_PathB_ApproveOrReject(masterRequest.getRequestId(), entityTypeId, masterRequest.getStatus());	
 			}
 
