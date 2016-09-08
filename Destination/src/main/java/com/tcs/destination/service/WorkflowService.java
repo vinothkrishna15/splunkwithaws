@@ -751,7 +751,11 @@ public class WorkflowService {
 							myWorklistDTO.setEntity(opportunityEntity);
 							myWorklistDTO.setEntityName(opportunityEntity.getOpportunityName());
 							break;
-						case BFM:	
+						case BFM:
+						case ESCALATION_A:
+						case ESCALATION_B:
+						case CONSULTED_ESCALATION_A:
+						case CONSULTED_ESCALATION_B:
 							myWorklistDTO.setEntityType(EntityTypeId.BFM.getDisplayName());
 							WorkflowBfmT bfmEntity = workflowBfmTRepository.findOne(requestT.getEntityId());
 							myWorklistDTO.setEntity(bfmEntity);
