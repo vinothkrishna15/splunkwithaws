@@ -4,7 +4,8 @@ public enum EntityTypeId {
 	
 	CUSTOMER(0, "New Customer"), PARTNER(1, "New Partner"), COMPETITOR(2, "New Competitor"), OPPORTUNITY(3, "New Opportunity Reopen"), 
 	BFM(4, "New Opportunity Deal Financial"), ESCALATION_A(5, "New Opportunity Deal Financial"), ESCALATION_B(6, "New Opportunity Deal Financial")
-	,ESCALATION_C(7, "New Opportunity Deal Financial"), ESCALATION_D(8, "New Opportunity Deal Financial");
+	,CONSULTED_ESCALATION_A(7, "New Opportunity Deal Financial"),CONSULTED_ESCALATION_B(8, "New Opportunity Deal Financial");
+
 
 	private final Integer type;
 	private final String displayName;

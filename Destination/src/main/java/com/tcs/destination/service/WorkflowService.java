@@ -68,6 +68,7 @@ import com.tcs.destination.data.repository.CompetitorRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
+import com.tcs.destination.data.repository.OpportunitySubSpLinkTRepository;
 import com.tcs.destination.data.repository.PartnerContactLinkTRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.PartnerSubSpMappingTRepository;
@@ -216,6 +217,9 @@ public class WorkflowService {
 
 	@Autowired
 	WorkflowBfmTRepository workflowBfmTRepository;
+
+	@Autowired
+	OpportunitySubSpLinkTRepository opportunitySubSpLinkTRepository;
 
 	Map<String, GeographyMappingT> mapOfGeographyMappingT = null;
 	Map<String, IouCustomerMappingT> mapOfIouCustomerMappingT = null;
@@ -749,8 +753,8 @@ public class WorkflowService {
 							myWorklistDTO.setEntity(bfmEntity);
 							myWorklistDTO.setEntityName(bfmEntity.getOpportunityT().getOpportunityName());
 							break;
-				default:
-					break;
+						default:
+							break;
 				}
 				myWorklistDTO.setRequestId(requestT.getRequestId());
 				WorkflowStepT stepT = workflowStepRepository
@@ -1873,18 +1877,18 @@ public class WorkflowService {
 						// Get the status of the new partner request
 						workflowPartnerDetailsDTO.setStatus(workflowRequest
 								.getStatus());
-						
+
 						// Get the workflow partner Id from request table
 						String workflowPartnerId = workflowRequest
 								.getEntityId();
 						//for setting partner product and contact and subsp details
 						WorkflowPartnerT partnerT = workflowPartnerRepository.findOne(workflowPartnerId);
 						List<PartnerMasterT> partnerMasterT =  partnerRepository.findByPartnerName(partnerT.getPartnerName());
-						
+
 						if (partnerMasterT.size() > 0 ) {
-						workflowPartnerDetailsDTO.setPartnerMasterT(partnerMasterT.get(0).getPartnerMasterT());
+							workflowPartnerDetailsDTO.setPartnerMasterT(partnerMasterT.get(0).getPartnerMasterT());
 						}
-						
+
 						// Get the new partner details for the request
 						WorkflowPartnerT workflowPartner = workflowPartnerRepository.findOne(workflowPartnerId);
 
@@ -3963,7 +3967,8 @@ public class WorkflowService {
 	private void populateEscalateWorkflow(WorkflowStatus workflowStatus, WorkflowBfmT workflowBfmT, Status status) throws Exception {
 		String Exceptions = workflowBfmT.getExceptions();
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-
+		String primarySubspOfBfmOpprtunity = opportunitySubSpLinkTRepository.findPrimarySubSpByOpportunityId(workflowBfmT.getOpportunityId());
+		Integer entityTypeIdForEscalation;
 		if (Exceptions != null) {
 			List<String> exceptionArrayList = Arrays.asList(StringUtils.split(Exceptions, ","));
 			List<String> exceptionCombo1 = Arrays.asList(Constants.E1,Constants.E2);
@@ -3974,8 +3979,17 @@ public class WorkflowService {
 				// On meeting the below conditions, It takes the path of Escalation A
 				if (exceptionArrayList.contains(Constants.E5) || exceptionArrayList.containsAll(exceptionCombo1) ||
 						exceptionArrayList.containsAll(exceptionCombo2) || exceptionArrayList.containsAll(exceptionCombo3)) {
+
+					//if (!consultingSubsps.contains(primarySubspOfBfmOpprtunity)) {
+					if (primarySubspOfBfmOpprtunity.equalsIgnoreCase(Constants.ABIM_CONSULTING)) {
+						entityTypeIdForEscalation = EntityTypeId.ESCALATION_A.getType();
+					}
+					else{
+						entityTypeIdForEscalation = EntityTypeId.CONSULTED_ESCALATION_A.getType();
+					}
+
 					WorkflowRequestT workflowRequest = populateEscalationWorkflowRequest(
-							workflowBfmT.getWorkflowBfmId(), EntityTypeId.ESCALATION_A.getType(), userId, "");	
+							workflowBfmT.getWorkflowBfmId(), entityTypeIdForEscalation, userId, "");	
 					if (workflowRequest != null) {
 						if (workflowRequest.getStatus().equals(WorkflowStatus.PENDING.getStatus())) {
 							// update the status to Escalated after shrilakshmi initiates exception
@@ -3989,8 +4003,15 @@ public class WorkflowService {
 				} 
 				// On meeting the below conditions, It takes the path of Escalation B
 				else {
+					//if (!consultingSubsps.contains(primarySubspOfBfmOpprtunity)) {
+					if (primarySubspOfBfmOpprtunity.equalsIgnoreCase(Constants.ABIM_CONSULTING)) {
+						entityTypeIdForEscalation = EntityTypeId.ESCALATION_B.getType();
+					}
+					else{
+						entityTypeIdForEscalation = EntityTypeId.CONSULTED_ESCALATION_B.getType();
+					}
 					WorkflowRequestT workflowRequest = populateEscalationWorkflowRequest(
-							workflowBfmT.getWorkflowBfmId(), EntityTypeId.ESCALATION_B.getType(), userId, "");
+							workflowBfmT.getWorkflowBfmId(), entityTypeIdForEscalation, userId, "");
 					if (workflowRequest != null) {
 						if (workflowRequest.getStatus().equals(WorkflowStatus.PENDING.getStatus())) {
 							// update the status to Escalated after shrilakshmi initiates exception
