@@ -2410,8 +2410,8 @@ public class DestinationMailUtils {
 			switch (EntityTypeId.valueOf(EntityTypeId.getName(entityTypeId))) {
 			case ESCALATION_A:
 			case ESCALATION_B:
-			case ESCALATION_C:
-			case ESCALATION_D:	
+			case CONSULTED_ESCALATION_A:
+			case CONSULTED_ESCALATION_B:	
 				WorkflowBfmT workflowBfmT = workflowBfmTRepository
 						.findOne(entityId);
 				exceptions = workflowBfmT.getExceptions();
