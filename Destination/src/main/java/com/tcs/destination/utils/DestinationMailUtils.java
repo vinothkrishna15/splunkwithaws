@@ -2245,9 +2245,6 @@ public class DestinationMailUtils {
 						approvedRejectedStep = workflowStepRepository
 								.findByRequestIdAndStepStatus(requestId,
 										WorkflowStatus.APPROVED.getStatus());
-						if(comments==null){
-							comments = "No Comments";
-						}
 						subject.append(Constants.WORKFLOW_BFM_STEP1_APPROVED_SUBJECT);
 						
 						reqStatus = "Approved";
@@ -2256,6 +2253,8 @@ public class DestinationMailUtils {
 						approvedRejectedStep = workflowStepRepository
 								.findByRequestIdAndStepStatus(requestId,
 										WorkflowStatus.REJECTED.getStatus());
+						
+						
 						subject.append(Constants.WORKFLOW_BFM_STEP1_REJECTED_SUBJECT);
 						
 						reqStatus = "Rejected";
@@ -2263,7 +2262,9 @@ public class DestinationMailUtils {
 					}
 					subject.append(getCustomerOpportunitySubString(opportunityId,customerName));
 					comments = approvedRejectedStep.getComments();
-
+					if(StringUtils.isEmpty(comments)){
+						comments = "No Comments";
+					}
 					WorkflowStepT requestRaisedStep = workflowStepRepository
 							.findByRequestIdAndStep(requestId, 1);
 					if (requestRaisedStep.getUserRole() != null) {

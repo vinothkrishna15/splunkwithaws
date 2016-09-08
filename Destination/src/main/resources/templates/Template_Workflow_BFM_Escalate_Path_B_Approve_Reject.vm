@@ -15,8 +15,11 @@
 		<p>
 		   Please see the comments below:
 		<br>
-		   ${comments}     
-		</p>    
+		   Comments: ${comments}     
+		</p>
+		<p>
+		  Please log into Destination and respond.
+		  </p>    
 		<p>
 		Regards,<br>
 		Destination Team.

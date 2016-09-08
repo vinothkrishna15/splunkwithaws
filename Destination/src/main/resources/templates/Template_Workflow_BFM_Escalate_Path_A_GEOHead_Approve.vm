@@ -21,7 +21,7 @@
 		<p>
 		   Please see the comments below:
 		<br>
-		   ${comments}     
+		   Comments: ${comments}     
 		</p>  
 		
 		<p>
