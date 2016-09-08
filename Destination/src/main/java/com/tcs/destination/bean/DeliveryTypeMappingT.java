@@ -41,19 +41,4 @@ public class DeliveryTypeMappingT implements Serializable {
 	public void setOpportunityTs(List<OpportunityT> opportunityTs) {
 		this.opportunityTs = opportunityTs;
 	}
-
-	public OpportunityT addOpportunityT(OpportunityT opportunityT) {
-		getOpportunityTs().add(opportunityT);
-		opportunityT.setDeliveryTypeMappingT(this);
-
-		return opportunityT;
-	}
-
-	public OpportunityT removeOpportunityT(OpportunityT opportunityT) {
-		getOpportunityTs().remove(opportunityT);
-		opportunityT.setDeliveryTypeMappingT(null);
-
-		return opportunityT;
-	}
-
 }
