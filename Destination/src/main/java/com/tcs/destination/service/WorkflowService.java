@@ -3979,7 +3979,7 @@ public class WorkflowService {
 					if (workflowRequest != null) {
 						if (workflowRequest.getStatus().equals(WorkflowStatus.PENDING.getStatus())) {
 							// update the status to Escalated after shrilakshmi initiates exception
-							updateEscalted(workflowRequest.getRequestId(), workflowBfmT);
+							updateEscalted(workflowRequest.getRequestId(), workflowBfmT,userId);
 							sendEmailNotificationBFMEscalatePending(workflowRequest.getRequestId(), workflowRequest.getEntityTypeId());
 							status.setStatus(
 									Status.SUCCESS,
@@ -3994,7 +3994,7 @@ public class WorkflowService {
 					if (workflowRequest != null) {
 						if (workflowRequest.getStatus().equals(WorkflowStatus.PENDING.getStatus())) {
 							// update the status to Escalated after shrilakshmi initiates exception
-							updateEscalted(workflowRequest.getRequestId(), workflowBfmT);
+							updateEscalted(workflowRequest.getRequestId(), workflowBfmT,userId);
 							sendEmailNotificationBFMEscalatePending(workflowRequest.getRequestId(), workflowRequest.getEntityTypeId());
 							status.setStatus(
 									Status.SUCCESS,
@@ -4050,12 +4050,13 @@ public class WorkflowService {
 	}
 
 
-	private void updateEscalted(Integer requestId, WorkflowBfmT workflowBfmT) {
+	private void updateEscalted(Integer requestId, WorkflowBfmT workflowBfmT, String userId) {
 		List<WorkflowStepT> workflowSteps = workflowStepRepository.findStepsByRequestId(requestId);
 		for (WorkflowStepT workflowStep : workflowSteps) {
 			if (workflowStep.getStepStatus().equals(WorkflowStatus.PENDING.getStatus())) {
 				workflowStep.setStepStatus(WorkflowStatus.ESCALATED.getStatus());
 				workflowStep.setComments(workflowBfmT.getComments());
+				workflowStep.setModifiedBy(userId);
 				break;
 			}
 		}
@@ -4271,6 +4272,7 @@ public class WorkflowService {
 			if (masterRequest.getStatus().equals(WorkflowStatus.REJECTED.getStatus())) {
 				OpportunityT opportuntiy = opportunityRepository.findOne(workflowBfmT.getOpportunityId());
 				opportuntiy.setSalesStageCode(Constants.CONSTANT_FOUR);
+				opportuntiy.setModifiedBy(Constants.SYSTEM_USER);
 				opportunityRepository.save(opportuntiy);
 			}
 
