@@ -61,9 +61,14 @@ public class DateUtils {
 	public static final DateFormat ACTUAL_FORMAT = new SimpleDateFormat("dd-MMM-yyyy");
 	
 	/**
-	 * dd-MMM-yyyy
+	 * ddMMMMMyyyy
 	 */
-	public static final DateFormat ACTUAL_FORMAT_MONTH = new SimpleDateFormat("dd MMMMM yyyy");
+	public static final DateFormat DATE_FORMAT_MONTH_NAME = new SimpleDateFormat("ddMMMMMyyyy");
+	
+	/**
+	 * MMM dd
+	 */
+	public static final DateFormat DATE_FORMAT_MONTH = new SimpleDateFormat("MMM dd");
 	
 	/**
 	 * MM/dd/yyyy
@@ -839,7 +844,7 @@ public class DateUtils {
 	}
 
 	/**
-	 * calculates number of week between the current financial year start(1st Apr) and given date
+	 * gets the current financial year in format FY[startYear-endYear]
 	 * @param date
 	 * @return
 	 */
@@ -859,6 +864,26 @@ public class DateUtils {
 		}
 
 		return String.format("FY [%d-%d]", startYr, endYr%100) ;
+	}
+	
+	/**
+	 * gets the current financial year in format FYendYear
+	 * @param date
+	 * @return
+	 */
+	public static String getFinancialEndYr() {
+		//FY 2016-17
+		int endYr;
+		LocalDate dateTime = new LocalDate();
+		
+		int currentYr = dateTime.getYear();
+		if(dateTime.monthOfYear().get() < 4) {
+			endYr = currentYr;
+		} else {
+			endYr = currentYr + 1;
+		}
+
+		return String.format("FY%d", endYr%100);
 	}
 	
 	/**

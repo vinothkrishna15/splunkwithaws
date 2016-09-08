@@ -1,7 +1,8 @@
 package com.tcs.destination.helper;
 
+import static com.tcs.destination.utils.DateUtils.DATE_FORMAT_MONTH_NAME;
 import static com.tcs.destination.utils.DateUtils.ACTUAL_FORMAT;
-import static com.tcs.destination.utils.DateUtils.ACTUAL_FORMAT_MONTH;
+import static com.tcs.destination.utils.DateUtils.DATE_FORMAT_MONTH;
 import static net.sf.dynamicreports.report.builder.DynamicReports.cmp;
 import static net.sf.dynamicreports.report.builder.DynamicReports.report;
 
@@ -37,6 +38,7 @@ import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.service.NumericUtil;
 import com.tcs.destination.service.OpportunityDownloadService;
 import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ReportUtil;
 
 import net.sf.dynamicreports.jasper.builder.JasperReportBuilder;
@@ -46,6 +48,7 @@ import net.sf.dynamicreports.report.builder.component.TextFieldBuilder;
 import net.sf.dynamicreports.report.builder.style.FontBuilder;
 import net.sf.dynamicreports.report.builder.style.StyleBuilder;
 import net.sf.dynamicreports.report.constant.HorizontalTextAlignment;
+import net.sf.dynamicreports.report.constant.Markup;
 import net.sf.dynamicreports.report.constant.PageOrientation;
 import net.sf.dynamicreports.report.constant.PageType;
 
@@ -84,46 +87,53 @@ public class WeeklyReportHelper {
 	 * @throws Exception
 	 */
 	public JasperReportBuilder constructWeeklyReport(List<String> geos,
-			Date currentDate, Date previousWeekDate, String geography)
+			Date currentDate, Date previousWeekDate, String geography, int weekNumber, String financialYear)
 			throws Exception {
 
 		logger.info("constructing weekly report for geography : " + geography);
-		String currentDateString = ACTUAL_FORMAT_MONTH.format(currentDate);
+		Date previousDate = DateUtils.getPreviousDate();
+		String currentDateString = DATE_FORMAT_MONTH_NAME.format(currentDate);
+		String previousDateString = DATE_FORMAT_MONTH.format(previousDate);
+		String previousWeekDateString = DATE_FORMAT_MONTH.format(previousWeekDate);
 		FontBuilder defaultFont = DynamicReports.stl.font().setFontName(ReportUtil.FONT_MYRIAD_PRO);
 
 		StyleBuilder boldStyle = DynamicReports.stl.style().setFontSize(ReportUtil.FONT_SIZE_TITLE)
 				.bold();
+		
+		StyleBuilder subTitleStyle = DynamicReports.stl.style().setFontSize(ReportUtil.FONT_SIZE_SUB_TITLE)
+				.bold();
 
 		StyleBuilder reportDateStyle = DynamicReports.stl.style().setFontSize(
-				ReportUtil.FONT_SIZE_TITLE);
+				11).setMarkup(Markup.STYLED);
+		
 		// Opp Wins
 		List<OpportunityWins> opportunityWins = getOpportunityWins(geos,
 				currentDate, previousWeekDate);
 
-		TextFieldBuilder<String> winTitle = getTitle(opportunityWins, " Wins");
+		TextFieldBuilder<String> winTitle = getTitle(opportunityWins, "Win(s) Reported-");
 		// Opp Loss
 		List<OpportunityLoss> opportunityLoss = getOpportunityLoss(geos,
 				currentDate, previousWeekDate);
 
-		TextFieldBuilder<String> lossTitle = getTitle(opportunityLoss, " Loss");
+		TextFieldBuilder<String> lossTitle = getTitle(opportunityLoss, "Loss(s) Reported-");
 		// Opp RFP Submitted
 		List<OpportunityRFPSubmitted> oppRFPSubmitted = getOpportunityRFPSubmitted(
 				geos, currentDate, previousWeekDate);
 
 		TextFieldBuilder<String> rfpSubmittedTitle = getTitle(oppRFPSubmitted,
-				" Bids submitted");
+				"Bids submitted-");
 		// Customer connects
 		List<ConnectCustomer> customerConnects = getCustomerConnects(geos,
 				currentDate, previousWeekDate);
 
 		TextFieldBuilder<String> customerConnectsTitle = getTitle(
-				customerConnects, " Customer connects this week");
+				customerConnects, "Customer connects this week-");
 		// Partner connects
 		List<ConnectPartner> partnerConnects = getPartnerConnects(geos,
 				currentDate, previousWeekDate);
 
 		TextFieldBuilder<String> partnerConnectsTitle = getTitle(
-				partnerConnects, " Partner connects this week");
+				partnerConnects, "Partner connects this week-");
 		// Report for wins
 		JasperReportBuilder reportForWins = null;
 		reportForWins = ReportUtil.buildReport(winTitle, opportunityWins);
@@ -163,11 +173,14 @@ public class WeeklyReportHelper {
 						.setStyle(boldStyle)
 						.setHorizontalTextAlignment(
 								HorizontalTextAlignment.CENTER),
-						DynamicReports.cmp.verticalGap(10),
-						cmp.text("Report Date : " + currentDateString)
-								.setStyle(reportDateStyle)
-								.setHorizontalTextAlignment(
-										HorizontalTextAlignment.LEFT),
+						DynamicReports.cmp.verticalGap(5),
+						cmp.text("(W" + weekNumber + "'" + financialYear + ": "
+								+ previousWeekDateString + "-"
+								+ previousDateString+")").setStyle(subTitleStyle).setHorizontalTextAlignment(HorizontalTextAlignment.CENTER),
+								DynamicReports.cmp.verticalGap(10),
+								cmp.text("<i>Report Date :</i> " + currentDateString)
+										.setStyle(reportDateStyle)
+										.setHorizontalTextAlignment(HorizontalTextAlignment.LEFT),			
 						DynamicReports.cmp.verticalGap(20),
 						cmp.verticalList(cmp.subreport(reportForWins),
 								DynamicReports.cmp.verticalGap(30),
@@ -197,8 +210,10 @@ public class WeeklyReportHelper {
 	 * @return
 	 */
 	private TextFieldBuilder<String> getTitle(List<?> values, String appendValue) {
-		return Components.text(new StringBuffer(new Integer(values.size())
-				.toString()).append(appendValue).toString());
+//		return Components.text(new StringBuffer(new Integer(values.size())
+//				.toString()).append(appendValue).toString());
+		return Components.text(new StringBuffer(appendValue).append(" ")
+				.append(values.size()).toString());
 	}
 
 	/**
@@ -427,13 +442,14 @@ public class WeeklyReportHelper {
 						.getCustomerName());
 				// Opportunity Name
 				oppRFPSubmitted.setOpportunityName(opp.getOpportunityName());
+				//Opportunity Description
+				oppRFPSubmitted.setOpportunityDescription(StringUtils.isNotEmpty(opp
+						.getOpportunityDescription()) ? opp
+						.getOpportunityDescription() : Constants.NOT_AVAILABLE);
 				// get primary display subsp
 				displaySubSp = getPrimaryDisplaySubSpOfOpportunity(opp
 						.getOpportunitySubSpLinkTs());
 				oppRFPSubmitted.setSubSp(getValue(displaySubSp));
-				// IOU
-				oppRFPSubmitted.setIou(opp.getCustomerMasterT()
-						.getIouCustomerMappingT().getDisplayIou());
 				// Deal Value
 				String dealValue = NumericUtil
 						.toUSDinNumberScale(opportunityDownloadService
@@ -501,13 +517,14 @@ public class WeeklyReportHelper {
 						.getCustomerName());
 				// Opportunity Name
 				oppLoss.setOpportunityName(opp.getOpportunityName());
+				//Opportunity Description
+				oppLoss.setOpportunityDescription(StringUtils.isNotEmpty(opp
+						.getOpportunityDescription()) ? opp
+						.getOpportunityDescription() : Constants.NOT_AVAILABLE);
 				// get primary display subsp
 				displaySubSp = getPrimaryDisplaySubSpOfOpportunity(opp
 						.getOpportunitySubSpLinkTs());
 				oppLoss.setSubSp(getValue(displaySubSp));
-				// IOU
-				oppLoss.setIou(opp.getCustomerMasterT()
-						.getIouCustomerMappingT().getDisplayIou());
 				// Deal Value
 				String dealValue = NumericUtil
 						.toUSDinNumberScale(opportunityDownloadService
@@ -568,13 +585,14 @@ public class WeeklyReportHelper {
 						.getCustomerName());
 				// Opportunity Name
 				oppWins.setOpportunityName(opp.getOpportunityName());
+				//Opportunity Description
+				oppWins.setOpportunityDescription(StringUtils.isNotEmpty(opp
+						.getOpportunityDescription()) ? opp
+						.getOpportunityDescription() : Constants.NOT_AVAILABLE);
 				// get primary display subsp
 				displaySubSp = getPrimaryDisplaySubSpOfOpportunity(opp
 						.getOpportunitySubSpLinkTs());
 				oppWins.setSubSp(getValue(displaySubSp));
-				// IOU
-				oppWins.setIou(opp.getCustomerMasterT()
-						.getIouCustomerMappingT().getDisplayIou());
 				// Deal Value
 				String dealValue = NumericUtil
 						.toUSDinNumberScale(opportunityDownloadService
