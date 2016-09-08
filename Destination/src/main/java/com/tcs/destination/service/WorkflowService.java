@@ -448,8 +448,6 @@ public class WorkflowService {
 			// Add submitted and actioned by requests
 			myWorklist.addAll(Lists.newArrayList(submittedAndApprovedRequests));
 
-			// Sort the list based on modified date time
-			//	Collections.sort(myWorklist);
 			if (myWorklist.isEmpty()) {
 				logger.debug("No items in worklist for the user" + userId);
 				throw new DestinationException(HttpStatus.NOT_FOUND,
@@ -460,6 +458,9 @@ public class WorkflowService {
 				throw new DestinationException(HttpStatus.NOT_FOUND,
 						"No requests found with stage - " + status);
 			}
+			// Sort the list based on modified date time
+			Collections.sort(myWorklist);
+			
 			worklistResponse.setTotalCount(myWorklist.size());
 			myWorklist = paginateWorklist(page, count, myWorklist);
 			worklistResponse.setWorklists(myWorklist);
@@ -765,6 +766,7 @@ public class WorkflowService {
 							break;
 				}
 				myWorklistDTO.setRequestId(requestT.getRequestId());
+				myWorklistDTO.setWorkflowRequest(requestT);
 				WorkflowStepT stepT = workflowStepRepository
 						.findFirstByRequestIdAndStepStatusNotOrderByStepIdDesc(
 								requestT.getRequestId(),
@@ -894,7 +896,9 @@ public class WorkflowService {
 					}
 					if (MyWorklistDTOArray[4] != null) {
 						String s = MyWorklistDTOArray[4].toString();
-						workflowStep.setRequestId(Integer.parseInt(s));
+						int requestId = Integer.parseInt(s);
+						workflowStep.setRequestId(requestId);
+						worklist.setWorkflowRequest(workflowRequestRepository.findOne(requestId));
 					}
 					if (MyWorklistDTOArray[5] != null) {
 						String s = MyWorklistDTOArray[5].toString();
