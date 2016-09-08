@@ -171,12 +171,12 @@ public class ContactController {
 		logger.info("Inside ContactController: Start of retrieving the contacts by contact type");
 		PaginatedResponse paginatedContacts=null;
 		try {
-			if (!customerId.isEmpty() || !partnerId.isEmpty()) {
+			if (!customerId.isEmpty() || !partnerId.isEmpty() || !productId.isEmpty()) {
 				paginatedContacts = contactService.findContactsByContactType(
 						customerId, partnerId, productId,contactType, userId,page,count);
 			} else {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"Either CustomerId or PartnerId is required");
+						"Either CustomerId or PartnerId or ProductId is required");
 			}
 			logger.info("Inside ContactController: End of retrieving the contacts by contact type");
 			return new ResponseEntity<String>(

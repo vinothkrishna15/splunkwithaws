@@ -396,10 +396,12 @@ public class ContactService {
 
 		List<ContactT> contactList = contactRepository.findByContactType(
 				customerId, partnerId, contactType);
-		List<ContactT> productContactList = contactRepository.findContactsByProductId(productId);
-		for (ContactT productContact : productContactList) {
-			if (!contactList.contains(productContact)){
-			contactList.addAll(productContactList);
+		if (!StringUtils.isEmpty(productId)) {
+			List<ContactT> productContactList = contactRepository.findContactsByProductId(productId);
+			for (ContactT productContact : productContactList) {
+				if (!contactList.contains(productContact)){
+					contactList.addAll(productContactList);
+				}
 			}
 		}
 		contactResponse.setTotalCount(contactList.size());
