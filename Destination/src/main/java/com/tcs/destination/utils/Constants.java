@@ -251,6 +251,9 @@ public class Constants {
 	public static final int CONSTANT_FOUR = 4;
 	public static final int CONSTANT_FIVE = 5;
 	public static final int CONSTANT_SIX = 6;
+	public static final int CONSTANT_SEVEN = 7;
+	public static final int CONSTANT_EIGHT = 8;
+	
 	
 	//For Opportunity win/loss mail
 	public static final String 	WITH_SUPPORT_FROM = "with support from";

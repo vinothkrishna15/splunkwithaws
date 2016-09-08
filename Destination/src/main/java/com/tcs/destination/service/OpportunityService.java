@@ -736,7 +736,7 @@ public class OpportunityService {
 		boolean isBfmRaied = false;
 		OpportunityT opportunity = opportunityRepository
 				.findByOpportunityId(opportunityId);
-		int[] bfmEntityTypeIds = {Constants.CONSTANT_FOUR,Constants.CONSTANT_FIVE,Constants.CONSTANT_SIX};
+		int[] bfmEntityTypeIds = {Constants.CONSTANT_FOUR,Constants.CONSTANT_FIVE,Constants.CONSTANT_SIX,Constants.CONSTANT_SEVEN,Constants.CONSTANT_EIGHT};
 		List<String> workflowBfmIds = new ArrayList<String>();
 		if (opportunity != null) {
 			// Add Search Keywords

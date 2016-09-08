@@ -3974,7 +3974,7 @@ public class WorkflowService {
 						exceptionArrayList.containsAll(exceptionCombo2) || exceptionArrayList.containsAll(exceptionCombo3)) {
 
 					//if (!consultingSubsps.contains(primarySubspOfBfmOpprtunity)) {
-					if (primarySubspOfBfmOpprtunity.equalsIgnoreCase(Constants.ABIM_CONSULTING)) {
+					if (!primarySubspOfBfmOpprtunity.equalsIgnoreCase(Constants.ABIM_CONSULTING)) {
 						entityTypeIdForEscalation = EntityTypeId.ESCALATION_A.getType();
 					}
 					else{
@@ -3990,14 +3990,14 @@ public class WorkflowService {
 							sendEmailNotificationBFMEscalatePending(workflowRequest.getRequestId(), workflowRequest.getEntityTypeId());
 							status.setStatus(
 									Status.SUCCESS,
-									"The request for BFM is Escalated to IOU Head !!!");
+									"The request for BFM is Escalated to DESS Unit Head !!!");
 						} 
 					}
 				} 
 				// On meeting the below conditions, It takes the path of Escalation B
 				else {
 					//if (!consultingSubsps.contains(primarySubspOfBfmOpprtunity)) {
-					if (primarySubspOfBfmOpprtunity.equalsIgnoreCase(Constants.ABIM_CONSULTING)) {
+					if (!primarySubspOfBfmOpprtunity.equalsIgnoreCase(Constants.ABIM_CONSULTING)) {
 						entityTypeIdForEscalation = EntityTypeId.ESCALATION_B.getType();
 					}
 					else{
@@ -4010,6 +4010,11 @@ public class WorkflowService {
 							// update the status to Escalated after shrilakshmi initiates exception
 							updateEscalted(workflowRequest.getRequestId(), workflowBfmT,userId);
 							sendEmailNotificationBFMEscalatePending(workflowRequest.getRequestId(), workflowRequest.getEntityTypeId());
+							if (entityTypeIdForEscalation == EntityTypeId.CONSULTED_ESCALATION_B.getType()) {
+								status.setStatus(
+										Status.SUCCESS,
+										"The request for BFM is Escalated to Raj DeshPande!!!");
+							}
 							status.setStatus(
 									Status.SUCCESS,
 									"The request for BFM is Escalated to Geo Head !!!");
@@ -4225,7 +4230,7 @@ public class WorkflowService {
 		int rowIteration = 0;
 		int step = 0;
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		int[] bfmEntityTypeIds = {Constants.CONSTANT_FOUR,Constants.CONSTANT_FIVE,Constants.CONSTANT_SIX};
+		int[] bfmEntityTypeIds = {Constants.CONSTANT_FOUR,Constants.CONSTANT_FIVE,Constants.CONSTANT_SIX,Constants.CONSTANT_SEVEN, Constants.CONSTANT_EIGHT};
 		List<WorkflowStepT> requestSteps = new ArrayList<WorkflowStepT>();
 		WorkflowRequestT masterRequest = new WorkflowRequestT();
 		//
