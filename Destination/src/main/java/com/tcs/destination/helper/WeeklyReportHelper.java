@@ -9,6 +9,7 @@ import static net.sf.dynamicreports.report.builder.DynamicReports.report;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.ConnectCustomer;
 import com.tcs.destination.bean.ConnectCustomerContactLinkT;
@@ -238,7 +240,7 @@ public class WeeklyReportHelper {
 				String contactRoles = "";
 				List<String> connectContactNames = Lists.newArrayList();
 				List<String> connectContactRoles = Lists.newArrayList();
-				List<String> connectSubSp = Lists.newArrayList();
+				Set<String> connectSubSp = Sets.newHashSet();
 				ConnectPartner partnerConnect = new ConnectPartner();
 				// Primary Owner
 				partnerConnect.setBdContact(connectT.getPrimaryOwnerUser()
@@ -321,7 +323,7 @@ public class WeeklyReportHelper {
 				String contactRoles = "";
 				List<String> connectContactNames = Lists.newArrayList();
 				List<String> connectContactRoles = Lists.newArrayList();
-				List<String> connectSubSp = Lists.newArrayList();
+				Set<String> connectSubSp = Sets.newHashSet();
 				ConnectCustomer customerConnect = new ConnectCustomer();
 				// Primary Owner
 				customerConnect.setBdContact(connectT.getPrimaryOwnerUser()
@@ -393,9 +395,9 @@ public class WeeklyReportHelper {
 	 * @param connectSubSpLinkTs
 	 * @return
 	 */
-	private List<String> getDisplaySubSpsOfConnect(
+	private Set<String> getDisplaySubSpsOfConnect(
 			List<ConnectSubSpLinkT> connectSubSpLinkTs) {
-		List<String> displaySubSps = Lists.newArrayList();
+		Set<String> displaySubSps = Sets.newHashSet();
 		if (CollectionUtils.isNotEmpty(connectSubSpLinkTs)) {
 			for (ConnectSubSpLinkT connectSubSpLinkT : connectSubSpLinkTs) {
 				displaySubSps.add(connectSubSpLinkT.getSubSpMappingT()
@@ -625,6 +627,20 @@ public class WeeklyReportHelper {
 	 * @return
 	 */
 	private String joinString(List<String> values) {
+		String value = "";
+		if (CollectionUtils.isNotEmpty(values)) {
+			value = StringUtils.join(values, ", ");
+		}
+		return value;
+	}
+	
+	/**
+	 * joins string by comma seperated
+	 * 
+	 * @param values
+	 * @return
+	 */
+	private String joinString(Set<String> values) {
 		String value = "";
 		if (CollectionUtils.isNotEmpty(values)) {
 			value = StringUtils.join(values, ", ");
