@@ -30,6 +30,8 @@ public class PaginatedResponse implements Serializable {
 	
 	private List<ContactRoleMappingT> contactRoleMappingTs;
 	
+	private List<DeliveryMasterT> deliveryMasterTs;
+	
 	private long totalCount;
 	
 	public List<WorklistDTO<Object>> getWorklists() {
@@ -121,6 +123,14 @@ public class PaginatedResponse implements Serializable {
 			List<ContactRoleMappingT> contactRoleMappingTs) {
 		this.contactRoleMappingTs = contactRoleMappingTs;
 
+	}
+	
+	public List<DeliveryMasterT> getDeliveryMasterTs() {
+		return deliveryMasterTs;
+	}
+
+	public void setDeliveryMasterTs(List<DeliveryMasterT> deliveryMasterTs) {
+		this.deliveryMasterTs = deliveryMasterTs;
 	}
 	
 }
