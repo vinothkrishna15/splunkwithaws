@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
+import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.GeographyCountryMappingT;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
@@ -28,6 +29,7 @@ import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerContactLinkT;
 import com.tcs.destination.bean.PartnerMasterT;
+import com.tcs.destination.bean.PartnerProductDetailsDTO;
 import com.tcs.destination.bean.PartnerSubSpMappingT;
 import com.tcs.destination.bean.PartnerSubspProductMappingT;
 import com.tcs.destination.bean.ProductContactLinkT;
@@ -39,10 +41,13 @@ import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.OpportunityPartnerLinkTRepository;
+import com.tcs.destination.data.repository.PartnerContactLinkTRepository;
 import com.tcs.destination.data.repository.PartnerDao;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.PartnerSubSpMappingTRepository;
 import com.tcs.destination.data.repository.PartnerSubSpProductMappingTRepository;
+import com.tcs.destination.data.repository.ProductContactLinkTRepository;
+import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.SmartSearchType;
@@ -109,6 +114,24 @@ public class PartnerService {
 
 	@Autowired
 	private GeographyRepository geoRepository;
+	
+	@Autowired
+	PartnerSubSpProductMappingTRepository partnerSubSpProductMappingRepository;
+
+	@Autowired
+	ProductContactLinkTRepository productContactLinkTRepository;
+
+	@Autowired
+	PartnerContactLinkTRepository partnerContactLinkTRepository;
+
+	@Autowired
+	SubSpRepository subSpRepository;
+	
+	@Autowired
+	WorkflowService workflowService;
+	
+	@Autowired
+	PartnerSubSpMappingTRepository partnerSubSpMappingRepository;
 
 	private Map<String, GeographyMappingT> geographyMapping = null;
 
@@ -473,10 +496,10 @@ public class PartnerService {
 	 * 
 	 * @param partnerMaster
 	 * @return
-	 * @throws DestinationException
+	 * @throws Exception 
 	 */
 	public boolean updatePartner(PartnerMasterT partnerMaster)
-			throws DestinationException {
+			throws Exception {
 		logger.info("Inside updatePartner method");
 		boolean updateStatus = false;
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
@@ -523,8 +546,9 @@ public class PartnerService {
 	 * @param partnerMaster
 	 * @param isBdmWithAccess
 	 * @return
+	 * @throws Exception 
 	 */
-	boolean validateAndUpdatePartner(PartnerMasterT partnerMaster,boolean isBdmWithAccess)
+	boolean validateAndUpdatePartner(PartnerMasterT partnerMaster,boolean isBdmWithAccess) throws Exception
 	{
 		boolean isUpdate=false;
 		String partnerId = partnerMaster.getPartnerId();
@@ -541,6 +565,7 @@ public class PartnerService {
 					"Partner Details not found for update: "
 							+ partnerId);
 		}
+		PartnerMasterT partnerWithMappingDetails = (PartnerMasterT) DestinationUtils.copy(partnerMaster);
 		PartnerMasterT partner = partnerRepository.findOne(partnerId);
 
 		// Partner Name
@@ -757,10 +782,83 @@ public class PartnerService {
 
 		if(isUpdate)
 		{
-			partnerRepository.save(partner);
+			PartnerMasterT partnerCreated = partnerRepository.save(partner);
+			deletePartnerSub(partnerId);
+			deletePartnerContact(partnerId);
+			
+			
+			// for updating the subsp and product mapping tables
+			if(!partnerWithMappingDetails.getPartnerProductDetailsDTOs().isEmpty()){
+				for(PartnerProductDetailsDTO partnerProductDetailsDTO : partnerWithMappingDetails.getPartnerProductDetailsDTOs()){
+					// processing subsps for the new partner
+					if(partnerProductDetailsDTO.getSubspList().size() > 0 ){
+						for(Integer subSpId : partnerProductDetailsDTO.getSubspList()){
+							PartnerSubSpMappingT partnerSubsp = new PartnerSubSpMappingT();
+							partnerSubsp.setPartnerId(partnerCreated.getPartnerId());
+							partnerSubsp.setSubSpId(subSpId);
+							partnerSubsp.setSubSp(subSpRepository.findBySubSpId(subSpId).getSubSp());
+							partnerSubsp.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+							partnerSubsp.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+							PartnerSubSpMappingT partnerSubspSaved = partnerSubSpMappingRepository.save(partnerSubsp);
+
+							//If product available for this partner then this partner subsp has to be persisted along with its product in partner_subsp_product_mapping_t
+							if(partnerProductDetailsDTO.getProductId() != null){
+								workflowService.savePartnerSubspAndProduct(partnerSubspSaved, partnerProductDetailsDTO.getProductId());
+							}
+						}
+					}
+
+					//Processing contacts for partner and Products
+					if(partnerProductDetailsDTO.getPartnerProductContact() != null ){
+						ContactT productcontactSaved = new ContactT();
+						String contactId = null;
+						if (partnerProductDetailsDTO.getPartnerProductContact().getContactId() == null ) {
+							productcontactSaved = workflowService.saveNewContact(partnerProductDetailsDTO);
+							if(productcontactSaved != null && productcontactSaved.getContactId() != null){
+								contactId = productcontactSaved.getContactId();
+								workflowService.populateAsProductOrPartnerContact(partnerProductDetailsDTO, contactId, partnerCreated.getPartnerId());
+							}
+						}
+						else if(partnerProductDetailsDTO.getPartnerProductContact().getContactId() != null){
+							contactId = partnerProductDetailsDTO.getPartnerProductContact().getContactId();
+							workflowService.populateAsProductOrPartnerContact(partnerProductDetailsDTO, contactId, partnerCreated.getPartnerId());
+						}			 
+					}
+				}
+			}
 			logger.info(partner.getPartnerId() + " Partner details updated");
 		}
 		return isUpdate;
+	}
+
+	/**
+	 * delete all partner contacts from partnerContactLinkt for a given partner
+	 * @param partnerId
+	 */
+	private void deletePartnerContact(String partnerId) {
+		List<PartnerContactLinkT> partnerContatcLinkTs = partnerContactLinkTRepository.findByPartnerId(partnerId);
+		if (CollectionUtils.isNotEmpty(partnerContatcLinkTs)) {
+			for (PartnerContactLinkT partnerContact: partnerContatcLinkTs) {
+			partnerContactLinkTRepository.delete(partnerContact);
+			}
+		}
+	}
+
+	/**
+	 * delete all subsp and supsp-product entries for the given parner
+	 * @param partnerId
+	 */
+	private void deletePartnerSub(String partnerId) {
+		List<PartnerSubSpMappingT> subSPLinks = partnerSubSpMappingRepository.findByPartnerId(partnerId);
+		for (PartnerSubSpMappingT partnerSubSpMappingT : subSPLinks) {
+			String partnerSubspMappingId = partnerSubSpMappingT.getPartnerSubspMappingId();
+			List<PartnerSubspProductMappingT> subSpProducts = partnerSubSpProductMappingRepository.findByPartnerSubspMappingId(partnerSubspMappingId);
+			if(CollectionUtils.isNotEmpty(subSpProducts)) {
+				partnerSubSpProductMappingRepository.delete(subSpProducts);
+			}
+			partnerSubSpMappingRepository.delete(partnerSubSpMappingT);
+		}
+		
 	}
 
 	public PageDTO<SearchResultDTO<PartnerMasterT>> smartSearch(

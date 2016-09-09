@@ -2641,7 +2641,7 @@ public class WorkflowService {
 		}
 	}
 
-	private ContactT saveNewContact(PartnerProductDetailsDTO partnerProductDetailsDTO) {
+	public ContactT saveNewContact(PartnerProductDetailsDTO partnerProductDetailsDTO) {
 		ContactT partnerProductContact = partnerProductDetailsDTO.getPartnerProductContact();
 		partnerProductContact.setContactCategory("PARTNER");
 		partnerProductContact.setContactType("EXTERNAL");
@@ -2659,7 +2659,7 @@ public class WorkflowService {
 	 * @param contactId
 	 * @param partnerId
 	 */
-	private void populateAsProductOrPartnerContact(
+	public void populateAsProductOrPartnerContact(
 			PartnerProductDetailsDTO partnerProductDetailsDTO, String contactId, String partnerId) {
 		ProductContactLinkT productcontactLinkT = new ProductContactLinkT();
 		PartnerContactLinkT partnercontactLinkT = new PartnerContactLinkT();
@@ -2711,7 +2711,7 @@ public class WorkflowService {
 	 * @param partnerSubspSaved
 	 * @param productId
 	 */
-	private void savePartnerSubspAndProduct(
+	public void savePartnerSubspAndProduct(
 			PartnerSubSpMappingT partnerSubspSaved, String productId) {
 		if(partnerSubspSaved != null ){
 			PartnerSubspProductMappingT partnerSubspProductObj = new PartnerSubspProductMappingT();

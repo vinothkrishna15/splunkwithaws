@@ -19,5 +19,7 @@ public interface PartnerContactLinkTRepository extends
 	 */
 	List<PartnerContactLinkT> findByPartnerIdAndContactId(String partnerId,
 			String contactId);
+
+	List<PartnerContactLinkT> findByPartnerId(String partnerId);
 	
 }
