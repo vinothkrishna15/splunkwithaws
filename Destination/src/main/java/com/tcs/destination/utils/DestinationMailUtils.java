@@ -20,7 +20,6 @@ import java.util.Set;
 import net.sf.dynamicreports.jasper.builder.JasperReportBuilder;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 import org.apache.velocity.app.VelocityEngine;

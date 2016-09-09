@@ -1,8 +1,8 @@
 package com.tcs.destination.helper;
 
-import static com.tcs.destination.utils.DateUtils.DATE_FORMAT_MONTH_NAME;
 import static com.tcs.destination.utils.DateUtils.ACTUAL_FORMAT;
 import static com.tcs.destination.utils.DateUtils.DATE_FORMAT_MONTH;
+import static com.tcs.destination.utils.DateUtils.DATE_FORMAT_MONTH_NAME_WITH_SPACE;
 import static net.sf.dynamicreports.report.builder.DynamicReports.cmp;
 import static net.sf.dynamicreports.report.builder.DynamicReports.report;
 
@@ -92,7 +92,7 @@ public class WeeklyReportHelper {
 
 		logger.info("constructing weekly report for geography : " + geography);
 		Date previousDate = DateUtils.getPreviousDate();
-		String currentDateString = DATE_FORMAT_MONTH_NAME.format(currentDate);
+		String currentDateString = DATE_FORMAT_MONTH_NAME_WITH_SPACE.format(currentDate);
 		String previousDateString = DATE_FORMAT_MONTH.format(previousDate);
 		String previousWeekDateString = DATE_FORMAT_MONTH.format(previousWeekDate);
 		FontBuilder defaultFont = DynamicReports.stl.font().setFontName(ReportUtil.FONT_MYRIAD_PRO);
