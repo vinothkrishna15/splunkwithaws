@@ -506,16 +506,7 @@ public class WorkflowService {
 			query.setParameter("userGroup", userGroupLike);
 			break;
 		}
-		case REPORTING_TEAM:{
-			// Query to get pending bfm requests for specific user's approval/rejection
-			StringBuffer queryBuffer = new StringBuffer(
-					QueryConstants.BFM_PENDING_WITH_USER_QUERY);
-			query = entityManager.createNativeQuery(queryBuffer.toString());
-			query.setParameter("userId", userId);
-			break;
-		}
 		case STRATEGIC_INITIATIVES: 
-			//
 		{
 			// Query to get bfm requests pending for a SI or Reporting Team 
 			StringBuffer queryBuffer = new StringBuffer(
