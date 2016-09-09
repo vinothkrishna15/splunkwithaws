@@ -26,6 +26,7 @@ public class DeliveryCentreT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name="delivery_centre_id")
 	private Integer deliveryCentreId;
 
@@ -67,6 +68,10 @@ public class DeliveryCentreT implements Serializable {
 	//bi-directional many-to-one association to OpportunityDeliveryCentreMappingT
 	@OneToMany(mappedBy="deliveryCentreT")
 	private List<OpportunityDeliveryCentreMappingT> opportunityDeliveryCentreMappingTs;
+	
+	// bi-directional many-to-one association to DeliveryMasterT
+	@OneToMany(mappedBy = "deliveryCentreT")
+	private List<DeliveryMasterT> deliveryMasterTs;
 
 	public DeliveryCentreT() {
 	}
@@ -180,7 +185,13 @@ public class DeliveryCentreT implements Serializable {
 	public void setDeliveryCentreHeadUser(UserT deliveryCentreHeadUser) {
 		this.deliveryCentreHeadUser = deliveryCentreHeadUser;
 	}
-	
-	
 
+	public List<DeliveryMasterT> getDeliveryMasterTs() {
+		return deliveryMasterTs;
+	}
+
+	public void setDeliveryMasterTs(List<DeliveryMasterT> deliveryMasterTs) {
+		this.deliveryMasterTs = deliveryMasterTs;
+	}
+	
 }

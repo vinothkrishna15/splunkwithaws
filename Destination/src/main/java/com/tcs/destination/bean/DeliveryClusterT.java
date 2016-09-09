@@ -1,14 +1,24 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
+
 import javax.persistence.*;
+
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.tcs.destination.utils.Constants;
+
 import java.sql.Timestamp;
+import java.util.List;
 
 
 /**
  * The persistent class for the delivery_cluster_t database table.
  * 
  */
+@JsonFilter(Constants.FILTER)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "deliveryClusterId")
 @Entity
 @Table(name="delivery_cluster_t")
 @NamedQuery(name="DeliveryClusterT.findAll", query="SELECT d FROM DeliveryClusterT d")
@@ -16,6 +26,7 @@ public class DeliveryClusterT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name="delivery_cluster_id")
 	private Integer deliveryClusterId;
 
@@ -53,6 +64,10 @@ public class DeliveryClusterT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="modified_by", insertable = false, updatable = false)
 	private UserT modifiedByUser;
+	
+	// bi-directional many-to-one association to DeliveryCentreT
+	@OneToMany(mappedBy = "deliveryClusterT")
+	private List<DeliveryCentreT> deliveryCentreTs;
 
 	public DeliveryClusterT() {
 	}
@@ -144,7 +159,13 @@ public class DeliveryClusterT implements Serializable {
 	public void setModifiedByUser(UserT modifiedByUser) {
 		this.modifiedByUser = modifiedByUser;
 	}
-	
-	
+
+	public List<DeliveryCentreT> getDeliveryCentreTs() {
+		return deliveryCentreTs;
+	}
+
+	public void setDeliveryCentreTs(List<DeliveryCentreT> deliveryCentreTs) {
+		this.deliveryCentreTs = deliveryCentreTs;
+	}
 
 }

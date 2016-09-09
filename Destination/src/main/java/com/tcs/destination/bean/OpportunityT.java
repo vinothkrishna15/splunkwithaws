@@ -261,6 +261,10 @@ public class OpportunityT implements Serializable, Cloneable {
 	@ManyToOne
 	@JoinColumn(name="delivery_ownership_id", insertable =false, updatable=false)
 	private DeliveryOwnershipT deliveryOwnershipT;
+	
+	// bi-directional many-to-one association to DeliveryMasterT
+	@OneToMany(mappedBy = "opportunityT")
+	private List<DeliveryMasterT> deliveryMasterTs;
 
 	@Transient
 	private List<SearchKeywordsT> searchKeywordsTs;
@@ -1323,7 +1327,12 @@ public class OpportunityT implements Serializable, Cloneable {
 	public void setDeliveryType(String deliveryType) {
 		this.deliveryType = deliveryType;
 	}
-	
-	
-	
+
+	public List<DeliveryMasterT> getDeliveryMasterTs() {
+		return deliveryMasterTs;
+	}
+
+	public void setDeliveryMasterTs(List<DeliveryMasterT> deliveryMasterTs) {
+		this.deliveryMasterTs = deliveryMasterTs;
+	}
 }

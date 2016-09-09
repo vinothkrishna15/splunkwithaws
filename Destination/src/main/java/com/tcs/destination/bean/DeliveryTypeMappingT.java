@@ -1,7 +1,14 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
+
 import javax.persistence.*;
+
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.tcs.destination.utils.Constants;
+
 import java.util.List;
 
 
@@ -9,6 +16,8 @@ import java.util.List;
  * The persistent class for the delivery_type_mapping_t database table.
  * 
  */
+@JsonFilter(Constants.FILTER)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "deliveryType")
 @Entity
 @Table(name="delivery_type_mapping_t")
 @NamedQuery(name="DeliveryTypeMappingT.findAll", query="SELECT d FROM DeliveryTypeMappingT d")
@@ -16,6 +25,7 @@ public class DeliveryTypeMappingT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name="delivery_type")
 	private String deliveryType;
 

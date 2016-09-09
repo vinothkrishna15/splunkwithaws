@@ -89,6 +89,10 @@ public class PartnerMasterT implements Serializable {
 	// bi-directional many-to-one association to UserFavoritesT
 	@OneToMany(mappedBy = "partnerMasterT")
 	private List<UserFavoritesT> userFavoritesTs;
+	
+	// bi-directional many-to-one association to DeliveryMasterT
+	@OneToMany(mappedBy = "partnerMasterT")
+	private List<DeliveryMasterT> deliveryMasterTs;
 
 	//added for partner changes - city, country, text1,text2,text3,group partner name,hqpqrtner link id
 	private String city;
@@ -542,6 +546,14 @@ public class PartnerMasterT implements Serializable {
 	public void setPartnerContactLinkTs(
 			List<PartnerContactLinkT> partnerContactLinkTs) {
 		this.partnerContactLinkTs = partnerContactLinkTs;
+	}
+
+	public List<DeliveryMasterT> getDeliveryMasterTs() {
+		return deliveryMasterTs;
+	}
+
+	public void setDeliveryMasterTs(List<DeliveryMasterT> deliveryMasterTs) {
+		this.deliveryMasterTs = deliveryMasterTs;
 	}
 
 }
