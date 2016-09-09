@@ -1,6 +1,7 @@
 package com.tcs.destination.utils;
 
 import static com.tcs.destination.utils.DateUtils.ACTUAL_FORMAT;
+import static com.tcs.destination.utils.DateUtils.DATE_FORMAT_MONTH_NAME;
 
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
@@ -2070,97 +2071,94 @@ public class DestinationMailUtils {
 	 * 
 	 * @throws Exception
 	 */
-	public void sendWeeklyReport() throws Exception {
-		Date currentDate = DateUtils.getCurrentMidnightDate();
-		String currentDateString = ACTUAL_FORMAT.format(currentDate);
-		Date previousWeekDate = DateUtils.getPreviousWeekDate();
-		Date previousDate = DateUtils.getPreviousDate();
-		String previousDateString = ACTUAL_FORMAT.format(previousDate);
-		String previousWeekDateString = ACTUAL_FORMAT.format(previousWeekDate);
-		String financialYear = DateUtils.getFinancialYr();
-		int weekNumber = DateUtils.weekOfFinancialYr(new Date());
-		JasperReportBuilder reportAPAC;
-		JasperReportBuilder reportAmerica;
-		JasperReportBuilder reportUK;
-		List<String> apacGeos = Lists.newArrayList();
-		List<String> americaGeos = Lists.newArrayList();
-		List<String> euGeos = Lists.newArrayList();
-		List<GeographyMappingT> geographyMappingTs = (List<GeographyMappingT>) geographyRepository
-				.findAll();
-		for (GeographyMappingT geographyMappingT : geographyMappingTs) {
-			if (geographyMappingT.getDisplayGeography().equals(
-					Geography.APAC_IND_MEA.getDisplayGeography())) {
-				apacGeos.add(geographyMappingT.getGeography());
-			} else if (geographyMappingT.getDisplayGeography().equals(
-					Geography.AMERICAS.getDisplayGeography())) {
-				americaGeos.add(geographyMappingT.getGeography());
-			} else if (geographyMappingT.getDisplayGeography().equals(
-					Geography.EU_UK.getDisplayGeography())) {
-				euGeos.add(geographyMappingT.getGeography());
-			}
+	public void sendWeeklyReport() throws Exception {Date currentDate = DateUtils.getCurrentMidnightDate();
+	String currentDateString = ACTUAL_FORMAT.format(currentDate);
+	String reportDateString = DATE_FORMAT_MONTH_NAME.format(currentDate);
+	Date previousWeekDate = DateUtils.getPreviousWeekDate();
+	Date previousDate = DateUtils.getPreviousDate();
+	String previousDateString = ACTUAL_FORMAT.format(previousDate);
+	String previousWeekDateString = ACTUAL_FORMAT.format(previousWeekDate);
+	String financialYear = DateUtils.getFinancialYr();
+	String financialEndYear = DateUtils.getFinancialEndYr();
+	int weekNumber = DateUtils.weekOfFinancialYr(new Date());
+	JasperReportBuilder reportAPAC;
+	JasperReportBuilder reportAmerica;
+	JasperReportBuilder reportUK;
+	List<String> apacGeos = Lists.newArrayList();
+	List<String> americaGeos = Lists.newArrayList();
+	List<String> euGeos = Lists.newArrayList();
+	List<GeographyMappingT> geographyMappingTs = (List<GeographyMappingT>) geographyRepository
+			.findAll();
+	for (GeographyMappingT geographyMappingT : geographyMappingTs) {
+		if (geographyMappingT.getDisplayGeography().equals(
+				Geography.APAC_IND_MEA.getDisplayGeography())) {
+			apacGeos.add(geographyMappingT.getGeography());
+		} else if (geographyMappingT.getDisplayGeography().equals(
+				Geography.AMERICAS.getDisplayGeography())) {
+			americaGeos.add(geographyMappingT.getGeography());
+		} else if (geographyMappingT.getDisplayGeography().equals(
+				Geography.EU_UK.getDisplayGeography())) {
+			euGeos.add(geographyMappingT.getGeography());
 		}
-		// Report for APAC India ME
-		reportAPAC = weeklyReportHelper.constructWeeklyReport(apacGeos,
-				currentDate, previousWeekDate,
-				Geography.APAC_IND_MEA.getDisplayGeography());
-		// Report for americas
-		reportAmerica = weeklyReportHelper.constructWeeklyReport(americaGeos,
-				currentDate, previousWeekDate,
-				Geography.AMERICAS.getDisplayGeography());
-		// Report for Europe
-		reportUK = weeklyReportHelper.constructWeeklyReport(euGeos,
-				currentDate, previousWeekDate,
-				Geography.EU_UK.getDisplayGeography());
-
-		ByteArrayOutputStream byteArrayOutputStreamAmer = new ByteArrayOutputStream();
-		ByteArrayOutputStream byteArrayOutputStreamAPAC = new ByteArrayOutputStream();
-		ByteArrayOutputStream byteArrayOutputStreamUK = new ByteArrayOutputStream();
-
-		reportAPAC.toPdf(byteArrayOutputStreamAPAC);
-		logger.info("Report for APAC produced");
-		reportAmerica.toPdf(byteArrayOutputStreamAmer);
-		logger.info("Report for America produced");
-		reportUK.toPdf(byteArrayOutputStreamUK);
-		logger.info("Report for EU/UK produced");
-
-		byte[] bytesAPAC = byteArrayOutputStreamAPAC.toByteArray();
-		byte[] bytesAmer = byteArrayOutputStreamAmer.toByteArray();
-		byte[] bytesUK = byteArrayOutputStreamUK.toByteArray();
-
-		Map<String, byte[]> byteMap = Maps.newHashMap();
-		byteMap.put("Weekly Report for APAC Ind ME from "
-				+ previousWeekDateString + " " + "to " + previousDateString
-				+ ".pdf", bytesAPAC);
-		byteMap.put("Weekly Report for Americas from " + previousWeekDateString
-				+ " " + "to " + previousDateString+ ".pdf", bytesAmer);
-		byteMap.put("Weekly Report for EU & UK from " + previousWeekDateString
-				+ " " + "to " + previousDateString+ ".pdf", bytesUK);
-		//Saving the weekly report to Documents
-		saveDocuments(byteMap);
-		String templateLoc = weeklyReportEmailTemplateLoc;
-		String subject = new StringBuffer(mailSubjectAppendEnvName)
-				.append(weeklyReportEmailSubject).append(" ")
-				.append(currentDateString).toString();
-		Map<String, Object> data = new HashMap<String, Object>();
-		logger.info("Report for EU/UK produced");
-		data.put("weekNumber", weekNumber);
-		data.put("weekStartDate", previousWeekDateString);
-		data.put("weekEndDate", previousDateString);
-		data.put("financialYear", financialYear);
-		DestinationMailMessage message = new DestinationMailMessage();
-		List<String> recipientList = Lists.newArrayList();
-		recipientList = Arrays.asList(StringUtils.split(weeklyReportEmailId, ","));
-		message.setRecipients(recipientList);
-		logger.info("To email address : " + weeklyReportEmailId);
-		message.setSubject(subject.toString());
-		logger.info("Subject : " + subject.toString());
-		String text = mergeTmplWithData(data, templateLoc);
-		logger.info("framed text : " + text);
-		message.setMessage(text);
-		message.setAttachments(byteMap);
-		destMailSender.send(message);
-		logger.info("Weekly report mail sent");
 	}
+	// Report for APAC India ME
+	reportAPAC = weeklyReportHelper.constructWeeklyReport(apacGeos,
+			currentDate, previousWeekDate,
+			Geography.APAC_IND_MEA.getDisplayGeography(), weekNumber, financialEndYear);
+	// Report for americas
+	reportAmerica = weeklyReportHelper.constructWeeklyReport(americaGeos,
+			currentDate, previousWeekDate,
+			Geography.AMERICAS.getDisplayGeography(), weekNumber, financialEndYear);
+	// Report for Europe
+	reportUK = weeklyReportHelper.constructWeeklyReport(euGeos,
+			currentDate, previousWeekDate,
+			Geography.EU_UK.getDisplayGeography(), weekNumber, financialEndYear);
+
+	ByteArrayOutputStream byteArrayOutputStreamAmer = new ByteArrayOutputStream();
+	ByteArrayOutputStream byteArrayOutputStreamAPAC = new ByteArrayOutputStream();
+	ByteArrayOutputStream byteArrayOutputStreamUK = new ByteArrayOutputStream();
+	reportAPAC.toPdf(byteArrayOutputStreamAPAC);
+	logger.info("Report for APAC produced");
+	reportAmerica.toPdf(byteArrayOutputStreamAmer);
+	logger.info("Report for America produced");
+	reportUK.toPdf(byteArrayOutputStreamUK);
+	logger.info("Report for EU/UK produced");
+	byte[] bytesAPAC = byteArrayOutputStreamAPAC.toByteArray();
+	byte[] bytesAmer = byteArrayOutputStreamAmer.toByteArray();
+	byte[] bytesUK = byteArrayOutputStreamUK.toByteArray();
+	Map<String, byte[]> byteMap = Maps.newHashMap();
+	byteMap.put("Weekly Report APAC Ind ME "
+			+ reportDateString + ".pdf", bytesAPAC);
+	byteMap.put("Weekly Report Americas " + reportDateString
+			+ ".pdf", bytesAmer);
+	byteMap.put("Weekly Report EU & UK " + reportDateString
+			+ ".pdf", bytesUK);
+	//Saving the weekly report to Documents
+	saveDocuments(byteMap);
+	
+	String templateLoc = weeklyReportEmailTemplateLoc;
+	String subject = new StringBuffer(mailSubjectAppendEnvName)
+			.append(weeklyReportEmailSubject).append(" ")
+			.append(currentDateString).toString();
+	Map<String, Object> data = new HashMap<String, Object>();
+	logger.info("Report for EU/UK produced");
+	data.put("weekNumber", weekNumber);
+	data.put("weekStartDate", previousWeekDateString);
+	data.put("weekEndDate", previousDateString);
+	data.put("financialYear", financialYear);
+	DestinationMailMessage message = new DestinationMailMessage();
+	List<String> recipientList = Lists.newArrayList();
+	recipientList = Arrays.asList(StringUtils.split(weeklyReportEmailId, ","));
+	message.setRecipients(recipientList);
+	logger.info("To email address : " + weeklyReportEmailId);
+	message.setSubject(subject.toString());
+	logger.info("Subject : " + subject.toString());
+	String text = mergeTmplWithData(data, templateLoc);
+	logger.info("framed text : " + text);
+	message.setMessage(text);
+	message.setAttachments(byteMap);
+	destMailSender.send(message);
+	logger.info("Weekly report mail sent");}
 
 	/**
 	 * Method used to save the weekly report to Documents

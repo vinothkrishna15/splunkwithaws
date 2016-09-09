@@ -36,6 +36,7 @@ public class ReportUtil {
 	public static final Integer FONT_SIZE_NORMAL = 10;
 	public static final Integer FONT_SIZE_HEADER = 12;
 	public static final Integer FONT_SIZE_TITLE = 14;
+	public static final Integer FONT_SIZE_SUB_TITLE = 12;
 
 	/**
 	 * Method used to build the report with the data source, columns , title
@@ -56,6 +57,8 @@ public class ReportUtil {
 		StyleBuilder titleStyle = DynamicReports.stl.style().setFontSize(FONT_SIZE_TITLE)
 				.setLineSpacingSize(10f).setBold(false);
 		title.setStyle(titleStyle);
+		
+		StyleBuilder subTitleStyle = DynamicReports.stl.style().setFontSize(FONT_SIZE_SUB_TITLE).italic().setBold(false);
 
 		StyleBuilder headerStyle = DynamicReports.stl
 				.style()
@@ -77,11 +80,16 @@ public class ReportUtil {
 				.setRightBorder(borderStyle).setTopBorder(borderStyle)
 				.setBottomBorder(borderStyle).setPadding(5).setFontSize(FONT_SIZE_NORMAL);
 
-		return DynamicReports.report()
+		return DynamicReports
+				.report()
 				.setDefaultFont(defaultFont)
-				.title(title, DynamicReports.cmp.verticalGap(5))
-				.columns(columns).setColumnTitleStyle(headerStyle)
-				.setColumnStyle(columnStyle).setDataSource(datasource)
+				.title(title,
+						DynamicReports.cmp.verticalGap(5),
+						DynamicReports.cmp.text("Details:").setStyle(
+								subTitleStyle),
+						DynamicReports.cmp.verticalGap(5)).columns(columns)
+				.setColumnTitleStyle(headerStyle).setColumnStyle(columnStyle)
+				.setDataSource(datasource)
 				.setDetailSplitType(SplitType.PREVENT).highlightDetailOddRows()
 				.setDetailOddRowStyle(highlightStyle);
 	}

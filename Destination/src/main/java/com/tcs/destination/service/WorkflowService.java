@@ -547,11 +547,11 @@ public class WorkflowService {
 				QueryConstants.BFM_PENDING_WITH_USER_QUERY);
 		query = entityManager.createNativeQuery(queryBuffer.toString());
 		query.setParameter("userId", userId);
-		if (resultList != null) {
-			if (resultList.isEmpty()) {
+		if (CollectionUtils.isEmpty(resultList)) {
 				resultList = query.getResultList();
-			}
-		} 
+		} else {
+			resultList.addAll(query.getResultList());
+		}
 		logger.debug("Inside getPendingBfmRequests method : End");
 		return resultList;
 	}

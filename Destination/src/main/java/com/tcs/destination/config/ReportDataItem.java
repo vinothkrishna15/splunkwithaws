@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
 public @interface ReportDataItem {
 	
 	String columnName();
-	int width() default 80;
+	int width() default 90;
 	int height() default 40;
 
 }
