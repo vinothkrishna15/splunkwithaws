@@ -448,8 +448,6 @@ public class WorkflowService {
 			// Add submitted and actioned by requests
 			myWorklist.addAll(Lists.newArrayList(submittedAndApprovedRequests));
 
-			// Sort the list based on modified date time
-			//	Collections.sort(myWorklist);
 			if (myWorklist.isEmpty()) {
 				logger.debug("No items in worklist for the user" + userId);
 				throw new DestinationException(HttpStatus.NOT_FOUND,
@@ -460,6 +458,9 @@ public class WorkflowService {
 				throw new DestinationException(HttpStatus.NOT_FOUND,
 						"No requests found with stage - " + status);
 			}
+			// Sort the list based on modified date time
+			Collections.sort(myWorklist);
+			
 			worklistResponse.setTotalCount(myWorklist.size());
 			myWorklist = paginateWorklist(page, count, myWorklist);
 			worklistResponse.setWorklists(myWorklist);
@@ -505,16 +506,7 @@ public class WorkflowService {
 			query.setParameter("userGroup", userGroupLike);
 			break;
 		}
-		case REPORTING_TEAM:{
-			// Query to get pending bfm requests for specific user's approval/rejection
-			StringBuffer queryBuffer = new StringBuffer(
-					QueryConstants.BFM_PENDING_WITH_USER_QUERY);
-			query = entityManager.createNativeQuery(queryBuffer.toString());
-			query.setParameter("userId", userId);
-			break;
-		}
 		case STRATEGIC_INITIATIVES: 
-			//
 		{
 			// Query to get bfm requests pending for a SI or Reporting Team 
 			StringBuffer queryBuffer = new StringBuffer(
@@ -546,11 +538,11 @@ public class WorkflowService {
 				QueryConstants.BFM_PENDING_WITH_USER_QUERY);
 		query = entityManager.createNativeQuery(queryBuffer.toString());
 		query.setParameter("userId", userId);
-		if (resultList != null) {
-			if (resultList.isEmpty()) {
+		if (CollectionUtils.isEmpty(resultList)) {
 				resultList = query.getResultList();
-			}
-		} 
+		} else {
+			resultList.addAll(query.getResultList());
+		}
 		logger.debug("Inside getPendingBfmRequests method : End");
 		return resultList;
 	}
@@ -765,6 +757,7 @@ public class WorkflowService {
 							break;
 				}
 				myWorklistDTO.setRequestId(requestT.getRequestId());
+				myWorklistDTO.setWorkflowRequest(requestT);
 				WorkflowStepT stepT = workflowStepRepository
 						.findFirstByRequestIdAndStepStatusNotOrderByStepIdDesc(
 								requestT.getRequestId(),
@@ -894,7 +887,9 @@ public class WorkflowService {
 					}
 					if (MyWorklistDTOArray[4] != null) {
 						String s = MyWorklistDTOArray[4].toString();
-						workflowStep.setRequestId(Integer.parseInt(s));
+						int requestId = Integer.parseInt(s);
+						workflowStep.setRequestId(requestId);
+						worklist.setWorkflowRequest(workflowRequestRepository.findOne(requestId));
 					}
 					if (MyWorklistDTOArray[5] != null) {
 						String s = MyWorklistDTOArray[5].toString();
