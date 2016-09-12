@@ -361,10 +361,6 @@ public class UserT implements Serializable {
 	@OneToMany(mappedBy="modifiedByUser")
 	private List<WorkflowRequestT> workflowRequestTs2;
 
-	//bi-directional many-to-one association to WorkflowProcessTemplate
-	@OneToMany(mappedBy="userT")
-	private List<WorkflowProcessTemplate> workflowProcessTemplates;
-
 	//bi-directional many-to-one association to WorkflowCompetitorT
 	@OneToMany(mappedBy="createdByUser")
 	private List<WorkflowCompetitorT> workflowCompetitorTs1;
@@ -1631,15 +1627,6 @@ public class UserT implements Serializable {
 	public void setWorkflowPartnerTs2(List<WorkflowPartnerT> workflowPartnerTs2) {
 		this.workflowPartnerTs2 = workflowPartnerTs2;
 	}
-
-	public List<WorkflowProcessTemplate> getWorkflowProcessTemplates() {
-		return this.workflowProcessTemplates;
-	}
-
-	public void setWorkflowProcessTemplates(List<WorkflowProcessTemplate> workflowProcessTemplates) {
-		this.workflowProcessTemplates = workflowProcessTemplates;
-	}
-
 
 	public List<UserModuleAccessT> getUserModuleAccessTs() {
 		return this.userModuleAccessTs;
