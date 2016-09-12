@@ -1641,7 +1641,7 @@ public class WorkflowService {
 			// Getting workflow template for rest of the user categories as not
 			// applicable
 			workflowTemplatesForNotapplicable = workflowProcessTemplateRepository
-					.findByEntityTypeIdAndStepGreaterThanOrderByStepAsc(
+					.findByEntityTypeIdAndStepGreaterThan(
 							workflowProcessTemplate.getEntityTypeId(),
 							workflowTemplateForPending.getStep());
 			if (CollectionUtils.isNotEmpty(workflowTemplatesForNotapplicable)) {
@@ -4170,7 +4170,7 @@ public class WorkflowService {
 			// Getting workflow template for rest of the user categories as not
 			// applicable
 			workflowTemplatesForNotapplicable = workflowProcessTemplateRepository
-					.findByEntityTypeIdAndStepGreaterThanOrderByStepAsc(
+					.findByEntityTypeIdAndStepGreaterThan(
 							workflowProcessTemplate.getEntityTypeId(),
 							workflowProcessTemplate.getStep());
 			if (CollectionUtils.isNotEmpty(workflowTemplatesForNotapplicable)) {

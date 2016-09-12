@@ -361,6 +361,10 @@ public class UserT implements Serializable {
 	@OneToMany(mappedBy="modifiedByUser")
 	private List<WorkflowRequestT> workflowRequestTs2;
 
+	//bi-directional many-to-one association to WorkflowStepT
+	@OneToMany(mappedBy="user")
+	private List<WorkflowStepT> workflowStepTs1;
+
 	//bi-directional many-to-one association to WorkflowProcessTemplate
 	@OneToMany(mappedBy="userT")
 	private List<WorkflowProcessTemplate> workflowProcessTemplates;
@@ -1578,6 +1582,28 @@ public class UserT implements Serializable {
 		return workflowRequestTs2;
 	}
 
+	public List<WorkflowStepT> getWorkflowStepTs1() {
+		return this.workflowStepTs1;
+	}
+
+	public void setWorkflowStepTs1(List<WorkflowStepT> workflowStepTs1) {
+		this.workflowStepTs1 = workflowStepTs1;
+	}
+
+	public WorkflowStepT addWorkflowStepTs1(WorkflowStepT workflowStepTs1) {
+		getWorkflowStepTs1().add(workflowStepTs1);
+		workflowStepTs1.setUser(this);
+
+		return workflowStepTs1;
+	}
+
+	public WorkflowStepT removeWorkflowStepTs1(WorkflowStepT workflowStepTs1) {
+		getWorkflowStepTs1().remove(workflowStepTs1);
+		workflowStepTs1.setUser(null);
+
+		return workflowStepTs1;
+	}
+
 	public List<WorkflowStepT> getWorkflowStepTs3() {
 		return this.workflowStepTs3;
 	}
@@ -1640,6 +1666,19 @@ public class UserT implements Serializable {
 		this.workflowProcessTemplates = workflowProcessTemplates;
 	}
 
+	public WorkflowProcessTemplate addWorkflowProcessTemplate(WorkflowProcessTemplate workflowProcessTemplate) {
+		getWorkflowProcessTemplates().add(workflowProcessTemplate);
+		workflowProcessTemplate.setUserT(this);
+
+		return workflowProcessTemplate;
+	}
+
+	public WorkflowProcessTemplate removeWorkflowProcessTemplate(WorkflowProcessTemplate workflowProcessTemplate) {
+		getWorkflowProcessTemplates().remove(workflowProcessTemplate);
+		workflowProcessTemplate.setUserT(null);
+
+		return workflowProcessTemplate;
+	}
 
 	public List<UserModuleAccessT> getUserModuleAccessTs() {
 		return this.userModuleAccessTs;

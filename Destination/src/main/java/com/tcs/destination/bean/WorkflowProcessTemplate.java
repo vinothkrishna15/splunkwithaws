@@ -41,7 +41,9 @@ public class WorkflowProcessTemplate implements Serializable {
 	@Column(name="user_id")
 	private String userId;
 	
-	
+	@ManyToOne
+	@JoinColumn(name="user_id", insertable = false, updatable = false)
+	private UserT userT;
 
 	public WorkflowProcessTemplate() {
 	}
@@ -100,7 +102,13 @@ public class WorkflowProcessTemplate implements Serializable {
 		this.userId = userId;
 	}
 
-	
+	public UserT getUserT() {
+		return userT;
+	}
+
+	public void setUserT(UserT userT) {
+		this.userT = userT;
+	}
 	
     
 
