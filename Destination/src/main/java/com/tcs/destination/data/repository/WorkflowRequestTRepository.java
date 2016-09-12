@@ -45,7 +45,7 @@ public interface WorkflowRequestTRepository extends
 			@Param("userId") String userId,
 			@Param("status") String status);
 	
-	@Query("SELECT wf FROM WorkflowRequestT wf JOIN wf.workflowStepTs ws WHERE wf.status = :status AND wf.entityTypeId in (:type) AND ws.userId = :userId AND ws.stepStatus NOT LIKE 'PENDING' AND ws.stepStatus NOT LIKE 'ESCALATED' ORDER BY ws.stepId")
+	@Query("SELECT wf FROM WorkflowRequestT wf JOIN wf.workflowStepTs ws WHERE wf.status = :status AND wf.entityTypeId in (:type) AND ws.userId = :userId AND ws.stepStatus NOT LIKE 'PENDING' AND ws.stepStatus NOT LIKE 'ESCALATED' AND ws.stepStatus NOT LIKE 'NOT APPLICABLE' ORDER BY ws.stepId")
 	public List<WorkflowRequestT> getModifiedByAndStatusAndType(
 			@Param("userId") String userId,
 			@Param("status") String status,
@@ -62,7 +62,7 @@ public interface WorkflowRequestTRepository extends
 	public List<WorkflowRequestT> getModifiedBy(
 			@Param("userId") String userId);
 	
-	@Query("SELECT wf FROM WorkflowRequestT wf JOIN wf.workflowStepTs ws WHERE ws.userId = :userId AND wf.entityTypeId in (:type) AND ws.stepStatus NOT LIKE 'PENDING' AND ws.stepStatus NOT LIKE 'ESCALATED' ORDER BY ws.stepId")
+	@Query("SELECT wf FROM WorkflowRequestT wf JOIN wf.workflowStepTs ws WHERE ws.userId = :userId AND wf.entityTypeId in (:type) AND ws.stepStatus NOT LIKE 'PENDING' AND ws.stepStatus NOT LIKE 'ESCALATED' AND ws.stepStatus NOT LIKE 'NOT APPLICABLE' ORDER BY ws.stepId")
 	public List<WorkflowRequestT> getModifiedByType(
 			@Param("userId") String userId,
 			@Param("type") List<Integer> type);

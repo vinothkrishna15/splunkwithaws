@@ -69,8 +69,7 @@ public class WorkflowStepT implements Serializable {
 
 
 	//bi-directional many-to-one association to UserT
-	@ManyToOne
-	@JoinColumn(name="user_id", updatable = false, insertable = false)
+	@Transient
 	private UserT user;
 
 	//bi-directional many-to-one association to UserT
