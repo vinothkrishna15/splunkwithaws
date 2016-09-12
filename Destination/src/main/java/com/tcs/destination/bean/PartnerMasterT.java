@@ -15,6 +15,7 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
@@ -103,6 +104,9 @@ public class PartnerMasterT implements Serializable {
 	private String groupPartnerName;
 
 	private String country;
+	
+	@Transient
+	List<PartnerProductDetailsDTO> partnerProductDetailsDTOs;
 
 	//bi-directional many-to-one association to GeographyCountryMappingT
 	@ManyToOne
@@ -543,5 +547,8 @@ public class PartnerMasterT implements Serializable {
 			List<PartnerContactLinkT> partnerContactLinkTs) {
 		this.partnerContactLinkTs = partnerContactLinkTs;
 	}
-
+	
+	public List<PartnerProductDetailsDTO> getPartnerProductDetailsDTOs() {
+		return partnerProductDetailsDTOs;
+	}
 }
