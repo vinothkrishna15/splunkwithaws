@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.tcs.destination.bean.BeaconCustomerMappingT;
 import com.tcs.destination.bean.CompetitorMappingT;
 import com.tcs.destination.bean.ContactT;
@@ -458,12 +459,15 @@ public class WorkflowService {
 				throw new DestinationException(HttpStatus.NOT_FOUND,
 						"No requests found with stage - " + status);
 			}
-			// Sort the list based on modified date time
-			Collections.sort(myWorklist);
+			//Remove duplicate requests
+			List<WorklistDTO<Object>> rtnList = removeDuplicates(myWorklist);
 			
-			worklistResponse.setTotalCount(myWorklist.size());
-			myWorklist = paginateWorklist(page, count, myWorklist);
-			worklistResponse.setWorklists(myWorklist);
+			// Sort the list based on modified date time
+			Collections.sort(rtnList);
+			
+			worklistResponse.setTotalCount(rtnList.size());
+			myWorklist = paginateWorklist(page, count, rtnList);
+			worklistResponse.setWorklists(rtnList);
 			logger.debug("End of getMyWorklist service");
 			return worklistResponse;
 		} catch (DestinationException e) {
@@ -475,6 +479,25 @@ public class WorkflowService {
 		}
 
 
+	}
+
+	/**
+	 * Removes duplicate request in work list
+	 * @param myWorklist
+	 * @return
+	 */
+	private List<WorklistDTO<Object>> removeDuplicates(
+			List<WorklistDTO<Object>> myWorklist) {
+
+		Map<Integer, WorklistDTO<Object>> map = Maps.newHashMap();
+		for (WorklistDTO<Object> obj : myWorklist) {
+			if (obj.getRequestId() != null) {
+				if (!map.keySet().contains(obj.getRequestId())) {
+					map.put(obj.getRequestId(), obj);
+				}
+			}
+		}
+		return new ArrayList<>(map.values());
 	}
 
 	private List<Object[]> getPendingBfmRequests(String userId) {
@@ -791,7 +814,6 @@ public class WorkflowService {
 			List<Object[]> tempRequestObject = listOfEntityRequests.get(i);
 			if (tempRequestObject != null) {
 
-
 				// Iterate the result and set the response object
 				for (Object[] MyWorklistDTOArray : tempRequestObject) {
 					WorklistDTO<Object> worklist=new WorklistDTO<Object>(); 
@@ -886,10 +908,12 @@ public class WorkflowService {
 						workflowStep.setStepId(Integer.parseInt(s));
 					}
 					if (MyWorklistDTOArray[4] != null) {
+						
 						String s = MyWorklistDTOArray[4].toString();
 						int requestId = Integer.parseInt(s);
 						workflowStep.setRequestId(requestId);
 						worklist.setWorkflowRequest(workflowRequestRepository.findOne(requestId));
+						worklist.setRequestId(requestId);
 					}
 					if (MyWorklistDTOArray[5] != null) {
 						String s = MyWorklistDTOArray[5].toString();
