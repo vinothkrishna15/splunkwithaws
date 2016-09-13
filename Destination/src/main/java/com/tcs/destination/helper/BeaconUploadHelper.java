@@ -62,6 +62,7 @@ public class BeaconUploadHelper {
 	{
 		
 			UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
+			StringBuffer errorMsg = new StringBuffer();
 			
 			mapOfIouBeaconMappingT = mapOfIouBeaconMappingT != null ? mapOfIouBeaconMappingT
 					: commonHelper.getIouBeaconMappingT();
@@ -80,35 +81,18 @@ public class BeaconUploadHelper {
 			  // BEACON_CUSTOMER_IOU - to find whether beacon_iou has foreign key existence in iou_beacon_mapping_t
 				String beaconIou = data[4];
 				
-			  beaconCustomerMappingData=beaconRepository.findbeaconDuplicates(beaconCustomerName,beaconGeography, beaconIou);
-			  if(beaconCustomerMappingData.isEmpty())
-			  {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				error.setMessage("The combination of Beacon Customer Name,Beacon Geography And Beacon Iou is not valid");
-			  } 
-			  if ((!beaconCustomerMappingData.isEmpty())
-						&& (beaconCustomerMappingData.size() == 1)) 
-			  {
-			     BeaconCustomerMappingT beaconCustomerMappingT=beaconCustomerMappingData.get(0);
-			     Long beaconCustomerMapId=beaconCustomerMappingT.getBeaconCustomerMapId();
-			     beaconDataT.setBeaconCustomerMapId(beaconCustomerMapId);
 			 
-			  }
 				if(StringUtils.isEmpty(beaconGeography))
 				{
-				    //beaconDataT.setBeaconGeography(beaconGeography);
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					error.setMessage("Beacon Geography Is Mandatory");
+					errorMsg.append(" Beacon Geography Is Mandatory ");
 				}
 				
 				
 				if(StringUtils.isEmpty(beaconCustomerName))
 				{
-					//beaconCustomerMappingT.setBeaconCustomerName(beaconCustomerName);
-					//beaconDataT.setBeaconCustomerName(beaconCustomerName);
-				
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					error.setMessage("Beacon Customer Name Is Mandatory");
+					errorMsg.append(" Beacon Customer Name Is Mandatory ");
 				}
 				
 				// BEACON_GROUP_CLIENT - does not have NOT_NULL constraint
@@ -121,15 +105,8 @@ public class BeaconUploadHelper {
 				// BEACON_CUSTOMER_IOU - to find whether beacon_iou has foreign key existence in iou_beacon_mapping_t
 				
 				if(StringUtils.isEmpty(beaconIou)){
-					/*if (mapOfIouBeaconMappingT.containsKey(beaconIou)) {
-						//beaconCustomerMappingT.setBeaconIou(beaconIou);
-						//beaconDataT.setBeaconIou(beaconIou);
-					
-                        error.setRowNumber(Integer.parseInt(data[0]) + 1);
-						error.setMessage("Invalid IOU");
-					}*/
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					error.setMessage("Beacon IOU Is Mandatory");
+					errorMsg.append(" Beacon IOU Is Mandatory ");
 					}
 				
 				
@@ -141,18 +118,26 @@ public class BeaconUploadHelper {
 				else 
 				{
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					error.setMessage("Beacon Quarter Is Mandatory");
+					errorMsg.append(" Quarter Is Mandatory ");
 				}
 				
 				//REVENUE 
-				BigDecimal beaconRevenue=new BigDecimal(data[10]);
-				if(beaconRevenue!=null)
-				{
-					beaconDataT.setTarget(beaconRevenue);
+				BigDecimal beaconRevenue=null;
+				if(!StringUtils.isEmpty(data[10])){
+				try{
+				  beaconRevenue = new BigDecimal(data[10]);
+				  beaconDataT.setTarget(beaconRevenue);
+				} catch (Exception e){
+					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					errorMsg.append(" Invalid beacon revenue ");
+				}
+				
+					
 				}
 				else 
-				{   error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					error.setMessage("Beacon Revenue Is Mandatory");
+				{   
+					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					errorMsg.append(" Beacon Revenue is mandatory ");
 				}
 				
 				//FINANCIAL YEAR
@@ -163,9 +148,27 @@ public class BeaconUploadHelper {
 				else 
 				{
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					error.setMessage("Beacon Financial Year Is Mandatory");
+					errorMsg.append(" Beacon Revenue is mandatory ");
 				}
 				
+				 if(StringUtils.isEmpty(errorMsg.toString())){
+				 beaconCustomerMappingData=beaconRepository.findBeaconActive(beaconCustomerName,beaconGeography, beaconIou, true);
+				  if ((!beaconCustomerMappingData.isEmpty())
+							&& (beaconCustomerMappingData.size() == 1)) 
+				  {
+				     BeaconCustomerMappingT beaconCustomerMappingT=beaconCustomerMappingData.get(0);
+				     Long beaconCustomerMapId=beaconCustomerMappingT.getBeaconCustomerMapId();
+				     beaconDataT.setBeaconCustomerMapId(beaconCustomerMapId);
+				 
+				  } else {
+					  error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					  errorMsg.append(" The combination of Beacon Customer Name,Beacon Geography And Beacon Iou is not valid/inactive ");
+
+				  }
+				 }
+				 if(!StringUtils.isEmpty(errorMsg.toString())){
+					 error.setMessage(errorMsg.toString());
+				 }
 				return error;
 	}	
 }

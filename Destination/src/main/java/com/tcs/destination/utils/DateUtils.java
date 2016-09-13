@@ -15,7 +15,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
+import org.joda.time.Weeks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -59,6 +61,21 @@ public class DateUtils {
 	public static final DateFormat ACTUAL_FORMAT = new SimpleDateFormat("dd-MMM-yyyy");
 	
 	/**
+	 * ddMMMMMyyyy
+	 */
+	public static final DateFormat DATE_FORMAT_MONTH_NAME = new SimpleDateFormat("ddMMMMMyyyy");
+	
+	/**
+	 * dd MMMMM yyyy
+	 */
+	public static final DateFormat DATE_FORMAT_MONTH_NAME_WITH_SPACE = new SimpleDateFormat("dd MMMMM yyyy");
+	
+	/**
+	 * MMM dd
+	 */
+	public static final DateFormat DATE_FORMAT_MONTH = new SimpleDateFormat("MMM dd");
+	
+	/**
 	 * MM/dd/yyyy
 	 */
 	public static final DateFormat DESIRED_FORMAT = new SimpleDateFormat("MM/dd/yyyy");
@@ -77,6 +94,8 @@ public class DateUtils {
 	 * Fromat dd/MM/yyyy 
 	 */
 	public static final DateFormat FORMAT_DATE_WITH_SLASH = new SimpleDateFormat("dd/MM/yyyy");
+	
+	public static final DateFormat FORMAT_DATE_WITH_SECONDS = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	
 	private static final Map<String, Integer> monthMap = new HashMap<String, Integer>();
@@ -757,7 +776,7 @@ public class DateUtils {
 		try{
 			dateString = sdfr.format( indate );
 		}catch (Exception ex ){
-			System.out.println(ex);
+			logger.debug(ex.getMessage());
 		}
 		return dateString;
 	}
@@ -812,5 +831,88 @@ public class DateUtils {
 		LocalTime localTime = new LocalTime(time);
 		return new DateTime(date).withHourOfDay(localTime.getHourOfDay()).withMinuteOfHour(localTime.getMinuteOfHour()).toDate();
 	}
+	
+	/**
+	 * calculates number of week between the current financial year start(1st Apr) and given date
+	 * @param date
+	 * @return
+	 */
+	public static int weekOfFinancialYr(Date date) {
+		LocalDate dateTime1 = new LocalDate().withMonthOfYear(4).withDayOfMonth(1);
+
+		LocalDate dateTime2 = new LocalDate(date);
+		if(dateTime2.year().get() == dateTime1.year().get() && dateTime2.monthOfYear().get() < 4) {
+			dateTime1 = dateTime1.minusYears(1);
+		}
+
+		return Weeks.weeksBetween(dateTime1, dateTime2).getWeeks();
+	}
+
+	/**
+	 * gets the current financial year in format FY[startYear-endYear]
+	 * @param date
+	 * @return
+	 */
+	public static String getFinancialYr() {
+		//FY 2016-17
+		int startYr;
+		int endYr;
+		LocalDate dateTime = new LocalDate();
+		
+		int currentYr = dateTime.getYear();
+		if(dateTime.monthOfYear().get() < 4) {
+			startYr = currentYr-1;
+			endYr = currentYr;
+		} else {
+			startYr = currentYr;
+			endYr = currentYr + 1;
+		}
+
+		return String.format("FY [%d-%d]", startYr, endYr%100) ;
+	}
+	
+	/**
+	 * gets the current financial year in format FYendYear
+	 * @param date
+	 * @return
+	 */
+	public static String getFinancialEndYr() {
+		//FY 2016-17
+		int endYr;
+		LocalDate dateTime = new LocalDate();
+		
+		int currentYr = dateTime.getYear();
+		if(dateTime.monthOfYear().get() < 4) {
+			endYr = currentYr;
+		} else {
+			endYr = currentYr + 1;
+		}
+
+		return String.format("FY%d", endYr%100);
+	}
+	
+	/**
+	 * gives the current date
+	 * @return
+	 */
+	public static Date getCurrentMidnightDate(){
+		return new LocalDate().toDate();
+		}
+	
+	/**
+	 * Gives the previous week date
+	 * @return
+	 */
+	public static Date getPreviousWeekDate() {
+		return new LocalDate().minusDays(7).toDate();
+		}
+	
+	/**
+	 * Gives the previous date
+	 * @return
+	 */
+	public static Date getPreviousDate() {
+		return new LocalDate().minusDays(1).toDate();
+		}
 	
 }

@@ -221,7 +221,7 @@ public class ConnectDetailedReportService {
 		CellStyle headerStyle = ExcelUtils.createRowStyle(workbook,
 				ReportConstants.REPORTHEADER);
 		List<String> orderedFields = Arrays.asList("iou", "geography", "country", "subSp", "offering", "tcsAccountContact",
-				"tcsAccountRole", "custContactName", "custContactRole", "startDateOfConnect", "endDateOfConnect", "primaryOwner",
+				"tcsAccountRole", "custContactName", "custContactRole","partnerContactName","partnerContactRole","startDateOfConnect", "endDateOfConnect", "primaryOwner",
 				"secondaryOwner", "connectNotes", "linkOpportunity", "connectCategory", "customerOrPartnerName", "createdDate",
 				"createdBy", "modifiedDate", "modifiedBy");
 		boolean isTimeZone = true;
@@ -342,6 +342,8 @@ public class ConnectDetailedReportService {
 		boolean tcsContactRoleFlag = fields.contains(ReportConstants.TCSACCOUNTROLE);
 		boolean custContactNameFlag = fields.contains(ReportConstants.CUSTOMERCONTACTNAME);
 		boolean custContactRoleFlag = fields.contains(ReportConstants.CUSTOMERCONTACTROLE);
+		boolean partnerContactNameFlag = fields.contains(ReportConstants.PARTNERCONTACTNAME);
+		boolean partnerContactRoleFlag = fields.contains(ReportConstants.PARTNERCONTACTROLE);
 		boolean linkOppFlag = fields.contains(ReportConstants.LINKOPPORTUNITY);
 		boolean notesFlag = fields.contains(ReportConstants.CONNECTNOTES);
 		boolean taskFlag = fields.contains(ReportConstants.TASK);
@@ -366,6 +368,7 @@ public class ConnectDetailedReportService {
 			List<TaskT> taskList = taskRepository.findByConnectId(connect.getConnectId());
 			List<Object[]> tcsAccountContactList=contactRepository.findTcsAccountContactNamesByConnectId(connect.getConnectId());
 			List<Object[]> cusContactList=contactRepository.findCustomerContactNamesByConnectId(connect.getConnectId());
+			List<Object[]> partnerContactList=contactRepository.findPartnerContactNamesByConnectId(connect.getConnectId());
 
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow++);
 
@@ -460,14 +463,42 @@ public class ConnectDetailedReportService {
 			if(custContactRoleFlag) {
 				List<String> cusContactNamesList=new ArrayList<String>();
 				List<String> cusContactRole=new ArrayList<String>();
-				SXSSFCell customerContactNameCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
+				SXSSFCell customerContactRoleCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
 				for(Object[] cusContact:cusContactList){
 					cusContactRole.add((String) cusContact[1]);
 				}
 				for(int i=1;i<=cusContactList.size();i++){
 					cusContactNamesList.add(i+"-"+cusContactRole.get(i-1));
 				}
-				customerContactNameCell.setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(cusContactNamesList));
+				customerContactRoleCell.setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(cusContactNamesList));
+				colValue++;
+			}
+			
+		    if(partnerContactNameFlag) {
+				List<String> partnerContactNamesList=new ArrayList<String>();
+				List<String> partnerContactNames=new ArrayList<String>();
+				SXSSFCell partnerContactNameCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
+				for(Object[] partnerContact:partnerContactList){
+					partnerContactNames.add((String)partnerContact[0]);
+				}
+				for(int i=1;i<=partnerContactList.size();i++){
+					partnerContactNamesList.add(i+"-"+partnerContactNames.get(i-1));
+				}
+				partnerContactNameCell.setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(partnerContactNamesList));
+				colValue++;
+			}
+			
+			if(partnerContactRoleFlag) {
+				List<String> partnerContactRolesList=new ArrayList<String>();
+				List<String> partnerContactRole=new ArrayList<String>();
+				SXSSFCell partnerContactRoleCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
+				for(Object[] partnerContact:partnerContactList){
+					partnerContactRole.add((String) partnerContact[1]);
+				}
+				for(int i=1;i<=partnerContactList.size();i++){
+					partnerContactRolesList.add(i+"-"+partnerContactRole.get(i-1));
+				}
+				partnerContactRoleCell.setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(partnerContactRolesList));
 				colValue++;
 			}
 

@@ -1,9 +1,12 @@
 package com.tcs.destination.helper;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -17,7 +20,7 @@ import com.tcs.destination.data.repository.BeaconRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.BeaconCustomerUploadService;
-import com.tcs.destination.utils.StringUtils;
+import org.apache.commons.lang.StringUtils;
 
 @Component("beaconCustomerMappingUploadHelper")
 public class BeaconCustomerMappingUploadHelper {
@@ -39,9 +42,12 @@ public class BeaconCustomerMappingUploadHelper {
 
 	Map<String, GeographyMappingT> mapOfGeographyMappingT = null;
 	Map<String, IouCustomerMappingT> mapOfIouMappingT = null;
+	
+	private static final Logger logger = LoggerFactory
+			.getLogger(BeaconCustomerMappingUploadHelper.class);
 
 	/**
-	 * Method to validate the fields before insert
+	 * This method is used to validate the beacon customer add
 	 * @param data
 	 * @param userId
 	 * @param beacon
@@ -49,21 +55,30 @@ public class BeaconCustomerMappingUploadHelper {
 	 */
 	public UploadServiceErrorDetailsDTO validateBeaconCustomerAdd(
 			String[] data, String userId, BeaconCustomerMappingT beacon) {
+		
+		logger.debug("Begin:inside validateBeaconCustomerAdd() of CustomerUploadHelper");
+
 		String masterCustomerName = data[3];
-		String beaconCustomerName = data[6];
-		String beaconIou = data[7];
-		String beaconGeography = data[8];
-		String active = data[9];
 		String beaconcustomerMapId = data[10];
+		int rowNumber = Integer.parseInt(data[0]) + 1;
 
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
-
+		StringBuffer errorMsg = new StringBuffer();
+		String beaconCustomerName = data[6];
+		String beaconGeography = data[8];
+		String beaconIou = data[7];
+		List<BeaconCustomerMappingT> beaconCustomers=new ArrayList<BeaconCustomerMappingT>();
+		
 		if(StringUtils.isEmpty(beaconcustomerMapId)){
+			
+			if((!StringUtils.isEmpty(beaconCustomerName))&&(!StringUtils.isEmpty(beaconGeography))&&(!StringUtils.isEmpty(beaconIou)))
+			{
 			// to find the uniqueness of the primary key (here composite key)
-			List<BeaconCustomerMappingT> beaconCustomers = beaconCustomerMappingRepository.checkBeaconMappingPK(beaconCustomerName, beaconGeography, beaconIou);
-			int rowNumber = Integer.parseInt(data[0]) + 1;
-
-			if (beaconCustomers.isEmpty()) {
+	          beaconCustomers = beaconCustomerMappingRepository.checkBeaconMappingPK(beaconCustomerName, beaconGeography, beaconIou);
+			}
+			
+ 
+			if (beaconCustomers.isEmpty()) {  
 				// Get List of geographies from DB for validating the geographies
 				// which
 				// comes from the sheet
@@ -77,42 +92,86 @@ public class BeaconCustomerMappingUploadHelper {
 						: commonHelper.getIouMappingT();
 
 				CustomerMasterT customerObj = customerRepository.findByCustomerName(masterCustomerName);
-
+                
+				if(customerObj!=null)
+                {
+					
+				if(customerObj.isActive())
+				{
+				
+				//CUSTOMER ID
 				beacon.setCustomerId(customerObj.getCustomerId());
-				beacon.setActive(Boolean.parseBoolean(active));
-
+				
+                
+				//BEACON CUSTOMER NAME
 				if (!StringUtils.isEmpty(beaconCustomerName)) {
 					beacon.setBeaconCustomerName(beaconCustomerName);
-				} else {
+				} 
+				else 
+				{
 					error.setRowNumber(rowNumber);
-					error.setMessage("beaconCustomerName Is Mandatory; ");
+					errorMsg.append("BeaconCustomerName Is Mandatory;");
 				}
-
-
+                 
+				//BEACON IOU
 				if (!StringUtils.isEmpty(beaconIou)
 						&& mapOfIouMappingT.containsKey(beaconIou)) {
 					beacon.setBeaconIou(beaconIou);
 				} else {
 					error.setRowNumber(rowNumber);
-					error.setMessage("beaconIou Is Mandatory; ");
+					errorMsg.append("BeaconIou Is Not Valid;");
+				}
+				
+				// ACTIVE
+				String active = data[9];
+				if (active!=null) {
+					beacon.setActive(Boolean.parseBoolean(active));
 
 				}
+				
+				//BEACON GEOGRAPHY
 				if (!StringUtils.isEmpty(beaconGeography)
 						&& mapOfGeographyMappingT.containsKey(beaconGeography)) {
 					beacon.setCustomerGeography(beaconGeography);
 
 				} else {
 					error.setRowNumber(rowNumber);
-					error.setMessage("beaconGeography Is Mandatory; ");
+					errorMsg.append("BeaconGeography Is Not Valid;");
 
 				}
+				}
+				else
+				{
+					error.setRowNumber(rowNumber);
+					errorMsg.append("The Beacon Customer is not active to be added;");
+				}
+                }
+                else
+                {
+                	error.setRowNumber(rowNumber);
+                	errorMsg.append("The Customer Is Not Valid;");
+                }
+                
 			} else {
 				error.setRowNumber(rowNumber);
-				error.setMessage("This Beacon Customer details already exist ");
+				errorMsg.append("This Beacon Customer details already exist;");
 
 			}
 		}
-		return error;
+		else
+		{
+			error.setRowNumber(rowNumber);
+			errorMsg.append("Beacon mapping id should not be given upon add operation!!");
+		}
+		
+		String errorMessage = errorMsg.toString();
+		if(StringUtils.isNotEmpty(errorMessage)) {
+			error.setMessage(errorMessage);
+		}
+
+		
+		logger.debug("End:inside validateBeaconCustomerAdd() of CustomerUploadHelper");
+       return error;
 	}
 
 	/**
@@ -129,27 +188,28 @@ public class BeaconCustomerMappingUploadHelper {
 
 		int rowNumber = Integer.parseInt(data[0]) + 1;	
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
-		if(!StringUtils.isEmpty(beaconCustomerMapId)){
-			BeaconCustomerMappingT beaconCustomer = beaconCustomerMappingRepository.findOne(Long.parseLong(beaconCustomerMapId));
-			if (beaconCustomer != null) {
-				if(beacon!=null){
-					try {
-						BeanUtils.copyProperties(beacon, beaconCustomer);
-					} catch (Exception e) {
-						error.setRowNumber(Integer.parseInt(data[0]) + 1);
-						error.setMessage("Backend Error while cloning");
-					}
-				} 
-			} 
-			else{
+		StringBuffer errorMsg = new StringBuffer();
+        if(!StringUtils.isEmpty(beaconCustomerMapId)){
+			if (beacon == null){
+				
 				error.setRowNumber(rowNumber);
-				error.setMessage("Beacon customer does not exist for the given beacon map id. Hence it cannot be deleted!");
+				errorMsg.append("Beacon customer does not exist for the given beacon map id. Hence it cannot be deleted!");
+			}
+			else
+			{
+				beacon.setActive(false);	
 			}
 		}
 		else{
 			error.setRowNumber(rowNumber);
-			error.setMessage("Beacon customer map id cannot be empty for deletion!");
+			errorMsg.append("Beacon customer map id cannot be empty for deletion!");
 		}
+        
+        String errorMessage = errorMsg.toString();
+		if(StringUtils.isNotEmpty(errorMessage)) {
+			error.setMessage(errorMessage);
+		}
+
 		return error;
 	}
 
@@ -159,7 +219,7 @@ public class BeaconCustomerMappingUploadHelper {
 	 * @param value
 	 * @return
 	 */
-	private String validateAndRectifyValue(String value) {
+	public String validateAndRectifyValue(String value) {
 		String val = value;
 		System.out.println(value.substring(value.length() - 2, value.length()));
 		if (value != null) {
@@ -197,18 +257,24 @@ public class BeaconCustomerMappingUploadHelper {
 		String beaconGeography = data[8];
 		String active = data[9];
 		String beaconcustomerMapId = validateAndRectifyValue(data[10]);
+		StringBuffer errorMsg = new StringBuffer();
+		List<BeaconCustomerMappingT> beaconCustomers =new ArrayList<BeaconCustomerMappingT>();
+
 
 		int rowNumber = Integer.parseInt(data[0]) + 1;		
 		CustomerMasterT customer = customerRepository.findByCustomerName(masterCustomerName);
+		if((!StringUtils.isEmpty(beaconCustomerName))&&(!StringUtils.isEmpty(beaconGeography))&&(!StringUtils.isEmpty(beaconIou)))
+		{
 		// to find the uniqueness of the primary key (here composite key)
-		List<BeaconCustomerMappingT> beaconCustomers = beaconCustomerMappingRepository.checkBeaconMappingPK(beaconCustomerName, beaconGeography, beaconIou);
-
+		beaconCustomers = beaconCustomerMappingRepository.checkBeaconMappingPK(beaconCustomerName, beaconGeography, beaconIou);
+		}
+		
 		if(!StringUtils.isEmpty(beaconcustomerMapId)){
 			BeaconCustomerMappingT beaconCustomer = beaconCustomerMappingRepository
 					.findOne(Long.parseLong(beaconcustomerMapId));
 			if (beaconCustomer == null) {
 				error.setRowNumber(rowNumber);
-				error.setMessage("Beacon customer not found for the beacon map id ,hence it cannot be updated");
+				errorMsg.append("Beacon customer not found for the beacon map id ,hence it cannot be updated");
 
 			} else {
 				
@@ -220,7 +286,7 @@ public class BeaconCustomerMappingUploadHelper {
 							beacon.setBeaconCustomerName(beaconCustomerName);
 						} else {
 							error.setRowNumber(rowNumber);
-							error.setMessage("beaconCustomerName Is Mandatory; ");
+							errorMsg.append("beaconCustomerName Is Mandatory; ");
 						}
 
 						if (!StringUtils.isEmpty(beaconIou)
@@ -228,43 +294,46 @@ public class BeaconCustomerMappingUploadHelper {
 							beacon.setBeaconIou(beaconIou);
 						} else {
 							error.setRowNumber(rowNumber);
-							error.setMessage("beaconIou Is Mandatory; ");
+							errorMsg.append("beaconIou Is Mandatory; ");
 						}
 						if (!StringUtils.isEmpty(beaconGeography)
 								&& mapOfGeographyMappingT.containsKey(beaconGeography)) {
 							beacon.setCustomerGeography(beaconGeography);
 						} else {
 							error.setRowNumber(rowNumber);
-							error.setMessage("beaconGeography Is Mandatory; ");
+							errorMsg.append("beaconGeography Is Mandatory; ");
 						}
+						
 						if (!StringUtils.isEmpty(active)){
 							beacon.setActive(Boolean.parseBoolean(active));
-						} else {
-							error.setRowNumber(rowNumber);
-							error.setMessage("active Is Mandatory; ");
-						}
+						} 
 						//check for inactive records and log 
 						try {
 							beaconCustomerUploadService.validateInactiveIndicators(beacon);
 						} catch(DestinationException e) {
 							error.setRowNumber(rowNumber);
-							error.setMessage(e.getMessage());
+							errorMsg.append(e.getMessage());
 						}
 
 					} else {
 						error.setRowNumber(rowNumber);
-						error.setMessage("Beacon Customer details already exists");
+						errorMsg.append("Beacon Customer details already exists");
 					}
 				}
 				else{
 					error.setRowNumber(rowNumber);
-					error.setMessage("Beacon Customer is inactive and cannot be updated");
+					errorMsg.append("Beacon Customer is inactive and cannot be updated");
 				}
 			}
 		}else {
 			error.setRowNumber(rowNumber);
-			error.setMessage("Beacon Customer map Id cannot be empty for update");
+			errorMsg.append("Beacon Customer map Id cannot be empty for update");
 		}
+		String errorMessage = errorMsg.toString();
+		if(StringUtils.isNotEmpty(errorMessage)) {
+			error.setMessage(errorMessage);
+		}
+
 		return error;
 	}
 }

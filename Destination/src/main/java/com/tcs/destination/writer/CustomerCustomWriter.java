@@ -21,6 +21,7 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
+import org.apache.commons.lang.StringUtils;
 
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DataProcessingRequestT;
@@ -32,7 +33,7 @@ import com.tcs.destination.helper.CustomerUploadHelper;
 import com.tcs.destination.service.CustomerService;
 import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.utils.FileManager;
-import com.tcs.destination.utils.StringUtils;
+
 
 public class CustomerCustomWriter implements ItemWriter<String[]>,
 StepExecutionListener, WriteListener {
@@ -65,7 +66,7 @@ StepExecutionListener, WriteListener {
 		// TODO Auto-generated method stub
 
 	}
-
+    
 	@Override
 	public ExitStatus afterStep(StepExecution stepExecution) {
 
@@ -78,7 +79,7 @@ StepExecutionListener, WriteListener {
 					.get(REQUEST);
 
 			if (errorList != null) {
-				logger.info("inside exit status if loop");
+				
 				Workbook workbook = uploadErrorReport
 						.writeErrorToWorkbook(errorList);
 
@@ -96,16 +97,15 @@ StepExecutionListener, WriteListener {
 				request.setErrorFilePath(errorPath);
 
 			}
-			request.setStatus(RequestStatus.PROCESSED.getStatus());
+			request.setStatus(RequestStatus.INPROGRESS.getStatus());
 
 			dataProcessingRequestRepository.save(request);
-			//jobContext.remove(REQUEST);
-			//jobContext.remove(FILE_PATH);
+			
 		} catch (Exception e) {
 			logger.error("Error while writing the error report: {}", e);
 		}
 
-		return ExitStatus.COMPLETED;
+		return stepExecution.getExitStatus();
 
 	}
 
@@ -166,8 +166,8 @@ StepExecutionListener, WriteListener {
 
 	@Override
 	public void write(List<? extends String[]> items) throws Exception {
-		logger.info("Inside write:");
-
+		logger.info("Inside write method of CustomerCustomWriter:");
+        //The lists to hold the data to be inserted, updated or deleted 
 		List<CustomerMasterT> insertList = new ArrayList<CustomerMasterT>();
 		List<CustomerMasterT> deleteList = new ArrayList<CustomerMasterT>();
 		List<CustomerMasterT> updateList = new ArrayList<CustomerMasterT>();
@@ -176,46 +176,44 @@ StepExecutionListener, WriteListener {
 
 			if ((!StringUtils.isEmpty(operation))) {
 				if (operation.equalsIgnoreCase(Operation.ADD.name())) {
-					logger.info("executing " + operation + " operation");
+					logger.debug("executing " + operation + " operation");
 					CustomerMasterT customer = new CustomerMasterT();
-					for (String a : data)//for testing
-						logger.info(a);
 					UploadServiceErrorDetailsDTO errorDTO = helper
 							.validateCustomerAdd(data, request.getUserT()
 									.getUserId(), customer);
-					if (errorDTO.getMessage() != null) {
+					if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
 								: errorList;
 						errorList.add(errorDTO);
-					} else if (errorDTO.getMessage() == null) {
+					} else {
 						insertList.add(customer);
 					}
 
 				} else if (operation.equalsIgnoreCase(Operation.DELETE.name())) {
-					logger.info("executing " + operation + " operation");
+					logger.debug("executing " + operation + " operation");
 					CustomerMasterT customer = new CustomerMasterT();
 					UploadServiceErrorDetailsDTO errorDTO = helper
 							.validateCustomerDelete(data, request.getUserT()
 									.getUserId(), customer);
-					if (errorDTO.getMessage() != null) {
+					if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
 								: errorList;
 						errorList.add(errorDTO);
-					} else if (errorDTO.getMessage() == null) {
+					} else {
 						deleteList.add(customer);
 					}
 
 				} else if (operation.equalsIgnoreCase(Operation.UPDATE.name())) {
-					logger.info("executing " + operation + " operation");
+					logger.debug("executing " + operation + " operation");
 					CustomerMasterT customer = new CustomerMasterT();
 					UploadServiceErrorDetailsDTO errorDTO = helper
 							.validateCustomerUpdate(data, request.getUserT()
 									.getUserId(), customer);
-					if (errorDTO.getMessage() != null) {
+					if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
 								: errorList;
 						errorList.add(errorDTO);
-					} else if (errorDTO.getMessage() == null) {
+					} else {
 						updateList.add(customer);
 					}
 

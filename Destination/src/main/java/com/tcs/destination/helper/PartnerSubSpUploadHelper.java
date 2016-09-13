@@ -46,8 +46,6 @@ public class PartnerSubSpUploadHelper {
 
 	@Autowired
 	PartnerSubSpProductMappingTRepository partnerSubSpProductMappingTRepository;
-	
-	private Map<String, PartnerMasterT> mapOfPartnerT = null;
 
 	/**
 	 * This method is used to validate partner subsp data for add
@@ -161,6 +159,7 @@ public class PartnerSubSpUploadHelper {
 			SubSpMappingT subSpMappingT = subSpRepository.findBySubSp(subSp);
 			if (subSpMappingT != null) {
 				partnerSubSpMappingT.setSubSpId(subSpMappingT.getSubSpId());
+				partnerSubSpMappingT.setSubSp(subSpMappingT.getSubSp());
 			} else {
 				error.setRowNumber(rowNumber);
 				error.setMessage("Subsp is not valid ");

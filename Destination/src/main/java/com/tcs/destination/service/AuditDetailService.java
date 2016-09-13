@@ -992,8 +992,8 @@ public class AuditDetailService {
 	 * @return
 	 */
 	private String getNewRequestMessage(Integer entityTypeId) {//TODO form with template
-		StringBuffer sb = new StringBuffer("New ");
-		sb.append(EntityTypeId.getFrom(entityTypeId).name()).append(" Request");
+		StringBuffer sb = new StringBuffer();
+		sb.append(EntityTypeId.getFrom(entityTypeId).getDisplayName()).append(" Request");
 		
 		return sb.toString();
 	}
@@ -1070,7 +1070,7 @@ public class AuditDetailService {
 	 */
 	private List<AuditEntryDTO> getWorkflowEntityEntries(Integer entityTypeId,
 			String entityId) {
-		List<AuditEntryDTO> auditEntryDTOs = null;
+		List<AuditEntryDTO> auditEntryDTOs = Lists.newArrayList();
 		
 		switch (EntityTypeId.getFrom(entityTypeId)) {
 		case CUSTOMER:

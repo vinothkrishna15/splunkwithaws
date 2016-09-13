@@ -13,6 +13,8 @@ public class UploadServiceErrorDetailsDTO implements Serializable{
     private Integer rowNumber;
     
     private String message;
+    
+    private int duplicateFlag;
 
     public Integer getRowNumber() {
         return rowNumber;
@@ -41,6 +43,14 @@ public class UploadServiceErrorDetailsDTO implements Serializable{
 
 	public void setSheetName(String sheetName) {
 		this.sheetName = sheetName;
+	}
+
+	public int getDuplicateFlag() {
+		return duplicateFlag;
+	}
+
+	public void setDuplicateFlag(int duplicateFlag) {
+		this.duplicateFlag = duplicateFlag;
 	}
 
 }

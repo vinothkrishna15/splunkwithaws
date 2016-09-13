@@ -35,9 +35,14 @@ public interface BatchOpportunityRepository extends CrudRepository<OpportunityT,
 	@Query(value = BID_DETAILS_OUTCOME_DT_POST_SUPERVISOR, nativeQuery = true)
 	List<Object[]> getBidDtRmdsPostOutcomeDtSupervisor(@Param("remindForDays") Integer remindForDays);
 	
-	@Query(value = "select * from db_maintenance(:purgedays, :purgenotification, :purgecollaboration, :purgeyears)", nativeQuery = true)
-    Integer maintainDBTables(@Param("purgedays") Integer btchPrugeDays, @Param("purgenotification") Integer btchPrugeNotification, @Param("purgecollaboration") Integer btchPrugeCollaboration, @Param("purgeyears") Integer btchPrugeYears);
-    
+	@Query(value = "select * from db_maintenance(:purgedays, :purgenotification, :purgecollaboration, :purgeyears, :purgeAuditMonths, :purgeAuditYears)", nativeQuery = true)
+	Integer maintainDBTables(@Param("purgedays") Integer btchPrugeDays,
+			@Param("purgenotification") Integer btchPrugeNotification,
+			@Param("purgecollaboration") Integer btchPrugeCollaboration,
+			@Param("purgeyears") Integer btchPrugeYears,
+			@Param("purgeAuditMonths") Integer purgeAuditMonths,
+			@Param("purgeAuditYears") Integer purgeAudiYears);
+
 	@Query(value = "select * from opportunity_shelving(:shelveDays, :shelveUpdateDays)", nativeQuery = true)
 	Integer updateOpportunityToShelve(@Param("shelveDays") Integer shelveDays, @Param("shelveUpdateDays") Integer shelveUpdateDays);
 	

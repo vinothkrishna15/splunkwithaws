@@ -130,7 +130,7 @@ public class ProductContactUploadHelper {
 			}
 		} else {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			errorMsg.append("Contact role is mandatory ");
+			errorMsg.append("Contact role is mandatory; ");
 		}
 		// Contact Email id
 		if (data[6] != null) {
@@ -139,11 +139,11 @@ public class ProductContactUploadHelper {
 				contact.setContactEmailId(contactEmailId);
 			} else {
 				error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				errorMsg.append("Contact email id is mandatory ");
+				errorMsg.append("Contact email id is mandatory; ");
 			}
 		} else {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			errorMsg.append("Contact email id is mandatory ");
+			errorMsg.append("Contact email id is mandatory; ");
 		}
 
 		// Contact Telephone
@@ -291,7 +291,7 @@ public class ProductContactUploadHelper {
 					}
 				} else {
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					errorMsg.append("Contact role is mandatory ");
+					errorMsg.append("Contact role is mandatory; ");
 				}
 
 		// Contact Email id
@@ -301,11 +301,11 @@ public class ProductContactUploadHelper {
 				contact.setContactEmailId(contactEmailId);
 			} else {
 				error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				errorMsg.append("Contact email id is mandatory ");
+				errorMsg.append("Contact email id is mandatory; ");
 			}
 		} else {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			errorMsg.append("Contact email id is mandatory ");
+			errorMsg.append("Contact email id is mandatory; ");
 		}
 		// Contact Telephone
 		if (data[7] != null) {
@@ -397,12 +397,12 @@ public class ProductContactUploadHelper {
 
 		if (StringUtils.isEmpty(contactId)) {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			error.setMessage("Contact Id is mandatory ");
+			error.setMessage("Contact Id is mandatory; ");
 		} else {
 			ContactT contactT = contactRepository.findByContactId(contactId);
 			if (contactT.getContactId() == null) {
 				error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				error.setMessage("Invalid Contact Id ");
+				error.setMessage("Invalid Contact Id; ");
 			} else {
 				// ACTIVE
 				contact.setActive(false);
@@ -446,47 +446,6 @@ public class ProductContactUploadHelper {
 		return mapOfProducts;
 	}
 
-	/**
-	 * This method is used to retrieve the list of customer ids for
-	 * corresponding list of customer names given
-	 * 
-	 * @param listOfCustomerName
-	 * @return
-	 * @throws Exception
-	 */
-	private List<String> retrieveProductIdFromName(String[] listOfProductName) {
-		List<String> listOfProductId = null;
-		try {
-			if ((listOfProductName != null)) {
-				listOfProductId = new ArrayList<String>();
-				for (String productName : listOfProductName) {
-					String productId = getMapValuesForKey(mapOfProductMasterT,
-							productName);
-					listOfProductId.add(productId);
-				}
-			}
-		} catch (Exception e) {
-			System.out.println("Exception" + e);
-		}
-		return listOfProductId;
-	}
-
-	/**
-	 * This method returns the value to which the specified key is mapped
-	 * 
-	 * @param map
-	 * @param key
-	 * @return
-	 * @throws Exception
-	 */
-	private String getMapValuesForKey(Map<String, String> map, String key)
-			throws Exception {
-		String value = null;
-		if (map.containsKey(key)) {
-			value = map.get(key);
-		}
-		return value;
-	}
 
 	/**
 	 * This method is used to get the list of customer contact link for the list
@@ -545,15 +504,6 @@ public class ProductContactUploadHelper {
 
 		return pclt;
 
-	}
-
-	private ProductMasterT getProductMasterTMapValuesForKey(
-			Map<String, ProductMasterT> mapOfProduct, String key) {
-		ProductMasterT product = null;
-		if (mapOfProduct.containsKey(key)) {
-			product = mapOfProduct.get(key);
-		}
-		return product;
 	}
 
 }

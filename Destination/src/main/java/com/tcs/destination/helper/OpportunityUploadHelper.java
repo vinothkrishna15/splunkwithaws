@@ -10,7 +10,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import com.tcs.destination.bean.BidDetailsT;
@@ -42,7 +41,6 @@ import com.tcs.destination.data.repository.WinLossMappingRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.OpportunityService;
-import com.tcs.destination.service.OpportunityUploadService;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.OpportunityUploadConstants;
 import com.tcs.destination.utils.StringUtils;
@@ -129,7 +127,9 @@ public class OpportunityUploadHelper {
 		List<String> remarks = new ArrayList<String>();
 
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
-
+        StringBuffer errorMsg = new StringBuffer("");
+		
+		
 		// Customer Id
 		String customerName = data[3];
 		int rowNumber = Integer.parseInt(data[0]) + 1;
@@ -140,11 +140,11 @@ public class OpportunityUploadHelper {
 				opportunity.setCustomerId(customerMasterT.getCustomerId());
 			} else {
 				error.setRowNumber(rowNumber);
-				error.setMessage("Invalid Customer Name; ");
+				errorMsg.append(" Invalid Customer Name; ");
 			}
 		} else {
 			error.setRowNumber(rowNumber);
-			error.setMessage("Customer Name Is Mandatory; ");
+			errorMsg.append(" Customer Name Is Mandatory; ");
 		}
 
 		// Country
@@ -154,22 +154,22 @@ public class OpportunityUploadHelper {
 					OpportunityUploadConstants.COUNTRY, 6,
 					OpportunityUploadConstants.COUNTRY_MAX_SIZE)) {
 				error.setRowNumber(rowNumber);
-				error.setMessage(OpportunityUploadConstants.COUNTRY
+				errorMsg.append(OpportunityUploadConstants.COUNTRY
 						+ " should be a maximum of "
 						+ OpportunityUploadConstants.COUNTRY_MAX_SIZE
-						+ " characters");
+						+ " characters ");
 
 			} else {
 				if (searchGeographyCountryMappingT(country)) {
 					opportunity.setCountry(country);
 				} else {
 					error.setRowNumber(rowNumber);
-					error.setMessage("Invalid country ");
+					errorMsg.append(" Invalid Country; ");
 				}
 			}
 		} else {
 			error.setRowNumber(rowNumber);
-			error.setMessage("Country Is Mandatory; ");
+			errorMsg.append(" Country Is Mandatory; ");
 		}
 
 		// CRM ID
@@ -179,10 +179,10 @@ public class OpportunityUploadHelper {
 					OpportunityUploadConstants.CRMID, 7,
 					OpportunityUploadConstants.CRMID_MAX_SIZE)) {
 				error.setRowNumber(rowNumber);
-				error.setMessage(OpportunityUploadConstants.CRMID
+				errorMsg.append(OpportunityUploadConstants.CRMID
 						+ " should be a maximum of "
 						+ OpportunityUploadConstants.CRMID_MAX_SIZE
-						+ " characters");
+						+ " characters ");
 			} else {
 				opportunity.setCrmId(crmId);
 			}
@@ -195,16 +195,16 @@ public class OpportunityUploadHelper {
 					OpportunityUploadConstants.OPP_NAME, 8,
 					OpportunityUploadConstants.OPP_NAME_MAX_SIZE)) {
 				error.setRowNumber(rowNumber);
-				error.setMessage(OpportunityUploadConstants.OPP_NAME
+				errorMsg.append(OpportunityUploadConstants.OPP_NAME
 						+ " should be a maximum of "
 						+ OpportunityUploadConstants.OPP_NAME_MAX_SIZE
-						+ " characters");
+						+ " characters ");
 			} else {
 				opportunity.setOpportunityName(opportunityName);
 			}
 		} else {
 			error.setRowNumber(rowNumber);
-			error.setMessage("Opportunity name is Is Mandatory; ");
+			errorMsg.append(" Opportunity name is Is Mandatory; ");
 		}
 
 		// OPPORTUNITY DESCRIPTION
@@ -214,10 +214,10 @@ public class OpportunityUploadHelper {
 					OpportunityUploadConstants.OPP_DESC, 9,
 					OpportunityUploadConstants.OPP_DESC_MAX_SIZE)) {
 				error.setRowNumber(rowNumber);
-				error.setMessage(OpportunityUploadConstants.OPP_DESC
+				errorMsg.append(OpportunityUploadConstants.OPP_DESC
 						+ " should be a maximum of "
 						+ OpportunityUploadConstants.OPP_DESC_MAX_SIZE
-						+ " characters");
+						+ " characters ");
 			} else {
 				opportunity.setOpportunityDescription(opportunityDescription);
 			}
@@ -234,7 +234,7 @@ public class OpportunityUploadHelper {
 							value.trim(), userId));
 				} else {
 					error.setRowNumber(rowNumber);
-					error.setMessage("Invalid subSp  ");
+					errorMsg.append(" Invalid subSp ");
 				}
 
 			}
@@ -253,7 +253,7 @@ public class OpportunityUploadHelper {
 							value.trim(), userId));
 				} else {
 					error.setRowNumber(rowNumber);
-					error.setMessage("Invalid Offering  ");
+					errorMsg.append(" Invalid Offering ");
 				}
 
 			}
@@ -263,11 +263,16 @@ public class OpportunityUploadHelper {
 		// REQUEST RECEIVE DATE
 		String requestReceiveDate = data[12];
 		if (!StringUtils.isEmpty(requestReceiveDate)) {
+			try{
 			opportunity.setOpportunityRequestReceiveDate(dateFormat
 					.parse(requestReceiveDate));
+			} catch (Exception e){
+				error.setRowNumber(rowNumber);
+				errorMsg.append(" Invalid Request Receive date Format ");
+			}
 		} else {
 			error.setRowNumber(rowNumber);
-			error.setMessage("Request Receive date is Is Mandatory; ");
+			errorMsg.append(" Request Receive date is Is Mandatory; ");
 		}
 
 		// NEW LOGO
@@ -277,10 +282,10 @@ public class OpportunityUploadHelper {
 					OpportunityUploadConstants.NEW_LOGO, 13,
 					OpportunityUploadConstants.NEW_LOGO_MAX_SIZE)) {
 				error.setRowNumber(rowNumber);
-				error.setMessage(OpportunityUploadConstants.NEW_LOGO
+				errorMsg.append(OpportunityUploadConstants.NEW_LOGO
 						+ " should be a maximum of "
 						+ OpportunityUploadConstants.NEW_LOGO_MAX_SIZE
-						+ " characters");
+						+ " characters ");
 			} else {
 				opportunity.setNewLogo(newLogo);
 			}
@@ -295,7 +300,7 @@ public class OpportunityUploadHelper {
 					OpportunityUploadConstants.STRATEGIC_INIT, 14,
 					OpportunityUploadConstants.STRATEGIC_INIT_MAX_SIZE)) {
 				error.setRowNumber(rowNumber);
-				error.setMessage(OpportunityUploadConstants.STRATEGIC_INIT
+				errorMsg.append(OpportunityUploadConstants.STRATEGIC_INIT
 						+ " should be a maximum of "
 						+ OpportunityUploadConstants.STRATEGIC_INIT_MAX_SIZE
 						+ " characters");
@@ -313,7 +318,7 @@ public class OpportunityUploadHelper {
 					OpportunityUploadConstants.DIGITAL_FLAG, 15,
 					OpportunityUploadConstants.DIGITAL_FLAG_MAX_SIZE)) {
 				error.setRowNumber(rowNumber);
-				error.setMessage(OpportunityUploadConstants.DIGITAL_FLAG
+				errorMsg.append(OpportunityUploadConstants.DIGITAL_FLAG
 						+ " should be a maximum of "
 						+ OpportunityUploadConstants.DIGITAL_FLAG_MAX_SIZE
 						+ " characters");
@@ -327,11 +332,16 @@ public class OpportunityUploadHelper {
 		// SALES STAGE CODE
 		String salesStageCode = data[16];
 		if (!StringUtils.isEmpty(salesStageCode)) {
+			try{
 			opportunity.setSalesStageCode((Integer.parseInt(salesStageCode
 					.substring(0, 2))));
+			} catch(Exception e){
+				error.setRowNumber(rowNumber);
+				errorMsg.append("Sales stage code is invalid ");
+			}
 		} else {
 			error.setRowNumber(rowNumber);
-			error.setMessage("Sales stage code is Mandatory; ");
+			errorMsg.append("Sales stage code is Mandatory; ");
 		}
 
 		// DEAL CURRENCY
@@ -341,7 +351,7 @@ public class OpportunityUploadHelper {
 					OpportunityUploadConstants.DEAL_CURRENCY, 17,
 					OpportunityUploadConstants.DEAL_CURRENCY_MAX_SIZE)) {
 				error.setRowNumber(rowNumber);
-				error.setMessage(OpportunityUploadConstants.DEAL_CURRENCY
+				errorMsg.append(OpportunityUploadConstants.DEAL_CURRENCY
 						+ " should be a maximum of "
 						+ OpportunityUploadConstants.DEAL_CURRENCY_MAX_SIZE
 						+ " characters");
@@ -353,15 +363,25 @@ public class OpportunityUploadHelper {
 		// OVERALL BID SIZE
 		String overallBidSize = data[18];
 		if (!StringUtils.isEmpty(overallBidSize)) {
+			try{
 			opportunity.setOverallDealSize(Double.valueOf(overallBidSize)
 					.intValue());
+			} catch (Exception e){
+				error.setRowNumber(rowNumber);
+				errorMsg.append(" Invalid deal size format ");
+			}
 		}
 
 		// DIGITAL DEAL VALUE
 		String digitalDealValue = data[20];
 		if (!StringUtils.isEmpty(digitalDealValue)) {
+			try{
 			opportunity.setDigitalDealValue(Double.valueOf(digitalDealValue)
 					.intValue());
+			} catch (Exception e){
+				error.setRowNumber(rowNumber);
+				errorMsg.append("Invalid digital deal value");
+			}
 		}
 
 		// OPPORTUNITY OWNER
@@ -372,11 +392,11 @@ public class OpportunityUploadHelper {
 				opportunity.setOpportunityOwner(user.getUserId());
 			} else {
 				error.setRowNumber(rowNumber);
-				error.setMessage("Invalid Opportunity owner  ");
+				errorMsg.append("Invalid Opportunity owner  ");
 			}
 		} else {
 			error.setRowNumber(rowNumber);
-			error.setMessage("Opportunity owner is Mandatory; ");
+			errorMsg.append("Opportunity owner is Mandatory; ");
 		}
 
 		// //OpportunitySalesSupportLinkT Params
@@ -392,7 +412,7 @@ public class OpportunityUploadHelper {
 					.setOpportunitySalesSupportLinkTs(opportunitySalesSupportLinkTs);
 		} else {
 			error.setRowNumber(rowNumber);
-			error.setMessage("Sales support owner is empty  ");
+			errorMsg.append("Sales support owner is empty  ");
 		}
 
 		// TCS Contact Params
@@ -406,7 +426,7 @@ public class OpportunityUploadHelper {
 								contacts, userId));
 			} else {
 				error.setRowNumber(rowNumber);
-				error.setMessage("Invalid Tcs Account Contact; ");
+				errorMsg.append("Invalid Tcs Account Contact; ");
 			}
 		}
 
@@ -422,7 +442,7 @@ public class OpportunityUploadHelper {
 								custContactList, userId));
 			} else {
 				error.setRowNumber(rowNumber);
-				error.setMessage("Invalid Customer Contact; ");
+				errorMsg.append("Invalid Customer Contact; ");
 			}
 		}
 
@@ -450,7 +470,7 @@ public class OpportunityUploadHelper {
 							value, userId));
 				} else {
 					error.setRowNumber(rowNumber);
-					error.setMessage("Invalid Competitor Name  ");
+					errorMsg.append("Invalid Competitor Name  ");
 				}
 
 			}
@@ -470,15 +490,23 @@ public class OpportunityUploadHelper {
 		if ((!StringUtils.isEmpty(bidRequestType))
 				&& (!StringUtils.isEmpty(bidRequestReceiveDate))
 				&& (!StringUtils.isEmpty(targetBidSubmissionDate))) {
+			
+			
+			
 			if (searchBidDetailsMappingT(bidRequestType)) {
+				try{
 				opportunity.setBidDetailsTs(constructbidDetailsT(
 						bidRequestType, bidRequestReceiveDate,
 						targetBidSubmissionDate, actualBidSubmissionDate,
 						expectedDateOfOutcome, winProbability, coreAttributes,
 						userId));
+				} catch(Exception e){
+					error.setRowNumber(rowNumber);
+					errorMsg.append("Invalid date Format in bid request receive or target/actual bid submission/expected date  ");
+				}
 			} else {
 				error.setRowNumber(rowNumber);
-				error.setMessage("Invalid bid request type  ");
+				errorMsg.append("Invalid bid request type  ");
 			}
 		}
 
@@ -489,7 +517,7 @@ public class OpportunityUploadHelper {
 					OpportunityUploadConstants.DEAL_TYPE, 36,
 					OpportunityUploadConstants.DEAL_TYPE_MAX_SIZE)) {
 				error.setRowNumber(rowNumber);
-				error.setMessage(OpportunityUploadConstants.DEAL_TYPE
+				errorMsg.append(OpportunityUploadConstants.DEAL_TYPE
 						+ " should be a maximum of "
 						+ OpportunityUploadConstants.DEAL_TYPE_MAX_SIZE
 						+ " characters");
@@ -501,7 +529,12 @@ public class OpportunityUploadHelper {
 		// DEAL CLOSURE DATE
 		String dealClosureDate = data[37];
 		if (!StringUtils.isEmpty(dealClosureDate)) {
+			try{
 			opportunity.setDealClosureDate(dateFormat.parse(dealClosureDate));
+			} catch(Exception e){
+				error.setRowNumber(rowNumber);
+				errorMsg.append(" Invalid date Format deal closure date  ");
+			}
 		}
 
 		// ENGAGEMENT DURATION
@@ -511,7 +544,7 @@ public class OpportunityUploadHelper {
 					OpportunityUploadConstants.ENGAGEMENT_DURATION, 38,
 					OpportunityUploadConstants.ENGAGEMENT_DURATION_MAX_SIZE)) {
 				error.setRowNumber(rowNumber);
-				error.setMessage(OpportunityUploadConstants.ENGAGEMENT_DURATION
+				errorMsg.append(OpportunityUploadConstants.ENGAGEMENT_DURATION
 						+ " should be a maximum of "
 						+ OpportunityUploadConstants.ENGAGEMENT_DURATION_MAX_SIZE
 						+ " characters");
@@ -523,8 +556,13 @@ public class OpportunityUploadHelper {
 		// ENGAGEMENT START DATE
 		String engagementStartDate = data[39];
 		if (!StringUtils.isEmpty(engagementStartDate)) {
+			try{
 			opportunity.setEngagementStartDate(dateFormat
 					.parse(engagementStartDate));
+		} catch(Exception e){
+			error.setRowNumber(rowNumber);
+			errorMsg.append(" Invalid date Format engagement start date  ");
+		}
 		}
 
 		// FACTORS FOR WIN LOSS -
@@ -538,7 +576,7 @@ public class OpportunityUploadHelper {
 							factor.trim(), userId));
 				} else {
 					error.setRowNumber(rowNumber);
-					error.setMessage("Invalid win loss factor  ");
+					errorMsg.append("Invalid win loss factor  ");
 				}
 			}
 			opportunity
@@ -552,7 +590,7 @@ public class OpportunityUploadHelper {
 					OpportunityUploadConstants.COMMENTS_FOR_WIN_LOSS, 41,
 					OpportunityUploadConstants.COMMENTS_FOR_WIN_LOSS_MAX_SIZE)) {
 				error.setRowNumber(rowNumber);
-				error.setMessage(OpportunityUploadConstants.COMMENTS_FOR_WIN_LOSS
+				errorMsg.append(OpportunityUploadConstants.COMMENTS_FOR_WIN_LOSS
 						+ " should be a maximum of "
 						+ OpportunityUploadConstants.COMMENTS_FOR_WIN_LOSS_MAX_SIZE
 						+ " characters");
@@ -575,7 +613,7 @@ public class OpportunityUploadHelper {
 					OpportunityUploadConstants.DEAL_STATUS_REMARKS, 42,
 					OpportunityUploadConstants.DEAL_STATUS_REMARKS_MAX_SIZE)) {
 				error.setRowNumber(rowNumber);
-				error.setMessage(OpportunityUploadConstants.DEAL_STATUS_REMARKS
+				errorMsg.append(OpportunityUploadConstants.DEAL_STATUS_REMARKS
 						+ " should be a maximum of "
 						+ OpportunityUploadConstants.DEAL_STATUS_REMARKS_MAX_SIZE
 						+ " characters");
@@ -588,7 +626,7 @@ public class OpportunityUploadHelper {
 					OpportunityUploadConstants.REMARKS_1, 44,
 					OpportunityUploadConstants.REMARKS_1_MAX_SIZE)) {
 				error.setRowNumber(rowNumber);
-				error.setMessage(OpportunityUploadConstants.REMARKS_1
+				errorMsg.append(OpportunityUploadConstants.REMARKS_1
 						+ " should be a maximum of "
 						+ OpportunityUploadConstants.REMARKS_1_MAX_SIZE
 						+ " characters");
@@ -601,7 +639,7 @@ public class OpportunityUploadHelper {
 					OpportunityUploadConstants.REMARKS_2, 45,
 					OpportunityUploadConstants.REMARKS_2_MAX_SIZE)) {
 				error.setRowNumber(rowNumber);
-				error.setMessage(OpportunityUploadConstants.REMARKS_2
+				errorMsg.append(OpportunityUploadConstants.REMARKS_2
 						+ " should be a maximum of "
 						+ OpportunityUploadConstants.REMARKS_2_MAX_SIZE
 						+ " characters");
@@ -624,10 +662,16 @@ public class OpportunityUploadHelper {
 			oppService.validateInactiveIndicators(opportunity);
 		} catch(DestinationException e) {
 			error.setRowNumber(rowNumber);
-			error.setMessage(e.getMessage());
+			errorMsg.append(e.getMessage());
 		}
 		
 		logger.debug("opportunity" + opportunity);
+		
+		if(!StringUtils.isEmpty(errorMsg.toString())){
+			error.setMessage(errorMsg.toString());
+		}
+			
+		
 		return error;
 	}
 
@@ -811,7 +855,6 @@ public class OpportunityUploadHelper {
 	}
 
 	private boolean searchSubSpMappingT(String subSp) {
-		// TODO Auto-generated method stub
 		boolean flag = false;
 		if (listOfSubSp.contains(subSp)) {
 			flag = true;
@@ -830,7 +873,6 @@ public class OpportunityUploadHelper {
 
 	private OpportunityCompetitorLinkT constructOppCompetitorLink(String value,
 			String userId) {
-		// TODO Auto-generated method stub
 		OpportunityCompetitorLinkT oclt = new OpportunityCompetitorLinkT();
 		oclt.setCompetitorName(value.trim());
 		oclt.setCreatedBy(userId);
@@ -841,7 +883,6 @@ public class OpportunityUploadHelper {
 
 	private List<OpportunityPartnerLinkT> constructOppPartnerLink(
 			List<PartnerMasterT> partnerList, String userId) {
-		// TODO Auto-generated method stub
 
 		List<OpportunityPartnerLinkT> OpportunityPartnerLinkT = new ArrayList<OpportunityPartnerLinkT>();
 		for (PartnerMasterT partner : partnerList) {
@@ -855,7 +896,6 @@ public class OpportunityUploadHelper {
 	}
 
 	private boolean searchGeographyCountryMappingT(String country) {
-		// TODO Auto-generated method stub
 		boolean flag = false;
 		if (listOfCountry.contains(country)) {
 			flag = true;

@@ -35,6 +35,7 @@ import com.tcs.destination.enums.RequestStatus;
 import com.tcs.destination.helper.BeaconUploadHelper;
 import com.tcs.destination.service.BeaconDataService;
 import com.tcs.destination.service.UploadErrorReport;
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.FileManager;
 
 public class BeaconCustomWriter implements ItemWriter<String[]>, StepExecutionListener, WriteListener {
@@ -66,6 +67,7 @@ public class BeaconCustomWriter implements ItemWriter<String[]>, StepExecutionLi
 			logger.debug("****BEACON ADD****");	
 			BeaconDataT beacon =  new BeaconDataT();
 			UploadServiceErrorDetailsDTO errorDTO = helper.validateBeaconData(data, request.getUserT().getUserId() ,beacon);
+			errorDTO.setSheetName(Constants.BEACON_TEMPLATE_BEACON_SHEET_NAME);
 			if (errorDTO.getMessage() != null) {
 				errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 				errorList.add(errorDTO);

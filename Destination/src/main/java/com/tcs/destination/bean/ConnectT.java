@@ -86,6 +86,9 @@ public class ConnectT implements Serializable {
 	@Column(name = "partner_id")
 	private String partnerId;
 
+	@Column(name = "product_id")
+	private String productId;
+
 	@Column(name = "country")
 	private String country;
 
@@ -93,9 +96,6 @@ public class ConnectT implements Serializable {
 	private String timeZone;
 
 	private String location;
-	
-	@Transient
-	private String productId; 
 
 	@ManyToOne
 	@JoinColumn(name="location", insertable=false, updatable=false)
@@ -158,6 +158,11 @@ public class ConnectT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name = "partner_id", insertable = false, updatable = false)
 	private PartnerMasterT partnerMasterT;
+
+	// bi-directional many-to-one association to PartnerMasterT
+	@ManyToOne
+	@JoinColumn(name = "product_id", insertable = false, updatable = false)
+	private ProductMasterT productMasterT;
 
 	// bi-directional many-to-one association to UserT
 	@ManyToOne
@@ -856,6 +861,14 @@ public class ConnectT implements Serializable {
 
 	public String getProductId() {
 		return productId;
+	}
+
+	public ProductMasterT getProductMasterT() {
+		return productMasterT;
+	}
+
+	public void setProductMasterT(ProductMasterT productMasterT) {
+		this.productMasterT = productMasterT;
 	}
 
 	public void setProductId(String productId) {

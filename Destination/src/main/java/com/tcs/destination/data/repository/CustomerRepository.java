@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.tcs.destination.bean.CustomerMasterT;
+import com.tcs.destination.bean.PartnerMasterT;
 
 @Repository
 public interface CustomerRepository extends
@@ -127,4 +128,34 @@ public interface CustomerRepository extends
     
     CustomerMasterT findByActiveTrueAndCustomerId(String customerId);
 
+	
+	/* ---------- repository methods for smart search --------- */
+
+    @Query(value = "SELECT * FROM customer_master_t "
+			+ "WHERE active = 'true' AND UPPER(group_customer_name) LIKE UPPER(:term) "
+			+ "ORDER BY created_modified_datetime DESC "
+			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+    List<CustomerMasterT> getCustomersByGrpCustName(@Param("term") String term, @Param("getAll") boolean getAll);
+
+    @Query(value = "SELECT * FROM customer_master_t "
+			+ "WHERE active = 'true' AND UPPER(customer_name) LIKE UPPER(:term) "
+			+ "ORDER BY created_modified_datetime DESC "
+			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<CustomerMasterT> getCustomersByName(@Param("term") String term, @Param("getAll") boolean getAll);
+
+    @Query(value = "SELECT * FROM customer_master_t "
+			+ "WHERE active = 'true' AND UPPER(geography) LIKE UPPER(:term) "
+			+ "ORDER BY created_modified_datetime DESC "
+			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<CustomerMasterT> getCustomersByGeography(@Param("term") String term, @Param("getAll") boolean getAll);
+
+    @Query(value = "SELECT * FROM customer_master_t "
+			+ "WHERE active = 'true' AND UPPER(iou) LIKE UPPER(:term) "
+			+ "ORDER BY created_modified_datetime DESC "
+			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<CustomerMasterT> getCustomersByIou(@Param("term") String term, @Param("getAll") boolean getAll);
+    
+    List<CustomerMasterT> findByActiveTrue();
+
+	/* ---------- ends - repository methods for smart search --------- */
 }

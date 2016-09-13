@@ -1,0 +1,32 @@
+<html>
+	<body>
+		<p>Dear User,</p>
+		<p>
+			 The exception initiated for deal financial approval of following opportunity, is ${status} by the Geo Head. 	
+		</p>
+		<p>
+		   Exception Category: ${exceptions} <br>
+		   Opportunity Id: ${opportunityId} <br>
+		   CRM Id: ${crmId} <br>
+		   Customer Name: ${customerName} <br>
+		   Opportunity Name: ${opportunityName} <br>
+		   Deal Value: ${dealValue}
+		</p>
+		<p>
+		   Please see the comments below:
+		<br>
+		   Comments: ${comments}     
+		</p>
+		<p>
+		  Please log into Destination and respond.
+		  </p>    
+		<p>
+		Regards,<br>
+		Team Destination.
+		</p>
+		<br>
+		<p>
+		Note: This is a system-generated e-mail. Please do not respond to this mail.
+		</p>
+	</body>
+</html>

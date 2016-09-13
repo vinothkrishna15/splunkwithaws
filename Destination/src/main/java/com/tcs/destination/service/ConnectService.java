@@ -45,6 +45,7 @@ import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
+import com.tcs.destination.bean.ProductContactLinkT;
 import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.TaskT;
@@ -71,8 +72,8 @@ import com.tcs.destination.data.repository.NotificationEventGroupMappingTReposit
 import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
 import com.tcs.destination.data.repository.OfferingRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
-import com.tcs.destination.data.repository.PartnerSubSpMappingRepository;
-import com.tcs.destination.data.repository.PartnerSubSpProductMappingRepository;
+import com.tcs.destination.data.repository.PartnerSubSpMappingTRepository;
+import com.tcs.destination.data.repository.PartnerSubSpProductMappingTRepository;
 import com.tcs.destination.data.repository.ProductContactLinkTRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
 import com.tcs.destination.data.repository.SubSpRepository;
@@ -232,10 +233,10 @@ public class ConnectService {
 	CountryRepository countryRepository;
 
 	@Autowired
-	PartnerSubSpMappingRepository partnerSubSpMappingRepository;
+	PartnerSubSpMappingTRepository partnerSubSpMappingRepository;
 
 	@Autowired
-	PartnerSubSpProductMappingRepository partnerSubSpProductMappingRepository;
+	PartnerSubSpProductMappingTRepository partnerSubSpProductMappingRepository;
 
 	@Autowired
 	ProductContactLinkTRepository productContactLinkTRepository;
@@ -711,6 +712,17 @@ public class ConnectService {
 		}
 
 	}
+	
+	private void populateConnectTcsAccountContactBatch(String connectId,
+			List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList)
+					throws Exception {
+		logger.debug("Inside populateConnectTcsAccountContactLinks() method");
+		for (ConnectTcsAccountContactLinkT conTcsAccConLink : conTcsAccConLinkTList) {
+			// conTcsAccConLink.setCreatedModifiedBy(currentUserId);
+			conTcsAccConLink.setConnectId(connectId);
+		}
+
+	}
 
 	private void populateConnectSecondaryOwnerLinks(String connectId,
 			List<ConnectSecondaryOwnerLinkT> conSecOwnLinkTList) {
@@ -725,6 +737,17 @@ public class ConnectService {
 		}
 
 	}
+	
+	private void populateConnectSecondaryOwnerBatch(String connectId,
+			List<ConnectSecondaryOwnerLinkT> conSecOwnLinkTList) {
+		logger.debug("Inside populateConnectSecondaryOwnerLinks() method");
+		for (ConnectSecondaryOwnerLinkT conSecOwnLink : conSecOwnLinkTList) {
+			// conSecOwnLink.setCreatedModifiedBy(currentUserId);
+			conSecOwnLink.setConnectId(connectId);
+			
+		}
+
+	}
 
 	private void populateConnectSubSpLinks(String connectId,
 			List<ConnectSubSpLinkT> conSubSpLinkTList) {
@@ -735,6 +758,17 @@ public class ConnectService {
 					.getUserId());
 			conSubSpLink.setModifiedBy(DestinationUtils.getCurrentUserDetails()
 					.getUserId());
+			// conSubSpLink.setCreatedModifiedBy(currentUserId);
+		}
+
+	}
+	
+	private void populateConnectSubSpBatch(String connectId,
+			List<ConnectSubSpLinkT> conSubSpLinkTList) {
+		logger.debug("Inside populateConnectSubSpLinks() method");
+		for (ConnectSubSpLinkT conSubSpLink : conSubSpLinkTList) {
+			conSubSpLink.setConnectId(connectId);
+			
 			// conSubSpLink.setCreatedModifiedBy(currentUserId);
 		}
 
@@ -753,6 +787,16 @@ public class ConnectService {
 		}
 
 	}
+	
+	private void populateConnectOfferingBatch(String connectId,
+			List<ConnectOfferingLinkT> conOffLinkTList) {
+		logger.debug("Inside populateConnectOfferingLinks() method");
+		for (ConnectOfferingLinkT conOffLink : conOffLinkTList) {
+			// conOffLink.setCreatedModifiedBy(currentUserId);
+			conOffLink.setConnectId(connectId);
+		}
+
+	}
 
 	private void populateConnectCustomerContactLinks(ConnectT connect,
 			List<ConnectCustomerContactLinkT> conCustConLinkTList) {
@@ -764,20 +808,18 @@ public class ConnectService {
 					.getCurrentUserDetails().getUserId());
 			conCustConLink.setModifiedBy(DestinationUtils
 					.getCurrentUserDetails().getUserId());
-
-			// for saving into product_contact_link_t
-			/*if(connect.getConnectCategory().equals(EntityType.PARTNER.name())){
-				ProductContactLinkT productContactLinkT = new ProductContactLinkT();
-				productContactLinkT.setContactId(conCustConLink.getContactId());
-				productContactLinkT.setProductId(connect.getProductId());
-				productContactLinkT.setCreatedBy(DestinationUtils
-						.getCurrentUserDetails().getUserId());
-				productContactLinkT.setModifiedBy(DestinationUtils
-						.getCurrentUserDetails().getUserId());
-				productContactLinkTRepository.save(productContactLinkT);
-			}*/
 		}
 	}
+	
+	private void populateConnectCustomerContactBatch(ConnectT connect,
+			List<ConnectCustomerContactLinkT> conCustConLinkTList) {
+		logger.debug("Inside populateConnectCustomerContactLinks() method");
+		for (ConnectCustomerContactLinkT conCustConLink : conCustConLinkTList) {
+			// conCustConLink.setCreatedModifiedBy(currentUserId);
+			conCustConLink.setConnectId(connect.getConnectId());
+		}
+	}
+
 
 	private void populateNotes(String customerId, String partnerId,
 			String categoryUpperCase, String connectId, List<NotesT> noteList) {
@@ -1588,7 +1630,7 @@ public class ConnectService {
 			ConnectT connectT = saveIterator.next();
 			List<ConnectOfferingLinkT> offeringList = mapConnectOffering.get(i);
 			if (CollectionUtils.isNotEmpty(offeringList)) {
-				populateConnectOfferingLinks(connectT.getConnectId(),
+				populateConnectOfferingBatch(connectT.getConnectId(),
 						offeringList);
 			}
 			List<ConnectOpportunityLinkIdT> oppourtunityList = mapOpportunityLink
@@ -1599,23 +1641,23 @@ public class ConnectService {
 			List<ConnectSecondaryOwnerLinkT> secOwnerList = mapSecondaryOwner
 					.get(i);
 			if (CollectionUtils.isNotEmpty(secOwnerList)) {
-				populateConnectSecondaryOwnerLinks(connectT.getConnectId(),
+				populateConnectSecondaryOwnerBatch(connectT.getConnectId(),
 						secOwnerList);
 			}
 			List<ConnectSubSpLinkT> subSpList = mapSubSp.get(i);
 			if (CollectionUtils.isNotEmpty(subSpList)) {
-				populateConnectSubSpLinks(connectT.getConnectId(), subSpList);
+				populateConnectSubSpBatch(connectT.getConnectId(), subSpList);
 			}
 			List<ConnectTcsAccountContactLinkT> tcsContactList = mapTcsContact
 					.get(i);
 			if (CollectionUtils.isNotEmpty(tcsContactList)) {
-				populateConnectTcsAccountContactLinks(connectT.getConnectId(),
+				populateConnectTcsAccountContactBatch(connectT.getConnectId(),
 						tcsContactList);
 			}
 			List<ConnectCustomerContactLinkT> custContactList = mapCustomerContact
 					.get(i);
 			if (CollectionUtils.isNotEmpty(custContactList)) {
-				populateConnectCustomerContactLinks(connectT,
+				populateConnectCustomerContactBatch(connectT,
 						custContactList);
 			}
 
@@ -1870,11 +1912,97 @@ public class ConnectService {
 	 */
 	public void validateInactiveIndicators(ConnectT connect) {
 
+		// createdBy,
+		String createdBy = connect.getCreatedBy();
+		if(StringUtils.isNotBlank(createdBy) && userRepository.findByActiveTrueAndUserId(createdBy) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The user createdBy is inactive");
+		}
+
+		// modifiedBy,
+		String modifiedBy = connect.getModifiedBy();
+		if(StringUtils.isNotBlank(modifiedBy) && userRepository.findByActiveTrueAndUserId(modifiedBy) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The user modifiedBy is inactive");
+		}
+
 		// primaryOwner,
 		String primaryOwner = connect.getPrimaryOwner();
 		if(StringUtils.isNotBlank(primaryOwner) && userRepository.findByActiveTrueAndUserId(primaryOwner) == null) {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "Please assign an active primary owner before making any changes.");
 		}
+
+		// customerId,
+		String customerId = connect.getCustomerId();
+		if(StringUtils.isNotBlank(customerId) && customerRepository.findByActiveTrueAndCustomerId(customerId) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The customer is inactive");
+		}
+
+		// partnerId,
+		String partnerId = connect.getPartnerId();
+		if(StringUtils.isNotBlank(partnerId) && partnerRepository.findByActiveTrueAndPartnerId(partnerId) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The partner is inactive");
+		}
+
+		//connectCustomerContactLinkTs,
+		List<ConnectCustomerContactLinkT> connectCustomerContactLinkTs = connect.getConnectCustomerContactLinkTs();
+		if(CollectionUtils.isNotEmpty(connectCustomerContactLinkTs)) {
+			for (ConnectCustomerContactLinkT contact : connectCustomerContactLinkTs) {
+				String contactId = contact.getContactId();
+				if(StringUtils.isNotBlank(contactId) && contactRepository.findByActiveTrueAndContactId(contactId) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The customer contact is inactive");
+				}
+			}
+		}
+
+		// connectOfferingLinkTs,
+		List<ConnectOfferingLinkT> connectOfferingLinkTs = connect.getConnectOfferingLinkTs();
+		if(CollectionUtils.isNotEmpty(connectOfferingLinkTs)) {
+			for (ConnectOfferingLinkT offeringLink : connectOfferingLinkTs) {
+				String offering = offeringLink.getOffering();
+				if(StringUtils.isNotBlank(offering) && offeringRepository.findByActiveTrueAndOffering(offering) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The offering is inactive");
+				}
+			}
+		}
+
+		//connectSecondaryOwnerLinkTs,
+		List<ConnectSecondaryOwnerLinkT> connectSecondaryOwnerLinkTs = connect.getConnectSecondaryOwnerLinkTs();
+		if(CollectionUtils.isNotEmpty(connectSecondaryOwnerLinkTs)) {
+			for (ConnectSecondaryOwnerLinkT secOwnerLink : connectSecondaryOwnerLinkTs) {
+				String owner = secOwnerLink.getSecondaryOwner();
+				if(StringUtils.isNotBlank(owner) && userRepository.findByActiveTrueAndUserId(owner) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The secondary owner is inactive");
+				}
+			}
+		}
+
+		//connectSubSpLinkTs,
+		List<ConnectSubSpLinkT> connectSubSpLinkTs = connect.getConnectSubSpLinkTs();
+		if(CollectionUtils.isNotEmpty(connectSubSpLinkTs)) {
+			for (ConnectSubSpLinkT subSpLink : connectSubSpLinkTs) {
+				String subSp = subSpLink.getSubSp();
+				if(StringUtils.isNotBlank(subSp) && subSpRepository.findByActiveTrueAndSubSp(subSp) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The subsp is inactive");
+				}
+			}
+		}
+
+		//List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs,
+		List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs = connect.getConnectTcsAccountContactLinkTs();
+		if(CollectionUtils.isNotEmpty(connectTcsAccountContactLinkTs)) {
+			for (ConnectTcsAccountContactLinkT contactLink : connectTcsAccountContactLinkTs) {
+				String contactId = contactLink.getContactId();
+				if(StringUtils.isNotBlank(contactId) && contactRepository.findByActiveTrueAndContactId(contactId) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The account contact is inactive");
+				}
+			}
+		}
+
+		// country
+		String country = connect.getCountry();
+		if(StringUtils.isNotBlank(country) && countryRepository.findByActiveTrueAndCountry(country) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The country is inactive");
+		}
+
 	}
 
 	/**
@@ -1914,7 +2042,7 @@ public class ConnectService {
 				searchResultDTO = getConnectSubSps(term, getAll);
 				break;
 			default:
-				break;
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid search type");
 
 			}
 

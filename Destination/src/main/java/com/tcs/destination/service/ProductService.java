@@ -9,11 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.ProductMasterT;
-import com.tcs.destination.bean.UserT;
+import com.tcs.destination.data.repository.PartnerSubSpProductMappingTRepository;
 import com.tcs.destination.data.repository.ProductRepository;
-import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.utils.DestinationUtils;
 
 /**
  * This service deals with city requests
@@ -21,11 +19,14 @@ import com.tcs.destination.utils.DestinationUtils;
  */
 @Service
 public class ProductService {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
-	
+
 	@Autowired
 	ProductRepository productRepository;
+
+	@Autowired
+	PartnerSubSpProductMappingTRepository partnerSubSpProductMappingTRepository;
 
 	/**
 	 * The Service is Used to get the products by ajaxSearch
@@ -40,9 +41,9 @@ public class ProductService {
 		nameWith = "%" + nameWith + "%";
 		if(nameWith!=null)
 		{
-		 products=productRepository.getProductsByProductNameKeyword(nameWith);
+			products=productRepository.getProductsByProductNameKeyword(nameWith);
 		}
-       if((products == null)||(products.isEmpty())){
+		if((products == null)||(products.isEmpty())){
 			logger.error("NOT_FOUND : No product found");
 			throw new DestinationException(HttpStatus.NOT_FOUND, "No product found");
 		}
@@ -50,4 +51,17 @@ public class ProductService {
 		return products;
 
 	}
+
+	public List<ProductMasterT> findPartnerAndSubspProducts(String nameWith, String partnerId, List<Integer> subList) {
+		logger.info("Inside findPartnerAndSubspProducts() method"); 
+		List<ProductMasterT> products=null;
+		
+		nameWith = "%" + nameWith + "%";
+		if(nameWith!=null)
+		{
+		products = productRepository.findProductsForPartnerAndSubsp(nameWith, partnerId, subList);
+		}
+		return products;
+	}
+
 }

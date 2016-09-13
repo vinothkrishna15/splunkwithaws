@@ -15,7 +15,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.common.collect.Lists;
-
 import com.tcs.destination.bean.BeaconConvertorMappingT;
 import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.BidRequestTypeMappingT;
@@ -56,6 +55,7 @@ import com.tcs.destination.enums.ContactType;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.BeaconConverterService;
+import com.tcs.destination.utils.ExcelUtils;
 
 @Component("opportunityDownloadHelper")
 public class OpportunityDownloadHelper {
@@ -119,17 +119,17 @@ public class OpportunityDownloadHelper {
 
 	@Autowired
 	NotesTRepository notesTRepository;
-	
+
 	@Autowired
 	UserRepository userRepository;
-	
-	
-	
+
+
+
 
 	private static final DateFormat actualFormat = new SimpleDateFormat(
 			"yyyy-MM-dd");
 	private static final DateFormat desiredFormat = new SimpleDateFormat(
-			"MM/dd/yy");
+			"MM/dd/yyyy");
 
 	/**
 	 * this method populates the opportunity values and setting it in the
@@ -256,6 +256,19 @@ public class OpportunityDownloadHelper {
 			cellOppOwner.setCellValue(opportunity.getPrimaryOwnerUser()
 					.getUserName());
 
+			// Prod issue
+			Cell celltcsAccountContact = row.createCell(23);
+			List<String> oppTcsAccountContactList= contactRepository.findTcsAccountContactNamesByOpportinityId(opportunity.getOpportunityId());
+			if(!oppTcsAccountContactList.isEmpty()){
+				celltcsAccountContact.setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(oppTcsAccountContactList));
+			}
+
+			Cell cellCustomerContact = row.createCell(24);
+			List<String> oppCustomerContactNameList= contactRepository.findCustomerContactNamesByOpportinityId(opportunity.getOpportunityId());
+			if(!oppCustomerContactNameList.isEmpty()){
+				cellCustomerContact.setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(oppCustomerContactNameList));
+			}
+
 			// DEAL TYPE
 			if (opportunity.getDealType() != null) {
 				Cell cellDealType = row.createCell(35);
@@ -308,7 +321,7 @@ public class OpportunityDownloadHelper {
 							.getSubSp().trim());
 				} else if (opportunitySubSpLinkTs.size() > 1) {
 					cellSubSp
-							.setCellValue(constructSubSpCell(opportunitySubSpLinkTs));
+					.setCellValue(constructSubSpCell(opportunitySubSpLinkTs));
 				}
 			}
 
@@ -323,7 +336,7 @@ public class OpportunityDownloadHelper {
 							.getOffering().trim());
 				} else if (opportunityOfferingLinkTs.size() > 1) {
 					cellOffering
-							.setCellValue(constructOfferingCell(opportunityOfferingLinkTs));
+					.setCellValue(constructOfferingCell(opportunityOfferingLinkTs));
 				}
 			}
 
@@ -336,11 +349,11 @@ public class OpportunityDownloadHelper {
 			// cellSSOwner.setCellValue(constructSalesSupportOwner(opp.getOpportunitySalesSupportLinkTs()));
 			// }
 			// }
-			
+
 			List<OpportunitySalesSupportLinkT> opportunitySalesSupportLinkTs = opportunitySalesSupportLinkTRepository.findByOpportunityId(opportunity.getOpportunityId());
 			if(CollectionUtils.isNotEmpty(opportunitySalesSupportLinkTs)) {
-			Cell salesSupportOwner = row.createCell(22);
-			salesSupportOwner.setCellValue(constructOpportunitySalesSupportOwner(opportunitySalesSupportLinkTs));
+				Cell salesSupportOwner = row.createCell(22);
+				salesSupportOwner.setCellValue(constructOpportunitySalesSupportOwner(opportunitySalesSupportLinkTs));
 			}
 
 			// PARTNER NAME
@@ -354,7 +367,7 @@ public class OpportunityDownloadHelper {
 							.getPartnerMasterT().getPartnerName().trim());
 				} else if (opportunityPartnerLinkTs.size() > 1) {
 					cellPartner
-							.setCellValue(constructPartners(opportunityPartnerLinkTs));
+					.setCellValue(constructPartners(opportunityPartnerLinkTs));
 				}
 			}
 
@@ -384,13 +397,13 @@ public class OpportunityDownloadHelper {
 							.trim());
 				} else if (opportunityWinLossFactorsTs.size() > 1) {
 					cellFactors
-							.setCellValue(constructWinLossFactors(opportunityWinLossFactorsTs));
+					.setCellValue(constructWinLossFactors(opportunityWinLossFactorsTs));
 				}
 			}
 
 			// BID Details - Bid Req Type
-//			List<BidDetailsT> bidDetails = bidDetailsTRepository
-//					.findByOpportunityId(opportunity.getOpportunityId());
+			//			List<BidDetailsT> bidDetails = bidDetailsTRepository
+			//					.findByOpportunityId(opportunity.getOpportunityId());
 			BidDetailsT bidDetails = bidDetailsTRepository.findLatestBidByOpportunityId(opportunity.getOpportunityId());
 
 			if (bidDetails != null) {
@@ -444,31 +457,31 @@ public class OpportunityDownloadHelper {
 				Cell cellNotes = row.createCell(41);
 				cellNotes.setCellValue(oppNotes.get(0).getNotesUpdated());
 			}
-			
+
 			//Created Date
 			Cell cellCreatedDate = row.createCell(42);
 			cellCreatedDate.setCellValue(getFormattedDate(opportunity.getCreatedDatetime().toString(),actualFormat, desiredFormat));
-			
+
 			//Created By
 			Cell cellCreatedBy = row.createCell(43);
-	        cellCreatedBy.setCellValue(opportunity.getCreatedByUser().getUserName());
-			
+			cellCreatedBy.setCellValue(opportunity.getCreatedByUser().getUserName());
+
 			//Modified Date
 			Cell cellModifiedDate = row.createCell(44);
 			cellModifiedDate.setCellValue(getFormattedDate(opportunity.getModifiedDatetime().toString(),actualFormat, desiredFormat));
-			
+
 			//Modified By
 			Cell cellModifiedBy = row.createCell(45);
 			cellModifiedBy.setCellValue(opportunity.getModifiedByUser().getUserName());
-			
-//			//deal closure comments
-//			Cell dealclosureComments = row.createCell(46);
-//			dealclosureComments.setCellValue(opportunity.getDealClosureComments());
-//			
-//			//delivery ownership
-//			Cell deliveryOwnershipId = row.createCell(47);
-//			deliveryOwnershipId.setCellValue(opportunity.getDeliveryOwnershipId());
-			
+
+			//			//deal closure comments
+			//			Cell dealclosureComments = row.createCell(46);
+			//			dealclosureComments.setCellValue(opportunity.getDealClosureComments());
+			//			
+			//			//delivery ownership
+			//			Cell deliveryOwnershipId = row.createCell(47);
+			//			deliveryOwnershipId.setCellValue(opportunity.getDeliveryOwnershipId());
+
 			rowCount++;
 		}
 		return rowCount;
@@ -504,15 +517,15 @@ public class OpportunityDownloadHelper {
 		return beaconConverterService.convertCurrencyRate(dealCurrency, "USD",
 				overallDealSize.doubleValue());
 	}
-	
-	     private String constructOpportunitySalesSupportOwner(
+
+	private String constructOpportunitySalesSupportOwner(
 			List<OpportunitySalesSupportLinkT> opportunitySalesSupportLinkTs) {
-			List<String> salesSupportOwners = Lists.newArrayList();
-			for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunitySalesSupportLinkTs) {
+		List<String> salesSupportOwners = Lists.newArrayList();
+		for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunitySalesSupportLinkTs) {
 			salesSupportOwners.add(userRepository.findUserNameByUserId(opportunitySalesSupportLinkT.getSalesSupportOwner()));
-			}
-			return StringUtils.join(salesSupportOwners, ",");
-			}
+		}
+		return StringUtils.join(salesSupportOwners, ",");
+	}
 
 	/**
 	 * This method converts the list to subsp names to a string separated by
@@ -619,7 +632,7 @@ public class OpportunityDownloadHelper {
 	 */
 	public int populateCustomerMasterSheet(Sheet customerMasterSheet,
 			List<? extends CustomerMasterT> items, int rowCount)
-			throws Exception {
+					throws Exception {
 		// Excluding the header, header starts with index 0
 		for (CustomerMasterT cmt : items) {
 			// Create row with rowCount
@@ -721,8 +734,8 @@ public class OpportunityDownloadHelper {
 
 			if ((ct.getContactCategory().equals(EntityType.PARTNER.toString()) && (ct
 					.getContactType().equals(ContactType.EXTERNAL.toString())))) { // For
-																					// Partner
-																					// Contact
+				// Partner
+				// Contact
 
 				// Create row with rowCount
 				Row row = partnerContactSheet.createRow(rowCount);
@@ -764,7 +777,7 @@ public class OpportunityDownloadHelper {
 	 */
 	public int populateCurrencySheet(Sheet winLossSheet,
 			List<? extends BeaconConvertorMappingT> items, int rowCount)
-			throws Exception {
+					throws Exception {
 
 		// Excluding the header, header starts with index 0
 		for (BeaconConvertorMappingT bcmt : items) {
@@ -793,7 +806,7 @@ public class OpportunityDownloadHelper {
 	 */
 	public int populateWinLossSheet(Sheet currencySheet,
 			List<? extends WinLossFactorMappingT> items, int rowCount)
-			throws Exception {
+					throws Exception {
 
 		// Excluding the header, header starts with index 0
 		for (WinLossFactorMappingT wlm : items) {

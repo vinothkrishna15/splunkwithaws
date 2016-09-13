@@ -1,3 +1,4 @@
+
 package com.tcs.destination.controller;
 
 import java.sql.Timestamp;
@@ -742,7 +743,7 @@ public class UserDetailsController {
 	}
 	
 	/**
-	 * Service to fetch the connect related information based on search type and the search keyword 
+	 * Service to fetch the user related information based on search type and the search keyword 
 	 * @param searchType - category type
 	 * @param term - keyword
 	 * @param getAll - true, to retrieve entire result, false to filter the result to only 3 records.(<b>default:false</b>)
@@ -761,12 +762,14 @@ public class UserDetailsController {
 			@RequestParam(value = "count", defaultValue = "30") int count,
 			@RequestParam(value = "view", defaultValue = "") String view)
 					throws DestinationException {
-		logger.info("Inside ConnectController: smart search by search term");
+		logger.info("Inside UserDetailsController: smart search by search term");
 		try {
 			PageDTO<SearchResultDTO<UserT>> res = userService.smartSearch(SmartSearchType.get(searchType), term, getAll, page, count);
-			logger.info("Inside ConnectController: End - smart search by search term");
+			logger.info("Inside UserDetailsController: End - smart search by search term");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, res, !getAll);
+		} catch (DestinationException e) {
+			throw e;
 		} catch (Exception e) {
 			logger.error("Error on user smartSearch", e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,

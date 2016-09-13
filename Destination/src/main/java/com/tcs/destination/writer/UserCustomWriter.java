@@ -14,6 +14,7 @@ import javax.servlet.WriteListener;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.parboiled.common.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.ExitStatus;
@@ -80,26 +81,45 @@ public class UserCustomWriter implements ItemWriter<String[]>, StepExecutionList
 					UserT user =  new UserT();
 					UploadServiceErrorDetailsDTO errorDTO = helper.validateUserData(data, request.getUserT().getUserId() ,user);
 					errorDTO.setSheetName(Constants.USER_TEMPLATE_USER_MASTER);
+					
 					if (errorDTO.getMessage() != null) {
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 						errorList.add(errorDTO);
 					} else if (errorDTO.getMessage() == null) {
-						insertList.add(user);
+						if(!isDuplicateIdOrName(user,insertList)){
+							insertList.add(user);
+						} else {
+							int rowNum = Integer.parseInt(data[0]) + 1;
+							errorDTO.setRowNumber(rowNum);
+							String errMsg = errorDTO.getMessage();
+							
+							if(!StringUtils.isEmpty(errMsg)){
+								errorDTO.setMessage(errMsg + " Duplicate User Id / name in the sheet ");	
+							} else {
+								errorDTO.setMessage(" Duplicate User Id / name in the sheet ");	
+							}
+							errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+							errorList.add(errorDTO);
+						}
 					}
 
 				}
 				else if (operation.equalsIgnoreCase(Operation.UPDATE.name()))
 				{
 					logger.debug("***USER UPDATE***");
+					UploadServiceErrorDetailsDTO errorDTO = new UploadServiceErrorDetailsDTO();
+					errorDTO.setSheetName(Constants.USER_TEMPLATE_USER_MASTER);
+					if(data[2]!=null){
 					String userId =data[2].toString();
 					userId = userId.indexOf(".") < 0 ? userId : userId.replaceAll("0*$", "").replaceAll("\\.$", "");
-				    UploadServiceErrorDetailsDTO errorDTO = new UploadServiceErrorDetailsDTO();
+				    
 					if (!userId.isEmpty()) {
 						try{
 							
 							UserT user= userRepository.findOne(userId);
 						    if (user != null) {
 							errorDTO = helper.validateUserDataUpdate(data, request.getUserT().getUserId() ,user);
+							errorDTO.setSheetName(Constants.USER_TEMPLATE_USER_MASTER);
 							if (errorDTO.getMessage() != null) {
 								errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 								errorList.add(errorDTO);
@@ -121,22 +141,25 @@ public class UserCustomWriter implements ItemWriter<String[]>, StepExecutionList
 						errorDTO.setMessage("User Id is mandatory");
 						errorList.add(errorDTO);
 					}
-					
+					}else {
+						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+						errorDTO.setRowNumber(Integer.parseInt(data[0]) + 1);
+						errorDTO.setMessage("User Id is mandatory");
+						errorList.add(errorDTO);
+					}
 					}
 				else if (operation.equalsIgnoreCase(Operation.DELETE.name()))
 				{
 					logger.debug("***USER DELETE***");
 					UserT user =  new UserT();
-					user = userRepository.findByUserId(data[2]);
-					 UploadServiceErrorDetailsDTO errorDTO = helper.validateUserId(data, user);
-					 
+					UploadServiceErrorDetailsDTO errorDTO =  helper.validateUserId(data, user);
+					errorDTO.setSheetName(Constants.USER_TEMPLATE_USER_MASTER);
 					 if (errorDTO.getMessage() != null) {
 							errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 							errorList.add(errorDTO);
 						} else if (errorDTO.getMessage() == null) {
 							deleteList.add(user);
 					}
-				
 					
 				}
 				
@@ -156,6 +179,21 @@ public class UserCustomWriter implements ItemWriter<String[]>, StepExecutionList
 			}
 
 		}
+	}
+
+
+	private boolean isDuplicateIdOrName(UserT user, List<UserT> insertList) {
+		boolean isDuplicate = false;
+		for(UserT userFromList : insertList){
+			if(
+					(user.getUserId().equals(userFromList.getUserId()))		
+					||(user.getUserName().equals(userFromList.getUserName()))
+			 ) {
+				isDuplicate = true;
+				break;
+			}
+		}
+		return isDuplicate;
 	}
 
 

@@ -302,7 +302,14 @@ public class OpportunityT implements Serializable, Cloneable {
 	@Transient
 	private WorkflowRequestT workflowRequest;
 	
+	@Transient
+	private byte[] dealFinancialFile;
 	
+	@Transient
+	private String bfmFileName;
+	
+	@Transient
+	private boolean workflowBfmRaised;
 
 	public boolean isEnableEditAccess() {
 		return enableEditAccess;
@@ -319,6 +326,11 @@ public class OpportunityT implements Serializable, Cloneable {
 	public void setUserFavourite(boolean isUserFavourite) {
 		this.isUserFavourite = isUserFavourite;
 	}
+	
+	/* Added For BFM Changes */
+	//bi-directional many-to-one association to WorkflowBfmT
+	@OneToMany(mappedBy="opportunityT")
+	private List<WorkflowBfmT> workflowBfmTs;
 
 	public OpportunityT() {
 	}
@@ -1249,6 +1261,38 @@ public class OpportunityT implements Serializable, Cloneable {
 
 	public void setDeliveryOwnershipId(Integer deliveryOwnershipId) {
 		this.deliveryOwnershipId = deliveryOwnershipId;
+	}
+
+	public byte[] getDealFinancialFile() {
+		return dealFinancialFile;
+	}
+
+	public void setDealFinancialFile(byte[] dealFinancialFile) {
+		this.dealFinancialFile = dealFinancialFile;
+	}
+	
+	public List<WorkflowBfmT> getWorkflowBfmTs() {
+		return workflowBfmTs;
+	}
+
+	public void setWorkflowBfmTs(List<WorkflowBfmT> workflowBfmTs) {
+		this.workflowBfmTs = workflowBfmTs;
+	}
+
+	public String getBfmFileName() {
+		return bfmFileName;
+	}
+
+	public void setBfmFileName(String bfmFileName) {
+		this.bfmFileName = bfmFileName;
+	}
+
+	public boolean getWorkflowBfmRaised() {
+		return workflowBfmRaised;
+	}
+
+	public void setWorkflowBfmRaised(boolean workflowBfmRaised) {
+		this.workflowBfmRaised = workflowBfmRaised;
 	}
 
 }

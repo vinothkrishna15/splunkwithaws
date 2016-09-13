@@ -42,7 +42,8 @@ import com.tcs.destination.helper.ConnectUploadHelper;
 import com.tcs.destination.service.ConnectService;
 import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.utils.FileManager;
-import com.tcs.destination.utils.StringUtils;
+import org.apache.commons.lang.StringUtils;
+
 /**
  * This ConnectCustomWriter class provide the functionality for writing connect details to db, and having listener functionality for steps
  * 
@@ -77,11 +78,13 @@ public class ConnectCustomWriter implements ItemWriter<String[]>, StepExecutionL
 		for (String[] data: items) {
 
 			operation = (String) data[1];
+			if ((!StringUtils.isEmpty(operation))) {
 			if (operation.equalsIgnoreCase(Operation.ADD.name())) {
 				
 				ConnectT connect =  new ConnectT();
 				UploadServiceErrorDetailsDTO errorDTO = helper.validateConnectData(data, request.getUserT().getUserId() ,connect);
-				if (errorDTO.getMessage() != null) {
+				
+				if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
 					errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 					errorList.add(errorDTO);
 				} else if (errorDTO.getMessage() == null) {
@@ -97,7 +100,7 @@ public class ConnectCustomWriter implements ItemWriter<String[]>, StepExecutionL
 					ConnectT connect = connectRepository.findByConnectId(connectId);
 					if (connect != null) {
 						errorDTO = helper.validateConnectDataUpdate(data, request.getUserT().getUserId() ,connect);
-						if (errorDTO.getMessage() != null) {
+						if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
 							errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 							errorList.add(errorDTO);
 						} else if (errorDTO.getMessage() == null) {
@@ -118,16 +121,38 @@ public class ConnectCustomWriter implements ItemWriter<String[]>, StepExecutionL
 				
 			} else if (operation.equalsIgnoreCase(Operation.DELETE.name())){
 				 ConnectT connect =  new ConnectT();
+				 String connectId = data[2];
+				 UploadServiceErrorDetailsDTO errorDTO = new UploadServiceErrorDetailsDTO();
+				 if (!StringUtils.isEmpty(connectId)) {
 				 connect = connectRepository.findByConnectId(data[2]);
-				 UploadServiceErrorDetailsDTO errorDTO = helper.validateConnectId(data, connect);
+				 if (connect != null) {
+				 errorDTO = helper.validateConnectId(data, connect);
 				 
-				 if (errorDTO.getMessage() != null) {
+				 if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 						errorList.add(errorDTO);
 					} else if (errorDTO.getMessage() == null) {
 						deleteList.add(connect);
 				}
+				 }
+				 else
+				 {
+					 errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+						errorDTO.setRowNumber(Integer.parseInt(data[0]) + 1);
+						errorDTO.setMessage("Connect Id is invalid; ");
+						errorList.add(errorDTO);
+				 }
+				 }
+					else
+					{
+						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+						errorDTO.setRowNumber(Integer.parseInt(data[0]) + 1);
+						errorDTO.setMessage("Connect Id is mandatory; ");
+						errorList.add(errorDTO);
+						
+					}
 			
+			}
 			}
 		}
 		

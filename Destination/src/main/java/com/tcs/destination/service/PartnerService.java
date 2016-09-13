@@ -2,9 +2,12 @@
 package com.tcs.destination.service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
+import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.GeographyCountryMappingT;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
@@ -25,8 +29,10 @@ import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerContactLinkT;
 import com.tcs.destination.bean.PartnerMasterT;
+import com.tcs.destination.bean.PartnerProductDetailsDTO;
 import com.tcs.destination.bean.PartnerSubSpMappingT;
 import com.tcs.destination.bean.PartnerSubspProductMappingT;
+import com.tcs.destination.bean.ProductContactLinkT;
 import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BeaconConvertorRepository;
@@ -35,10 +41,13 @@ import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.OpportunityPartnerLinkTRepository;
+import com.tcs.destination.data.repository.PartnerContactLinkTRepository;
 import com.tcs.destination.data.repository.PartnerDao;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.PartnerSubSpMappingTRepository;
 import com.tcs.destination.data.repository.PartnerSubSpProductMappingTRepository;
+import com.tcs.destination.data.repository.ProductContactLinkTRepository;
+import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.SmartSearchType;
@@ -90,13 +99,13 @@ public class PartnerService {
 
 	@Autowired
 	private CommonHelper commonHelper;
-	
+
 	@Autowired @Lazy
 	private PartnerDao partnerDao;
-	
+
 	@Autowired 
 	private PartnerSubSpMappingTRepository partnerSubSpMappingTRepository;
-	
+
 	@Autowired 
 	PartnerSubSpProductMappingTRepository partnerSubSpProductMappingTRepository;
 
@@ -105,6 +114,24 @@ public class PartnerService {
 
 	@Autowired
 	private GeographyRepository geoRepository;
+	
+	@Autowired
+	PartnerSubSpProductMappingTRepository partnerSubSpProductMappingRepository;
+
+	@Autowired
+	ProductContactLinkTRepository productContactLinkTRepository;
+
+	@Autowired
+	PartnerContactLinkTRepository partnerContactLinkTRepository;
+
+	@Autowired
+	SubSpRepository subSpRepository;
+	
+	@Autowired
+	WorkflowService workflowService;
+	
+	@Autowired
+	PartnerSubSpMappingTRepository partnerSubSpMappingRepository;
 
 	private Map<String, GeographyMappingT> geographyMapping = null;
 
@@ -139,11 +166,11 @@ public class PartnerService {
 			String hqPartnerLinkName=mapOfPartnerAndHqLink.get(partner.getPartnerName());
 			String hqPartnerLinkId=partnerRepository.findPartnerIdByName(hqPartnerLinkName);
 			partner.setHqPartnerLinkId(hqPartnerLinkId);
- 			childPartnerList.add(partner);
+			childPartnerList.add(partner);
 		}
-	partnerRepository.save(childPartnerList);
-	logger.debug("End:Inside save method of PartnerService");
-		
+		partnerRepository.save(childPartnerList);
+		logger.debug("End:Inside save method of PartnerService");
+
 	}
 
 	/**
@@ -197,7 +224,7 @@ public class PartnerService {
 		partnerRepository.save(partnerList);
 		logger.debug("End:Inside deletePartner method of PartnerService");
 	}
-	
+
 	/**
 	 * This service deletes partner subsp details from partner_subsp_mapping_t
 	 * @param deleteList
@@ -207,16 +234,16 @@ public class PartnerService {
 		partnerSubSpMappingTRepository.delete(deleteList);
 		logger.debug("End:Inside deletePartnerSubSp method of PartnerService");
 	}
-	
-	
+
+
 	/**
 	 * This service deletes partner subsp details from  partner_subsp_product_mapping_t
 	 * @param deleteList
 	 */
 	public void deletePartnerSubSpProduct(List<PartnerSubspProductMappingT> deleteList) {
-	  logger.debug("Begin:Inside deletePartnerSubSpProduct method of PartnerService");
-	  partnerSubSpProductMappingTRepository.delete(deleteList);
-	  logger.debug("End:Inside deletePartnerSubSpProduct method of PartnerService");
+		logger.debug("Begin:Inside deletePartnerSubSpProduct method of PartnerService");
+		partnerSubSpProductMappingTRepository.delete(deleteList);
+		logger.debug("End:Inside deletePartnerSubSpProduct method of PartnerService");
 	}
 
 	/*
@@ -398,8 +425,27 @@ public class PartnerService {
 				.setOpportunityTs(null);
 			}
 
+			//remove cyclic partnerContactLinkTs
+			List<PartnerContactLinkT> partnerContactLinkTs = partner.getPartnerContactLinkTs();
+			for (PartnerContactLinkT partnerContactLinkT : partnerContactLinkTs) {
+				partnerContactLinkT.getContactT().setPartnerContactLinkTs(null);
+				if (partnerContactLinkT.getContactT() != null) {
+					for (ProductContactLinkT productContactLinkT : partnerContactLinkT.getContactT().getProductContactLinkTs() ) {
+						if (productContactLinkT.getProductMasterT() != null) {
+							productContactLinkT.getProductMasterT().setProductContactLinkTs(null);
+						}
+					}
+				}
+			}
+			//remove cyclic PartnerSubspProductMappingTs
+			for (PartnerSubSpMappingT partnerSubSpMappingT : partner.getPartnerSubSpMappingTs()){
+				for (PartnerSubspProductMappingT partnerSubspProductMappingT : partnerSubSpMappingT.getPartnerSubspProductMappingTs()) {
+					if (partnerSubspProductMappingT.getProductMasterT() != null) {
+						partnerSubspProductMappingT.getProductMasterT().setPartnerSubspProductMappingTs(null);
+					}
+				}
+			}
 		}
-
 	}
 
 	/**
@@ -450,10 +496,10 @@ public class PartnerService {
 	 * 
 	 * @param partnerMaster
 	 * @return
-	 * @throws DestinationException
+	 * @throws Exception 
 	 */
 	public boolean updatePartner(PartnerMasterT partnerMaster)
-			throws DestinationException {
+			throws Exception {
 		logger.info("Inside updatePartner method");
 		boolean updateStatus = false;
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
@@ -500,8 +546,9 @@ public class PartnerService {
 	 * @param partnerMaster
 	 * @param isBdmWithAccess
 	 * @return
+	 * @throws Exception 
 	 */
-	boolean validateAndUpdatePartner(PartnerMasterT partnerMaster,boolean isBdmWithAccess)
+	boolean validateAndUpdatePartner(PartnerMasterT partnerMaster,boolean isBdmWithAccess) throws Exception
 	{
 		boolean isUpdate=false;
 		String partnerId = partnerMaster.getPartnerId();
@@ -518,6 +565,7 @@ public class PartnerService {
 					"Partner Details not found for update: "
 							+ partnerId);
 		}
+		PartnerMasterT partnerWithMappingDetails = (PartnerMasterT) DestinationUtils.copy(partnerMaster);
 		PartnerMasterT partner = partnerRepository.findOne(partnerId);
 
 		// Partner Name
@@ -734,10 +782,83 @@ public class PartnerService {
 
 		if(isUpdate)
 		{
-			partnerRepository.save(partner);
+			PartnerMasterT partnerCreated = partnerRepository.save(partner);
+			deletePartnerSub(partnerId);
+			deletePartnerContact(partnerId);
+			
+			
+			// for updating the subsp and product mapping tables
+			if(!partnerWithMappingDetails.getPartnerProductDetailsDTOs().isEmpty()){
+				for(PartnerProductDetailsDTO partnerProductDetailsDTO : partnerWithMappingDetails.getPartnerProductDetailsDTOs()){
+					// processing subsps for the new partner
+					if(partnerProductDetailsDTO.getSubspList().size() > 0 ){
+						for(Integer subSpId : partnerProductDetailsDTO.getSubspList()){
+							PartnerSubSpMappingT partnerSubsp = new PartnerSubSpMappingT();
+							partnerSubsp.setPartnerId(partnerCreated.getPartnerId());
+							partnerSubsp.setSubSpId(subSpId);
+							partnerSubsp.setSubSp(subSpRepository.findBySubSpId(subSpId).getSubSp());
+							partnerSubsp.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+							partnerSubsp.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+							PartnerSubSpMappingT partnerSubspSaved = partnerSubSpMappingRepository.save(partnerSubsp);
+
+							//If product available for this partner then this partner subsp has to be persisted along with its product in partner_subsp_product_mapping_t
+							if(partnerProductDetailsDTO.getProductId() != null){
+								workflowService.savePartnerSubspAndProduct(partnerSubspSaved, partnerProductDetailsDTO.getProductId());
+							}
+						}
+					}
+
+					//Processing contacts for partner and Products
+					if(partnerProductDetailsDTO.getPartnerProductContact() != null ){
+						ContactT productcontactSaved = new ContactT();
+						String contactId = null;
+						if (partnerProductDetailsDTO.getPartnerProductContact().getContactId() == null ) {
+							productcontactSaved = workflowService.saveNewContact(partnerProductDetailsDTO);
+							if(productcontactSaved != null && productcontactSaved.getContactId() != null){
+								contactId = productcontactSaved.getContactId();
+								workflowService.populateAsProductOrPartnerContact(partnerProductDetailsDTO, contactId, partnerCreated.getPartnerId());
+							}
+						}
+						else if(partnerProductDetailsDTO.getPartnerProductContact().getContactId() != null){
+							contactId = partnerProductDetailsDTO.getPartnerProductContact().getContactId();
+							workflowService.populateAsProductOrPartnerContact(partnerProductDetailsDTO, contactId, partnerCreated.getPartnerId());
+						}			 
+					}
+				}
+			}
 			logger.info(partner.getPartnerId() + " Partner details updated");
 		}
 		return isUpdate;
+	}
+
+	/**
+	 * delete all partner contacts from partnerContactLinkt for a given partner
+	 * @param partnerId
+	 */
+	private void deletePartnerContact(String partnerId) {
+		List<PartnerContactLinkT> partnerContatcLinkTs = partnerContactLinkTRepository.findByPartnerId(partnerId);
+		if (CollectionUtils.isNotEmpty(partnerContatcLinkTs)) {
+			for (PartnerContactLinkT partnerContact: partnerContatcLinkTs) {
+			partnerContactLinkTRepository.delete(partnerContact);
+			}
+		}
+	}
+
+	/**
+	 * delete all subsp and supsp-product entries for the given parner
+	 * @param partnerId
+	 */
+	private void deletePartnerSub(String partnerId) {
+		List<PartnerSubSpMappingT> subSPLinks = partnerSubSpMappingRepository.findByPartnerId(partnerId);
+		for (PartnerSubSpMappingT partnerSubSpMappingT : subSPLinks) {
+			String partnerSubspMappingId = partnerSubSpMappingT.getPartnerSubspMappingId();
+			List<PartnerSubspProductMappingT> subSpProducts = partnerSubSpProductMappingRepository.findByPartnerSubspMappingId(partnerSubspMappingId);
+			if(CollectionUtils.isNotEmpty(subSpProducts)) {
+				partnerSubSpProductMappingRepository.delete(subSpProducts);
+			}
+			partnerSubSpMappingRepository.delete(partnerSubSpMappingT);
+		}
+		
 	}
 
 	public PageDTO<SearchResultDTO<PartnerMasterT>> smartSearch(
@@ -765,14 +886,17 @@ public class PartnerService {
 				searchResultDTO = getPartnersBySubSp(term, getAll);
 				break;
 			default:
-				break;
-
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid search type");
 			}
 
 			if(smartSearchType != SmartSearchType.ALL) {//paginate the result if it is fetching entire record(ie. getAll=true)
 				if(getAll) {
 					List<PartnerMasterT> values = searchResultDTO.getValues();
-					searchResultDTO.setValues(PaginationUtils.paginateList(page, count, values));
+					List<PartnerMasterT> records = PaginationUtils.paginateList(page, count, values);
+					if(CollectionUtils.isNotEmpty(records)) {
+						preparePartner(records);
+					}
+					searchResultDTO.setValues(records);
 					res.setTotalCount(values.size());
 				}
 				resList.add(searchResultDTO);
@@ -793,21 +917,21 @@ public class PartnerService {
 		List<PartnerMasterT> records = partnerRepository.searchBySubSp("%"+term+"%", getAll);
 		return createSearchResultFrom(records, SmartSearchType.SUBSP);
 	}
-	
+
 	private SearchResultDTO<PartnerMasterT> getPartnersByCountry(String term, boolean getAll) {
 		List<PartnerMasterT> records = partnerRepository.searchByCountry("%"+term+"%", getAll);
 		return createSearchResultFrom(records, SmartSearchType.COUNTRY);
 	}
 
-	
-     private SearchResultDTO<PartnerMasterT> createSearchResultFrom(
+
+	private SearchResultDTO<PartnerMasterT> createSearchResultFrom(
 			List<PartnerMasterT> records, SmartSearchType type) {
 		SearchResultDTO<PartnerMasterT> conRes = new SearchResultDTO<PartnerMasterT>();
 		conRes.setSearchType(type);
 		conRes.setValues(records);
 		return conRes;
 	}
-	
+
 	/**
 	 * This service saves partner supsp details into partner_sub_sp_mapping_t
 	 * 
@@ -820,7 +944,7 @@ public class PartnerService {
 		partnerSubSpMappingTRepository.save(partnerList);
 		logger.debug("End:Inside save method of PartnerService");
 	}
-	
+
 	/**
 	 * 
 	 * @param partnerList
@@ -837,21 +961,25 @@ public class PartnerService {
 	 * @param nameWith
 	 * @return
 	 */
-	public List<PartnerMasterT> findByGroupPartnerName(String groupPartnerName) {
+	public Set<String> findByGroupPartnerName(String groupPartnerName) {
 		logger.debug("Inside findByGroupPartnerName() service");
+		Set<String> groupPartnerNameSet = new HashSet<String>();
 		List<PartnerMasterT> partnerList = partnerRepository
-				.findByGroupPartnerNameIgnoreCaseContainingAndGroupPartnerNameIgnoreCaseNotLikeAndActiveOrderByGroupPartnerNameAsc(
+				.findDistinctByGroupPartnerNameIgnoreCaseContainingAndGroupPartnerNameIgnoreCaseNotLikeAndActiveOrderByGroupPartnerNameAsc(
 						groupPartnerName, Constants.UNKNOWN_PARTNER,true);
-		if (partnerList.isEmpty()) {
+		//retrieving distinct groupPartnerNames from the queried result
+		for (PartnerMasterT partner : partnerList) {
+			groupPartnerNameSet.add(partner.getGroupPartnerName());
+		}
+		if (groupPartnerNameSet.isEmpty()) {
 			logger.error(
-					"NOT_FOUND: Customer not found with given group customer name: {}",
+					"NOT_FOUND: Partner not found with given group Partner name: {}",
 					groupPartnerName);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Customer not found with given group customer name: "
+					"Partner not found with given group Partner name: "
 							+ groupPartnerName);
 		}
-		preparePartnerDetails(partnerList);
-		return partnerList;
+		return groupPartnerNameSet;
 	}
 
 	private void preparePartnerDetails(List<PartnerMasterT> partnerList) {
@@ -895,7 +1023,7 @@ public class PartnerService {
 					e.getMessage());
 		}
 	}
-	
+
 	private void removeCyclicForLinkedContactTs(PartnerMasterT partnerMasterT) {
 		if (partnerMasterT != null) {
 			if (partnerMasterT.getPartnerContactLinkTs() != null) {

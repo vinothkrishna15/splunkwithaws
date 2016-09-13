@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tcs.destination.bean.Status;
+import com.tcs.destination.enums.RequestType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.DataProcessingService;
 import com.tcs.destination.utils.ResponseConstructors;
@@ -122,7 +123,9 @@ public class DataProcessingController {
 	//added for product master batch
 	private boolean isUploadRequestType(int type) {
 		boolean isUploadRequest = false;
-		if((type > 0 && type < 25) || type==25)   {
+		if ((type > 0 && type < 10) || type == RequestType.PARTNER_MASTER_UPLOAD.getType()
+				|| type == RequestType.PRODUCT_UPLOAD.getType() ||
+				type == RequestType.PRODUCT_CONTACT_UPLOAD.getType()) {			
 			isUploadRequest = true;
 		}
 		return isUploadRequest;
@@ -130,7 +133,9 @@ public class DataProcessingController {
 	
 	private boolean isDownloadRequestType(int type) {
 		boolean isDownloadRequest = false;
-		if((type > 9 && type < 25) || type==25)   {
+		 if ((type > 9 && type < 19) || type == RequestType.PARTNER_MASTER_DOWNLOAD.getType()
+					|| type == RequestType.PRODUCT_DOWNLOAD.getType() ||
+							type == RequestType.PRODUCT_CONTACT_DOWNLOAD.getType()) { 
 			isDownloadRequest = true;
 		}
 		return isDownloadRequest;

@@ -30,12 +30,20 @@
 				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
 			</batch:tasklet>
 		  </batch:step>
-		 <batch:step id="opportunitySubSpProcessing" next="opportunityPartnerProcessing">
+		 <batch:step id="opportunitySubSpProcessing" next="opportunityTcsAndCustomerContactProcessing">
 			<batch:tasklet>
 				<batch:chunk reader="subSpDownloadReader" writer="subSpSheetWriter" 
 				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
 			</batch:tasklet>
 		  </batch:step>
+		  
+		  <batch:step id="opportunityTcsAndCustomerContactProcessing" next="opportunityPartnerProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="tcsAndCustomerContactDownloadReader" writer="tcsAndCustomerContactSheetWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		  </batch:step>
+		  
 		  <batch:step id="opportunityPartnerProcessing" next="opportunityBeaconProcessing">
 			<batch:tasklet>
 				<batch:chunk reader="partnerDownloadReader" writer="partnerSheetWriter" 
@@ -118,6 +126,10 @@
 	<property name="repository" ref="subSpRepository"/>
 	<property name="methodName" value="findAll"/></bean>
 	
+	<bean id="tcsAndCustomerContactDownloadReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
+	<property name="repository" ref="contactRepository"/>
+	<property name="methodName" value="findAll"/></bean>
+	
 	<bean id="partnerDownloadReader" class="com.tcs.destination.reader.NativeQueryReader" scope="step">
 	<property name="repository" ref="partnerRepository"/>
 	<property name="methodName" value="getPartnerNameAndGeography"/></bean>
@@ -194,6 +206,9 @@
 	
 	<bean id="subSpSheetWriter" class="com.tcs.destination.writer.SubSpSheetWriter" scope="step">
 	<!-- <property name="opportunityDownloadHelper" ref="opportunityDownloadHelper"/> -->
+	</bean>
+	
+	<bean id="tcsAndCustomerContactSheetWriter" class="com.tcs.destination.writer.TcsAndCustomerContactSheetWriter" scope="step">
 	</bean>
 	
 	<bean id="partnerSheetWriter" class="com.tcs.destination.writer.PartnerSheetWriter" scope="step">
