@@ -3989,7 +3989,7 @@ public class WorkflowService {
 							sendEmailNotificationBFMEscalatePending(workflowRequest.getRequestId(), workflowRequest.getEntityTypeId());
 							status.setStatus(
 									Status.SUCCESS,
-									"The request for BFM is Escalated to DESS Unit Head !!!");
+									"This request has been escalated successfully.");
 						} 
 					}
 				} 
@@ -4012,11 +4012,11 @@ public class WorkflowService {
 							if (entityTypeIdForEscalation == EntityTypeId.CONSULTED_ESCALATION_B.getType()) {
 								status.setStatus(
 										Status.SUCCESS,
-										"The request for BFM is Escalated to Raj DeshPande!!!");
+										"This request has been escalated successfully.");
 							}
 							status.setStatus(
 									Status.SUCCESS,
-									"The request for BFM is Escalated to Geo Head !!!");
+									"This request has been escalated successfully.");
 						} 
 					}
 				}
@@ -4294,12 +4294,18 @@ public class WorkflowService {
 			}
 
 			if (masterRequest.getStatus().equals(
-					workflowStaus.getStatus())) {
+					WorkflowStatus.APPROVED.getStatus())) {
 				status.setStatus(Status.SUCCESS,
-						"The requested workflow bfm is finally " + masterRequest.getStatus() + "!!!");
-			} else {
+						"The requested has been approved successfully.");
+			} 
+			else if(masterRequest.getStatus().equals(
+					WorkflowStatus.REJECTED.getStatus())) {
 				status.setStatus(Status.SUCCESS,
-						"The requested workflow bfm is intermediately " + masterRequest.getStatus() + "!!!");
+						"The requested has been rejected.");
+			}
+			else {
+				status.setStatus(Status.SUCCESS,
+						"This request has been approved by you.");
 			}
 
 			if(entityTypeId == EntityTypeId.BFM.getType()){
