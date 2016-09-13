@@ -2,7 +2,12 @@
 	<body>
 		<p>Dear User,</p>
 		<p>
-			 Your deal financial request for opportunity : ${opportunityName} with customer : ${customerName} and Opportunity ID ${opportunityId} is ${status}. 	
+			 Your deal financial request for the following opportunity is ${status}. 	
+		</p>
+		<p>
+		  Opportunity Name: ${opportunityName} <br>
+		  Customer : ${customerName} <br>
+		  Opportunity ID: ${opportunityId} <br>
 		</p>
 		<p>
 		   This opportunity is now moved to ${salesStageCode}
