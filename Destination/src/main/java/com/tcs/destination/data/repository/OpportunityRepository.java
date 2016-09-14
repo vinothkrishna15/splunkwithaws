@@ -26,9 +26,31 @@ public interface OpportunityRepository extends
 	
 	Page<OpportunityT> findByOpportunityNameIgnoreCaseLikeOrderByModifiedDatetimeDesc(
 			String opportunityname, Pageable page);
-
+	
+	List<OpportunityT> findByOpportunityNameIgnoreCaseLikeAndDeliveryTeamFlagOrderByModifiedDatetimeDesc(String opportunityname, boolean deliveryFlag);
+	
+	@Query(value ="select distinct(OPP.*) from opportunity_t OPP "
+			+ " Join opportunity_delivery_centre_mapping_t OPPDCM on (OPP.opportunity_id=OPPDCM.opportunity_id) "
+			+ " Join delivery_centre_t DC on OPPDCM.delivery_centre_id=DC.delivery_centre_id "
+			+ " Join delivery_cluster_t DCL on DC.delivery_cluster_id=DCL.delivery_cluster_id "
+			+ " where sales_stage_code=9 and OPP.opportunity_name like ?1 and "
+			+ " (DC.delivery_centre_head in (?2) OR DCL.delivery_cluster_head in (?2))", nativeQuery=true)
+	List<OpportunityT> findByOpportunityNameAndCentreHeadOrClusterHead(String oppName, List<String> userId);
+	
+	
+	@Query(value ="select distinct(OPP.*) from opportunity_t OPP "
+			+ " Join opportunity_delivery_centre_mapping_t OPPDCM on (OPP.opportunity_id=OPPDCM.opportunity_id) "
+			+ " Join delivery_centre_t DC on OPPDCM.delivery_centre_id=DC.delivery_centre_id "
+			+ " Join delivery_cluster_t DCL on DC.delivery_cluster_id=DCL.delivery_cluster_id "
+			+ " where sales_stage_code=9 and OPP.opportunity_name like ?1 and OPP.customer_id=?2"
+			+ " (DC.delivery_centre_head in (?3) OR DCL.delivery_cluster_head in (?3))", nativeQuery=true)
+	List<OpportunityT> findByOpportunityNameAndCustomerIdAndCentreHeadOrClusterHead(String oppName, String customerId, List<String> userId);
+	
 	Page<OpportunityT> findByOpportunityNameIgnoreCaseLikeAndCustomerIdOrderByModifiedDatetimeDesc(
 			String opportunityname, String customerId, Pageable pageable);
+	
+	List<OpportunityT> findByOpportunityNameIgnoreCaseLikeAndCustomerIdAndDeliveryTeamFlagOrderByModifiedDatetimeDesc(
+			String opportunityname, String customerId, boolean deliveryFlag);
 
 	List<OpportunityT> findByCustomerIdAndOpportunityRequestReceiveDateAfter(
 			String customerId, Date fromDate);
@@ -860,8 +882,14 @@ public interface OpportunityRepository extends
 			+ " union "
 			+ " select SKT.search_keywords as result, SKT.entity_id as opportunity_id ,'f' as is_name , OPP.created_datetime as created_datetime from search_keywords_t SKT JOIN opportunity_t OPP on OPP.opportunity_id=SKT.entity_id where SKT.entity_type ='OPPORTUNITY' and UPPER(search_keywords) like ?2 "
 			+ " ) as search order by created_datetime desc", nativeQuery = true)
-	ArrayList<Object[]> findOpportunityNameOrKeywords(String name,
+	ArrayList<Object[]> findOpportunityNameOrKeywords(String name, 
 			String keyword);
+	
+	@Query(value ="select result, opportunity_id as opportunity, is_name , created_datetime from ((SELECT opportunity_name as result , opportunity_id , 't' as is_name, created_datetime FROM opportunity_t WHERE UPPER(opportunity_name) like (:name)  AND delivery_team_flag =true ORDER BY created_datetime DESC) UNION (select OPP.opportunity_name as result , OPP.opportunity_id , 't' as is_name, OPP.created_datetime "
+			+ " from opportunity_t OPP Join opportunity_delivery_centre_mapping_t OPPDCM on (OPP.opportunity_id=OPPDCM.opportunity_id) Join delivery_centre_t DC on OPPDCM.delivery_centre_id=DC.delivery_centre_id Join delivery_cluster_t DCL on DC.delivery_cluster_id=DCL.delivery_cluster_id where sales_stage_code=9 AND UPPER(opportunity_name) like (:name) AND (delivery_centre_head in (:userIds) OR delivery_cluster_head in (:userIds)) ORDER BY created_datetime DESC) UNION "
+			+ " (select SKT.search_keywords as result, SKT.entity_id as opportunity_id ,'f' as is_name , OPP.created_datetime as created_datetime from search_keywords_t SKT JOIN opportunity_t OPP on OPP.opportunity_id=SKT.entity_id Join opportunity_delivery_centre_mapping_t OPPDCM on (OPP.opportunity_id=OPPDCM.opportunity_id) Join delivery_centre_t DC on OPPDCM.delivery_centre_id=DC.delivery_centre_id Join delivery_cluster_t DCL on DC.delivery_cluster_id=DCL.delivery_cluster_id "
+			+ " where SKT.entity_type ='OPPORTUNITY' and UPPER(search_keywords) like (:name) AND (delivery_centre_head in (:userIds) OR delivery_cluster_head in (:userIds)) ORDER BY created_datetime DESC)) as search order by created_datetime desc", nativeQuery = true)
+	ArrayList<Object[]> findDeliveryOpportunityNameKeywordSearch(@Param("name") String name, @Param("userIds") List<String> userIds);
 
 	@Query(value = "select OPP.country, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency)))  as OBV from opportunity_t OPP "
 			+ "JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
@@ -1311,5 +1339,45 @@ public interface OpportunityRepository extends
 			@Param("previousWeekDate") Timestamp previousWeekStartDate,
 			@Param("currentWeekDate") Timestamp currentWeekStartDate,
 			@Param("salesStageCode") int salesStageCode);
+
+	List<OpportunityT> findByDeliveryTeamFlag(Boolean deliveryFlag);
+
+	/*--------------------Start of Delivery team opportunity smart search query-----------------------------*/
+	@Query(value="SELECT * from ((SELECT (OP.*) FROM opportunity_t OP WHERE UPPER(OP.opportunity_id) LIKE UPPER(:term) AND delivery_team_flag = true) "
+			+ " UNION (select (OPP.*) from opportunity_t OPP Join opportunity_delivery_centre_mapping_t OPPDCM on (OPP.opportunity_id=OPPDCM.opportunity_id) "
+			+ " Join delivery_centre_t DC on OPPDCM.delivery_centre_id=DC.delivery_centre_id Join delivery_cluster_t DCL on DC.delivery_cluster_id=DCL.delivery_cluster_id "
+			+ " where sales_stage_code=9 AND UPPER(OPP.opportunity_id) LIKE UPPER(:term) AND (delivery_centre_head in (:userIds) OR delivery_cluster_head in (:userIds))) "
+			+ " ) as oppByOppId ORDER BY modified_datetime DESC LIMIT CASE WHEN :getAll THEN null ELSE 3 END",nativeQuery=true)
+	List<OpportunityT> searchDeliveryOpportunitiesById(@Param("term") String term, @Param("getAll") boolean getAll, @Param("userIds") List<String> userIds);
+	
+	@Query(value="SELECT * from ((SELECT (OP.*) FROM opportunity_t OP WHERE UPPER(OP.opportunity_name) LIKE UPPER(:term) AND delivery_team_flag = true) "
+			+ " UNION (select (OPP.*) from opportunity_t OPP Join opportunity_delivery_centre_mapping_t OPPDCM on (OPP.opportunity_id=OPPDCM.opportunity_id) "
+			+ " Join delivery_centre_t DC on OPPDCM.delivery_centre_id=DC.delivery_centre_id Join delivery_cluster_t DCL on DC.delivery_cluster_id=DCL.delivery_cluster_id "
+			+ " where sales_stage_code=9 AND UPPER(OPP.opportunity_name) LIKE UPPER(:term) AND (delivery_centre_head in (:userIds) OR delivery_cluster_head in (:userIds)))) "
+			+ " as oppByOppName ORDER BY modified_datetime DESC LIMIT CASE WHEN :getAll THEN null ELSE 3 END",nativeQuery=true)
+	List<OpportunityT> searchDeliveryOpportunitiesByName(@Param("term") String term, @Param("getAll") boolean getAll, @Param("userIds") List<String> userIds);
+	
+	@Query(value="SELECT * from ((SELECT (OP.*) FROM opportunity_t OP WHERE customer_id IN (SELECT customer_id FROM customer_master_t "
+			+ " WHERE UPPER(customer_name) LIKE UPPER(:term)) AND delivery_team_flag = true) UNION (select (OPP.*) from opportunity_t OPP Join opportunity_delivery_centre_mapping_t OPPDCM on (OPP.opportunity_id=OPPDCM.opportunity_id) "
+			+ " Join delivery_centre_t DC on OPPDCM.delivery_centre_id=DC.delivery_centre_id Join delivery_cluster_t DCL on DC.delivery_cluster_id=DCL.delivery_cluster_id "
+			+ " where sales_stage_code=9 AND customer_id IN (SELECT customer_id FROM customer_master_t WHERE UPPER(customer_name) LIKE UPPER(:term)) AND (delivery_centre_head in (:userIds) OR delivery_cluster_head in (:userIds)))"
+			+ " ) as oppByCustName ORDER BY modified_datetime DESC LIMIT CASE WHEN :getAll THEN null ELSE 3 END",nativeQuery=true)
+	List<OpportunityT> searchDeliveryOpportunitiesByCustomerName(@Param("term") String term, @Param("getAll") boolean getAll, @Param("userIds") List<String> userIds);
+	
+	@Query(value="SELECT * from ((SELECT (OP.*) FROM opportunity_t OP WHERE opportunity_id IN (SELECT DISTINCT(opportunity_id) FROM opportunity_sub_sp_link_t WHERE UPPER(sub_sp) LIKE UPPER(:term)) AND delivery_team_flag = true) "
+			+ " UNION (select (OPP.*) from opportunity_t OPP Join opportunity_delivery_centre_mapping_t OPPDCM on (OPP.opportunity_id=OPPDCM.opportunity_id) "
+			+ " Join delivery_centre_t DC on OPPDCM.delivery_centre_id=DC.delivery_centre_id Join delivery_cluster_t DCL on DC.delivery_cluster_id=DCL.delivery_cluster_id "
+			+ " where sales_stage_code=9 AND OPP.opportunity_id IN (SELECT DISTINCT(opportunity_id) FROM opportunity_sub_sp_link_t WHERE UPPER(sub_sp) LIKE UPPER(:term)) AND (delivery_centre_head in (:userIds) OR delivery_cluster_head in (:userIds)))"
+			+ " ) as oppBySubSp ORDER BY modified_datetime DESC LIMIT CASE WHEN :getAll THEN null ELSE 3 END",nativeQuery=true)
+	List<OpportunityT> searchDeliveryOpportunitiesBySubSp(@Param("term") String term, @Param("getAll") boolean getAll, @Param("userIds") List<String> userIds);
+	
+	@Query(value="SELECT * from ((SELECT (OP.*) FROM opportunity_t OP WHERE opportunity_owner IN (SELECT user_id FROM user_t WHERE UPPER(user_name) LIKE UPPER(:term)) AND delivery_team_flag = true) "
+			+ " UNION (select (OPP.*) from opportunity_t OPP Join opportunity_delivery_centre_mapping_t OPPDCM on (OPP.opportunity_id=OPPDCM.opportunity_id) Join delivery_centre_t DC on OPPDCM.delivery_centre_id=DC.delivery_centre_id "
+			+ " Join delivery_cluster_t DCL on DC.delivery_cluster_id=DCL.delivery_cluster_id where sales_stage_code=9 "
+			+ " AND opportunity_owner IN (SELECT user_id FROM user_t WHERE UPPER(user_name) LIKE UPPER(:term)) AND (delivery_centre_head in (:userIds) OR delivery_cluster_head in (:userIds))) "
+			+ " ) as oppByPrimaryOwner ORDER BY modified_datetime DESC LIMIT CASE WHEN :getAll THEN null ELSE 3 END",nativeQuery=true)
+	List<OpportunityT> searchDeliveryOpportunitiesByPrimaryOwner(@Param("term") String term, @Param("getAll") boolean getAll, @Param("userIds") List<String> userIds);
+
+	/*--------------------End of Delivery team opportunity smart search query-----------------------------*/
 	
 }

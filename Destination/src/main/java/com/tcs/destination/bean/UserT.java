@@ -39,6 +39,7 @@ public class UserT implements Serializable {
 		this.userName = user.userName;
 		this.tempPassword = user.tempPassword;
 		this.active = user.active;
+		this.userGroup = user.userGroup;
 	}
 
 	@Id

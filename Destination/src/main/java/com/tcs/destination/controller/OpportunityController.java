@@ -36,6 +36,7 @@ import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
+import com.tcs.destination.bean.UserT;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.JobName;
 import com.tcs.destination.enums.OperationType;
@@ -112,13 +113,13 @@ public class OpportunityController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 
-		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		UserT user = DestinationUtils.getCurrentUserDetails();
 		logger.info("Inside OpportunityController: Start of nameWith search");
 		String response = null;
 		PaginatedResponse opportunities;
 		try {
-			opportunities = opportunityService.findByOpportunityName(nameWith,
-					customerId, currencies, isAjax, userId, page, count);
+			opportunities = opportunityService.getOpportunitiesByOpportunityName(nameWith,
+					customerId, currencies, isAjax, user, page, count);
 			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, opportunities);
 		} catch (DestinationException e) {
@@ -713,8 +714,9 @@ public class OpportunityController {
 		ArrayList<OpportunityNameKeywordSearch> searchResults = null;
 		String response = null;
 		try {
+			UserT user = DestinationUtils.getCurrentUserDetails();
 			searchResults = opportunityService.findOpportunityNameOrKeywords(
-					name, keyword);
+					name, keyword, user);
 			if ((searchResults == null) || (searchResults.isEmpty())) {
 				logger.error("No Results found for name {} and keyword {}",
 						name, keyword);
@@ -959,7 +961,8 @@ public class OpportunityController {
 					throws DestinationException {
 		logger.info("Inside OpportunityController: smart search by search term");
 		try {
-			PageDTO<SearchResultDTO<OpportunityT>> res = opportunityService.smartSearch(SmartSearchType.get(searchType), term, getAll, currency, page, count);
+			UserT user = DestinationUtils.getCurrentUserDetails();
+			PageDTO<SearchResultDTO<OpportunityT>> res = opportunityService.smartSearch(SmartSearchType.get(searchType), term, getAll, currency, page, count,user);
 			logger.info("Inside OpportunityController: End - smart search by search term");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, res, !getAll);
