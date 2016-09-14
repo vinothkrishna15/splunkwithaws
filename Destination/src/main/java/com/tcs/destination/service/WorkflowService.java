@@ -49,6 +49,7 @@ import com.tcs.destination.bean.PartnerProductDetailsDTO;
 import com.tcs.destination.bean.PartnerSubSpMappingT;
 import com.tcs.destination.bean.PartnerSubspProductMappingT;
 import com.tcs.destination.bean.ProductContactLinkT;
+import com.tcs.destination.bean.ProductMasterT;
 import com.tcs.destination.bean.RevenueCustomerMappingT;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserT;
@@ -75,6 +76,7 @@ import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.PartnerSubSpMappingTRepository;
 import com.tcs.destination.data.repository.PartnerSubSpProductMappingTRepository;
 import com.tcs.destination.data.repository.ProductContactLinkTRepository;
+import com.tcs.destination.data.repository.ProductRepository;
 import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
 import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
@@ -212,6 +214,9 @@ public class WorkflowService {
 
 	@Autowired
 	SubSpRepository subSpRepository;
+	
+	@Autowired
+	ProductRepository productRepository;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -1903,8 +1908,9 @@ public class WorkflowService {
 						// Get the workflow partner Id from request table
 						String workflowPartnerId = workflowRequest
 								.getEntityId();
-						//for setting partner product and contact and subsp details
+						
 						WorkflowPartnerT partnerT = workflowPartnerRepository.findOne(workflowPartnerId);
+						
 						List<PartnerMasterT> partnerMasterT =  partnerRepository.findByPartnerName(partnerT.getPartnerName());
 
 						if (partnerMasterT.size() > 0 ) {
@@ -1913,8 +1919,57 @@ public class WorkflowService {
 
 						// Get the new partner details for the request
 						WorkflowPartnerT workflowPartner = workflowPartnerRepository.findOne(workflowPartnerId);
-
+						
 						if (workflowPartner != null) {
+							// to fetch partner subsp, product and contact details
+							String partnerName = workflowPartner.getPartnerName();
+							PartnerMasterT partner = partnerRepository.findPartnerByName(partnerName);
+							if(partner!=null)
+							{
+							String partnerId = partner.getPartnerId();
+							List<PartnerSubSpMappingT> partnerSubsps = partnerSubSpMappingRepository.findByPartnerId(partnerId);
+							List<PartnerSubSpMappingT> partnerSubsps_new = new ArrayList<PartnerSubSpMappingT>();
+							List<PartnerContactLinkT> partnerContactList=partnerContactLinkTRepository.findByPartnerId(partnerId);
+							if(!CollectionUtils.isEmpty(partnerContactList))
+							{
+							 for(PartnerContactLinkT partnerContactLinkT:partnerContactList)
+							 {
+								partnerContactLinkT.setContactT(null);
+								partnerContactLinkT.setPartnerMasterT(null);
+							 }
+							}
+							if(!CollectionUtils.isEmpty(partnerSubsps))
+							{
+							for(PartnerSubSpMappingT partnerSubsp:partnerSubsps) {
+								PartnerSubSpMappingT partnersubsp = new PartnerSubSpMappingT();
+								String partnerSubspMappingId = partnerSubsp.getPartnerSubspMappingId();
+								List<PartnerSubspProductMappingT> partnerSubspProductList = partnerSubSpProductMappingRepository.findByPartnerSubspMappingId(partnerSubspMappingId);
+								List<PartnerSubspProductMappingT> partnerSubspProductList_new = partnerSubSpProductMappingRepository.findByPartnerSubspMappingId(partnerSubspMappingId);
+								for(PartnerSubspProductMappingT partnerSubspProduct:partnerSubspProductList) {
+									PartnerSubspProductMappingT partnersubspProduct = new PartnerSubspProductMappingT();
+									ProductMasterT product=productRepository.findOne(partnerSubspProduct.getProductId());
+							        List<ProductContactLinkT> productContactList=productContactLinkTRepository.findByProductId(product.getProductId());
+							        for(ProductContactLinkT prod:productContactList)
+							        {
+							        	prod.getContactT().setPartnerContactLinkTs(partnerContactList);
+							        }
+							        product.setProductContactLinkTs(productContactList);
+									partnersubspProduct.setProductMasterT(product);
+							        partnerSubspProductList_new.add(partnersubspProduct);
+								}
+								
+								
+								partnersubsp.setPartnerSubspProductMappingTs(partnerSubspProductList_new);
+								
+								partnerSubsps_new.add(partnersubsp);
+							}
+							
+						
+							
+							workflowPartner.setPartnerSubSpMappingTs(partnerSubsps_new);
+							}
+							
+						}
 							workflowPartnerDetailsDTO
 							.setRequestedPartner(workflowPartner);
 
@@ -1960,6 +2015,7 @@ public class WorkflowService {
 						"Request id is not valid or empty");
 			}
 			logger.debug("Inside findRequestedPartnerDetailsById() service: End");
+			
 			return workflowPartnerDetailsDTO;
 		} catch (DestinationException e) {
 			throw e;
@@ -1968,6 +2024,7 @@ public class WorkflowService {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while retrieving request partner details");
 		}
+		
 	}
 
 	/**
