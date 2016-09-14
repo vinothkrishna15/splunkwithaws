@@ -862,6 +862,12 @@ public class DestinationMailUtils {
 		}
 	}
 	
+	
+	/**
+	 * This method is used to add Default user in cc list
+	 * 
+	 * @param ccIds
+	 */
 	private void addDefaultUserInCC(List<String> ccIds){
 		ccIds.add(Constants.defaultUser_CC_BFM);
 	}
