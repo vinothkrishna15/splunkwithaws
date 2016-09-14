@@ -313,7 +313,7 @@ public class DestinationMailUtils {
 	private static final int PATH_B_LAST_STEP_NUMBER = 4;
 	
 	private static final int PATH_A_LAST_STEP_NUMBER = 5;
-
+	
 	/**
 	 * @param user
 	 * @param requestedDateTime
@@ -863,6 +863,14 @@ public class DestinationMailUtils {
 	}
 	
 	
+	/**
+	 * This method is used to add Default user in cc list
+	 * 
+	 * @param ccIds
+	 */
+	private void addDefaultUserInCC(List<String> ccIds){
+		ccIds.add(Constants.defaultUser_CC_BFM);
+	}
 	
 	
 	/**
@@ -970,6 +978,7 @@ public class DestinationMailUtils {
 			}
 			
 			addSysAdminStrategicAdminCC(ccIds);
+			addDefaultUserInCC(ccIds);
 			message.setRecipients(listMailIdsFromUserIds(recepientIds));
 			message.setCcList(listMailIdsFromUserIds(ccIds));
 
@@ -2306,7 +2315,7 @@ public class DestinationMailUtils {
 				
 				//adding system admin and strategic group admin in cc
 				addSysAdminStrategicAdminCC(ccIds);
-				
+				addDefaultUserInCC(ccIds);
 				message.setRecipients(listMailIdsFromUserIds(recepientIds));
 				message.setCcList(listMailIdsFromUserIds(ccIds));
 
@@ -2517,7 +2526,7 @@ public class DestinationMailUtils {
 			default:
 				break;
 			}
-
+			addDefaultUserInCC(ccIds);
 			message.setRecipients(listMailIdsFromUserIds(recepientIds));
 			message.setCcList(listMailIdsFromUserIds(ccIds));
 
@@ -2976,7 +2985,7 @@ public class DestinationMailUtils {
 							break;
 						}
 		}
-		
+		addDefaultUserInCC(ccIds);
 		message.setRecipients(listMailIdsFromUserIds(recepientIds));
 		message.setCcList(listMailIdsFromUserIds(ccIds));
 		
@@ -3098,7 +3107,7 @@ public class DestinationMailUtils {
 		
 		String createdById = workflowRequestT.getCreatedBy();
 		ccIds.add(createdById);
-		
+		addDefaultUserInCC(ccIds);
 		message.setRecipients(listMailIdsFromUserIds(recepientIds));
 		message.setCcList(listMailIdsFromUserIds(ccIds));
 		
@@ -3221,7 +3230,7 @@ public class DestinationMailUtils {
 		
 		String createdById = workflowRequestT.getCreatedBy();
 		ccIds.add(createdById);
-		
+		addDefaultUserInCC(ccIds);
 		message.setRecipients(listMailIdsFromUserIds(recepientIds));
 		message.setCcList(listMailIdsFromUserIds(ccIds));
 		
@@ -3380,7 +3389,7 @@ public class DestinationMailUtils {
 							break;
 						}
 		}
-		
+		addDefaultUserInCC(ccIds);
 		message.setRecipients(listMailIdsFromUserIds(recepientIds));
 		message.setCcList(listMailIdsFromUserIds(ccIds));
 		
@@ -3541,7 +3550,7 @@ public class DestinationMailUtils {
 		
 		String createdById = workflowRequestT.getCreatedBy();
 		ccIds.add(createdById);
-		
+		addDefaultUserInCC(ccIds);
 		message.setRecipients(listMailIdsFromUserIds(recepientIds));
 		message.setCcList(listMailIdsFromUserIds(ccIds));
 		
@@ -3635,7 +3644,7 @@ public class DestinationMailUtils {
 			
 			//adding system admin and strategic group admin in cc
 			addSysAdminStrategicAdminCC(ccIds);
-			
+			addDefaultUserInCC(ccIds);
 			message.setRecipients(listMailIdsFromUserIds(recepientIds));
 			message.setCcList(listMailIdsFromUserIds(ccIds));
 			
@@ -3730,7 +3739,7 @@ public class DestinationMailUtils {
 			
 			//adding system admin and strategic group admin in cc
 			addSysAdminStrategicAdminCC(ccIds);
-			
+			addDefaultUserInCC(ccIds);
 			message.setRecipients(listMailIdsFromUserIds(recepientIds));
 			message.setCcList(listMailIdsFromUserIds(ccIds));
 			

@@ -6,12 +6,26 @@
 		</p>
 		
 		<p>
-		  Exception Category: ${exceptions}<br>
-		  Opportunity Id: ${opportunityId}<br>
-		  CRM Id: ${crmId}<br>
-		  Customer Name: ${customerName}<br> 
-		  Opportunity Name: ${opportunityName}<br> 
-		  Deal Value: ${dealValue}
+		  <table>
+		  	<tr>  
+		  		<td><b>Exception Category</b></td><td>:</td><td> ${exceptions}</td>
+		  	</tr>
+		  	<tr>
+		  		<td><b>Opportunity Id</b></td><td>:</td><td> ${opportunityId}</td>
+		  	</tr>
+		  	<tr>
+		  		<td><b>CRM Id</b></td><td>:</td><td> ${crmId}</td>
+		  	</tr>
+		  	<tr>
+		  		<td><b>Customer Name</b></td><td>:</td><td> ${customerName}</td> 
+		  	</tr>
+		  	<tr>
+		  		<td><b>Opportunity Name</b></td><td>:</td><td> ${opportunityName}</td> 
+		 	</tr>
+		  	<tr>
+		  		<td><b>Deal Value</b></td><td>:</td><td> ${dealValue}</td>
+		  	</tr>
+		  </table>
 		</p>
 		
 		<p>
@@ -21,20 +35,20 @@
 		<p>
 		   Please see the comments below:
 		<br>
-		   Comments: ${comments}     
+		   <b>Comments</b> : ${comments}     
 		</p>  
 		
 		<p>
-		Please log into Destination and respond.
+		Please log into DESTiNATION and respond.
 		</p> 
 		
 		<p>
 		Regards,<br>
-		Team Destination.
+		Team DESTiNATION.
 		</p>
 		<br>
 		<p>
-		Note: This is a system-generated e-mail. Please do not respond to this mail.
+		Note : This is a system-generated e-mail. Please do not respond to this mail.
 		</p>
 	</body>
 </html>

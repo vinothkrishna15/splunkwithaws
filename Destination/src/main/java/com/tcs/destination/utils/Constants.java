@@ -335,6 +335,7 @@ public class Constants {
 	public static final String CONSULTING = "CONSULTING";
 	public static final String ABIM_CONSULTING = "ABIM – Consulting";
 	
+	public static final String defaultUser_CC_BFM = "139339";
 	public static final String notifyUserRolesForBFM = "System Admin,Strategic Group Admin";
 
 }
