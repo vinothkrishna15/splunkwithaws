@@ -77,9 +77,6 @@ public class DeliveryMasterT implements Serializable {
 	
 	private String odc;
 
-	@Column(name="rgs_id")
-	private String rgsId;
-
 	@Temporal(TemporalType.DATE)
 	@Column(name="scheduled_start_date")
 	private Date scheduledStartDate;
@@ -186,14 +183,6 @@ public class DeliveryMasterT implements Serializable {
 
 	public void setNumSkilled(Integer numSkilled) {
 		this.numSkilled = numSkilled;
-	}
-
-	public String getRgsId() {
-		return this.rgsId;
-	}
-
-	public void setRgsId(String rgsId) {
-		this.rgsId = rgsId;
 	}
 
 	public Date getScheduledStartDate() {

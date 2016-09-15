@@ -65,6 +65,9 @@ public class DeliveryResourcesT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="delivery_master_id", insertable = false, updatable = false)
 	private DeliveryMasterT deliveryMasterT;
+	
+	@Column(name="rgs_id")
+	private String rgsId;
 
 	public DeliveryResourcesT() {
 	}
@@ -181,5 +184,12 @@ public class DeliveryResourcesT implements Serializable {
 		this.delievryMasterId = delievryMasterId;
 	}
 	
+	public String getRgsId() {
+		return this.rgsId;
+	}
 
+	public void setRgsId(String rgsId) {
+		this.rgsId = rgsId;
+	}
+	
 }
