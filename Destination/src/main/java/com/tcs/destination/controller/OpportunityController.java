@@ -627,6 +627,7 @@ public class OpportunityController {
 			throws DestinationException {
 		logger.info("Inside OpportunityController: Start of /opportunity/search GET");
 		String response = null;
+		UserT user = DestinationUtils.getCurrentUserDetails();
 		PaginatedResponse opportunityResponse;
 		try {
 			opportunityResponse = opportunityService.getByOpportunities(
@@ -635,7 +636,7 @@ public class OpportunityController {
 					dealCurrency, digitalFlag, displayIou, country, partnerId,
 					competitorName, searchKeywords, bidRequestType, offering,
 					displaySubSp, opportunityName, userId, currency, page,
-					count, role,isCurrentFinancialYear);
+					count, role,isCurrentFinancialYear,user);
 
 			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, opportunityResponse);
@@ -676,9 +677,10 @@ public class OpportunityController {
 		logger.info("Inside OpportunityController: Start of /opportunity/all GET");
 		String response = null;
 		PaginatedResponse opportunityResponse;
+		UserT user = DestinationUtils.getCurrentUserDetails();
 		try {
 			opportunityResponse = opportunityService.findAll(sortBy, order,
-					isCurrentFinancialYear, page, count);
+					isCurrentFinancialYear, page, count, user);
 
 			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, opportunityResponse);

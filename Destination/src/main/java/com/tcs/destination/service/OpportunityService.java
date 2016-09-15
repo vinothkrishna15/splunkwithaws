@@ -2416,7 +2416,7 @@ public class OpportunityService {
 			List<String> bidRequestType, List<String> offering,
 			List<String> displaySubSp, List<String> opportunityName,
 			List<String> userId, List<String> toCurrency, int page, int count,
-			String role, Boolean isCurrentFinancialYr)
+			String role, Boolean isCurrentFinancialYr, UserT user)
 			throws DestinationException {
 		PaginatedResponse opportunityResponse = new PaginatedResponse();
 		String searchKeywordString = searchForContaining(searchKeywords);
@@ -2496,7 +2496,17 @@ public class OpportunityService {
 					"Invalid Oppurtunity Role: " + role);
 		}
 		List<OpportunityT> opportunityList = new ArrayList<OpportunityT>();
-		opportunityList.addAll(opportunity);
+		String userGroup = user.getUserGroup();
+		if (userGroup.equals(UserGroup.DELIVERY_CENTRE_HEAD.getValue())
+				|| userGroup.equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue())
+				|| userGroup.equals(UserGroup.DELIVERY_MANAGER.getValue())) {
+			List<String> userIds = userRepository.getAllSubordinatesIdBySupervisorId(user.getUserId());
+			userIds.add(user.getUserId());
+			List<OpportunityT> deliveryOppList = validateAndGetDeliveryOpportunities(opportunity, userId);
+			opportunityList.addAll(deliveryOppList);
+		} else {
+			opportunityList.addAll(opportunity);
+		}
 
 		if (opportunityList.isEmpty()) {
 			logger.error("NOT_FOUND: No Opportunities found");
@@ -2526,6 +2536,19 @@ public class OpportunityService {
 		return opportunityResponse;
 	}
 
+	private List<OpportunityT> validateAndGetDeliveryOpportunities(
+			List<OpportunityT> opportunities, List<String> userIds) {
+		List<OpportunityT> deliveryOppList = new ArrayList<OpportunityT>();
+		//TODO Refactor the logic
+		List<OpportunityT> deliveryOpportunities = opportunityRepository.findDeliveryOpportunityIdsByDeliveryFlagAndOwner(userIds);
+		for(OpportunityT opportunityT:opportunities){
+			if(deliveryOpportunities.contains(opportunityT)){
+				deliveryOppList.add(opportunityT);
+			}
+		}
+		return deliveryOppList;
+	}
+
 	public String searchForContaining(List<String> containingWords) {
 		String actualWords = "";
 		if (containingWords != null)
@@ -2548,78 +2571,120 @@ public class OpportunityService {
 	}
 
 	public PaginatedResponse findAll(String sortBy, String order,
-			Boolean isCurrentFinancialYear, int page, int count)
+			Boolean isCurrentFinancialYear, int page, int count, UserT user)
 			throws DestinationException {
 
 		PaginatedResponse opportunityResponse = new PaginatedResponse();
-
+		Date fromDate = DateUtils.getDateFromFinancialYear(DateUtils.getCurrentFinancialYear(),	true);
+		Date toDate = DateUtils.getDateFromFinancialYear(DateUtils.getCurrentFinancialYear(), false);
 		List<OpportunityT> opportunityTs = null;
-
-		if (isCurrentFinancialYear) {
-
-			try {
-				// Create the query and execute
-				String queryString = "select OPP from OpportunityT OPP where (OPP.salesStageCode < 9) or ((OPP.dealClosureDate between ?1 and ?2) and (OPP.salesStageCode >= 9)) order by "
-						+ sortBy + " " + order;
-				Query query = entityManager
-						.createQuery(queryString)
-						.setParameter(
-								1,
-								DateUtils.getDateFromFinancialYear(
-										DateUtils.getCurrentFinancialYear(),
-										true))
-						.setParameter(
-								2,
-								DateUtils.getDateFromFinancialYear(
-										DateUtils.getCurrentFinancialYear(),
-										false));
-				opportunityTs = (List<OpportunityT>) query.getResultList();
-				opportunityResponse.setTotalCount(opportunityTs.size());
-			} catch (Exception e) {
-				// Throw exceptions where Order by parameter is invalid
-				throw new DestinationException(
-						HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
-			}
-			// Code for pagination
-			if (PaginationUtils.isValidPagination(page, count,
-					opportunityTs.size())) {
-				int fromIndex = PaginationUtils.getStartIndex(page, count,
-						opportunityTs.size());
-				int toIndex = PaginationUtils.getEndIndex(page, count,
-						opportunityTs.size()) + 1;
-				opportunityTs = opportunityTs.subList(fromIndex, toIndex);
-				opportunityResponse.setOpportunityTs(opportunityTs);
-				logger.debug("OpportunityT  after pagination size is "
-						+ opportunityTs.size());
-			} else {
-				throw new DestinationException(HttpStatus.NOT_FOUND,
-						"No Opportunity available for the specified page");
-			}
+		String userGroup = user.getUserGroup();
+		if (userGroup.equals(UserGroup.DELIVERY_CENTRE_HEAD.getValue())
+				|| userGroup.equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue())
+				|| userGroup.equals(UserGroup.DELIVERY_MANAGER.getValue())) {
+			List<String> userIds = userRepository
+					.getAllSubordinatesIdBySupervisorId(user.getUserId());
+			userIds.add(user.getUserId());
+			opportunityResponse = getAllDeliveryOpportunities(fromDate, toDate, userIds, isCurrentFinancialYear, page, count);
 		} else {
-			try {
-				// Page the opportunities for all financial year
-				Page<OpportunityT> opportunityPagable = opportunityRepository
-						.findAll(constructPageSpecification(page, count,
-								sortBy, order));
-				opportunityResponse.setTotalCount(opportunityPagable
-						.getTotalElements());
-				opportunityTs = new ArrayList<OpportunityT>();
-				for (OpportunityT opportunityT : opportunityPagable) {
-					opportunityTs.add(opportunityT);
+			if (isCurrentFinancialYear) {
+				try {
+					// Create the query and execute
+					String queryString = "select OPP from OpportunityT OPP where (OPP.salesStageCode < 9) or ((OPP.dealClosureDate between ?1 and ?2) and (OPP.salesStageCode >= 9)) order by "
+							+ sortBy + " " + order;
+					Query query = entityManager
+							.createQuery(queryString)
+							.setParameter(
+									1,
+									fromDate)
+							.setParameter(
+									2,
+									toDate);
+					opportunityTs = (List<OpportunityT>) query.getResultList();
+					opportunityResponse.setTotalCount(opportunityTs.size());
+				} catch (Exception e) {
+					// Throw exceptions where Order by parameter is invalid
+					throw new DestinationException(
+							HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
 				}
-				opportunityResponse.setOpportunityTs(opportunityTs);
-			} catch (Exception e) {
-				// Throw exceptions where Order by parameter is invalid
-				throw new DestinationException(
-						HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+				// Code for pagination
+				if (PaginationUtils.isValidPagination(page, count,
+						opportunityTs.size())) {
+					int fromIndex = PaginationUtils.getStartIndex(page, count,
+							opportunityTs.size());
+					int toIndex = PaginationUtils.getEndIndex(page, count,
+							opportunityTs.size()) + 1;
+					opportunityTs = opportunityTs.subList(fromIndex, toIndex);
+					opportunityResponse.setOpportunityTs(opportunityTs);
+					logger.debug("OpportunityT  after pagination size is "
+							+ opportunityTs.size());
+				} else {
+					throw new DestinationException(HttpStatus.NOT_FOUND,
+							"No Opportunity available for the specified page");
+				}
+			} else {
+				try {
+					// Page the opportunities for all financial year
+					Page<OpportunityT> opportunityPagable = opportunityRepository
+							.findAll(constructPageSpecification(page, count,
+									sortBy, order));
+					opportunityResponse.setTotalCount(opportunityPagable
+							.getTotalElements());
+					opportunityTs = new ArrayList<OpportunityT>();
+					for (OpportunityT opportunityT : opportunityPagable) {
+						opportunityTs.add(opportunityT);
+					}
+					opportunityResponse.setOpportunityTs(opportunityTs);
+				} catch (Exception e) {
+					// Throw exceptions where Order by parameter is invalid
+					throw new DestinationException(
+							HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+				}
 			}
-		}
-
+		
 		if (opportunityTs == null || opportunityTs.size() == 0)
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Opportunities found");
 		prepareOpportunity(opportunityTs);
+		}
 		return opportunityResponse;
+	}
+
+	/**
+	 * This method is used to fetch All delivery opportunities
+	 * 
+	 * @param fromDate
+	 * @param toDate
+	 * @param userIds
+	 * @param isCurrentFinancialYear
+	 * @param page
+	 * @param count
+	 * @return
+	 */
+	private PaginatedResponse getAllDeliveryOpportunities(Date fromDate,
+			Date toDate, List<String> userIds, Boolean isCurrentFinancialYear, int page, int count) {
+		logger.info("Inside getAllDeliveryOpportunities() method");
+		PaginatedResponse delOppResponse = new PaginatedResponse();
+		List<OpportunityT> opportunityTs = null;
+		if (isCurrentFinancialYear) {
+			 opportunityTs = opportunityRepository.findAllDeliveryOpportunitiesByYearAndOwners(fromDate, toDate, userIds);
+		} else {
+			 opportunityTs = opportunityRepository.findAllDeliveryOpportunitiesByOwners(userIds);
+		}
+		delOppResponse.setTotalCount(opportunityTs.size());
+		// Code for pagination
+		if (PaginationUtils.isValidPagination(page, count, opportunityTs.size())) {
+			int fromIndex = PaginationUtils.getStartIndex(page, count, opportunityTs.size());
+			int toIndex = PaginationUtils.getEndIndex(page, count, opportunityTs.size()) + 1;
+			opportunityTs = opportunityTs.subList(fromIndex, toIndex);
+			delOppResponse.setOpportunityTs(opportunityTs);
+			logger.debug("OpportunityT  after pagination size is " + opportunityTs.size());
+		} else {
+			throw new DestinationException(HttpStatus.NOT_FOUND, 
+					"No Opportunity available for the specified page");
+		}
+		prepareOpportunity(opportunityTs);
+		return delOppResponse;
 	}
 
 	/**
