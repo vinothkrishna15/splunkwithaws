@@ -11,6 +11,7 @@ import com.tcs.destination.utils.Constants;
 
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.List;
 
 
 /**
@@ -41,23 +42,40 @@ public class DeliveryMasterT implements Serializable {
 	@Column(name="expected_end_date")
 	private Date expectedEndDate;
 
-	private String fulfilment;
-
-	private String gl;
-
 	@Column(name="modified_datetime")
 	private Timestamp modifiedDatetime;
+	
+	@Column(name="num_junior")
+	private Integer numJunior;
 
-	@Column(name="num_onsite_offshore")
-	private Integer numOnsiteOffshore;
+	@Column(name="num_offshore")
+	private Integer numOffshore;
 
-	@Column(name="num_senior_junior")
-	private Integer numSeniorJunior;
+	@Column(name="num_onsite")
+	private Integer numOnsite;
+
+	@Column(name="num_senior")
+	private Integer numSenior;
 
 	@Column(name="num_skilled")
 	private Integer numSkilled;
+	
+	@Column(name="gl_id")
+	private String glId;
 
-	private String pl;
+	@Column(name="gl_name")
+	private String glName;
+	
+	@Column(name="pl_id")
+	private String plId;
+
+	@Column(name="pl_name")
+	private String plName;
+	
+	@Column(name="project_fulfilment")
+	private String projectFulfilment;
+	
+	private String odc;
 
 	@Column(name="rgs_id")
 	private String rgsId;
@@ -78,8 +96,11 @@ public class DeliveryMasterT implements Serializable {
 	@Column(name="opportunity_id")
 	private String opportunityId;
 	
-	@Column(name="delivery_partner")
-	private String deliveryPartner;
+	@Column(name="delivery_partner_id")
+	private String deliveryPartnerId;
+
+	@Column(name="delivery_partner_name")
+	private String deliveryPartnerName;
 	
 	@Column(name="created_by")
 	private String createdBy;
@@ -102,11 +123,6 @@ public class DeliveryMasterT implements Serializable {
 	@JoinColumn(name="opportunity_id", insertable = false, updatable = false)
 	private OpportunityT opportunityT;
 
-	//bi-directional many-to-one association to PartnerMasterT
-	@ManyToOne
-	@JoinColumn(name="delivery_partner", insertable = false, updatable = false)
-	private PartnerMasterT deliveryPartnerMaster;
-
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
 	@JoinColumn(name="created_by", insertable = false, updatable = false)
@@ -116,6 +132,10 @@ public class DeliveryMasterT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="modified_by", insertable = false, updatable = false)
 	private UserT modifiedByUser;
+	
+	// bi-directional many-to-one association to DeliveryResourcesT
+	@OneToMany(mappedBy = "deliveryMasterT")
+	private List<DeliveryResourcesT> deliveryResourcesTs;
 
 	public DeliveryMasterT() {
 	}
@@ -152,22 +172,6 @@ public class DeliveryMasterT implements Serializable {
 		this.expectedEndDate = expectedEndDate;
 	}
 
-	public String getFulfilment() {
-		return this.fulfilment;
-	}
-
-	public void setFulfilment(String fulfilment) {
-		this.fulfilment = fulfilment;
-	}
-
-	public String getGl() {
-		return this.gl;
-	}
-
-	public void setGl(String gl) {
-		this.gl = gl;
-	}
-
 	public Timestamp getModifiedDatetime() {
 		return this.modifiedDatetime;
 	}
@@ -176,36 +180,12 @@ public class DeliveryMasterT implements Serializable {
 		this.modifiedDatetime = modifiedDatetime;
 	}
 
-	public Integer getNumOnsiteOffshore() {
-		return this.numOnsiteOffshore;
-	}
-
-	public void setNumOnsiteOffshore(Integer numOnsiteOffshore) {
-		this.numOnsiteOffshore = numOnsiteOffshore;
-	}
-
-	public Integer getNumSeniorJunior() {
-		return this.numSeniorJunior;
-	}
-
-	public void setNumSeniorJunior(Integer numSeniorJunior) {
-		this.numSeniorJunior = numSeniorJunior;
-	}
-
 	public Integer getNumSkilled() {
 		return this.numSkilled;
 	}
 
 	public void setNumSkilled(Integer numSkilled) {
 		this.numSkilled = numSkilled;
-	}
-
-	public String getPl() {
-		return this.pl;
-	}
-
-	public void setPl(String pl) {
-		this.pl = pl;
 	}
 
 	public String getRgsId() {
@@ -280,14 +260,6 @@ public class DeliveryMasterT implements Serializable {
 		this.opportunityId = opportunityId;
 	}
 
-	public String getDeliveryPartner() {
-		return deliveryPartner;
-	}
-
-	public void setDeliveryPartner(String deliveryPartner) {
-		this.deliveryPartner = deliveryPartner;
-	}
-
 	public String getCreatedBy() {
 		return createdBy;
 	}
@@ -304,14 +276,6 @@ public class DeliveryMasterT implements Serializable {
 		this.modifiedBy = modifiedBy;
 	}
 
-	public PartnerMasterT getDeliveryPartnerMaster() {
-		return deliveryPartnerMaster;
-	}
-
-	public void setDeliveryPartnerMaster(PartnerMasterT deliveryPartnerMaster) {
-		this.deliveryPartnerMaster = deliveryPartnerMaster;
-	}
-
 	public UserT getCreatedByUser() {
 		return createdByUser;
 	}
@@ -326,6 +290,110 @@ public class DeliveryMasterT implements Serializable {
 
 	public void setModifiedByUser(UserT modifiedByUser) {
 		this.modifiedByUser = modifiedByUser;
+	}
+
+	public List<DeliveryResourcesT> getDeliveryResourcesTs() {
+		return deliveryResourcesTs;
+	}
+
+	public void setDeliveryResourcesTs(List<DeliveryResourcesT> deliveryResourcesTs) {
+		this.deliveryResourcesTs = deliveryResourcesTs;
+	}
+
+	public Integer getNumJunior() {
+		return numJunior;
+	}
+
+	public void setNumJunior(Integer numJunior) {
+		this.numJunior = numJunior;
+	}
+
+	public Integer getNumOffshore() {
+		return numOffshore;
+	}
+
+	public void setNumOffshore(Integer numOffshore) {
+		this.numOffshore = numOffshore;
+	}
+
+	public Integer getNumOnsite() {
+		return numOnsite;
+	}
+
+	public void setNumOnsite(Integer numOnsite) {
+		this.numOnsite = numOnsite;
+	}
+
+	public Integer getNumSenior() {
+		return numSenior;
+	}
+
+	public void setNumSenior(Integer numSenior) {
+		this.numSenior = numSenior;
+	}
+
+	public String getGlId() {
+		return glId;
+	}
+
+	public void setGlId(String glId) {
+		this.glId = glId;
+	}
+
+	public String getGlName() {
+		return glName;
+	}
+
+	public void setGlName(String glName) {
+		this.glName = glName;
+	}
+
+	public String getPlId() {
+		return plId;
+	}
+
+	public void setPlId(String plId) {
+		this.plId = plId;
+	}
+
+	public String getPlName() {
+		return plName;
+	}
+
+	public void setPlName(String plName) {
+		this.plName = plName;
+	}
+
+	public String getProjectFulfilment() {
+		return projectFulfilment;
+	}
+
+	public void setProjectFulfilment(String projectFulfilment) {
+		this.projectFulfilment = projectFulfilment;
+	}
+
+	public String getOdc() {
+		return odc;
+	}
+
+	public void setOdc(String odc) {
+		this.odc = odc;
+	}
+
+	public String getDeliveryPartnerId() {
+		return deliveryPartnerId;
+	}
+
+	public void setDeliveryPartnerId(String deliveryPartnerId) {
+		this.deliveryPartnerId = deliveryPartnerId;
+	}
+
+	public String getDeliveryPartnerName() {
+		return deliveryPartnerName;
+	}
+
+	public void setDeliveryPartnerName(String deliveryPartnerName) {
+		this.deliveryPartnerName = deliveryPartnerName;
 	}
 	
 	
