@@ -49,6 +49,9 @@ public class DeliveryCentreT implements Serializable {
 	
 	@Column(name="delivery_centre_head")
 	private String deliveryCentreHead;
+	
+	@Column(name="delivery_cluster_id")
+	private String deliveryClusterId;
 
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
@@ -72,6 +75,11 @@ public class DeliveryCentreT implements Serializable {
 	// bi-directional many-to-one association to DeliveryMasterT
 	@OneToMany(mappedBy = "deliveryCentreT")
 	private List<DeliveryMasterT> deliveryMasterTs;
+	
+	// bi-directional many-to-one association to DeliveryClusterT
+	@ManyToOne
+	@JoinColumn(name = "delivery_cluster_id", insertable = false, updatable = false)
+	private DeliveryClusterT deliveryClusterT;
 
 	public DeliveryCentreT() {
 	}
@@ -193,5 +201,23 @@ public class DeliveryCentreT implements Serializable {
 	public void setDeliveryMasterTs(List<DeliveryMasterT> deliveryMasterTs) {
 		this.deliveryMasterTs = deliveryMasterTs;
 	}
+
+	public String getDeliveryClusterId() {
+		return deliveryClusterId;
+	}
+
+	public void setDeliveryClusterId(String deliveryClusterId) {
+		this.deliveryClusterId = deliveryClusterId;
+	}
+
+	public DeliveryClusterT getDeliveryClusterT() {
+		return deliveryClusterT;
+	}
+
+	public void setDeliveryClusterT(DeliveryClusterT deliveryClusterT) {
+		this.deliveryClusterT = deliveryClusterT;
+	}
+	
+	
 	
 }
