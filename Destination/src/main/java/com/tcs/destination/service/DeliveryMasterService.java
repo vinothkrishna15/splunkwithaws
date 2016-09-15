@@ -71,5 +71,25 @@ public class DeliveryMasterService {
 		return deliveryMasterResponse;
 	}
 	
+	
+	/**
+	 * To fetch delivery master details by delivery master id
+	 * 
+	 * @param deliveryMasterId
+	 * @return
+	 * @throws Exception
+	 */
+	public DeliveryMasterT findByDeliveryMasterId(Integer deliveryMasterId) throws Exception {
+		logger.debug("Inside findByDeliveryMasterId() service");
+		DeliveryMasterT deliveryMaster = deliveryMasterRepository.findOne(deliveryMasterId);
+		if (deliveryMaster != null) {
+			return deliveryMaster;
+		} else {
+			logger.error("NOT_FOUND: Delivery Master Details not found: {}", deliveryMasterId);
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Delivery Master not found: " + deliveryMasterId);
+		}
+	}
+	
 }
 
