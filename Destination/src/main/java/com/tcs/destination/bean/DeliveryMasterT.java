@@ -99,6 +99,9 @@ public class DeliveryMasterT implements Serializable {
 	@Column(name="delivery_partner_name")
 	private String deliveryPartnerName;
 	
+	@Column(name="delivery_manager_id")
+	private String deliveryManagerId;
+	
 	@Column(name="created_by")
 	private String createdBy;
 	
@@ -129,6 +132,10 @@ public class DeliveryMasterT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="modified_by", insertable = false, updatable = false)
 	private UserT modifiedByUser;
+	
+	@ManyToOne
+	@JoinColumn(name="delivery_manager_id", insertable = false, updatable = false)
+	private UserT deliveryManagerUser;
 	
 	// bi-directional many-to-one association to DeliveryResourcesT
 	@OneToMany(mappedBy = "deliveryMasterT")
@@ -383,6 +390,22 @@ public class DeliveryMasterT implements Serializable {
 
 	public void setDeliveryPartnerName(String deliveryPartnerName) {
 		this.deliveryPartnerName = deliveryPartnerName;
+	}
+
+	public String getDeliveryManagerId() {
+		return deliveryManagerId;
+	}
+
+	public void setDeliveryManagerId(String deliveryManagerId) {
+		this.deliveryManagerId = deliveryManagerId;
+	}
+
+	public UserT getDeliveryManagerUser() {
+		return deliveryManagerUser;
+	}
+
+	public void setDeliveryManagerUser(UserT deliveryManagerUser) {
+		this.deliveryManagerUser = deliveryManagerUser;
 	}
 	
 	
