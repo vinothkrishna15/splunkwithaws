@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.DeliveryMasterT;
+import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.DeliveryMasterService;
@@ -34,42 +35,42 @@ public class DeliveryMasterController {
 	DeliveryMasterService deliveryMasterService;
 	
 	/**
-	 * This method retrieves all the opportunities
-	 * 
+	 * This method retrieves the delivery master list
 	 * @param page
 	 * @param count
-	 * @param isCurrentFinancialYear
 	 * @param order
 	 * @param sortBy
+	 * @param stage
 	 * @param fields
 	 * @param view
 	 * @return
 	 * @throws DestinationException
 	 */
-	@RequestMapping(value = "/all", method = RequestMethod.GET)
+	@RequestMapping(value = "/list", method = RequestMethod.GET)
 	public @ResponseBody String findAll(
 			@RequestParam(value = "page", defaultValue = "0") int page,
 			@RequestParam(value = "count", defaultValue = "30") int count,
-			@RequestParam(value = "isCurrentFinancialYear", defaultValue = "false") Boolean isCurrentFinancialYear,
 			@RequestParam(value = "order", defaultValue = "DESC") String order,
-			@RequestParam(value = "sortBy", defaultValue = "modifiedDatetime") String sortBy,
+			@RequestParam(value = "sortBy", defaultValue = "deliveryMasterId") String sortBy,
+			@RequestParam(value = "stage", defaultValue = "-1") Integer stage,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		logger.info("Inside DeliveryMasterController: Start of /delivery/all GET");
 		String response = null;
-		PaginatedResponse deliveryMasterResponse = null;
+		PageDTO deliveryMasterDTO = null;
 		try {
-			deliveryMasterResponse = deliveryMasterService.findAll(sortBy, order,
-					isCurrentFinancialYear, page, count);
+			
+			deliveryMasterDTO = deliveryMasterService.findEngagements(stage,sortBy, order,
+					page, count);
 			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
-					view, deliveryMasterResponse);
+					view, deliveryMasterDTO);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					"Backend error in retrieving the deliveryMaster details");
+					"Backend error in retrieving the deliveryMaster list");
 		}
 		logger.info("Inside DeliveryMasterController: End of /delivery/all GET");
 		return response;

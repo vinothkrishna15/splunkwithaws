@@ -1,17 +1,35 @@
 package com.tcs.destination.service;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import com.tcs.destination.bean.DeliveryCentreT;
+import com.tcs.destination.bean.DeliveryClusterT;
 import com.tcs.destination.bean.DeliveryMasterT;
+import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
+import com.tcs.destination.bean.UserT;
+import com.tcs.destination.data.repository.DeliveryCentreRepository;
+import com.tcs.destination.data.repository.DeliveryClusterRepository;
+import com.tcs.destination.data.repository.DeliveryMasterPagingRepository;
 import com.tcs.destination.data.repository.DeliveryMasterRepository;
+import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
 
 /**
@@ -24,51 +42,137 @@ import com.tcs.destination.utils.PaginationUtils;
 public class DeliveryMasterService {
 
 	private static final Logger logger = LoggerFactory.getLogger(DeliveryMasterService.class);
+
+	private static final int numDeliveryStages = 6;
 	
 	@Autowired
 	DeliveryMasterRepository deliveryMasterRepository;
 	
+	@Autowired
+	DeliveryMasterPagingRepository deliveryMasterPagingRepository;
+	
+	@Autowired
+	DeliveryCentreRepository deliveryCentreRepository;
+	
+	@Autowired
+	DeliveryClusterRepository deliveryClusterRepository;
+	
+	
+	private static final Map<String,String>ATTRIBUTE_MAP;
+	static {
+		Map<String, String> attributeMap = new HashMap<String, String>();
+		attributeMap.put("deliveryMasterId", "deliveryMasterId");
+		attributeMap.put("opportunityId", "opportunityId");
+		attributeMap.put("customerName", "opportunityT.customerMasterT.customerName");
+		attributeMap.put("opportunityName", "opportunityT.opportunityName");
+		attributeMap.put("opportunityDescription", "opportunityT.opportunityDescription");
+		attributeMap.put("engagementStartDate", "opportunityT.engagementStartDate");
+		attributeMap.put("engagementDuration", "opportunityT.engagementDuration");
+		attributeMap.put("deliveryOwnership","deliveryOwnershipT.ownership");
+		attributeMap.put("stage","deliveryStage");
+		attributeMap.put("deliveryCentre","deliveryCentreT.deliveryCentre");
+		ATTRIBUTE_MAP = Collections.unmodifiableMap(attributeMap);
+	}
+	
 	/**
-	 * @param sortBy
+	 * method to retrieve List of engagements
+	 * @param stage
+	 * @param orderBy
 	 * @param order
-	 * @param isCurrentFinancialYear
-	 * @param page
+	 * @param start
 	 * @param count
 	 * @return
-	 * @throws DestinationException
+	 * @throws Exception
 	 */
-	public PaginatedResponse findAll(String sortBy, String order,
-			Boolean isCurrentFinancialYear, int page, int count)
-					throws DestinationException {
-		logger.info("Inside DeliveryMasterService: findAll start");
-		PaginatedResponse deliveryMasterResponse = new PaginatedResponse();
+	public PageDTO findEngagements(Integer stage,String orderBy,String order,
+			int start, int count) throws Exception {
+		PageDTO deliveryMasterDTO = null;
 
-		List<DeliveryMasterT> deliveryMasterTs = null;
-		deliveryMasterTs = (List<DeliveryMasterT>) deliveryMasterRepository.findAll();
-				deliveryMasterResponse.setTotalCount(deliveryMasterTs.size());
+		logger.debug("Starting findEngagements deliveryMasterService");
 
-				// Code for pagination
-				if (PaginationUtils.isValidPagination(page, count,
-						deliveryMasterTs.size())) {
-					int fromIndex = PaginationUtils.getStartIndex(page, count,
-							deliveryMasterTs.size());
-					int toIndex = PaginationUtils.getEndIndex(page, count,
-							deliveryMasterTs.size()) + 1;
-					deliveryMasterTs = deliveryMasterTs.subList(fromIndex, toIndex);
-					deliveryMasterResponse.setDeliveryMasterTs(deliveryMasterTs);
-					logger.debug("deliveryMasterTs  after pagination size is "
-							+ deliveryMasterTs.size());
+		UserT loginUser = DestinationUtils.getCurrentUserDetails();
+		String loginUserGroup = loginUser.getUserGroup();
+
+		List<Integer> stages = new ArrayList<Integer>();
+		if (stage == -1) {
+			for (int i = 0; i < numDeliveryStages; i++)
+				stages.add(i);
+		} else {
+			stages.add(stage);
+		}
+		Page<DeliveryMasterT> deliveryMasterTs = null;
+		Sort sort = null;
+		Pageable pageable = null;
+		switch (UserGroup.valueOf(UserGroup.getName(loginUserGroup))) {
+		case DELIVERY_CENTRE_HEAD:
+			DeliveryCentreT deliveryCentreT = deliveryCentreRepository
+					.findByDeliveryCentreHead(loginUser.getUserId());
+			if (deliveryCentreT != null) {
+				Integer deliveryCentreId = deliveryCentreT
+						.getDeliveryCentreId();
+				orderBy = ATTRIBUTE_MAP.get(orderBy);
+				if (order.equalsIgnoreCase("DESC")) {
+					sort = new Sort(Direction.DESC, orderBy);
 				} else {
-					throw new DestinationException(HttpStatus.NOT_FOUND,
-							"No delivery available for the specified page");
-				}		
-				
-				
-		if (deliveryMasterTs == null || deliveryMasterTs.size() == 0)
+					sort = new Sort(Direction.ASC, orderBy);
+				}
+
+				pageable = new PageRequest(0, 20, sort);
+
+				deliveryMasterTs = deliveryMasterPagingRepository
+						.findByDeliveryCentreIdAndDeliveryStageIn(
+								deliveryCentreId, stages, pageable);
+
+			}
+			break;
+		case DELIVERY_CLUSTER_HEAD:
+			DeliveryClusterT deliveryClusterT = deliveryClusterRepository
+					.findByDeliveryClusterHead(loginUser.getUserId());
+			List<DeliveryCentreT> deliveryCentres = deliveryCentreRepository
+					.findByDeliveryClusterId(deliveryClusterT
+							.getDeliveryClusterId());
+
+			List<Integer> deliveryCentreIds = new ArrayList<Integer>();
+			for (DeliveryCentreT deliveryCentre : deliveryCentres) {
+				deliveryCentreIds.add(deliveryCentre.getDeliveryCentreId());
+			}
+			orderBy = ATTRIBUTE_MAP.get(orderBy);
+			if (order.equalsIgnoreCase("DESC")) {
+				sort = new Sort(Direction.DESC, orderBy);
+			} else {
+				sort = new Sort(Direction.ASC, orderBy);
+			}
+			pageable = new PageRequest(0, 20, sort);
+			deliveryMasterTs = deliveryMasterPagingRepository
+					.findByDeliveryCentreIdInAndDeliveryStageIn(
+							deliveryCentreIds, stages, pageable);
+			break;
+		case DELIVERY_MANAGER:
+			orderBy = ATTRIBUTE_MAP.get(orderBy);
+			if (order.equalsIgnoreCase("DESC")) {
+				sort = new Sort(Direction.DESC, orderBy);
+			} else {
+				sort = new Sort(Direction.ASC, orderBy);
+			}
+			pageable = new PageRequest(0, 20, sort);
+			deliveryMasterTs = deliveryMasterPagingRepository
+					.findByDeliveryManagerIdAndDeliveryStageIn(
+							loginUser.getUserId(), stages, pageable);
+			break;
+		default:
+			break;
+		}
+		deliveryMasterDTO = new PageDTO();
+		if (deliveryMasterTs != null) {
+			deliveryMasterDTO.setContent(deliveryMasterTs.getContent());
+			deliveryMasterDTO.setTotalCount(new Long(deliveryMasterTs
+					.getTotalElements()).intValue());
+		} else {
+			logger.error("NOT_FOUND: Delivery Master Details not found:");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No delivery found");
-		logger.info("Inside DeliveryMasterService: findAll end");
-		return deliveryMasterResponse;
+					"Delivery Master not found: ");
+		}
+		return deliveryMasterDTO;
 	}
 	
 	

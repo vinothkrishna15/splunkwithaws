@@ -8,4 +8,6 @@ import com.tcs.destination.bean.DeliveryClusterT;
 @Repository
 public interface DeliveryClusterRepository extends CrudRepository<DeliveryClusterT, Integer> {
 
+	DeliveryClusterT findByDeliveryClusterHead(String deliveryClusterHead);
+	
 }
