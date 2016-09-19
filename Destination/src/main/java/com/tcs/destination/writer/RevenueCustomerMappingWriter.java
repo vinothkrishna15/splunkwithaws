@@ -22,17 +22,22 @@ import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 
+import com.tcs.destination.bean.BeaconCustomerMappingT;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.RevenueCustomerMappingT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
+import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
 import com.tcs.destination.enums.Operation;
 import com.tcs.destination.enums.RequestStatus;
 import com.tcs.destination.helper.FinanceCustomerMappingUploadHelper;
 import com.tcs.destination.service.RevenueUploadService;
 import com.tcs.destination.service.UploadErrorReport;
+import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.FileManager;
-import com.tcs.destination.utils.StringUtils;
+
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Writer class which actually aids in writing into DB 
@@ -57,6 +62,9 @@ StepExecutionListener, WriteListener {
 
 	private RevenueUploadService revenueUploadService;
 
+	private RevenueCustomerMappingTRepository revenueCustomerMappingTRepository;
+	
+
 	@Override
 	public void onWritePossible() throws IOException {
 		// TODO Auto-generated method stub
@@ -75,47 +83,46 @@ StepExecutionListener, WriteListener {
 	@Override
 	public ExitStatus afterStep(StepExecution stepExecution) {
 		try {
-			logger.info("inside exit status");
-			ExecutionContext jobContext = stepExecution.getJobExecution()
-					.getExecutionContext();
-
-			DataProcessingRequestT request = (DataProcessingRequestT) jobContext
-					.get(REQUEST);
-
-			if (errorList != null) {
-				logger.info("inside exit status if loop");
-				Workbook workbook = uploadErrorReport
-						.writeErrorToWorkbook(errorList);
-
-				String errorPath = request.getFilePath() + "ERROR"
-						+ FILE_DIR_SEPERATOR;
-				String errorFileName = "financeCustomerMappingUpload_error.xlsx";
-
-				File file = FileManager.createFile(errorPath, errorFileName);
-				FileOutputStream outputStream = new FileOutputStream(file);
-				workbook.write(outputStream);
-				outputStream.flush();
-				outputStream.close();
-
-				request.setErrorFileName(errorFileName);
+			ExecutionContext jobContext = stepExecution.getJobExecution().getExecutionContext();
+			DataProcessingRequestT request = (DataProcessingRequestT) jobContext.get(REQUEST);
+			if ( errorList != null) {
+				String errorPath = request.getFilePath() + "ERROR" +FILE_DIR_SEPERATOR;
+				String errorFileName ="customerUpload_error.xlsx";
+				File file = new File(errorPath+errorFileName);
+				if(!file.exists()){
+					Workbook workbook = uploadErrorReport.writeErrorToWorkbook(errorList, Constants.FINANCE_MAPPING_SHEET_NAME);
+					File file1 = FileManager.createFile(errorPath, errorFileName);
+					logger.info("created file : " + file1.getAbsolutePath());
+					FileOutputStream outputStream = new FileOutputStream(file1);
+					workbook.write(outputStream);
+					outputStream.flush();
+					outputStream.close();
+				} else {
+					Workbook workbook = ExcelUtils.getWorkBook(file);
+					uploadErrorReport.writeErrorToWorkbook(errorList,workbook,Constants.FINANCE_MAPPING_SHEET_NAME);
+					FileOutputStream outputStream = new FileOutputStream(file);
+					workbook.write(outputStream); //write changes
+					outputStream.flush();
+					outputStream.close();
+				}
+				request.setErrorFileName(errorFileName);	
 				request.setErrorFilePath(errorPath);
-
 			}
 			request.setStatus(RequestStatus.PROCESSED.getStatus());
-
 			dataProcessingRequestRepository.save(request);
 			jobContext.remove(REQUEST);
 			jobContext.remove(FILE_PATH);
 		} catch (Exception e) {
 			logger.error("Error while writing the error report: {}", e);
 		}
-		return ExitStatus.COMPLETED;
+
+		return stepExecution.getExitStatus();
 	}
 
 	@Override
 	public void write(List<? extends String[]> items) throws Exception {
 
-		logger.info("Inside write:");
+		logger.debug("Inside write of revenue customer mapping:");
 
 		List<RevenueCustomerMappingT> insertList = new ArrayList<RevenueCustomerMappingT>();
 		List<RevenueCustomerMappingT> deleteList = new ArrayList<RevenueCustomerMappingT>();
@@ -127,44 +134,56 @@ StepExecutionListener, WriteListener {
 				if (operation.equalsIgnoreCase(Operation.ADD.name())) {
 					logger.info("executing " + operation + " operation");
 					RevenueCustomerMappingT finance = new RevenueCustomerMappingT();
-					for (String a : data)//for testing
-						logger.info(a);
 					UploadServiceErrorDetailsDTO errorDTO = helper
 							.validateFinanceCustomerAdd(data, request.getUserT()
 									.getUserId(), finance);
-					if (errorDTO.getMessage() != null) {
+					if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
 								: errorList;
 						errorList.add(errorDTO);
-					} else if (errorDTO.getMessage() == null) {
+					} else 
+					{
 						insertList.add(finance);
 					}
 
 				} else if (operation.equalsIgnoreCase(Operation.DELETE.name())) {
 					logger.info("executing " + operation + " operation");
+					 UploadServiceErrorDetailsDTO errorDTO = new UploadServiceErrorDetailsDTO();
+                    if(StringUtils.isNotEmpty(data[10]))
+					{
 					RevenueCustomerMappingT finance = new RevenueCustomerMappingT();
-					UploadServiceErrorDetailsDTO errorDTO = helper
+					Long revenueCustomerMapId=Long.parseLong(helper.validateAndRectifyValue(data[10]));
+				    finance = revenueCustomerMappingTRepository.findByRevenueCustomerMapId(revenueCustomerMapId);
+					 errorDTO = helper
 							.validateFinanceCustomerDelete(data, request.getUserT()
 									.getUserId(), finance);
-					if (errorDTO.getMessage() != null) {
+					if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
 								: errorList;
 						errorList.add(errorDTO);
-					} else if (errorDTO.getMessage() == null) {
+					} 
+					else
+					{
 						deleteList.add(finance);
 					}
-
+					}
+					else {
+						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+						errorDTO.setRowNumber(Integer.parseInt(data[0]) + 1);
+						errorDTO.setMessage("Finance Customer Mapping Id is mandatory");
+						errorList.add(errorDTO);
+					}
 				} else if (operation.equalsIgnoreCase(Operation.UPDATE.name())) {
 					logger.info("executing " + operation + " operation");
 					RevenueCustomerMappingT finance = new RevenueCustomerMappingT();
 					UploadServiceErrorDetailsDTO errorDTO = helper
 							.validateFinanceCustomerUpdate(data, request.getUserT()
 									.getUserId(), finance);
-					if (errorDTO.getMessage() != null) {
+					if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
 								: errorList;
 						errorList.add(errorDTO);
-					} else if (errorDTO.getMessage() == null) {
+					} else {
 						updateList.add(finance);
 					}
 
@@ -233,6 +252,15 @@ StepExecutionListener, WriteListener {
 
 	public void setRevenueUploadService(RevenueUploadService revenueUploadService) {
 		this.revenueUploadService = revenueUploadService;
+	}
+	
+	public RevenueCustomerMappingTRepository getRevenueCustomerMappingTRepository() {
+		return revenueCustomerMappingTRepository;
+	}
+
+	public void setRevenueCustomerMappingTRepository(
+			RevenueCustomerMappingTRepository revenueCustomerMappingTRepository) {
+		this.revenueCustomerMappingTRepository = revenueCustomerMappingTRepository;
 	}
 
 }

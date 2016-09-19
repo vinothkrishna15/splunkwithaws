@@ -1290,4 +1290,26 @@ public interface OpportunityRepository extends
 	List<OpportunityT> findByCustomerIdAndOpportunityRequestReceiveDateAfterAndSubSpLike(
 			String customerId, Timestamp fromTimestamp, String term);
 	
+	/**
+	 * Fetches the opportunities created or updated during a week based on the
+	 * geographies and sales stage code given
+	 * 
+	 * @param geos
+	 * @param previousWeekStartDate
+	 * @param currentWeekStartDate
+	 * @param salesStageCode
+	 * @return
+	 */
+	@Query(value = "select distinct OPP.* from opportunity_t OPP join audit_opportunity_t AOPP on "
+			+ "OPP.opportunity_id = AOPP.opportunity_id join customer_master_t CMT on "
+			+ "OPP.customer_id = CMT.customer_id where CMT.geography in (:geographies) "
+			+ "and AOPP.old_sales_stage_code <> AOPP.new_sales_stage_code and AOPP.new_sales_stage_code = (:salesStageCode) "
+			+ "and AOPP.new_modified_datetime between (:previousWeekDate) and (:currentWeekDate) "
+			+ "order by OPP.modified_datetime desc", nativeQuery = true)
+	List<OpportunityT> getOpportunityForAWeek(
+			@Param("geographies") List<String> geos,
+			@Param("previousWeekDate") Timestamp previousWeekStartDate,
+			@Param("currentWeekDate") Timestamp currentWeekStartDate,
+			@Param("salesStageCode") int salesStageCode);
+	
 }

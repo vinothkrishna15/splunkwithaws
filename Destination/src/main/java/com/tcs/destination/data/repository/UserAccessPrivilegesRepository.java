@@ -66,4 +66,10 @@ public interface UserAccessPrivilegesRepository extends
  			+ "on ut.user_id = uat.user_id "
             + "where uat.privilege_value = ?1 and uat.isactive = ?2 and ut.user_id like ?3",nativeQuery = true)
  	List<String> findUserIdsForWorkflowPMO(String geography,String isactive, String pmoValue);
+	
+	@Query(value = "select distinct(uat.user_id) from user_access_privileges_t uat "
+ 			+ "join user_t ut on ut.user_id = uat.user_id "
+		+ "where uat.privilege_value = ?1 and uat.isactive = ?2 and ut.user_group = ?3", nativeQuery = true)
+ 	List<String> findUserIdsForCustomerUserGroup(String geography,
+			String isactive, String userGroup);
 }

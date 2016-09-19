@@ -15,6 +15,8 @@ public class WorkflowPartnerDetailsDTO implements Serializable {
 	 //Status of the request
 	 private String status;
 	 
+	 private PartnerMasterT partnerMasterT;
+	 
 	public WorkflowPartnerT getRequestedPartner() {
 		return requestedPartner;
 	}
@@ -32,5 +34,11 @@ public class WorkflowPartnerDetailsDTO implements Serializable {
 	}
 	public void setStatus(String status) {
 		this.status = status;
+	}
+	public PartnerMasterT getPartnerMasterT() {
+		return partnerMasterT;
+	}
+	public void setPartnerMasterT(PartnerMasterT partnerMasterT) {
+		this.partnerMasterT = partnerMasterT;
 	}
 }

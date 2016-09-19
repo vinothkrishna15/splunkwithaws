@@ -6,7 +6,7 @@ public enum EntityType {
 	TASK("TASK"), DOCUMENT("DOCUMENT"),	COMMENT("COMMENT"), CONTACT("CONTACT"), USER("USER"),  
 	ACTUAL_REVENUE("ACTUAL REVENUE"), CUSTOMER_CONTACT("CUSTOMER CONTACT"), PARTNER_CONTACT("PARTNER CONTACT"), BEACON("BEACON")
 	//added for parter changes
-	,PRODUCT("PRODUCT"),PRODUCT_CONTACT("PRODUCT_CONTACT"),PARTNER_MASTER("PARTNER_MASTER");
+	,PRODUCT("PRODUCT"),PRODUCT_CONTACT("PRODUCT_CONTACT"),PARTNER_MASTER("PARTNER_MASTER"),BFM("BFM"),WEEKLY_REPORT("Weekly Report");
 
 	private final String name;
 
@@ -42,4 +42,9 @@ public enum EntityType {
 		return null;
 	}
 
+	public String getName() {
+		return name;
+	}
+
+	
 }

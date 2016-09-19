@@ -30,4 +30,7 @@ public interface GoalMappingRepository extends JpaRepository<GoalMappingT, Strin
 	
 	@Query(value="select goal_id from goal_mapping_t where goal_name=?1",nativeQuery=true)
 	String findGoalId(String goalName);
+	
+	@Query(value="select goal_id from goal_mapping_t where goal_name=?1 and financialyear=?2",nativeQuery=true)
+	String findGoalIdByGoalNameAndFinancialYear(String cellValue,String finYear);
 }

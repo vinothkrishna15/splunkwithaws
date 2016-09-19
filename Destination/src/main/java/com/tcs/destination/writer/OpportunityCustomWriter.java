@@ -30,6 +30,7 @@ import com.tcs.destination.enums.RequestStatus;
 import com.tcs.destination.helper.OpportunityUploadHelper;
 import com.tcs.destination.service.OpportunityService;
 import com.tcs.destination.service.UploadErrorReport;
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.FileManager;
 
 /**
@@ -65,6 +66,7 @@ public class OpportunityCustomWriter implements ItemWriter<String[]>,
 			UploadServiceErrorDetailsDTO errorDTO = helper
 					.validateOpportunityData(data, request.getUserT()
 							.getUserId(), opportunity);
+			errorDTO.setSheetName(Constants.OPPORTUNITY_TEMPLATE_OPPORTUNITY_SHEET_NAME);
 			if (errorDTO.getMessage() != null) {
 				errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
 						: errorList;

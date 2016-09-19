@@ -100,6 +100,9 @@ public class WorkflowPartnerT implements Serializable {
 	private String groupPartnerName;
 
 	private String country;
+	
+	@Transient
+	List<PartnerProductDetailsDTO> partnerProductDetailsDTOs;
 
 	//bi-directional many-to-one association to GeographyCountryMappingT
 	@ManyToOne
@@ -326,5 +329,9 @@ public class WorkflowPartnerT implements Serializable {
 	public void setPartnerSubSpMappingTs(
 			List<PartnerSubSpMappingT> partnerSubSpMappingTs) {
 		this.partnerSubSpMappingTs = partnerSubSpMappingTs;
+	}
+
+	public List<PartnerProductDetailsDTO> getPartnerProductDetailsDTOs() {
+		return partnerProductDetailsDTOs;
 	}
 }

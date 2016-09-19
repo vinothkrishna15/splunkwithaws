@@ -79,7 +79,7 @@ public class Constants {
 	public static final String OPPORTUNITY_TEMPLATE_WIN_LOSS_SHEET_NAME = "Win Loss Factor(Ref)";
 	public static final String OPPORTUNITY_TEMPLATE_BID_REQUEST_DEAL_TYPE_SHEET_NAME = "Bid Request  & Deal Type(Ref)";
 	public static final String OPPORTUNITY_TEMPLATE_OPPORTUNITY_SHEET_NAME = "Opportunity";
-	
+	public static final String OPPORTUNITY_TEMPLATE_TCS_AND_CUSTOMER_SHEET_NAME = "TCS & Customer Contact(Ref)";
 	
 	public static final String CONNECT = "Connect";
 	public static final String OPPORTUNITY = "Opportunity";
@@ -248,12 +248,20 @@ public class Constants {
 	public static final int CONSTANT_ONE = 1;
 	public static final int CONSTANT_TWO = 2;
 	public static final int CONSTANT_NINE = 9;
+	public static final int CONSTANT_FOUR = 4;
+	public static final int CONSTANT_FIVE = 5;
+	public static final int CONSTANT_SIX = 6;
+	public static final int CONSTANT_SEVEN = 7;
+	public static final int CONSTANT_EIGHT = 8;
+	
 	
 	//For Opportunity win/loss mail
 	public static final String 	WITH_SUPPORT_FROM = "with support from";
 	public static final String NOT_AVAILABLE = "Not Available";
 	public static final String LOSS_OTHER = "Loss - Other";
 	public static final String WIN_OTHER = "Win - Other";
+	public static final String OTHER = "Other";
+	public static final String NONE = "None";
 	
 	public static final String WORKFLOW_CUSTOMER_PENDING_SUBJECT = "Pending New Customer Request";
 	public static final String WORKFLOW_PARTNER_PENDING_SUBJECT = "Pending New Partner Request";
@@ -309,5 +317,25 @@ public class Constants {
 	public static final String shareConnectPortal="<User> has shared Connect: <ConnectName> with you";
 	public static final String shareOpportunityPortal="<User> has shared Opportunity: <OpportunityName> with you";
 	
+	//Workflow BFM
+	public static final String E1 = "E1";
+	public static final String E2 = "E2";
+	public static final String E3 = "E3";
+	public static final String E4 = "E4";
+	public static final String E5 = "E5";
 	
+	public static final String WORKFLOW_BFM_STEP1_PENDING_SUBJECT = "Deal Financial Submitted - ";
+	public static final String WORKFLOW_BFM_STEP1_APPROVED_SUBJECT = "Deal Financial Approved - ";
+	public static final String WORKFLOW_BFM_STEP1_REJECTED_SUBJECT = "Deal Financial Rejected - ";
+	public static final String WORKFLOW_BFM_ESCALATE_PENDING_SUBJECT = "Deal Financial Exception Initiated for ";
+	public static final String WORKFLOW_BFM_ESCALATE_PATH_A_APPROVED_SUBJECT = "Deal Financial Exception Approved - ";
+	public static final String WORKFLOW_BFM_ESCALATE_PATH_A_REJECTED_SUBJECT = "Deal Financial Exception Rejected - ";
+	public static final String WORKFLOW_BFM_ESCALATE_PATH_B_APPROVED_SUBJECT = "Deal Financial Exception Approved - ";
+	public static final String WORKFLOW_BFM_ESCALATE_PATH_B_REJECTED_SUBJECT = "Deal Financial Exception Rejected - ";
+	public static final String CONSULTING = "CONSULTING";
+	public static final String ABIM_CONSULTING = "ABIM – Consulting";
+	
+	public static final String defaultUser_CC_BFM = "139339";
+	public static final String notifyUserRolesForBFM = "System Admin,Strategic Group Admin";
+
 }

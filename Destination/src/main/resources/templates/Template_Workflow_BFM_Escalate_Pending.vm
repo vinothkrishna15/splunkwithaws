@@ -1,0 +1,48 @@
+<html>
+	<body>
+		<p>Dear User,</p>
+		<p>
+			 BFM has initiated an exception for deal financial approval of an opportunity with following details:	
+		</p>    
+		<p>
+		<table>
+		<tr>
+		   <td><b>Exception Category</b></td><td>:</td><td> ${exceptions} </td>
+		</tr>
+		<tr>
+		   <td><b>Opportunity Id</b></td><td>:</td><td> ${opportunityId} </td>
+		</tr>
+		<tr>
+		   <td><b>CRM Id</b></td><td>:</td><td> ${crmId} </td>
+		</tr>
+		<tr>
+		   <td><b>Customer Name</b></td><td>:</td><td> ${customerName} </td>
+		</tr>
+		<tr>
+		   <td><b>Opportunity Name</b></td><td>:</td><td> ${opportunityName} </td>
+		</tr>
+		<tr>
+		   <td><b>Deal Value</b></td><td>:</td><td> ${dealValue}</td>
+		</tr>
+		</table>
+		</p> 
+		<p>
+		   Please see the comments below:
+		<br>
+		   <b>Comments</b> : ${comments}     
+		</p>   
+		  <p>
+		  Please log into DESTiNATION and respond.
+		  </p>
+		  
+		  
+		<p>
+		Regards,<br>
+		Team DESTiNATION.
+		</p>
+		<br>
+		<p>
+		Note : This is a system-generated e-mail. Please do not respond to this mail.
+		</p>
+	</body>
+</html>

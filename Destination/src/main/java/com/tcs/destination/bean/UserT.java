@@ -16,6 +16,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -440,6 +441,23 @@ public class UserT implements Serializable {
 			
 	@OneToMany(mappedBy="modifiedByUser")
 	private List<ContactT> contactTs2;
+	
+	/* Added for BFM changes */
+	//bi-directional many-to-one association to WorkflowBfmT
+	@OneToMany(mappedBy="createdByUser")
+	private List<WorkflowBfmT> workflowBfmTs1;
+
+	//bi-directional many-to-one association to WorkflowBfmT
+	@OneToMany(mappedBy="modifiedByUser")
+	private List<WorkflowBfmT> workflowBfmTs2;
+	
+	// bi-directional many-to-one association to DocumentsT
+	@OneToMany(mappedBy = "createdByUser")
+	private List<DocumentsT> documentsTs1;
+
+	// bi-directional many-to-one association to DocumentsT
+	@OneToMany(mappedBy = "modifiedByUser")
+	private List<DocumentsT> documentsTs2;
 
 	public UserT() {
 	}
@@ -1873,6 +1891,39 @@ public class UserT implements Serializable {
 		this.contactTs2 = contactTs2;
 	}
 
+	public List<WorkflowBfmT> getWorkflowBfmTs1() {
+		return workflowBfmTs1;
+	}
+
+	public void setWorkflowBfmTs1(List<WorkflowBfmT> workflowBfmTs1) {
+		this.workflowBfmTs1 = workflowBfmTs1;
+	}
+
+	public List<WorkflowBfmT> getWorkflowBfmTs2() {
+		return workflowBfmTs2;
+	}
+
+	public void setWorkflowBfmTs2(List<WorkflowBfmT> workflowBfmTs2) {
+		this.workflowBfmTs2 = workflowBfmTs2;
+	}
+
+	public List<DocumentsT> getDocumentsTs1() {
+		return documentsTs1;
+	}
+
+	public void setDocumentsTs1(List<DocumentsT> documentsTs1) {
+		this.documentsTs1 = documentsTs1;
+	}
+
+	public List<DocumentsT> getDocumentsTs2() {
+		return documentsTs2;
+	}
+
+	public void setDocumentsTs2(List<DocumentsT> documentsTs2) {
+		this.documentsTs2 = documentsTs2;
+	}
+
+	
 
 	//	public List<WorkflowCompetitorT> getWorkflowCompetitorTs1() {
 	//		return this.workflowCompetitorTs1;

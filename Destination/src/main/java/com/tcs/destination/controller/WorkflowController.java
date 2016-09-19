@@ -1,10 +1,15 @@
 package com.tcs.destination.controller;
 
 
+import java.io.ByteArrayInputStream;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,6 +23,8 @@ import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.bean.WorkflowBfmDetailsDTO;
+import com.tcs.destination.bean.WorkflowBfmT;
 import com.tcs.destination.bean.WorkflowCompetitorDetailsDTO;
 import com.tcs.destination.bean.WorkflowCompetitorT;
 import com.tcs.destination.bean.WorkflowCustomerDetailsDTO;
@@ -29,6 +36,7 @@ import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.data.repository.WorkflowCustomerTRepository;
 import com.tcs.destination.data.repository.WorkflowRequestTRepository;
 import com.tcs.destination.data.repository.WorkflowStepTRepository;
+import com.tcs.destination.enums.EntityTypeId;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.WorkflowService;
 import com.tcs.destination.utils.DestinationUtils;
@@ -95,7 +103,7 @@ public class WorkflowController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while updating customer");
 		}
@@ -124,7 +132,7 @@ public class WorkflowController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while updating Partner");
 		}
@@ -163,7 +171,7 @@ public class WorkflowController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while Rejecting the request");
 		}
@@ -197,7 +205,7 @@ public class WorkflowController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while inserting requested customer");
 		}
@@ -230,7 +238,7 @@ public class WorkflowController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in retrieving customer details");
 		}
@@ -262,7 +270,7 @@ public class WorkflowController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in retrieving partner details");
 		}
@@ -294,7 +302,7 @@ public class WorkflowController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in retrieving competitor details");
 		}
@@ -332,7 +340,7 @@ public class WorkflowController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while retrieving Worklist for a user");
 		}
@@ -366,7 +374,7 @@ public class WorkflowController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while Inserting Workflow Partner");
 		}
@@ -399,7 +407,7 @@ public class WorkflowController {
 			} catch (DestinationException e) {
 				throw e;
 			} catch (Exception e) {
-				logger.error(e.getMessage());
+				logger.error(e.getMessage(), e);
 				throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 						"Backend error while requesting opportunity reopen");
 			}
@@ -425,7 +433,7 @@ public class WorkflowController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while requesting New Competitor");
 		}
@@ -458,7 +466,7 @@ public class WorkflowController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while approving opportunity reopen");
 		}
@@ -496,10 +504,147 @@ public class WorkflowController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while updating competitor");
 		} 
 	}
+	/**
+	 * This method is used to approve or reject or escalate the BFM request
+	 * @param opportunityReopenRequestT
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/approveOrRejectOrEscalate/bfm", method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> approveOrEscalateBfm(
+			@RequestBody WorkflowBfmT workflowBfmT)
+			throws DestinationException {
+
+		logger.info("Inside WorkflowController: Start of approveOrRejectOrEscalate bfm request");
+		Status status = new Status();
+		status.setStatus(Status.FAILED, "");
+		try {
+			if (workflowBfmT != null) {
+				if (workflowService.approveOrEscalateBfm(workflowBfmT, status)) {
+					logger.info("Inside WorkflowController: End of approveOrRejectOrEscalate bfm request");
+				}
+			}
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while approving opportunity reopen");
+		}
+
+	}
+	
+	/**
+	 * This service is used to retrive the details of worklist of the logged in user based upon the type
+	 * @param type
+	 * @param page
+	 * @param count
+	 * @param fields
+	 * @param view
+	 * @param status
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/myWorklistNew", method = RequestMethod.GET)
+	public @ResponseBody ResponseEntity<String> getMyWorklist(
+			@RequestParam(value = "type") Integer type,
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "30") int count,
+			@RequestParam(value = "fields", defaultValue = "") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view,
+			@RequestParam(value = "status", defaultValue = "ALL") String status)
+			throws DestinationException {
+		logger.info("Inside WorkflowController: Start of retrieving Worklist for a user");
+		PaginatedResponse pageWorklist = new PaginatedResponse();
+		try {
+			pageWorklist = workflowService.getMyWorklistByType(EntityTypeId.getFrom(type), status,page,count);
+			logger.info("Inside WorkflowController: End of retrieving Worklist for a user");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews(fields,
+							view, pageWorklist), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while retrieving Worklist for a user");
+		}
+	}
+	
+	/**
+	 * This method is used to retrieve requested new opportunity deal financial details based on request id
+	 * @param requestedBfmId
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/bfm/{id}", method = RequestMethod.GET)
+	public @ResponseBody String getRequestedBfmById(
+			@PathVariable("id") int requestedBfmId,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Inside WorkflowController : Start of retrieving requested deal financial details by id");
+		WorkflowBfmDetailsDTO workflowBfmDetails = null;
+		try {			
+			workflowBfmDetails = workflowService.findRequestedBfmDetailsById(requestedBfmId);
+			logger.info("Inside WorkflowCustomerController : End of retrieving requested deal financial details by id");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+				view, workflowBfmDetails);
+
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving deal financial details");
+		}
+	}
+
+
+	/**
+	 * Service method used to download the deal financial file
+	 * @param id - request id
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/bfm/download", method = RequestMethod.GET)
+	public ResponseEntity<InputStreamResource> downloadBFMFile(
+			@RequestParam("requestId") Integer id)
+			throws DestinationException {
+		logger.info("Inside WorkflowController: Start of downloadBFMFile download");
+		HttpHeaders respHeaders = null;
+		InputStreamResource bfmStream = null;
+		try {
+			WorkflowBfmT bfmT = workflowService.downloadBFMFile(id);
+			bfmStream = new InputStreamResource(new ByteArrayInputStream(bfmT.getDealFinancialFile()));
+			
+			respHeaders = new HttpHeaders();
+			String fileName = bfmT.getOpportunityId() + "_" + bfmT.getOpportunityT().getCustomerMasterT().getCustomerName() + "." + DestinationUtils.getExtension(bfmT.getBfmFileName());
+			respHeaders.add("reportName", fileName);
+			respHeaders.setContentDispositionFormData("attachment", fileName);
+			respHeaders.setContentType(MediaType
+					.parseMediaType("application/octet-stream"));
+			logger.info("Inside WorkflowController: BFMFile Downloaded Successfully ");
+			return new ResponseEntity<InputStreamResource>(
+					bfmStream, respHeaders, HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR : ", e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in downloading the BFM file");
+		}
+	}
+	
 
 }

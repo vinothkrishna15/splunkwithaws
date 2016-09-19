@@ -108,6 +108,18 @@ public interface ContactRepository extends CrudRepository<ContactT, String> {
 	@Query(value = "select * from contact_t where contact_id in (select contact_id from contact_customer_link_t where customer_id = ?1) and contact_type = ?2 and contact_category = ?3 and contact_name = ?4 and contact_role = ?5",nativeQuery = true)
 	List<ContactT> findDuplicateCustomerContacts(String customerId, String contactType, String contactCategory, String conatctName, String contactRole);
 	
+	
+	/**
+	 * This Method is used to get partner contact names for the given connectId
+	 * @param opportunityId
+	 * @return
+	 */
+	@Query(value = "select contact_name,case when contact_role <> 'Other' then contact_role else other_role end as contactRole"
++ " from contact_t CONT where contact_id "
++ " in (select contact_id from partner_contact_link_t where partner_id in "
++ " (select partner_id from connect_t where connect_id=?1))" , nativeQuery = true)
+	List<Object[]> findPartnerContactNamesByConnectId(String connectId);
+	
 	/**
 	 * This method to find the duplicate contacts for a partner
 	 * @param partnerId
@@ -190,4 +202,28 @@ public interface ContactRepository extends CrudRepository<ContactT, String> {
 
 	ContactT findByActiveTrueAndContactId(String contactId);
 
+	
+	/* ---------- repository methods for smart search --------- */
+    @Query(value = "SELECT * FROM contact_t "
+			+ "WHERE active = 'true' AND UPPER(contact_name) LIKE UPPER(:term) "
+			+ "ORDER BY contact_name DESC "
+			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<ContactT> getContactsByName(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	@Query(value = "SELECT * FROM contact_t "
+			+ "WHERE active = 'true' AND contact_id IN (SELECT DISTINCT(contact_id) FROM partner_contact_link_t WHERE partner_id IN (SELECT partner_id FROM partner_master_t WHERE UPPER(partner_name) LIKE UPPER(:term))) "
+			+ "ORDER BY contact_name DESC "
+			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<ContactT> getContactsByPartner(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	@Query(value = "SELECT * FROM contact_t "
+			+ "WHERE active = 'true' AND contact_id IN (SELECT DISTINCT(contact_id) FROM contact_customer_link_t WHERE customer_id IN (SELECT customer_id FROM customer_master_t WHERE UPPER(customer_name) LIKE UPPER(:term))) "
+			+ "ORDER BY contact_name DESC "
+			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<ContactT> getContactsByCustomer(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	@Query(value ="select distinct(CON.*) from contact_t CON, product_contact_link_t PRDCLT where CON.active='true' and ((CON.contact_id=PRDCLT.contact_id and PRDCLT.product_id = ?1) or ?1='')", nativeQuery = true)
+	List<ContactT> findContactsByProductId(String productId);
+	
+	/* ---------- ends - repository methods for smart search --------- */
 }

@@ -14,6 +14,7 @@ import java.util.List;
 import javax.servlet.WriteListener;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -155,11 +156,11 @@ public class CustomerContactCustomWriter implements ItemWriter<String[]>,
 			UploadServiceErrorDetailsDTO errorDTO = helper
 					.validateCustomerContactData(data, request.getUserT()
 							.getUserId(), contact);
-			if (errorDTO.getMessage() != null) {
+			if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
 				errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
 						: errorList;
 				errorList.add(errorDTO);
-			} else if (errorDTO.getMessage() == null) {
+			} else {
 				contactList.add(contact);
 			}
 			}
@@ -171,16 +172,16 @@ public class CustomerContactCustomWriter implements ItemWriter<String[]>,
 				ContactT contact = new ContactT();
                 UploadServiceErrorDetailsDTO errorDTO = new UploadServiceErrorDetailsDTO();
 				if (!contactId.isEmpty()) {
-					try{
+				
 						
 						contact= contactRepository.findByContactId(contactId);
 						if (contact != null) {
 						errorDTO = helper.validateContactDataUpdate(data, request.getUserT().getUserId() ,contact);
-						if (errorDTO.getMessage() != null) {
+						if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
 							errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 							errorList.add(errorDTO);
 						} 
-						else if (errorDTO.getMessage() == null) {
+						else {
 							updateList.add(contact);
 						}
 					} else {
@@ -189,7 +190,7 @@ public class CustomerContactCustomWriter implements ItemWriter<String[]>,
 						errorDTO.setMessage("Contact Id is invalid");
 						errorList.add(errorDTO);
 					}
-				}catch(InvocationTargetException e){System.out.println("Exception Cause:"+e.getCause());}
+				
 					}
 				else {
 					errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
@@ -206,7 +207,7 @@ public class CustomerContactCustomWriter implements ItemWriter<String[]>,
 				contactT = contactRepository.findByContactId(data[2]);
 				 UploadServiceErrorDetailsDTO errorDTO = helper.validateContactId(data, contactT);
 				 
-				 if (errorDTO.getMessage() != null) {
+					if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 						errorList.add(errorDTO);
 					} else if (errorDTO.getMessage() == null) {
