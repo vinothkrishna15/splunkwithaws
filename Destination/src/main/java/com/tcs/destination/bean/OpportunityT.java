@@ -322,6 +322,9 @@ public class OpportunityT implements Serializable, Cloneable {
 	
 	@Transient
 	private String bfmFileName;
+	
+	@Transient
+	private boolean workflowBfmRaised;
 
 	public boolean isEnableEditAccess() {
 		return enableEditAccess;
@@ -1335,4 +1338,13 @@ public class OpportunityT implements Serializable, Cloneable {
 	public void setDeliveryMasterTs(List<DeliveryMasterT> deliveryMasterTs) {
 		this.deliveryMasterTs = deliveryMasterTs;
 	}
+	
+	public boolean getWorkflowBfmRaised() {
+		return workflowBfmRaised;
+	}
+
+	public void setWorkflowBfmRaised(boolean workflowBfmRaised) {
+		this.workflowBfmRaised = workflowBfmRaised;
+	}
+
 }

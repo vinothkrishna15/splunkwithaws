@@ -59,17 +59,17 @@ public class BuildBidReportService {
 
 	@Autowired
 	BidDetailsTRepository bidDetailsTRepository;
-	
+
 	@Autowired
 	ContactRepository contactRepository;
-	
+
 	@Autowired
 	OpportunitySubSpLinkTRepository opportunitySubSpLinkTRepository;
-	
+
 	@Autowired
 	OpportunityCompetitorLinkTRepository opportunityCompetitorLinkTRepository;
-	
-	
+
+
 	@Autowired
 	UserAccessPrivilegesRepository userAccessPrivilegesRepository;
 
@@ -88,7 +88,7 @@ public class BuildBidReportService {
 			List<String> currency, SXSSFWorkbook workbook) throws Exception {
 		logger.debug("Inside getBidDetailsReport() method");
 		SXSSFSheet spreadSheet = (SXSSFSheet) workbook.createSheet("Bid Report");
-		
+
 		CellStyle cellStyle = ExcelUtils.createRowStyle(workbook, ReportConstants.REPORTHEADER);
 		CellStyle cellStyleDateFormat = spreadSheet.getWorkbook().createCellStyle(); 
 		CreationHelper createHelper = spreadSheet.getWorkbook().getCreationHelper();
@@ -140,7 +140,9 @@ public class BuildBidReportService {
 		row.getCell(colNo++).setCellStyle(cellStyle);
 		row.createCell(colNo).setCellValue(ReportConstants.DISPLAYGEO);
 		row.getCell(colNo++).setCellStyle(cellStyle);
-		row.createCell(colNo).setCellValue(ReportConstants.DISPLAYSERVICELINE);
+		row.createCell(colNo).setCellValue(ReportConstants.DISPLAYPRIMARYSERVICELINE);
+		row.getCell(colNo++).setCellStyle(cellStyle);
+		row.createCell(colNo).setCellValue(ReportConstants.DISPLAYSECONDARYSERVICELINE);
 		row.getCell(colNo++).setCellStyle(cellStyle);
 		row.createCell(colNo).setCellValue(ReportConstants.DISPLAYIOU);
 		row.getCell(colNo++).setCellStyle(cellStyle);
@@ -178,19 +180,28 @@ public class BuildBidReportService {
 		CellStyle cellStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(),	ReportConstants.REPORTHEADER);
 		// This method creates default headers for Bid Report
 		getMandatoryBidReportHeader(row, spreadSheet,currency,cellStyle);
-		int colValue = 9;
+		int colValue = 10;
 		if (currency.size() > 1) {
-			colValue = 10;
+			colValue = 11;
 		}
 		List<String> orderedFields = Arrays.asList("iou","geography","subSp","country","crmId", "newLogo",
 				"opportunityName","tcsAccountContact","competitors","coreAttributesUsedForWinning",	"bidId",
 				"bidOfficeGroupOwner","targetBidSubmissionDate","actualBidSubmissionDate","expectedDateOfOutcome");
-		
+
 		for (String field : orderedFields) {
 			if(fields.contains(field)){
-			row.createCell(colValue).setCellValue(FieldsMap.fieldsMap.get(field));
-			row.getCell(colValue).setCellStyle(cellStyle);
-			colValue++;
+				if(!field.equals("subSp")){
+					row.createCell(colValue).setCellValue(FieldsMap.fieldsMap.get(field));
+					row.getCell(colValue).setCellStyle(cellStyle);
+					colValue++;
+				}else{
+					row.createCell(colValue).setCellValue("Primary Subsp");
+					row.getCell(colValue).setCellStyle(cellStyle);
+					colValue++;
+					row.createCell(colValue).setCellValue("Secondary SubSps");
+					row.getCell(colValue).setCellStyle(cellStyle);
+					colValue++;
+				}
 			}
 		}
 	}
@@ -229,19 +240,21 @@ public class BuildBidReportService {
 			SXSSFRow row, List<String> currency, BidDetailsT bidDetail, CellStyle cellStyleDateFormat) {
 		logger.debug("Inside getBidDetailsReportMandatoryFields() method");
 		int colNo = 0;
+		List<String> displaySecondarySubSpList = new ArrayList<String>();
 		//set opportunity id
 		row.createCell(colNo++).setCellValue(bidDetail.getOpportunityId());
 		//set display geography
 		row.createCell(colNo++).setCellValue(bidDetail.getOpportunityT().getCustomerMasterT().getGeographyMappingT().getDisplayGeography());
 		//set primary and secondary subsp 
-		List<String> displaySubSpList = new ArrayList<String>();
+
 		String oppPrimarySubSp = opportunitySubSpLinkTRepository.findPrimaryDisplaySubSpByOpportunityId(bidDetail.getOpportunityId());
 		if(oppPrimarySubSp!=null){
-			displaySubSpList.add(oppPrimarySubSp+ReportConstants.P);
+			row.createCell(colNo).setCellValue(oppPrimarySubSp);
 		}
-		displaySubSpList.addAll(opportunitySubSpLinkTRepository.findSecondaryDisplaySubSpByOpportunityId(bidDetail.getOpportunityId()));
-		if(!displaySubSpList.isEmpty()){
-			row.createCell(colNo).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(displaySubSpList));
+		colNo++;
+		displaySecondarySubSpList.addAll(opportunitySubSpLinkTRepository.findSecondaryDisplaySubSpByOpportunityId(bidDetail.getOpportunityId()));
+		if(!displaySecondarySubSpList.isEmpty()){
+			row.createCell(colNo).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(displaySecondarySubSpList));
 		}
 		colNo++;
 		//set display iou
@@ -297,43 +310,44 @@ public class BuildBidReportService {
 		boolean targetBidSubDtFlag = fields.contains(ReportConstants.TARGETBIDSUBMISSIONDATE);
 		boolean actualBidSubDtFlag = fields.contains(ReportConstants.ACTUALBIDSUBMISSIONDATE);
 		boolean expDtOfOutcomeFlag = fields.contains(ReportConstants.EXPECTEDDATEOFOUTCOME);
-		
+
 		for (BidDetailsT bidDetail : bidDetailsList) {
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow++);
 			//to set mandatory fields to spreadSheet
 			getBidDetailsReportMandatoryFields(spreadSheet, row, currency, bidDetail,cellStyleDateFormat);
-			int colValue = 9;
+			int colValue = 10;
 			if (currency.size() > 1) {
-				colValue = 10;
-				}
+				colValue = 11;
+			}
 			if(iouFlag){
 				row.createCell(colValue).setCellValue(bidDetail.getOpportunityT().getCustomerMasterT().getIouCustomerMappingT().getIou());
 				colValue++;
 			}
-			
+
 			if(geographyFlag){
 				row.createCell(colValue).setCellValue(bidDetail.getOpportunityT().getGeographyCountryMappingT().getGeography());
 				colValue++;
 			}
-			
+
 			if(subFlag){
-				List<String> oppSubSpList = new ArrayList<String>();
+				List<String> oppSecondarySubSpList = new ArrayList<String>();
 				String oppPrimarySubSp = opportunitySubSpLinkTRepository.findPrimarySubSpByOpportunityId(bidDetail.getOpportunityId());
 				if(oppPrimarySubSp!=null){
-					oppSubSpList.add(oppPrimarySubSp+ReportConstants.P);
+					row.createCell(colValue).setCellValue(oppPrimarySubSp);
 				}
-				oppSubSpList.addAll(opportunitySubSpLinkTRepository.findSecondarySubSpByOpportunityId(bidDetail.getOpportunityId()));
-				if(!oppSubSpList.isEmpty()){
-					row.createCell(colValue).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(oppSubSpList));
+				colValue++;
+				oppSecondarySubSpList.addAll(opportunitySubSpLinkTRepository.findSecondarySubSpByOpportunityId(bidDetail.getOpportunityId()));
+				if(!oppSecondarySubSpList.isEmpty()){
+					row.createCell(colValue).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(oppSecondarySubSpList));
 				}
 				colValue++;
 			}
-			
+
 			if(countryFlag){
 				row.createCell(colValue).setCellValue(bidDetail.getOpportunityT().getGeographyCountryMappingT().getCountry());
 				colValue++;
 			}
-			
+
 			if(crmIdFlag) {
 				if(bidDetail.getOpportunityT().getCrmId()!=null){
 					row.createCell(colValue).setCellValue(bidDetail.getOpportunityT().getCrmId());
@@ -347,37 +361,37 @@ public class BuildBidReportService {
 				}
 				colValue++;
 			}
-			
+
 			if(opportunityNameFlag){
 				row.createCell(colValue).setCellValue(bidDetail.getOpportunityT().getOpportunityName());
 				colValue++;
 			}
-			
-			
+
+
 			if(tcsAccConFlag){
 				List<String> tcsContactNames= contactRepository.findTcsAccountContactNamesByOpportinityId(bidDetail.getOpportunityId());
 				row.createCell(colValue).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(tcsContactNames));
 				colValue++;
 			}
-			
+
 			if(competitorsFlag){
 				List<String> competitorList=opportunityCompetitorLinkTRepository.findCompetitorNamesByOpportunityId(bidDetail.getOpportunityId());
 				row.createCell(colValue).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(competitorList));
 				colValue++;
 			}
-			
+
 			if(coreAttUsedForWinFlag){
 				if(bidDetail.getCoreAttributesUsedForWinning()!=null){
 					row.createCell(colValue).setCellValue(bidDetail.getCoreAttributesUsedForWinning());
 				}
 				colValue++;
 			}
-			
+
 			if(bidIdFlag){
 				row.createCell(colValue).setCellValue(bidDetail.getBidId());
 				colValue++;
 			}
-			
+
 			if(bidOffGrpOwnerFlag){
 				if (bidDetail.getBidOfficeGroupOwnerLinkTs().size() > 0) {
 					List<String> bodofficeGroupOwner=userRepository.findBidOfficeGroupOwnersNameByBidId(bidDetail.getBidId());
@@ -385,7 +399,7 @@ public class BuildBidReportService {
 				}
 				colValue++;
 			}
-				
+
 			if(targetBidSubDtFlag){
 				if(bidDetail.getTargetBidSubmissionDate()!=null){
 					row.createCell(colValue).setCellValue(bidDetail.getTargetBidSubmissionDate());
@@ -393,7 +407,7 @@ public class BuildBidReportService {
 				}
 				colValue++;
 			}
-			
+
 			if(actualBidSubDtFlag){
 				if(bidDetail.getActualBidSubmissionDate()!=null){
 					row.createCell(colValue).setCellValue(bidDetail.getActualBidSubmissionDate());
@@ -401,7 +415,7 @@ public class BuildBidReportService {
 				}
 				colValue++;
 			}
-				
+
 			if(expDtOfOutcomeFlag){
 				if(bidDetail.getExpectedDateOfOutcome()!=null){
 					row.createCell(colValue).setCellValue(bidDetail.getExpectedDateOfOutcome());
@@ -409,7 +423,7 @@ public class BuildBidReportService {
 				}
 				colValue++;
 			}
-			
+
 			currentRow = currentRow + 0;
 		}
 		return currentRow;
@@ -463,7 +477,7 @@ public class BuildBidReportService {
 			period=ExcelUtils.getPeriod(fromMonth, toMonth);
 		}
 		row.createCell(5).setCellValue(period);
-		
+
 		String userAccessField = null;
 		List<UserAccessPrivilegesT> userPrivilegesList = 
 				userAccessPrivilegesRepository.findByUserIdAndParentPrivilegeIdIsNullAndIsactive(userId, Constants.Y);

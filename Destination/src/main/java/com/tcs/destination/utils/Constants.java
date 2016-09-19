@@ -79,7 +79,7 @@ public class Constants {
 	public static final String OPPORTUNITY_TEMPLATE_WIN_LOSS_SHEET_NAME = "Win Loss Factor(Ref)";
 	public static final String OPPORTUNITY_TEMPLATE_BID_REQUEST_DEAL_TYPE_SHEET_NAME = "Bid Request  & Deal Type(Ref)";
 	public static final String OPPORTUNITY_TEMPLATE_OPPORTUNITY_SHEET_NAME = "Opportunity";
-	
+	public static final String OPPORTUNITY_TEMPLATE_TCS_AND_CUSTOMER_SHEET_NAME = "TCS & Customer Contact(Ref)";
 	
 	public static final String CONNECT = "Connect";
 	public static final String OPPORTUNITY = "Opportunity";
@@ -134,6 +134,8 @@ public class Constants {
 	public static final String PARTNER_UPLOAD_NOTIFY_SUBJECT = "Partner upload request submitted.";
 	public static final String PARTNER_CONTACT_UPLOAD_NOTIFY_SUBJECT = "Partner contact upload request submitted.";
 	public static final String BEACON_UPLOAD_NOTIFY_SUBJECT = "Beacon upload request submitted.";
+	public static final String PRODUCT_UPLOAD_NOTIFY_SUBJECT = "Product upload request submitted";
+	public static final String PRODUCT_CONTACT_UPLOAD_NOTIFY_SUBJECT = "Product contact upload request submitted";
 	public static final String USER_UPLOAD_SUBJECT = "User upload request processed.";
 	public static final String CUSTOMER_UPLOAD_SUBJECT = "Customer upload request processed.";
 	public static final String CONNECT_UPLOAD_SUBJECT = "Connect upload request processed.";
@@ -249,6 +251,9 @@ public class Constants {
 	public static final int CONSTANT_FOUR = 4;
 	public static final int CONSTANT_FIVE = 5;
 	public static final int CONSTANT_SIX = 6;
+	public static final int CONSTANT_SEVEN = 7;
+	public static final int CONSTANT_EIGHT = 8;
+	
 	
 	//For Opportunity win/loss mail
 	public static final String 	WITH_SUPPORT_FROM = "with support from";
@@ -256,6 +261,7 @@ public class Constants {
 	public static final String LOSS_OTHER = "Loss - Other";
 	public static final String WIN_OTHER = "Win - Other";
 	public static final String OTHER = "Other";
+	public static final String NONE = "None";
 	
 	public static final String WORKFLOW_CUSTOMER_PENDING_SUBJECT = "Pending New Customer Request";
 	public static final String WORKFLOW_PARTNER_PENDING_SUBJECT = "Pending New Partner Request";
@@ -317,4 +323,19 @@ public class Constants {
 	public static final String E3 = "E3";
 	public static final String E4 = "E4";
 	public static final String E5 = "E5";
+	
+	public static final String WORKFLOW_BFM_STEP1_PENDING_SUBJECT = "Deal Financial Submitted - ";
+	public static final String WORKFLOW_BFM_STEP1_APPROVED_SUBJECT = "Deal Financial Approved - ";
+	public static final String WORKFLOW_BFM_STEP1_REJECTED_SUBJECT = "Deal Financial Rejected - ";
+	public static final String WORKFLOW_BFM_ESCALATE_PENDING_SUBJECT = "Deal Financial Exception Initiated for ";
+	public static final String WORKFLOW_BFM_ESCALATE_PATH_A_APPROVED_SUBJECT = "Deal Financial Exception Approved - ";
+	public static final String WORKFLOW_BFM_ESCALATE_PATH_A_REJECTED_SUBJECT = "Deal Financial Exception Rejected - ";
+	public static final String WORKFLOW_BFM_ESCALATE_PATH_B_APPROVED_SUBJECT = "Deal Financial Exception Approved - ";
+	public static final String WORKFLOW_BFM_ESCALATE_PATH_B_REJECTED_SUBJECT = "Deal Financial Exception Rejected - ";
+	public static final String CONSULTING = "CONSULTING";
+	public static final String ABIM_CONSULTING = "ABIM – Consulting";
+	
+	public static final String defaultUser_CC_BFM = "139339";
+	public static final String notifyUserRolesForBFM = "System Admin,Strategic Group Admin";
+
 }

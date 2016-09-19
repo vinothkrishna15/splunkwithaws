@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.tcs.destination.bean.CustomerMasterT;
+import com.tcs.destination.bean.PartnerMasterT;
 
 @Repository
 public interface CustomerRepository extends
@@ -153,6 +154,8 @@ public interface CustomerRepository extends
 			+ "ORDER BY created_modified_datetime DESC "
 			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
 	List<CustomerMasterT> getCustomersByIou(@Param("term") String term, @Param("getAll") boolean getAll);
+    
+    List<CustomerMasterT> findByActiveTrue();
 
 	/* ---------- ends - repository methods for smart search --------- */
 }

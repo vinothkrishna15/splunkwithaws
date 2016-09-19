@@ -2,7 +2,6 @@ package com.tcs.destination.controller;
 
 
 import java.io.ByteArrayInputStream;
-import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,7 +103,7 @@ public class WorkflowController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while updating customer");
 		}
@@ -133,7 +132,7 @@ public class WorkflowController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while updating Partner");
 		}
@@ -172,7 +171,7 @@ public class WorkflowController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while Rejecting the request");
 		}
@@ -206,7 +205,7 @@ public class WorkflowController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while inserting requested customer");
 		}
@@ -239,7 +238,7 @@ public class WorkflowController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in retrieving customer details");
 		}
@@ -271,7 +270,7 @@ public class WorkflowController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in retrieving partner details");
 		}
@@ -303,7 +302,7 @@ public class WorkflowController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in retrieving competitor details");
 		}
@@ -341,7 +340,7 @@ public class WorkflowController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while retrieving Worklist for a user");
 		}
@@ -375,7 +374,7 @@ public class WorkflowController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while Inserting Workflow Partner");
 		}
@@ -408,7 +407,7 @@ public class WorkflowController {
 			} catch (DestinationException e) {
 				throw e;
 			} catch (Exception e) {
-				logger.error(e.getMessage());
+				logger.error(e.getMessage(), e);
 				throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 						"Backend error while requesting opportunity reopen");
 			}
@@ -434,7 +433,7 @@ public class WorkflowController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while requesting New Competitor");
 		}
@@ -467,7 +466,7 @@ public class WorkflowController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while approving opportunity reopen");
 		}
@@ -505,7 +504,7 @@ public class WorkflowController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while updating competitor");
 		} 
@@ -536,7 +535,7 @@ public class WorkflowController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while approving opportunity reopen");
 		}
@@ -574,7 +573,7 @@ public class WorkflowController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while retrieving Worklist for a user");
 		}
@@ -605,7 +604,7 @@ public class WorkflowController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in retrieving deal financial details");
 		}
@@ -630,10 +629,9 @@ public class WorkflowController {
 			bfmStream = new InputStreamResource(new ByteArrayInputStream(bfmT.getDealFinancialFile()));
 			
 			respHeaders = new HttpHeaders();
-			//TODO frame the file name from the details
-			String repName = "bfm_" + new Random().nextInt() + ".xlsx";
-			respHeaders.add("reportName", repName);
-			respHeaders.setContentDispositionFormData("attachment", repName);
+			String fileName = bfmT.getOpportunityId() + "_" + bfmT.getOpportunityT().getCustomerMasterT().getCustomerName() + "." + DestinationUtils.getExtension(bfmT.getBfmFileName());
+			respHeaders.add("reportName", fileName);
+			respHeaders.setContentDispositionFormData("attachment", fileName);
 			respHeaders.setContentType(MediaType
 					.parseMediaType("application/octet-stream"));
 			logger.info("Inside WorkflowController: BFMFile Downloaded Successfully ");

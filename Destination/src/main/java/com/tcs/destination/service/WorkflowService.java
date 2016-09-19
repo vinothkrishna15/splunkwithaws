@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.tcs.destination.bean.BeaconCustomerMappingT;
 import com.tcs.destination.bean.CompetitorMappingT;
 import com.tcs.destination.bean.ContactT;
@@ -48,6 +49,7 @@ import com.tcs.destination.bean.PartnerProductDetailsDTO;
 import com.tcs.destination.bean.PartnerSubSpMappingT;
 import com.tcs.destination.bean.PartnerSubspProductMappingT;
 import com.tcs.destination.bean.ProductContactLinkT;
+import com.tcs.destination.bean.ProductMasterT;
 import com.tcs.destination.bean.RevenueCustomerMappingT;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserT;
@@ -68,12 +70,15 @@ import com.tcs.destination.data.repository.CompetitorRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
+import com.tcs.destination.data.repository.OpportunitySubSpLinkTRepository;
 import com.tcs.destination.data.repository.PartnerContactLinkTRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.PartnerSubSpMappingTRepository;
 import com.tcs.destination.data.repository.PartnerSubSpProductMappingTRepository;
 import com.tcs.destination.data.repository.ProductContactLinkTRepository;
+import com.tcs.destination.data.repository.ProductRepository;
 import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
+import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.data.repository.WorkflowBfmTRepository;
@@ -207,11 +212,20 @@ public class WorkflowService {
 	@Autowired
 	ContactRepository contactRepository;
 
+	@Autowired
+	SubSpRepository subSpRepository;
+	
+	@Autowired
+	ProductRepository productRepository;
+
 	@PersistenceContext
 	private EntityManager entityManager;
 
 	@Autowired
 	WorkflowBfmTRepository workflowBfmTRepository;
+
+	@Autowired
+	OpportunitySubSpLinkTRepository opportunitySubSpLinkTRepository;
 
 	Map<String, GeographyMappingT> mapOfGeographyMappingT = null;
 	Map<String, IouCustomerMappingT> mapOfIouCustomerMappingT = null;
@@ -375,6 +389,10 @@ public class WorkflowService {
 					listOfBfmRequests.add(pendingBfmRequests);
 				}
 				typeList.add(type.getType());
+				typeList.add(EntityTypeId.ESCALATION_A.getType());
+				typeList.add(EntityTypeId.ESCALATION_B.getType());
+				typeList.add(EntityTypeId.CONSULTED_ESCALATION_A.getType());
+				typeList.add(EntityTypeId.CONSULTED_ESCALATION_B.getType());
 				submittedAndApprovedRequests=getSubmittedAndApprovedRequest(status, userId,typeList);
 
 				populateResponse(listOfBfmRequests,
@@ -436,8 +454,6 @@ public class WorkflowService {
 			// Add submitted and actioned by requests
 			myWorklist.addAll(Lists.newArrayList(submittedAndApprovedRequests));
 
-			// Sort the list based on modified date time
-			//	Collections.sort(myWorklist);
 			if (myWorklist.isEmpty()) {
 				logger.debug("No items in worklist for the user" + userId);
 				throw new DestinationException(HttpStatus.NOT_FOUND,
@@ -448,9 +464,15 @@ public class WorkflowService {
 				throw new DestinationException(HttpStatus.NOT_FOUND,
 						"No requests found with stage - " + status);
 			}
-			worklistResponse.setTotalCount(myWorklist.size());
-			myWorklist = paginateWorklist(page, count, myWorklist);
-			worklistResponse.setWorklists(myWorklist);
+			//Remove duplicate requests
+			List<WorklistDTO<Object>> rtnList = removeDuplicates(myWorklist);
+			
+			// Sort the list based on modified date time
+			Collections.sort(rtnList);
+			
+			worklistResponse.setTotalCount(rtnList.size());
+			myWorklist = paginateWorklist(page, count, rtnList);
+			worklistResponse.setWorklists(rtnList);
 			logger.debug("End of getMyWorklist service");
 			return worklistResponse;
 		} catch (DestinationException e) {
@@ -462,6 +484,25 @@ public class WorkflowService {
 		}
 
 
+	}
+
+	/**
+	 * Removes duplicate request in work list
+	 * @param myWorklist
+	 * @return
+	 */
+	private List<WorklistDTO<Object>> removeDuplicates(
+			List<WorklistDTO<Object>> myWorklist) {
+
+		Map<Integer, WorklistDTO<Object>> map = Maps.newHashMap();
+		for (WorklistDTO<Object> obj : myWorklist) {
+			if (obj.getRequestId() != null) {
+				if (!map.keySet().contains(obj.getRequestId())) {
+					map.put(obj.getRequestId(), obj);
+				}
+			}
+		}
+		return new ArrayList<>(map.values());
 	}
 
 	private List<Object[]> getPendingBfmRequests(String userId) {
@@ -494,12 +535,12 @@ public class WorkflowService {
 			break;
 		}
 		case STRATEGIC_INITIATIVES: 
-		case REPORTING_TEAM:
 		{
 			// Query to get bfm requests pending for a SI or Reporting Team 
 			StringBuffer queryBuffer = new StringBuffer(
 					QueryConstants.BFM_PENDING_WITH_SI_QUERY);
 			query = entityManager.createNativeQuery(queryBuffer.toString());
+			//query.setParameter("userId", userId);
 			query.setParameter("userRole", userRoleLike);
 			query.setParameter("userGroup", userGroupLike);
 			break;
@@ -525,15 +566,10 @@ public class WorkflowService {
 				QueryConstants.BFM_PENDING_WITH_USER_QUERY);
 		query = entityManager.createNativeQuery(queryBuffer.toString());
 		query.setParameter("userId", userId);
-		if (resultList != null) {
-			if (resultList.isEmpty()) {
+		if (CollectionUtils.isEmpty(resultList)) {
 				resultList = query.getResultList();
-			} else {
-				List<Object[]> resultForUserPending = query.getResultList();
-				resultList.addAll(resultForUserPending);
-			}
 		} else {
-			resultList = query.getResultList();
+			resultList.addAll(query.getResultList());
 		}
 		logger.debug("Inside getPendingBfmRequests method : End");
 		return resultList;
@@ -562,7 +598,9 @@ public class WorkflowService {
 					if (typeId != null && 
 							(typeId == EntityTypeId.BFM 
 							|| typeId == EntityTypeId.ESCALATION_A 
-							|| typeId == EntityTypeId.ESCALATION_B)) {
+							|| typeId == EntityTypeId.ESCALATION_B
+							|| typeId == EntityTypeId.CONSULTED_ESCALATION_A
+							|| typeId == EntityTypeId.CONSULTED_ESCALATION_B)) {
 						// Get the status of the new deal financial request
 						workflowBfmDetailsDTO.setStatus(workflowRequest
 								.getStatus());
@@ -711,27 +749,43 @@ public class WorkflowService {
 						.getEntityTypeId()))) {
 						case CUSTOMER:
 							myWorklistDTO.setEntityType(CUSTOMER.getDisplayName());
-							myWorklistDTO.setEntity(workflowCustomerRepository.findOne(requestT.getEntityId()));
+							WorkflowCustomerT customerEntity = workflowCustomerRepository.findOne(requestT.getEntityId());
+							myWorklistDTO.setEntity(customerEntity);
+							myWorklistDTO.setEntityName(customerEntity.getCustomerName());
 							break;
 						case PARTNER:
 							myWorklistDTO.setEntityType(PARTNER.getDisplayName());
-							myWorklistDTO.setEntity(workflowPartnerRepository.findOne(requestT.getEntityId()));
+							WorkflowPartnerT partnerEntity = workflowPartnerRepository.findOne(requestT.getEntityId());
+							myWorklistDTO.setEntity(partnerEntity);
+							myWorklistDTO.setEntityName(partnerEntity.getPartnerName());
 							break;
 						case COMPETITOR:
 							myWorklistDTO.setEntityType(COMPETITOR.getDisplayName());
-							myWorklistDTO.setEntity(workflowCompetitorRepository.findOne(requestT.getEntityId()));
+							WorkflowCompetitorT competitorEntity = workflowCompetitorRepository.findOne(requestT.getEntityId());
+							myWorklistDTO.setEntity(competitorEntity);
+							myWorklistDTO.setEntityName(competitorEntity.getWorkflowCompetitorName());
 							break;
 						case OPPORTUNITY:
 							myWorklistDTO.setEntityType(EntityTypeId.OPPORTUNITY.getDisplayName());
-							myWorklistDTO.setEntity(workflowOpportunityRepository.findOne(requestT.getEntityId()));
+							OpportunityT opportunityEntity = workflowOpportunityRepository.findOne(requestT.getEntityId());
+							myWorklistDTO.setEntity(opportunityEntity);
+							myWorklistDTO.setEntityName(opportunityEntity.getOpportunityName());
 							break;
 						case BFM:
+						case ESCALATION_A:
+						case ESCALATION_B:
+						case CONSULTED_ESCALATION_A:
+						case CONSULTED_ESCALATION_B:
 							myWorklistDTO.setEntityType(EntityTypeId.BFM.getDisplayName());
-							myWorklistDTO.setEntity(workflowBfmTRepository.findOne(requestT.getEntityId()));
+							WorkflowBfmT bfmEntity = workflowBfmTRepository.findOne(requestT.getEntityId());
+							myWorklistDTO.setEntity(bfmEntity);
+							myWorklistDTO.setEntityName(bfmEntity.getOpportunityT().getOpportunityName());
 							break;
-
+						default:
+							break;
 				}
 				myWorklistDTO.setRequestId(requestT.getRequestId());
+				myWorklistDTO.setWorkflowRequest(requestT);
 				WorkflowStepT stepT = workflowStepRepository
 						.findFirstByRequestIdAndStepStatusNotOrderByStepIdDesc(
 								requestT.getRequestId(),
@@ -765,10 +819,9 @@ public class WorkflowService {
 			List<Object[]> tempRequestObject = listOfEntityRequests.get(i);
 			if (tempRequestObject != null) {
 
-				WorklistDTO<Object> worklist=new WorklistDTO<Object>(); 
-
 				// Iterate the result and set the response object
 				for (Object[] MyWorklistDTOArray : tempRequestObject) {
+					WorklistDTO<Object> worklist=new WorklistDTO<Object>(); 
 
 
 					if (entityType.equalsIgnoreCase(EntityType.CUSTOMER
@@ -778,7 +831,9 @@ public class WorkflowService {
 						worklist.setEntityType("New Customer");
 						if (MyWorklistDTOArray[2] != null) 
 						{
-							worklist.setEntity(workflowCustomerRepository.findOne(MyWorklistDTOArray[2].toString()));
+							WorkflowCustomerT entity = workflowCustomerRepository.findOne(MyWorklistDTOArray[2].toString());
+							worklist.setEntity(entity);
+							worklist.setEntityName(entity.getCustomerName());
 						} 
 						else 
 						{
@@ -791,7 +846,9 @@ public class WorkflowService {
 						worklist.setEntityType("New Partner");
 						if (MyWorklistDTOArray[2] != null) 
 						{
-							worklist.setEntity(workflowPartnerRepository.findOne(MyWorklistDTOArray[2].toString()));
+							WorkflowPartnerT entity = workflowPartnerRepository.findOne(MyWorklistDTOArray[2].toString());
+							worklist.setEntity(entity);
+							worklist.setEntityName(entity.getPartnerName());
 						} 
 						else 
 						{
@@ -805,7 +862,9 @@ public class WorkflowService {
 						worklist.setEntityType("New Competitor");
 						if (MyWorklistDTOArray[2] != null) 
 						{
-							worklist.setEntity(workflowCompetitorRepository.findOne(MyWorklistDTOArray[2].toString()));
+							WorkflowCompetitorT entity = workflowCompetitorRepository.findOne(MyWorklistDTOArray[2].toString());
+							worklist.setEntity(entity);
+							worklist.setEntityName(entity.getWorkflowCompetitorName());
 						} 
 						else 
 						{
@@ -819,7 +878,9 @@ public class WorkflowService {
 						worklist.setEntityType("New Opportunity Reopen");
 						if (MyWorklistDTOArray[2] != null) 
 						{
-							worklist.setEntity(opportunityRepository.findOne(MyWorklistDTOArray[2].toString()));
+							OpportunityT entity = opportunityRepository.findOne(MyWorklistDTOArray[2].toString());
+							worklist.setEntity(entity);
+							worklist.setEntityName(entity.getOpportunityName());
 						} 
 						else 
 						{
@@ -832,7 +893,17 @@ public class WorkflowService {
 
 						// All BFM requests
 						worklist.setEntityType("Opportunity Deal Financial");
-
+						if (MyWorklistDTOArray[2] != null) 
+						{
+							WorkflowBfmT entity = workflowBfmTRepository.findOne(MyWorklistDTOArray[2].toString());
+							worklist.setEntity(entity);
+							//OpportunityT opportunityBfm = opportunityRepository.findByOpportunityId(entity.getOpportunityId());
+							worklist.setEntityName(entity.getOpportunityT().getOpportunityName());
+						} 
+						else 
+						{
+							worklist.setEntity(null);
+						}
 					}
 
 					WorkflowStepT workflowStep = new WorkflowStepT();
@@ -842,8 +913,12 @@ public class WorkflowService {
 						workflowStep.setStepId(Integer.parseInt(s));
 					}
 					if (MyWorklistDTOArray[4] != null) {
+						
 						String s = MyWorklistDTOArray[4].toString();
-						workflowStep.setRequestId(Integer.parseInt(s));
+						int requestId = Integer.parseInt(s);
+						workflowStep.setRequestId(requestId);
+						worklist.setWorkflowRequest(workflowRequestRepository.findOne(requestId));
+						worklist.setRequestId(requestId);
 					}
 					if (MyWorklistDTOArray[5] != null) {
 						String s = MyWorklistDTOArray[5].toString();
@@ -995,7 +1070,6 @@ public class WorkflowService {
 	private void sendEmailNotificationforApprovedOrRejectMail(
 			final String approveOrRejectSubject, Integer requestId, Date date,
 			Integer entityTypeId) throws Exception {
-		// TODO Auto-generated method stub
 		class WorkflowNotificationForApproveOrReject implements Runnable {
 			Integer requestId;
 			Date date;
@@ -1016,7 +1090,6 @@ public class WorkflowService {
 							approveOrRejectSubject, requestId, date,
 							entityTypeId);
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
 					logger.error("Error sending email " + e.getMessage());
 				}
 			}
@@ -1029,7 +1102,6 @@ public class WorkflowService {
 
 	private void sendEmailNotificationforPending(Integer requestId, Date date,
 			Integer entityTypeId) throws Exception {
-		// TODO Auto-generated method stub
 		class WorkflowNotificationForPending implements Runnable {
 			Integer requestId;
 			Date date;
@@ -1050,7 +1122,6 @@ public class WorkflowService {
 					mailUtils.sendWorkflowPendingMail(requestId, date,
 							entityTypeId);
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
 					logger.error("Error sending email " + e.getMessage());
 				}
 			}
@@ -1443,7 +1514,6 @@ public class WorkflowService {
 	@Transactional
 	public boolean insertWorkflowCustomer(WorkflowCustomerT workflowCustomer,
 			Status status) throws Exception {
-		// TODO Auto-generated method stub
 		logger.debug("Inside insertWorkflowCustomer method");
 		boolean insertStatus = false;
 
@@ -1600,7 +1670,7 @@ public class WorkflowService {
 			// Getting workflow template for rest of the user categories as not
 			// applicable
 			workflowTemplatesForNotapplicable = workflowProcessTemplateRepository
-					.findByEntityTypeIdAndStepGreaterThan(
+					.findByEntityTypeIdAndStepGreaterThanOrderByStepAsc(
 							workflowProcessTemplate.getEntityTypeId(),
 							workflowTemplateForPending.getStep());
 			if (CollectionUtils.isNotEmpty(workflowTemplatesForNotapplicable)) {
@@ -1838,11 +1908,68 @@ public class WorkflowService {
 						// Get the workflow partner Id from request table
 						String workflowPartnerId = workflowRequest
 								.getEntityId();
-						// Get the new partner details for the request
-						WorkflowPartnerT workflowPartner = workflowPartnerRepository
-								.findOne(workflowPartnerId);
+						
+						WorkflowPartnerT partnerT = workflowPartnerRepository.findOne(workflowPartnerId);
+						
+						List<PartnerMasterT> partnerMasterT =  partnerRepository.findByPartnerName(partnerT.getPartnerName());
 
+						if (partnerMasterT.size() > 0 ) {
+							workflowPartnerDetailsDTO.setPartnerMasterT(partnerMasterT.get(0).getPartnerMasterT());
+						}
+
+						// Get the new partner details for the request
+						WorkflowPartnerT workflowPartner = workflowPartnerRepository.findOne(workflowPartnerId);
+						
 						if (workflowPartner != null) {
+							// to fetch partner subsp, product and contact details
+							String partnerName = workflowPartner.getPartnerName();
+							PartnerMasterT partner = partnerRepository.findPartnerByName(partnerName);
+							if(partner!=null)
+							{
+							String partnerId = partner.getPartnerId();
+							List<PartnerSubSpMappingT> partnerSubsps = partnerSubSpMappingRepository.findByPartnerId(partnerId);
+							List<PartnerSubSpMappingT> partnerSubsps_new = new ArrayList<PartnerSubSpMappingT>();
+							List<PartnerContactLinkT> partnerContactList=partnerContactLinkTRepository.findByPartnerId(partnerId);
+							if(!CollectionUtils.isEmpty(partnerContactList))
+							{
+							 for(PartnerContactLinkT partnerContactLinkT:partnerContactList)
+							 {
+								partnerContactLinkT.setContactT(null);
+								partnerContactLinkT.setPartnerMasterT(null);
+							 }
+							}
+							if(!CollectionUtils.isEmpty(partnerSubsps))
+							{
+							for(PartnerSubSpMappingT partnerSubsp:partnerSubsps) {
+								PartnerSubSpMappingT partnersubsp = new PartnerSubSpMappingT();
+								String partnerSubspMappingId = partnerSubsp.getPartnerSubspMappingId();
+								List<PartnerSubspProductMappingT> partnerSubspProductList = partnerSubSpProductMappingRepository.findByPartnerSubspMappingId(partnerSubspMappingId);
+								List<PartnerSubspProductMappingT> partnerSubspProductList_new = partnerSubSpProductMappingRepository.findByPartnerSubspMappingId(partnerSubspMappingId);
+								for(PartnerSubspProductMappingT partnerSubspProduct:partnerSubspProductList) {
+									PartnerSubspProductMappingT partnersubspProduct = new PartnerSubspProductMappingT();
+									ProductMasterT product=productRepository.findOne(partnerSubspProduct.getProductId());
+							        List<ProductContactLinkT> productContactList=productContactLinkTRepository.findByProductId(product.getProductId());
+							        for(ProductContactLinkT prod:productContactList)
+							        {
+							        	prod.getContactT().setPartnerContactLinkTs(partnerContactList);
+							        }
+							        product.setProductContactLinkTs(productContactList);
+									partnersubspProduct.setProductMasterT(product);
+							        partnerSubspProductList_new.add(partnersubspProduct);
+								}
+								
+								
+								partnersubsp.setPartnerSubspProductMappingTs(partnerSubspProductList_new);
+								
+								partnerSubsps_new.add(partnersubsp);
+							}
+							
+						
+							
+							workflowPartner.setPartnerSubSpMappingTs(partnerSubsps_new);
+							}
+							
+						}
 							workflowPartnerDetailsDTO
 							.setRequestedPartner(workflowPartner);
 
@@ -1888,6 +2015,7 @@ public class WorkflowService {
 						"Request id is not valid or empty");
 			}
 			logger.debug("Inside findRequestedPartnerDetailsById() service: End");
+			
 			return workflowPartnerDetailsDTO;
 		} catch (DestinationException e) {
 			throw e;
@@ -1896,6 +2024,7 @@ public class WorkflowService {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while retrieving request partner details");
 		}
+		
 	}
 
 	/**
@@ -2102,12 +2231,7 @@ public class WorkflowService {
 			String userGroupParam = "%" + userGroup + "%";
 			query1.setParameter("userId", userId);
 			query1.setParameter("userGroup", userGroupParam);
-			if (resultList == null) {
-				resultList = query1.getResultList();
-			} else {
-				List<Object[]> resultForPMOPending = query1.getResultList();
-				resultList.addAll(resultForPMOPending);
-			}
+			resultList = query1.getResultList();
 			// query.setParameter("pmoValue", pmoValue);
 		}
 		// Query to get pending with group of users, based on user's role and
@@ -2526,7 +2650,6 @@ public class WorkflowService {
 	 * @param workflowPartner 
 	 */
 	private void savePartnerMaster(WorkflowPartnerT requestedPartner, WorkflowPartnerT workflowPartner) {
-		// TODO Auto-generated method stub
 		PartnerMasterT partnerMaster = new PartnerMasterT();
 		partnerMaster.setCreatedBy(requestedPartner.getCreatedBy());
 		partnerMaster.setModifiedBy(requestedPartner.getModifiedBy());
@@ -2546,8 +2669,11 @@ public class WorkflowService {
 		partnerMaster.setText1(requestedPartner.getText1());
 		partnerMaster.setText2(requestedPartner.getText2());
 		partnerMaster.setText3(requestedPartner.getText3());
-		if(requestedPartner.getHqPartnerLinkId() != null) {
-			partnerMaster.setHqPartnerLinkId(requestedPartner.getHqPartnerLinkId());
+		if(!requestedPartner.getPartnerName().equalsIgnoreCase(requestedPartner.getGroupPartnerName())){
+			List<PartnerMasterT> parentPartner = partnerRepository.findByPartnerName(requestedPartner.getGroupPartnerName());
+			if (!parentPartner.isEmpty()){
+				partnerMaster.setHqPartnerLinkId(parentPartner.get(0).getPartnerId());
+			} 
 		}
 		PartnerMasterT partnerCreated = partnerRepository.save(partnerMaster);
 
@@ -2559,6 +2685,7 @@ public class WorkflowService {
 						PartnerSubSpMappingT partnerSubsp = new PartnerSubSpMappingT();
 						partnerSubsp.setPartnerId(partnerCreated.getPartnerId());
 						partnerSubsp.setSubSpId(subSpId);
+						partnerSubsp.setSubSp(subSpRepository.findBySubSpId(subSpId).getSubSp());
 						partnerSubsp.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 						partnerSubsp.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 						PartnerSubSpMappingT partnerSubspSaved = partnerSubSpMappingRepository.save(partnerSubsp);
@@ -2590,7 +2717,7 @@ public class WorkflowService {
 		}
 	}
 
-	private ContactT saveNewContact(PartnerProductDetailsDTO partnerProductDetailsDTO) {
+	public ContactT saveNewContact(PartnerProductDetailsDTO partnerProductDetailsDTO) {
 		ContactT partnerProductContact = partnerProductDetailsDTO.getPartnerProductContact();
 		partnerProductContact.setContactCategory("PARTNER");
 		partnerProductContact.setContactType("EXTERNAL");
@@ -2608,7 +2735,7 @@ public class WorkflowService {
 	 * @param contactId
 	 * @param partnerId
 	 */
-	private void populateAsProductOrPartnerContact(
+	public void populateAsProductOrPartnerContact(
 			PartnerProductDetailsDTO partnerProductDetailsDTO, String contactId, String partnerId) {
 		ProductContactLinkT productcontactLinkT = new ProductContactLinkT();
 		PartnerContactLinkT partnercontactLinkT = new PartnerContactLinkT();
@@ -2617,20 +2744,41 @@ public class WorkflowService {
 			productcontactLinkT.setProductId(partnerProductDetailsDTO.getProductId());
 			productcontactLinkT.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 			productcontactLinkT.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
-			productContactLinkTRepository.save(productcontactLinkT);
+			List<ProductContactLinkT> productContactDuplicates = productContactLinkTRepository.findByProductIdAndContactId(productcontactLinkT.getProductId(), contactId);
+			if (productContactDuplicates.size() > 0) {
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "This Product and Contact detail already exists!!");
+			} else {
+				productContactLinkTRepository.save(productcontactLinkT);
+			}
 			partnercontactLinkT.setContactId(contactId);
 			partnercontactLinkT.setPartnerId(partnerId);
 			partnercontactLinkT.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 			partnercontactLinkT.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
-			partnerContactLinkTRepository.save(partnercontactLinkT);
+			if (checkPartnercontactDuplicates(partnerId, contactId)) {
+				partnerContactLinkTRepository.save(partnercontactLinkT);
+			}
 		}
 		else{
 			partnercontactLinkT.setContactId(contactId);
 			partnercontactLinkT.setPartnerId(partnerId);
 			partnercontactLinkT.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 			partnercontactLinkT.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
-			partnerContactLinkTRepository.save(partnercontactLinkT);
+			if (checkPartnercontactDuplicates(partnerId, contactId)) {
+				partnerContactLinkTRepository.save(partnercontactLinkT);
+			}
 		}
+	}
+
+	private boolean checkPartnercontactDuplicates(String partnerId,
+			String contactId) {
+		boolean noDuplicates = false;
+		List<PartnerContactLinkT> partnerContactDuplicates = partnerContactLinkTRepository.findByPartnerIdAndContactId(partnerId, contactId);
+		if (partnerContactDuplicates.size() > 0) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "This Partner and Contact detail already exists!!");
+		} else{
+			noDuplicates = true;
+		}
+		return noDuplicates;
 	}
 
 	/**
@@ -2639,7 +2787,7 @@ public class WorkflowService {
 	 * @param partnerSubspSaved
 	 * @param productId
 	 */
-	private void savePartnerSubspAndProduct(
+	public void savePartnerSubspAndProduct(
 			PartnerSubSpMappingT partnerSubspSaved, String productId) {
 		if(partnerSubspSaved != null ){
 			PartnerSubspProductMappingT partnerSubspProductObj = new PartnerSubspProductMappingT();
@@ -3024,14 +3172,50 @@ public class WorkflowService {
 		if(!workflowPartnerT.getPartnerName().equalsIgnoreCase(workflowPartnerT.getGroupPartnerName())){
 			List<PartnerMasterT> parentPartner = partnerRepository.findByPartnerName(workflowPartnerT.getGroupPartnerName());
 			if (!parentPartner.isEmpty()){
-			oldPartnerMaster.setHqPartnerLinkId(parentPartner.get(0).getPartnerId());
-			} else {
-				logger.error("INVALId! On edit, groupPartnerName must be equal to partnerName!");
-				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"INVALId! On edit, groupPartnerName must be equal to partnerName!");		
-				}
+				oldPartnerMaster.setHqPartnerLinkId(parentPartner.get(0).getPartnerId());
+			} 
 		}
-		partnerRepository.save(oldPartnerMaster);
+		PartnerMasterT partnerCreated = partnerRepository.save(oldPartnerMaster);
+
+		//saving additional partner details
+		if(!workflowPartnerT.getPartnerProductDetailsDTOs().isEmpty()){
+			for(PartnerProductDetailsDTO partnerProductDetailsDTO : workflowPartnerT.getPartnerProductDetailsDTOs()){
+				// processing subsps for the new partner
+				if(partnerProductDetailsDTO.getSubspList().size() > 0 ){
+					for(Integer subSpId : partnerProductDetailsDTO.getSubspList()){
+						PartnerSubSpMappingT partnerSubsp = new PartnerSubSpMappingT();
+						partnerSubsp.setPartnerId(partnerCreated.getPartnerId());
+						partnerSubsp.setSubSpId(subSpId);
+						partnerSubsp.setSubSp(subSpRepository.findBySubSpId(subSpId).getSubSp());
+						partnerSubsp.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+						partnerSubsp.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+						PartnerSubSpMappingT partnerSubspSaved = partnerSubSpMappingRepository.save(partnerSubsp);
+
+						//If product available for this partner then this partner subsp has to be persisted along with its product in partner_subsp_product_mapping_t
+						if(partnerProductDetailsDTO.getProductId() != null){
+							savePartnerSubspAndProduct(partnerSubspSaved, partnerProductDetailsDTO.getProductId());
+						}
+					}
+				}
+
+				//Processing contacts for partner and Products
+				if(partnerProductDetailsDTO.getPartnerProductContact() != null ){
+					ContactT productcontactSaved = new ContactT();
+					String contactId = null;
+					if (partnerProductDetailsDTO.getPartnerProductContact().getContactId() == null ) {
+						productcontactSaved = saveNewContact(partnerProductDetailsDTO);
+						if(productcontactSaved != null && productcontactSaved.getContactId() != null){
+							contactId = productcontactSaved.getContactId();
+							populateAsProductOrPartnerContact(partnerProductDetailsDTO, contactId, partnerCreated.getPartnerId());
+						}
+					}
+					else if(partnerProductDetailsDTO.getPartnerProductContact().getContactId() != null){
+						contactId = partnerProductDetailsDTO.getPartnerProductContact().getContactId();
+						populateAsProductOrPartnerContact(partnerProductDetailsDTO, contactId, partnerCreated.getPartnerId());
+					}	  
+				}
+			}
+		}
 	}
 
 	/**
@@ -3208,7 +3392,6 @@ public class WorkflowService {
 	 * @param requestedCompetitor
 	 */
 	private void saveToCompetitorTable(WorkflowCompetitorT requestedCompetitor) {
-		// TODO Auto-generated method stub
 		logger.info("Inside saveToCompetitorTable method");
 		CompetitorMappingT competitorMappingT = new CompetitorMappingT();
 		competitorMappingT.setCompetitorName(requestedCompetitor
@@ -3228,7 +3411,6 @@ public class WorkflowService {
 	 */
 	private void validateWorkflowCompetitor(
 			WorkflowCompetitorT workflowCompetitorT) {
-		// TODO Auto-generated method stub
 		if (!StringUtils.isEmpty(workflowCompetitorT
 				.getWorkflowCompetitorName())) {
 			if (competitorRepository.findOne(workflowCompetitorT
@@ -3257,7 +3439,6 @@ public class WorkflowService {
 	public boolean requestOpportunityReopen(
 			OpportunityReopenRequestT opportunityReopenRequestT, Status status)
 					throws Exception {
-		// TODO Auto-generated method stub
 		logger.info("Inside requestOpportunityReopen method");
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 
@@ -3366,7 +3547,6 @@ public class WorkflowService {
 	public boolean approveOrRejectOpportunityReopen(
 			OpportunityReopenRequestT opportunityReopenRequestT, Status status)
 					throws Exception {
-		// TODO Auto-generated method stub
 		logger.info("Inside approveOpportunityReopen method");
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		UserT user = userRepository.findByUserId(userId);
@@ -3776,7 +3956,7 @@ public class WorkflowService {
 		if (workflowRequest != null) {
 			if (workflowRequest.getStatus().equals(
 					WorkflowStatus.PENDING.getStatus())) {
-				//sendEmailNotificationforPending(workflowRequest.getRequestId(),new Date(), entityTypeId);
+				sendEmailNotificationforBFMStep1Pending(workflowRequest.getRequestId(), entityTypeId);
 				status.setStatus(
 						Status.SUCCESS,
 						"Your request to approve the BFM file for the opportunity :" + createdOpportunity.getOpportunityId() + " - "
@@ -3784,6 +3964,42 @@ public class WorkflowService {
 			} 
 		}
 	}
+
+	/**
+	 * This method triggers email notification asynchronously on 
+	 * BFM Workflow submission during opportunity update
+	 * @param reqId
+	 * @param entityTypeId
+	 */
+	private void sendEmailNotificationforBFMStep1Pending(Integer reqId,Integer entityTypeId){
+		class WorkflowNotificationForBFMStep1Pending implements Runnable {
+			Integer requestId;
+			Integer entityTypeId;
+
+			WorkflowNotificationForBFMStep1Pending(Integer requestId, Integer entityTypeId) {
+				this.requestId = requestId;
+				this.entityTypeId = entityTypeId;
+
+			}
+
+			@Override
+			public void run() {
+				try {
+					logger.debug("Inside run() method of WorkflowNotificationForPending");
+					Thread.sleep(15000);
+					mailUtils.sendWorkflowPendingBFMStep1Mail(requestId, entityTypeId);
+				} catch (Exception e) {
+					logger.error("Error sending email " , e);
+				}
+			}
+
+		}
+		WorkflowNotificationForBFMStep1Pending workflowNotificationForPending = new WorkflowNotificationForBFMStep1Pending(
+				reqId, entityTypeId);
+		mailTaskExecutor.execute(workflowNotificationForPending);
+		logger.debug("End:Inside sendEmailNotification of workflow pending");
+	}
+
 
 	/**
 	 * Method to take action on the bfm request based on the status
@@ -3794,7 +4010,6 @@ public class WorkflowService {
 	 * @throws Exception
 	 */
 	public boolean approveOrEscalateBfm(WorkflowBfmT workflowBfmT, Status status) throws Exception {
-		// TODO Auto-generated method stub
 		logger.info("Inside approveOrEscalateBfm method");
 		OpportunityT opportunity = opportunityRepository.findOne(workflowBfmT.getOpportunityId());
 		if (opportunity != null) {
@@ -3825,7 +4040,8 @@ public class WorkflowService {
 	private void populateEscalateWorkflow(WorkflowStatus workflowStatus, WorkflowBfmT workflowBfmT, Status status) throws Exception {
 		String Exceptions = workflowBfmT.getExceptions();
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-
+		String primarySubspOfBfmOpprtunity = opportunitySubSpLinkTRepository.findPrimarySubSpByOpportunityId(workflowBfmT.getOpportunityId());
+		Integer entityTypeIdForEscalation;
 		if (Exceptions != null) {
 			List<String> exceptionArrayList = Arrays.asList(StringUtils.split(Exceptions, ","));
 			List<String> exceptionCombo1 = Arrays.asList(Constants.E1,Constants.E2);
@@ -3834,33 +4050,54 @@ public class WorkflowService {
 
 			if (exceptionArrayList.size() > 0) {
 				// On meeting the below conditions, It takes the path of Escalation A
-				if (exceptionArrayList.contains(Constants.E5) || exceptionArrayList.contains(exceptionCombo1) ||
-						exceptionArrayList.contains(exceptionCombo2) || exceptionArrayList.contains(exceptionCombo3)) {
+				if (exceptionArrayList.contains(Constants.E5) || exceptionArrayList.containsAll(exceptionCombo1) ||
+						exceptionArrayList.containsAll(exceptionCombo2) || exceptionArrayList.containsAll(exceptionCombo3)) {
+
+					//if (!consultingSubsps.contains(primarySubspOfBfmOpprtunity)) {
+					if (!primarySubspOfBfmOpprtunity.equalsIgnoreCase(Constants.ABIM_CONSULTING)) {
+						entityTypeIdForEscalation = EntityTypeId.ESCALATION_A.getType();
+					}
+					else{
+						entityTypeIdForEscalation = EntityTypeId.CONSULTED_ESCALATION_A.getType();
+					}
+
 					WorkflowRequestT workflowRequest = populateEscalationWorkflowRequest(
-							workflowBfmT.getWorkflowBfmId(), EntityTypeId.ESCALATION_A.getType(), userId, "");	
+							workflowBfmT.getWorkflowBfmId(), entityTypeIdForEscalation, userId, "");	
 					if (workflowRequest != null) {
 						if (workflowRequest.getStatus().equals(WorkflowStatus.PENDING.getStatus())) {
 							// update the status to Escalated after shrilakshmi initiates exception
-							updateEscalted(workflowRequest.getRequestId(), workflowBfmT);
-							//sendEmailNotificationforPending(workflowRequest.getRequestId(),new Date(), entityTypeId);
+							updateEscalted(workflowRequest.getRequestId(), workflowBfmT,userId);
+							sendEmailNotificationBFMEscalatePending(workflowRequest.getRequestId(), workflowRequest.getEntityTypeId());
 							status.setStatus(
 									Status.SUCCESS,
-									"The request for BFM is Escalated to IOU Head !!!");
+									"This request has been escalated successfully.");
 						} 
 					}
 				} 
 				// On meeting the below conditions, It takes the path of Escalation B
 				else {
+					//if (!consultingSubsps.contains(primarySubspOfBfmOpprtunity)) {
+					if (!primarySubspOfBfmOpprtunity.equalsIgnoreCase(Constants.ABIM_CONSULTING)) {
+						entityTypeIdForEscalation = EntityTypeId.ESCALATION_B.getType();
+					}
+					else{
+						entityTypeIdForEscalation = EntityTypeId.CONSULTED_ESCALATION_B.getType();
+					}
 					WorkflowRequestT workflowRequest = populateEscalationWorkflowRequest(
-							workflowBfmT.getWorkflowBfmId(), EntityTypeId.ESCALATION_B.getType(), userId, "");
+							workflowBfmT.getWorkflowBfmId(), entityTypeIdForEscalation, userId, "");
 					if (workflowRequest != null) {
 						if (workflowRequest.getStatus().equals(WorkflowStatus.PENDING.getStatus())) {
 							// update the status to Escalated after shrilakshmi initiates exception
-							updateEscalted(workflowRequest.getRequestId(), workflowBfmT);
-							//sendEmailNotificationforPending(workflowRequest.getRequestId(),new Date(), entityTypeId);
+							updateEscalted(workflowRequest.getRequestId(), workflowBfmT,userId);
+							sendEmailNotificationBFMEscalatePending(workflowRequest.getRequestId(), workflowRequest.getEntityTypeId());
+							if (entityTypeIdForEscalation == EntityTypeId.CONSULTED_ESCALATION_B.getType()) {
+								status.setStatus(
+										Status.SUCCESS,
+										"This request has been escalated successfully.");
+							}
 							status.setStatus(
 									Status.SUCCESS,
-									"The request for BFM is Escalated to Geo Head !!!");
+									"This request has been escalated successfully.");
 						} 
 					}
 				}
@@ -3873,17 +4110,56 @@ public class WorkflowService {
 		}
 	}
 
-	private void updateEscalted(Integer requestId, WorkflowBfmT workflowBfmT) {
+
+	/**
+	 * This method is used to send email notification asychronously during escalation in BFM workflow
+	 * @param requestId
+	 * @param entityTypeId
+	 */
+	private void sendEmailNotificationBFMEscalatePending(Integer requestId,
+			Integer entityTypeId) {
+		class WorkflowNotificationForBFMEscalatePending implements Runnable {
+			Integer requestId;
+			Integer entityTypeId;
+
+			WorkflowNotificationForBFMEscalatePending(Integer requestId, Integer entityTypeId) {
+				this.requestId = requestId;
+				this.entityTypeId = entityTypeId;
+
+			}
+
+			@Override
+			public void run() {
+				try {
+					logger.debug("Inside run() method of WorkflowNotificationForPending");
+					Thread.sleep(15000);
+					mailUtils.sendWorkflowPendingBFMEscalateMail(requestId, entityTypeId);
+				} catch (Exception e) {
+					logger.error("Error sending email " ,e);
+				}
+			}
+
+		}
+		WorkflowNotificationForBFMEscalatePending workflowNotificationBFMEscalatePending = new WorkflowNotificationForBFMEscalatePending(
+				requestId, entityTypeId);
+		mailTaskExecutor.execute(workflowNotificationBFMEscalatePending);
+		logger.debug("End:Inside sendEmailNotification of workflow BFM Escalate pending");
+
+	}
+
+
+	private void updateEscalted(Integer requestId, WorkflowBfmT workflowBfmT, String userId) {
 		List<WorkflowStepT> workflowSteps = workflowStepRepository.findStepsByRequestId(requestId);
 		for (WorkflowStepT workflowStep : workflowSteps) {
 			if (workflowStep.getStepStatus().equals(WorkflowStatus.PENDING.getStatus())) {
 				workflowStep.setStepStatus(WorkflowStatus.ESCALATED.getStatus());
 				workflowStep.setComments(workflowBfmT.getComments());
+				workflowStep.setModifiedBy(userId);
 				break;
 			}
 		}
 		workflowStepRepository.save(workflowSteps);
-		
+
 		WorkflowBfmT workflowBfmToBeSaved = workflowBfmTRepository.findOne(workflowBfmT.getWorkflowBfmId());
 		workflowBfmToBeSaved.setGrossMargin(workflowBfmT.getGrossMargin());
 		workflowBfmToBeSaved.setExceptions(workflowBfmT.getExceptions());
@@ -3975,7 +4251,7 @@ public class WorkflowService {
 			// Getting workflow template for rest of the user categories as not
 			// applicable
 			workflowTemplatesForNotapplicable = workflowProcessTemplateRepository
-					.findByEntityTypeIdAndStepGreaterThan(
+					.findByEntityTypeIdAndStepGreaterThanOrderByStepAsc(
 							workflowProcessTemplate.getEntityTypeId(),
 							workflowProcessTemplate.getStep());
 			if (CollectionUtils.isNotEmpty(workflowTemplatesForNotapplicable)) {
@@ -4034,7 +4310,7 @@ public class WorkflowService {
 		int rowIteration = 0;
 		int step = 0;
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		int[] bfmEntityTypeIds = {Constants.CONSTANT_FOUR,Constants.CONSTANT_FIVE,Constants.CONSTANT_SIX};
+		int[] bfmEntityTypeIds = {Constants.CONSTANT_FOUR,Constants.CONSTANT_FIVE,Constants.CONSTANT_SIX,Constants.CONSTANT_SEVEN, Constants.CONSTANT_EIGHT};
 		List<WorkflowStepT> requestSteps = new ArrayList<WorkflowStepT>();
 		WorkflowRequestT masterRequest = new WorkflowRequestT();
 		//
@@ -4043,7 +4319,7 @@ public class WorkflowService {
 			Integer entityTypeId = masterRequest.getEntityTypeId();
 			requestSteps = workflowStepTRepository
 					.findStepForEditAndApprove(entityTypeId,workflowBfmT.getWorkflowBfmId());
-			
+
 			for (WorkflowStepT stepRecord : requestSteps) {
 				if (stepRecord.getStepStatus().equals(
 						WorkflowStatus.PENDING.getStatus())) {
@@ -4063,9 +4339,9 @@ public class WorkflowService {
 						masterRequest.setStatus(workflowStaus.getStatus());
 						if (masterRequest.getStatus().equals(WorkflowStatus.APPROVED.getStatus()) || 
 								masterRequest.getStatus().equals(WorkflowStatus.REJECTED.getStatus())) {
-						WorkflowBfmT workflowBfmToBeSaved = workflowBfmTRepository.findOne(workflowBfmT.getWorkflowBfmId());
-						workflowBfmToBeSaved.setGrossMargin(workflowBfmT.getGrossMargin());
-						workflowBfmTRepository.save(workflowBfmToBeSaved);
+							WorkflowBfmT workflowBfmToBeSaved = workflowBfmTRepository.findOne(workflowBfmT.getWorkflowBfmId());
+							workflowBfmToBeSaved.setGrossMargin(workflowBfmT.getGrossMargin());
+							workflowBfmTRepository.save(workflowBfmToBeSaved);
 						}
 						step = stepRecord.getStep() + 1;
 						rowIteration++;
@@ -4073,7 +4349,7 @@ public class WorkflowService {
 				}
 
 				if (stepRecord.getStep().equals(step)
-						&& (rowIteration == 1)) {
+						&& (rowIteration == 1) && (masterRequest.getStatus().equals(WorkflowStatus.APPROVED.getStatus()))) {
 					stepRecord.setStepStatus(WorkflowStatus.PENDING
 							.getStatus());
 					// for updating the status in workflow_request_t
@@ -4089,30 +4365,154 @@ public class WorkflowService {
 			}
 			workflowStepTRepository.save(requestSteps);
 			workflowRequestTRepository.save(masterRequest);
-			
+
 			//once the BFM request is rejected, revert the sales stage code of the given opportunity to 4.
 			if (masterRequest.getStatus().equals(WorkflowStatus.REJECTED.getStatus())) {
 				OpportunityT opportuntiy = opportunityRepository.findOne(workflowBfmT.getOpportunityId());
 				opportuntiy.setSalesStageCode(Constants.CONSTANT_FOUR);
+				opportuntiy.setModifiedBy(Constants.SYSTEM_USER);
 				opportunityRepository.save(opportuntiy);
 			}
-			
+
 			if (masterRequest.getStatus().equals(
-					workflowStaus.getStatus())) {
+					WorkflowStatus.APPROVED.getStatus())) {
 				status.setStatus(Status.SUCCESS,
-						"The requested workflow bfm is finally" + masterRequest.getStatus() + "!!!");
-				//				sendEmailNotificationforApprovedOrRejectMail(
-				//						workflowPartnerApprovedSubject,
-				//						masterRequest.getRequestId(),
-				//						masterRequest.getCreatedDatetime(),
-				//						masterRequest.getEntityTypeId());
-			} else {
+						"The requested has been approved successfully.");
+			} 
+			else if(masterRequest.getStatus().equals(
+					WorkflowStatus.REJECTED.getStatus())) {
 				status.setStatus(Status.SUCCESS,
-						"The requested workflow bfm is intermediately" + masterRequest.getStatus() + "!!!");
+						"The requested has been rejected.");
 			}
-		
+			else {
+				status.setStatus(Status.SUCCESS,
+						"This request has been approved by you.");
+			}
+
+			if(entityTypeId == EntityTypeId.BFM.getType()){
+				sendEmailNotificationforBFMStep1ApproveOrReject
+				 (masterRequest.getRequestId(), entityTypeId, masterRequest.getStatus());
+			}else if(entityTypeId==EntityTypeId.ESCALATION_A.getType()
+					|| entityTypeId==EntityTypeId.CONSULTED_ESCALATION_A.getType()){
+				sendEmailNotificationforBFM_PathA_ApproveOrReject
+				 (masterRequest.getRequestId(), entityTypeId, masterRequest.getStatus());	
+			}else if(entityTypeId==EntityTypeId.ESCALATION_B.getType() 
+					|| entityTypeId==EntityTypeId.CONSULTED_ESCALATION_B.getType()){
+				sendEmailNotificationforBFM_PathB_ApproveOrReject
+				 (masterRequest.getRequestId(), entityTypeId, masterRequest.getStatus());	
+			}
+
 		}
 		return status;
+	}
+
+
+	/**
+	 * This method is used to send email asynchronously for approve or reject in path B for BFM workflow
+	 * @param reqId
+	 * @param entityTypeId
+	 * @param status
+	 */
+	private void sendEmailNotificationforBFM_PathB_ApproveOrReject(Integer reqId,Integer entityTypeId,String status){
+		class sendEmailNotificationforBFM_PathB_ApproveOrReject implements Runnable {
+			Integer requestId;
+			Integer entityTypeId;
+			String status;
+
+			sendEmailNotificationforBFM_PathB_ApproveOrReject(Integer requestId, Integer entityTypeId,String status) {
+				this.requestId = requestId;
+				this.entityTypeId = entityTypeId;
+				this.status = status;
+			}
+
+			@Override
+			public void run() {
+				try {
+					logger.debug("Inside run() method of sendEmailNotificationforBFM_PathB_ApproveOrReject");
+					Thread.sleep(15000);
+					mailUtils.sendEmailNotificationforBFM_PathB_ApproveOrReject(requestId, entityTypeId,status);
+				} catch (Exception e) {
+					logger.error("Error sending email ",e);
+				}
+			}
+
+		}
+		sendEmailNotificationforBFM_PathB_ApproveOrReject workflowNotificationFor_PathB_ApprovedRejected = new sendEmailNotificationforBFM_PathB_ApproveOrReject(
+				reqId, entityTypeId,status);
+		mailTaskExecutor.execute(workflowNotificationFor_PathB_ApprovedRejected);
+		logger.debug("End:Inside sendEmailNotificationforBFM_PathB_ApproveOrReject of workflow Approved/Rejected");
+	}
+
+	/**
+	 * This method is used to send email asynchronously for approve or reject in path A for BFM workflow
+	 * @param reqId
+	 * @param entityTypeId
+	 * @param status
+	 */
+	private void sendEmailNotificationforBFM_PathA_ApproveOrReject(Integer reqId,Integer entityTypeId,String status){
+		class sendEmailNotificationforBFM_PathA_ApproveOrReject implements Runnable {
+			Integer requestId;
+			Integer entityTypeId;
+			String status;
+
+			sendEmailNotificationforBFM_PathA_ApproveOrReject(Integer requestId, Integer entityTypeId,String status) {
+				this.requestId = requestId;
+				this.entityTypeId = entityTypeId;
+				this.status = status;
+			}
+
+			@Override
+			public void run() {
+				try {
+					logger.debug("Inside run() method of sendEmailNotificationforBFM_PathA_ApproveOrReject");
+					Thread.sleep(15000);
+					mailUtils.sendEmailNotificationforBFM_PathA_ApproveOrReject(requestId, entityTypeId,status);
+				} catch (Exception e) {
+					logger.error("Error sending email ",e);
+				}
+			}
+
+		}
+		sendEmailNotificationforBFM_PathA_ApproveOrReject workflowNotificationFor_PathA_ApprovedRejected = new sendEmailNotificationforBFM_PathA_ApproveOrReject(
+				reqId, entityTypeId,status);
+		mailTaskExecutor.execute(workflowNotificationFor_PathA_ApprovedRejected);
+		logger.debug("End:Inside sendEmailNotificationforBFM_PathA_ApproveOrReject of workflow Approved/Rejected");
+	}
+
+	/**
+	 * This method is used to send email asynchronously for direct approve or reject in BFM workflow
+	 * @param reqId
+	 * @param entityTypeId
+	 * @param status
+	 */
+	private void sendEmailNotificationforBFMStep1ApproveOrReject(Integer reqId,Integer entityTypeId,String status){
+		class sendEmailNotificationforBFMStep1ApproveOrReject implements Runnable {
+			Integer requestId;
+			Integer entityTypeId;
+			String status;
+
+			sendEmailNotificationforBFMStep1ApproveOrReject(Integer requestId, Integer entityTypeId,String status) {
+				this.requestId = requestId;
+				this.entityTypeId = entityTypeId;
+				this.status = status;
+			}
+
+			@Override
+			public void run() {
+				try {
+					logger.debug("Inside run() method of sendEmailNotificationforBFMStep1ApproveOrReject");
+					Thread.sleep(15000);
+					mailUtils.sendEmailNotificationforBFMStep1ApproveOrReject(requestId, entityTypeId,status);
+				} catch (Exception e) {
+					logger.error("Error sending email " , e);
+				}
+			}
+
+		}
+		sendEmailNotificationforBFMStep1ApproveOrReject workflowNotificationForApprovedRejected = new sendEmailNotificationforBFMStep1ApproveOrReject(
+				reqId, entityTypeId,status);
+		mailTaskExecutor.execute(workflowNotificationForApprovedRejected);
+		logger.debug("End:Inside sendEmailNotificationforBFMStep1ApproveOrReject of workflow Approved/Rejected");
 	}
 
 	/**

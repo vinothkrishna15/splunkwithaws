@@ -29,6 +29,8 @@ public class ReportConstants {
 	
 	public static final String CUSTOMERCONTACTNAME = "custContactName";
 	public static final String CUSTOMERCONTACTROLE = "custContactRole";
+	public static final String PARTNERCONTACTNAME = "partnerContactName";
+	public static final String PARTNERCONTACTROLE = "partnerContactRole";
 
 	public static final String LINKOPPORTUNITY = "linkOpportunity";
 	public static final String OPPORTUNITYDESCRIPTION = "opportunityDescription";
@@ -74,6 +76,8 @@ public class ReportConstants {
 	public static final String CONNECTID = "Connect Id";
 	public static final String DISPLAYGEO = "Display Geography";
 	public static final String DISPLAYSERVICELINE = "Display Service Line";
+	public static final String DISPLAYPRIMARYSERVICELINE = "Display Primary Service Line";
+	public static final String DISPLAYSECONDARYSERVICELINE = "Display Secondary Service Line";
 	public static final String DISPLAYIOU = "Display Iou";
 	public static final String CONNECTNAME = "Connect Name";
 	public static final String GROUPCUSTOMERNAME = "Group Customer Name";
@@ -207,5 +211,10 @@ public class ReportConstants {
 	public static final String ANTICIPATING = "anticipating";
 	public static final String PROJECTDEALVALUE = "projectDealValue";
 	public static final String P = " (P)";
+	public static final String CRM_ID ="CRM ID";
+	
+	public static final String ENGAGEMENTDURATION = "engagementDuration";
+	public static final String DIGITALFLAG = "digitalFlag";
+	public static final String STRATEGICDEAL = "strategicDeal";
 
 }

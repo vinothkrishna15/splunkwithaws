@@ -32,6 +32,12 @@ import com.tcs.destination.config.ReportDataItem;
  */
 public class ReportUtil {
 
+	public static final String FONT_MYRIAD_PRO = "Myriad Pro";
+	public static final Integer FONT_SIZE_NORMAL = 10;
+	public static final Integer FONT_SIZE_HEADER = 12;
+	public static final Integer FONT_SIZE_TITLE = 14;
+	public static final Integer FONT_SIZE_SUB_TITLE = 12;
+
 	/**
 	 * Method used to build the report with the data source, columns , title
 	 * provided
@@ -46,13 +52,13 @@ public class ReportUtil {
 
 		PenBuilder borderStyle = DynamicReports.stl.penThin()
 				.setLineColor(new Color(219, 225, 232)).setLineWidth(1f);
-		FontBuilder titleFont = DynamicReports.stl.fontArial().setFontSize(14);
-		FontBuilder headerFont = DynamicReports.stl.fontArial().setFontSize(12);
-		FontBuilder normalFont = DynamicReports.stl.fontArial().setFontSize(10);
+		FontBuilder defaultFont = DynamicReports.stl.font().setFontName(FONT_MYRIAD_PRO);
 
-		StyleBuilder titleStyle = DynamicReports.stl.style().setFont(titleFont)
+		StyleBuilder titleStyle = DynamicReports.stl.style().setFontSize(FONT_SIZE_TITLE)
 				.setLineSpacingSize(10f).setBold(false);
 		title.setStyle(titleStyle);
+		
+		StyleBuilder subTitleStyle = DynamicReports.stl.style().setFontSize(FONT_SIZE_SUB_TITLE).italic().setBold(false);
 
 		StyleBuilder headerStyle = DynamicReports.stl
 				.style()
@@ -62,7 +68,7 @@ public class ReportUtil {
 				.setBackgroundColor(new Color(4, 125, 196))
 				// #007DC5
 				.setForegroundColor(Color.WHITE).setPadding(10)
-				.setFont(headerFont);
+				.setFontSize(FONT_SIZE_HEADER);
 
 		SimpleStyleBuilder highlightStyle = DynamicReports.stl.simpleStyle()
 				.setBackgroundColor(new Color(246, 247, 247));
@@ -72,12 +78,18 @@ public class ReportUtil {
 				.setTextAlignment(HorizontalTextAlignment.LEFT,
 						VerticalTextAlignment.TOP).setLeftBorder(borderStyle)
 				.setRightBorder(borderStyle).setTopBorder(borderStyle)
-				.setBottomBorder(borderStyle).setPadding(5).setFont(normalFont);
+				.setBottomBorder(borderStyle).setPadding(5).setFontSize(FONT_SIZE_NORMAL);
 
-		return DynamicReports.report()
-				.title(title, DynamicReports.cmp.verticalGap(5))
-				.columns(columns).setColumnTitleStyle(headerStyle)
-				.setColumnStyle(columnStyle).setDataSource(datasource)
+		return DynamicReports
+				.report()
+				.setDefaultFont(defaultFont)
+				.title(title,
+						DynamicReports.cmp.verticalGap(5),
+						DynamicReports.cmp.text("Details:").setStyle(
+								subTitleStyle),
+						DynamicReports.cmp.verticalGap(5)).columns(columns)
+				.setColumnTitleStyle(headerStyle).setColumnStyle(columnStyle)
+				.setDataSource(datasource)
 				.setDetailSplitType(SplitType.PREVENT).highlightDetailOddRows()
 				.setDetailOddRowStyle(highlightStyle);
 	}
@@ -149,11 +161,8 @@ public class ReportUtil {
 	 * @return
 	 */
 	private static JasperReportBuilder build(TextFieldBuilder<String> title) {
-		FontBuilder fontStyle = DynamicReports.stl.fontArial().setFontSize(14);
-		StyleBuilder titleStyle = DynamicReports.stl.style().setFont(fontStyle)
-				.setBold(false);
-		title.setStyle(titleStyle);
-		return DynamicReports.report().title(title);
+		FontBuilder fontStyle = DynamicReports.stl.font().setFontName(FONT_MYRIAD_PRO).setFontSize(FONT_SIZE_TITLE);
+		return DynamicReports.report().setDefaultFont(fontStyle).title(title);
 	}
 
 }

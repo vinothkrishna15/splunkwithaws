@@ -328,10 +328,8 @@ public class BeaconCustomerUploadService {
 	 * @param deleteList
 	 */
 	public void makeInactive(List<BeaconCustomerMappingT> deleteList) {
-		for(BeaconCustomerMappingT beaconCustomer : deleteList){
-			beaconCustomer.setActive(false);
-			beaconCustomerMappingRepository.save(beaconCustomer);
-		}
+	
+			beaconCustomerMappingRepository.save(deleteList);
 	}
 
 	/**

@@ -1,17 +1,24 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
+import java.util.List;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
-
-import java.sql.Timestamp;
-import java.util.List;
-
 
 /**
  * The persistent class for the documents_t database table.
@@ -187,5 +194,4 @@ public class DocumentsT implements Serializable {
 		this.searchKeywordsTs = searchKeywordsTs;
 	}
 
-    
 }

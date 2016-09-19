@@ -14,6 +14,7 @@ import java.util.List;
 import javax.servlet.WriteListener;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,13 +26,11 @@ import org.springframework.batch.item.ItemWriter;
 
 import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.DataProcessingRequestT;
-import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
 import com.tcs.destination.enums.Operation;
 import com.tcs.destination.enums.RequestStatus;
-import com.tcs.destination.helper.CustomerContactUploadHelper;
 import com.tcs.destination.helper.ProductContactUploadHelper;
 import com.tcs.destination.service.ContactService;
 import com.tcs.destination.service.UploadErrorReport;
@@ -155,11 +154,11 @@ public class ProductContactCustomWriter implements ItemWriter<String[]>,
 			ContactT contact = new ContactT();
 			UploadServiceErrorDetailsDTO errorDTO = helper.validateProductContactData(data, request.getUserT()
 							.getUserId(), contact);
-			if (errorDTO.getMessage() != null) {
+			if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
 				errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
 						: errorList;
 				errorList.add(errorDTO);
-			} else if (errorDTO.getMessage() == null) {
+			} else {
 				contactList.add(contact);
 			}
 			}
@@ -167,20 +166,25 @@ public class ProductContactCustomWriter implements ItemWriter<String[]>,
 			{
 
 				logger.debug("***PRODUCT CONTACT UPDATE***");
-				String contactId =data[2];
+				String contactId = null;
+				if(data[2]!=null){
+					contactId = data[2].trim();
+				}
+				
 				ContactT contact = new ContactT();
                 UploadServiceErrorDetailsDTO errorDTO = new UploadServiceErrorDetailsDTO();
-				if (!contactId.isEmpty()) {
+				if (!StringUtils.isEmpty(contactId)) {
 					try{
 						
 						contact= contactRepository.findByContactId(contactId);
 						if (contact != null) {
 						errorDTO = helper.validateProductContactDataUpdate(data, request.getUserT().getUserId() ,contact);
-						if (errorDTO.getMessage() != null) {
+						if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
 							errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 							errorList.add(errorDTO);
+							logger.info("contact "+contact);
 						} 
-						else if (errorDTO.getMessage() == null) {
+						else  {
 							updateList.add(contact);
 						}
 					} else {
@@ -206,10 +210,11 @@ public class ProductContactCustomWriter implements ItemWriter<String[]>,
 				contactT = contactRepository.findByContactId(data[2]);
 				 UploadServiceErrorDetailsDTO errorDTO = helper.validateContactId(data, request.getUserT().getUserId(), contactT);
 				 
-				 if (errorDTO.getMessage() != null) {
+				 if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 						errorList.add(errorDTO);
-					} else if (errorDTO.getMessage() == null) {
+						contactT = null;
+					} else {
 						deleteList.add(contactT);
 				}
 			
@@ -220,13 +225,13 @@ public class ProductContactCustomWriter implements ItemWriter<String[]>,
 			}
 		}
 		if ((CollectionUtils.isNotEmpty(contactList)) || (CollectionUtils.isNotEmpty(updateList)) || (CollectionUtils.isNotEmpty(deleteList))) {
-			if (operation.equalsIgnoreCase(Operation.ADD.name())) {
+			if (CollectionUtils.isNotEmpty(contactList)) {
 				contactService.saveContacts(contactList);
 			} 
-			else if (operation.equalsIgnoreCase(Operation.UPDATE.name())){ 
+			else if (CollectionUtils.isNotEmpty(updateList)){ 
 				contactService.updateContact(updateList);
 			}
-			else if (operation.equalsIgnoreCase(Operation.DELETE.name())){ 
+			else if (CollectionUtils.isNotEmpty(deleteList)){ 
 				contactService.deleteContact(deleteList);
 			}
 		}

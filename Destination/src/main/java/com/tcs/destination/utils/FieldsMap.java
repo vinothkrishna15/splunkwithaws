@@ -27,9 +27,11 @@ public class FieldsMap {
 		fieldsMap.put("customerOrPartnerName", "Customer/Partner Name");
 		fieldsMap.put("tcsAccountContact", "Tcs Account Contact");
 		fieldsMap.put("custContactName", "Customer Contact Name");
+		fieldsMap.put("partnerContactName", "Partner Contact Name");
 		
 		fieldsMap.put("tcsAccountRole", "Tcs Account Role");
 		fieldsMap.put("custContactRole", "Customer Contact Role");
+		fieldsMap.put("partnerContactRole", "Partner Contact Role");
 		
 		fieldsMap.put("linkOpportunity", "Link Opportunity");
 		fieldsMap.put("connectNotes", "Connect Notes");
@@ -61,6 +63,9 @@ public class FieldsMap {
 		fieldsMap.put("opportunityOwner", "Opportunity Owner");
 		fieldsMap.put("projectDealValue", "Project Currency");
 		fieldsMap.put("requestReceivedDate", "Request Received Date");
+		fieldsMap.put("engagementDuration", "Engagement Duration");
+		fieldsMap.put("digitalFlag", "Digital Reimagination");
+		fieldsMap.put("strategicDeal", "Strategic Deal");
 	}
 	
 	static {
@@ -91,10 +96,13 @@ public class FieldsMap {
 		bdmReportFieldMap.put("projectDealValue", "Project Currency");
 		bdmReportFieldMap.put("opportunityName", "Opportunity Name");
 		bdmReportFieldMap.put("targetBidSubmissionDate", "Target BID Submission Date");
-		bdmReportFieldMap.put("winProbability", "Win probability");
+		bdmReportFieldMap.put("actualBidSubmissionDate", "Actual BID Submission Date");
+        bdmReportFieldMap.put("winProbability", "Win probability");
 		bdmReportFieldMap.put("factorsForWinLoss", "Factors for Win/Loss");
 		bdmReportFieldMap.put("dealClosureComments", "Deal closure comments");
 		bdmReportFieldMap.put("dealRemarksNotes", "Deal Remarks Notes");
+		bdmReportFieldMap.put("competitors", "Competitor Name");
+		bdmReportFieldMap.put("partnershipsInvolved", "Partner Name");
 		bdmReportFieldMap.put("subSp", "SUB SP");
 		bdmReportFieldMap.put("dealClosureDate", "Deal Closure Date");
 		bdmReportFieldMap.put("createdBy", "Created By");

@@ -874,9 +874,12 @@ public class OpportunityService {
 	 */
 	public OpportunityT findByOpportunityId(String opportunityId,
 			List<String> toCurrency) throws Exception {
-		logger.debug("Inside findByOpportunityId() service");
+		logger.debug("Inside findByOpportunityId() service");	
+		boolean isBfmRaied = false;
 		OpportunityT opportunity = opportunityRepository
 				.findByOpportunityId(opportunityId);
+		int[] bfmEntityTypeIds = {Constants.CONSTANT_FOUR,Constants.CONSTANT_FIVE,Constants.CONSTANT_SIX,Constants.CONSTANT_SEVEN,Constants.CONSTANT_EIGHT};
+		List<String> workflowBfmIds = new ArrayList<String>();
 		if (opportunity != null) {
 			// Add Search Keywords
 			List<SearchKeywordsT> searchKeywords = searchKeywordsRepository
@@ -899,7 +902,20 @@ public class OpportunityService {
 			if (CollectionUtils.isNotEmpty(workflowRequests)) {
 				opportunity.setWorkflowRequest(workflowRequests.get(0));
 			}
+			// flag to check whether workflow bfm is raised already for this opportunity
+			List<WorkflowBfmT> workflowBfmTs = workflowBfmTRepository.findWorkflowBfmIdByOpportunityId(opportunityId);
+			if(workflowBfmTs.size() > 0){
+				for(WorkflowBfmT bfm : workflowBfmTs){
+					workflowBfmIds.add(bfm.getWorkflowBfmId());
+				}
+				WorkflowRequestT workflowBfmRequest = workflowRequestRepository.findByEntityIdInAndStatusAndEntityTypeIdIn(workflowBfmIds,
+						WorkflowStatus.PENDING.getStatus(), bfmEntityTypeIds);
+				if(workflowBfmRequest != null) {
+					isBfmRaied = true;
+				}
+			}
 
+			opportunity.setWorkflowBfmRaised(isBfmRaied);
 			return opportunity;
 		} else {
 			logger.error("NOT_FOUND: Opportunity not found: {}", opportunityId);
@@ -1038,15 +1054,14 @@ public class OpportunityService {
 			OpportunityT opportunity, Status status) throws Exception {
 		List<Integer> bfmSalesStages = Arrays.asList(5, 6, 7, 8, 9);
 		WorkflowBfmT workflowBfmSaved = new WorkflowBfmT();
-		if (bfmSalesStages.contains(opportunity.getSalesStageCode())) {
+		if( bfmSalesStages.contains(opportunity.getSalesStageCode()) 
+				&& opportunity.getDealFinancialFile() != null 
+				&& opportunity.getDealFinancialFile().length > 0) {
 			WorkflowBfmT workflowBfmt = new WorkflowBfmT();
+			
 			if (opportunity.getBfmFileName() == null) {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"BFM file name should not be empty!");
-			}
-			if (opportunity.getDealFinancialFile() == null) {
-				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"Deal Financial File should not be empty!");
 			}
 			workflowBfmt.setBfmFileName(opportunity.getBfmFileName());
 			workflowBfmt.setDealFinancialFile(opportunity
@@ -1065,9 +1080,8 @@ public class OpportunityService {
 						workflowBfmSaved.getWorkflowBfmId(),
 						createdOpportunity, status);
 			}
-		} else {
-			status.setStatus(Status.SUCCESS, opportunity.getOpportunityId()
-					+ " : " + opportunity.getOpportunityName() + " is Saved !!");
+		}else{
+			status.setStatus(Status.SUCCESS, opportunity.getOpportunityId());	
 		}
 	}
 
@@ -1271,7 +1285,8 @@ public class OpportunityService {
 	 * @param opportunity
 	 */
 	public void validateInactiveIndicators(OpportunityT opportunity) {
-		// createdBy
+
+		//createdBy
 		String createdBy = opportunity.getCreatedBy();
 		if (StringUtils.isNotBlank(createdBy)
 				&& userRepository.findByActiveTrueAndUserId(createdBy) == null) {
@@ -1781,8 +1796,9 @@ public class OpportunityService {
 		// Update database
 		OpportunityT afterOpp = saveOpportunity(opportunity, true, userGroup,
 				opportunityBeforeEdit);
-		// check sales stage code and save deal financial file in workflowbfm_t
-		if (afterOpp != null) {
+		// check sales stage code and save deal financial file in workflowbfm_t  
+
+		if(afterOpp.getOpportunityId() != null) {
 			saveBfmFile(afterOpp, opportunity, status);
 		}
 		if (afterOpp != null) {
@@ -1997,6 +2013,7 @@ public class OpportunityService {
 				checkAccessControl(opportunityT, previledgedOppIdList);
 				checkDeliveryTeamAccessControl(opportunityT,
 						previledgedOppIdList);
+
 			}
 
 		} catch (Exception e) {
@@ -2005,6 +2022,7 @@ public class OpportunityService {
 		}
 		setUserFavourite(opportunityT);
 		setSearchKeywordTs(opportunityT);
+		removeCyclicForLinkedContacts(opportunityT);
 		removeCyclicForLinkedConnects(opportunityT);
 		removeCyclicForCustomers(opportunityT);
 	}
@@ -2023,8 +2041,9 @@ public class OpportunityService {
 	private void checkAccessControl(OpportunityT opportunityT,
 			List<String> previledgedOppIdList) throws Exception {
 		// previledgedOppIdList is null only while it is a single opportunity.
+
 		if (previledgedOppIdList != null) {
-			if (!previledgedOppIdList.contains(opportunityT.getOpportunityId())) {
+			if (!previledgedOppIdList.contains(opportunityT.getOpportunityId()) && (!opportunityT.isEnableEditAccess())) {
 				preventSensitiveInfo(opportunityT);
 			}
 		} else {
@@ -2088,6 +2107,20 @@ public class OpportunityService {
 						.getConnectOpportunityLinkIdTs()) {
 					connectOpportunityLinkIdT.getConnectT()
 							.setConnectOpportunityLinkIdTs(null);
+				}
+			}
+		}
+	}
+	private void  removeCyclicForLinkedContacts(OpportunityT opportunityT) {
+		logger.debug("Inside removeCyclicForLinkedContacts() method");
+
+		if (opportunityT != null) {
+			if (opportunityT.getOpportunityPartnerLinkTs() != null) {
+				for (OpportunityPartnerLinkT opportunityPartnerLinkT : opportunityT
+						.getOpportunityPartnerLinkTs()) {
+					opportunityPartnerLinkT.getPartnerMasterT().setOpportunityPartnerLinkTs(null);
+					opportunityPartnerLinkT.getPartnerMasterT().setPartnerMasterT(null);
+
 				}
 			}
 		}
@@ -3390,12 +3423,14 @@ public class OpportunityService {
 	 * @param opportunity
 	 * @param userGroup
 	 * @param userId
+	 * @param isUpdate 
 	 * @return
 	 */
 	private boolean isEditAccessRequiredForOpportunity(
-			OpportunityT opportunity, String userGroup, String userId,
-			boolean isUpdate) {
-		logger.info("Inside isEditAccessRequiredForOpportunity method");
+			OpportunityT opportunity, String userGroup, String userId, boolean isUpdate) {
+
+		logger.debug("Inside isEditAccessRequiredForOpportunity method");
+
 		boolean isEditAccessRequired = false;
 		if (isUserOwner(userId, opportunity)) {
 			isEditAccessRequired = true;
@@ -3430,8 +3465,9 @@ public class OpportunityService {
 				break;
 			}
 		}
-		logger.info("Is Edit Access Required for connect: "
-				+ isEditAccessRequired);
+
+		logger.debug("Is Edit Access Required for Opportunity: " +isEditAccessRequired);
+
 		return isEditAccessRequired;
 	}
 

@@ -70,7 +70,7 @@ public class SpreadSheetReader implements ItemReader<String[]>, ReadListener {
 						
 						case Cell.CELL_TYPE_NUMERIC:
 							if(!DateUtil.isCellDateFormatted(cell)) {
-								value = cell.toString();
+								value = cell.toString().trim();
 							} else {
 								Date date = cell.getDateCellValue();
 								DateFormat formatter = new SimpleDateFormat("dd/MM/yy");
@@ -78,7 +78,7 @@ public class SpreadSheetReader implements ItemReader<String[]>, ReadListener {
 							}
 							break;
 						default:
-							value = cell.toString();
+							value = cell.toString().trim();
 							break;
 						}
 						returnValue[i + 1] = value;

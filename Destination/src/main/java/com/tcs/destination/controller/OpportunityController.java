@@ -1001,7 +1001,7 @@ public class OpportunityController {
 			@RequestParam("term") String term)
 			throws DestinationException {
 
-		logger.info("Inside OpportunityController: Start of /opportunity/recent GET");
+		logger.info("Inside OpportunityController: Start of /opportunity/search/link GET");
 		String response = null;
 		PaginatedResponse paginatedResponse = null;
 		try {
@@ -1017,7 +1017,7 @@ public class OpportunityController {
 					"Backend error in retieving the opportunity detail for the customer id:"
 							+ customerId);
 		}
-		logger.info("Inside OpportunityController End of /opportunity/recent GET");
+		logger.info("Inside OpportunityController End of /opportunity/search/link GET");
 		return response;
 	}
 	

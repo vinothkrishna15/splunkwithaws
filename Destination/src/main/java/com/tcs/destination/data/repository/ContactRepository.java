@@ -38,6 +38,8 @@ public interface ContactRepository extends CrudRepository<ContactT, String> {
 	
 	List<ContactT> findByContactName(String contactName);
 	
+	List<ContactT> findByContactNameAndContactEmailId(String contactName, String emailId);
+	
 	
 	ContactT findByContactId(String contactId);
 	
@@ -81,8 +83,8 @@ public interface ContactRepository extends CrudRepository<ContactT, String> {
 	 * @param connectId
 	 * @return
 	 */
-	@Query(value = "select contact_name,contact_role from contact_t CONT "
-			+ "join connect_tcs_account_contact_link_t CTACL on CONT.contact_id=CTACL.contact_id where CTACL.connect_id=?1" , nativeQuery = true)
+	@Query(value = "select contact_name,case when contact_role <> 'Other' then contact_role else other_role end as contactRole from contact_t CONT "
+			+ " join connect_tcs_account_contact_link_t CTACL on CONT.contact_id=CTACL.contact_id where CTACL.connect_id=?1" , nativeQuery = true)
 	List<Object[]> findTcsAccountContactNamesByConnectId(String connectId);
 	
 	/**
@@ -90,10 +92,10 @@ public interface ContactRepository extends CrudRepository<ContactT, String> {
 	 * @param opportunityId
 	 * @return
 	 */
-	@Query(value = "select contact_name,contact_role from contact_t CONT "
+	@Query(value = "select contact_name,case when contact_role <> 'Other' then contact_role else other_role end as contactRole from contact_t CONT "
 			+ "join connect_customer_contact_link_t CCACL on CONT.contact_id=CCACL.contact_id where CCACL.connect_id=?1" , nativeQuery = true)
 	List<Object[]> findCustomerContactNamesByConnectId(String connectId);
-	
+
 	/**
 	 * This method to find the duplicate contacts for a customer
 	 * @param customerId
@@ -105,6 +107,18 @@ public interface ContactRepository extends CrudRepository<ContactT, String> {
 	 */
 	@Query(value = "select * from contact_t where contact_id in (select contact_id from contact_customer_link_t where customer_id = ?1) and contact_type = ?2 and contact_category = ?3 and contact_name = ?4 and contact_role = ?5",nativeQuery = true)
 	List<ContactT> findDuplicateCustomerContacts(String customerId, String contactType, String contactCategory, String conatctName, String contactRole);
+	
+	
+	/**
+	 * This Method is used to get partner contact names for the given connectId
+	 * @param opportunityId
+	 * @return
+	 */
+	@Query(value = "select contact_name,case when contact_role <> 'Other' then contact_role else other_role end as contactRole"
++ " from contact_t CONT where contact_id "
++ " in (select contact_id from partner_contact_link_t where partner_id in "
++ " (select partner_id from connect_t where connect_id=?1))" , nativeQuery = true)
+	List<Object[]> findPartnerContactNamesByConnectId(String connectId);
 	
 	/**
 	 * This method to find the duplicate contacts for a partner
@@ -207,6 +221,9 @@ public interface ContactRepository extends CrudRepository<ContactT, String> {
 			+ "ORDER BY contact_name DESC "
 			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
 	List<ContactT> getContactsByCustomer(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	@Query(value ="select distinct(CON.*) from contact_t CON, product_contact_link_t PRDCLT where CON.active='true' and ((CON.contact_id=PRDCLT.contact_id and PRDCLT.product_id = ?1) or ?1='')", nativeQuery = true)
+	List<ContactT> findContactsByProductId(String productId);
 	
 	/* ---------- ends - repository methods for smart search --------- */
 }

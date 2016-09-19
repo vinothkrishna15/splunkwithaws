@@ -160,6 +160,7 @@ public class ContactController {
 	public @ResponseBody ResponseEntity<String> findContactsByContactType(
 			@RequestParam(value = "customerId", defaultValue = "") String customerId,
 			@RequestParam(value = "partnerId", defaultValue = "") String partnerId,
+			@RequestParam(value = "productId", defaultValue = "") String productId,
 			@RequestParam(value = "contactType", defaultValue = "") String contactType,
 			@RequestParam(value = "page", defaultValue = "0") int page,
 			@RequestParam(value = "count", defaultValue = "100") int count,
@@ -170,12 +171,12 @@ public class ContactController {
 		logger.info("Inside ContactController: Start of retrieving the contacts by contact type");
 		PaginatedResponse paginatedContacts=null;
 		try {
-			if (!customerId.isEmpty() || !partnerId.isEmpty()) {
+			if (!customerId.isEmpty() || !partnerId.isEmpty() || !productId.isEmpty()) {
 				paginatedContacts = contactService.findContactsByContactType(
-						customerId, partnerId, contactType, userId,page,count);
+						customerId, partnerId, productId,contactType, userId,page,count);
 			} else {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"Either CustomerId or PartnerId is required");
+						"Either CustomerId or PartnerId or ProductId is required");
 			}
 			logger.info("Inside ContactController: End of retrieving the contacts by contact type");
 			return new ResponseEntity<String>(

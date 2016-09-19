@@ -8,7 +8,7 @@ import com.tcs.destination.config.ReportDataItem;
  */
 public class OpportunityRFPSubmitted {
  
-	@ReportDataItem(columnName = "Opportunity ID", width = 70)
+	@ReportDataItem(columnName = "Opportunity ID", width = 80)
 	private String opportunityId;
 	
 	@ReportDataItem(columnName = "CRM ID",width = 50)
@@ -20,11 +20,14 @@ public class OpportunityRFPSubmitted {
 	@ReportDataItem(columnName = "Opportunity Name")
 	private String opportunityName;
 	
-	@ReportDataItem(columnName = "Sub SP",width = 60)
-	private String subSp;
-	
 	@ReportDataItem(columnName = "IOU",width = 40)
 	private String iou;
+	
+	@ReportDataItem(columnName = "Opportunity Description")
+	private String opportunityDescription;
+	
+	@ReportDataItem(columnName = "Sub SP",width = 60)
+	private String subSp;
 	
 	@ReportDataItem(columnName = "Deal Value\n(USD)",width = 60)
 	private String dealValue;
@@ -32,10 +35,10 @@ public class OpportunityRFPSubmitted {
 	@ReportDataItem(columnName = "Outcome Expected on",width = 70)
 	private String outcomeExpectedDate;
 	
-	@ReportDataItem(columnName = "Competitors")
+	@ReportDataItem(columnName = "Competitors",width = 75)
 	private String competitors;
 	
-	@ReportDataItem(columnName = "Owner")
+	@ReportDataItem(columnName = "Owner",width = 50)
 	private String owner;
 
 	public String getOpportunityId() {
@@ -117,7 +120,13 @@ public class OpportunityRFPSubmitted {
 	public void setOwner(String owner) {
 		this.owner = owner;
 	}
-	
-	
+
+	public String getOpportunityDescription() {
+		return opportunityDescription;
+	}
+
+	public void setOpportunityDescription(String opportunityDescription) {
+		this.opportunityDescription = opportunityDescription;
+	}
 	
 }
