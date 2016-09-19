@@ -62,21 +62,6 @@ public class AuditDeliveryMasterT implements Serializable {
 	@Column(name="new_gl_name")
 	private String newGlName;
 
-	@Column(name="new_num_junior")
-	private Integer newNumJunior;
-
-	@Column(name="new_num_offshore")
-	private Integer newNumOffshore;
-
-	@Column(name="new_num_onsite")
-	private Integer newNumOnsite;
-
-	@Column(name="new_num_senior")
-	private Integer newNumSenior;
-
-	@Column(name="new_num_skilled")
-	private Integer newNumSkilled;
-
 	@Column(name="new_odc")
 	private String newOdc;
 
@@ -88,12 +73,6 @@ public class AuditDeliveryMasterT implements Serializable {
 
 	@Column(name="new_pl_name")
 	private String newPlName;
-
-	@Column(name="new_project_fulfilment")
-	private String newProjectFulfilment;
-
-	@Column(name="new_rgs_id")
-	private String newRgsId;
 
 	@Temporal(TemporalType.DATE)
 	@Column(name="new_scheduled_start_date")
@@ -131,21 +110,6 @@ public class AuditDeliveryMasterT implements Serializable {
 	@Column(name="old_gl_name")
 	private String oldGlName;
 
-	@Column(name="old_num_junior")
-	private Integer oldNumJunior;
-
-	@Column(name="old_num_offshore")
-	private Integer oldNumOffshore;
-
-	@Column(name="old_num_onsite")
-	private Integer oldNumOnsite;
-
-	@Column(name="old_num_senior")
-	private Integer oldNumSenior;
-
-	@Column(name="old_num_skilled")
-	private Integer oldNumSkilled;
-
 	@Column(name="old_odc")
 	private String oldOdc;
 
@@ -157,12 +121,6 @@ public class AuditDeliveryMasterT implements Serializable {
 
 	@Column(name="old_pl_name")
 	private String oldPlName;
-
-	@Column(name="old_project_fulfilment")
-	private String oldProjectFulfilment;
-
-	@Column(name="old_rgs_id")
-	private String oldRgsId;
 
 	@Temporal(TemporalType.DATE)
 	@Column(name="old_scheduled_start_date")
@@ -265,46 +223,6 @@ public class AuditDeliveryMasterT implements Serializable {
 		this.newGlName = newGlName;
 	}
 
-	public Integer getNewNumJunior() {
-		return this.newNumJunior;
-	}
-
-	public void setNewNumJunior(Integer newNumJunior) {
-		this.newNumJunior = newNumJunior;
-	}
-
-	public Integer getNewNumOffshore() {
-		return this.newNumOffshore;
-	}
-
-	public void setNewNumOffshore(Integer newNumOffshore) {
-		this.newNumOffshore = newNumOffshore;
-	}
-
-	public Integer getNewNumOnsite() {
-		return this.newNumOnsite;
-	}
-
-	public void setNewNumOnsite(Integer newNumOnsite) {
-		this.newNumOnsite = newNumOnsite;
-	}
-
-	public Integer getNewNumSenior() {
-		return this.newNumSenior;
-	}
-
-	public void setNewNumSenior(Integer newNumSenior) {
-		this.newNumSenior = newNumSenior;
-	}
-
-	public Integer getNewNumSkilled() {
-		return this.newNumSkilled;
-	}
-
-	public void setNewNumSkilled(Integer newNumSkilled) {
-		this.newNumSkilled = newNumSkilled;
-	}
-
 	public String getNewOdc() {
 		return this.newOdc;
 	}
@@ -335,22 +253,6 @@ public class AuditDeliveryMasterT implements Serializable {
 
 	public void setNewPlName(String newPlName) {
 		this.newPlName = newPlName;
-	}
-
-	public String getNewProjectFulfilment() {
-		return this.newProjectFulfilment;
-	}
-
-	public void setNewProjectFulfilment(String newProjectFulfilment) {
-		this.newProjectFulfilment = newProjectFulfilment;
-	}
-
-	public String getNewRgsId() {
-		return this.newRgsId;
-	}
-
-	public void setNewRgsId(String newRgsId) {
-		this.newRgsId = newRgsId;
 	}
 
 	public Date getNewScheduledStartDate() {
@@ -441,46 +343,6 @@ public class AuditDeliveryMasterT implements Serializable {
 		this.oldGlName = oldGlName;
 	}
 
-	public Integer getOldNumJunior() {
-		return this.oldNumJunior;
-	}
-
-	public void setOldNumJunior(Integer oldNumJunior) {
-		this.oldNumJunior = oldNumJunior;
-	}
-
-	public Integer getOldNumOffshore() {
-		return this.oldNumOffshore;
-	}
-
-	public void setOldNumOffshore(Integer oldNumOffshore) {
-		this.oldNumOffshore = oldNumOffshore;
-	}
-
-	public Integer getOldNumOnsite() {
-		return this.oldNumOnsite;
-	}
-
-	public void setOldNumOnsite(Integer oldNumOnsite) {
-		this.oldNumOnsite = oldNumOnsite;
-	}
-
-	public Integer getOldNumSenior() {
-		return this.oldNumSenior;
-	}
-
-	public void setOldNumSenior(Integer oldNumSenior) {
-		this.oldNumSenior = oldNumSenior;
-	}
-
-	public Integer getOldNumSkilled() {
-		return this.oldNumSkilled;
-	}
-
-	public void setOldNumSkilled(Integer oldNumSkilled) {
-		this.oldNumSkilled = oldNumSkilled;
-	}
-
 	public String getOldOdc() {
 		return this.oldOdc;
 	}
@@ -513,22 +375,6 @@ public class AuditDeliveryMasterT implements Serializable {
 		this.oldPlName = oldPlName;
 	}
 
-	public String getOldProjectFulfilment() {
-		return this.oldProjectFulfilment;
-	}
-
-	public void setOldProjectFulfilment(String oldProjectFulfilment) {
-		this.oldProjectFulfilment = oldProjectFulfilment;
-	}
-
-	public String getOldRgsId() {
-		return this.oldRgsId;
-	}
-
-	public void setOldRgsId(String oldRgsId) {
-		this.oldRgsId = oldRgsId;
-	}
-
 	public Date getOldScheduledStartDate() {
 		return this.oldScheduledStartDate;
 	}
@@ -552,5 +398,4 @@ public class AuditDeliveryMasterT implements Serializable {
 	public void setOperationType(Integer operationType) {
 		this.operationType = operationType;
 	}
-
 }
