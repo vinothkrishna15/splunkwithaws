@@ -45,21 +45,6 @@ public class DeliveryMasterT implements Serializable {
 	@Column(name="modified_datetime")
 	private Timestamp modifiedDatetime;
 	
-	@Column(name="num_junior")
-	private Integer numJunior;
-
-	@Column(name="num_offshore")
-	private Integer numOffshore;
-
-	@Column(name="num_onsite")
-	private Integer numOnsite;
-
-	@Column(name="num_senior")
-	private Integer numSenior;
-
-	@Column(name="num_skilled")
-	private Integer numSkilled;
-	
 	@Column(name="gl_id")
 	private String glId;
 
@@ -71,9 +56,6 @@ public class DeliveryMasterT implements Serializable {
 
 	@Column(name="pl_name")
 	private String plName;
-	
-	@Column(name="project_fulfilment")
-	private String projectFulfilment;
 	
 	private String odc;
 
@@ -107,6 +89,9 @@ public class DeliveryMasterT implements Serializable {
 	
 	@Column(name="modified_by")
 	private String modifiedBy;
+	
+	@Column(name="engagement_name")
+	private String engagementName;
 
 	//bi-directional many-to-one association to DeliveryCentreT
 	@ManyToOne
@@ -182,14 +167,6 @@ public class DeliveryMasterT implements Serializable {
 
 	public void setModifiedDatetime(Timestamp modifiedDatetime) {
 		this.modifiedDatetime = modifiedDatetime;
-	}
-
-	public Integer getNumSkilled() {
-		return this.numSkilled;
-	}
-
-	public void setNumSkilled(Integer numSkilled) {
-		this.numSkilled = numSkilled;
 	}
 
 	public Date getScheduledStartDate() {
@@ -296,38 +273,6 @@ public class DeliveryMasterT implements Serializable {
 		this.deliveryResourcesTs = deliveryResourcesTs;
 	}
 
-	public Integer getNumJunior() {
-		return numJunior;
-	}
-
-	public void setNumJunior(Integer numJunior) {
-		this.numJunior = numJunior;
-	}
-
-	public Integer getNumOffshore() {
-		return numOffshore;
-	}
-
-	public void setNumOffshore(Integer numOffshore) {
-		this.numOffshore = numOffshore;
-	}
-
-	public Integer getNumOnsite() {
-		return numOnsite;
-	}
-
-	public void setNumOnsite(Integer numOnsite) {
-		this.numOnsite = numOnsite;
-	}
-
-	public Integer getNumSenior() {
-		return numSenior;
-	}
-
-	public void setNumSenior(Integer numSenior) {
-		this.numSenior = numSenior;
-	}
-
 	public String getGlId() {
 		return glId;
 	}
@@ -358,14 +303,6 @@ public class DeliveryMasterT implements Serializable {
 
 	public void setPlName(String plName) {
 		this.plName = plName;
-	}
-
-	public String getProjectFulfilment() {
-		return projectFulfilment;
-	}
-
-	public void setProjectFulfilment(String projectFulfilment) {
-		this.projectFulfilment = projectFulfilment;
 	}
 
 	public String getOdc() {
@@ -407,7 +344,13 @@ public class DeliveryMasterT implements Serializable {
 	public void setDeliveryManagerUser(UserT deliveryManagerUser) {
 		this.deliveryManagerUser = deliveryManagerUser;
 	}
-	
-	
 
+	public String getEngagementName() {
+		return engagementName;
+	}
+
+	public void setEngagementName(String engagementName) {
+		this.engagementName = engagementName;
+	}
+	
 }

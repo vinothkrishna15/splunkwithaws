@@ -35,8 +35,6 @@ public class DeliveryResourcesT implements Serializable {
 	@Column(name="created_datetime")
 	private Timestamp createdDatetime;
 
-	private String experience;
-
 	@Column(name="modified_by")
 	private String modifiedBy;
 
@@ -46,15 +44,7 @@ public class DeliveryResourcesT implements Serializable {
 	@Column(name="requirement_fulfillment")
 	private String requirementFulfillment;
 
-	@Column(name="resources_provided")
-	private Integer resourcesProvided;
-
-	@Column(name="resources_required")
-	private Integer resourcesRequired;
-
 	private String role;
-
-	private String site;
 
 	private String skill;
 	
@@ -68,6 +58,21 @@ public class DeliveryResourcesT implements Serializable {
 	
 	@Column(name="rgs_id")
 	private String rgsId;
+	
+	// bi-directional many-to-one association to DeliveryRgsT
+	@ManyToOne
+	@JoinColumn(name = "rgs_id", insertable = false, updatable = false)
+	private DeliveryRgsT deliveryRgsT;
+	
+	// bi-directional many-to-one association to UserT
+	@ManyToOne
+	@JoinColumn(name = "created_by", insertable = false, updatable = false)
+	private UserT createdByUser;
+
+	// bi-directional many-to-one association to UserT
+	@ManyToOne
+	@JoinColumn(name = "modified_by", insertable = false, updatable = false)
+	private UserT modifiedByUser;
 
 	public DeliveryResourcesT() {
 	}
@@ -96,14 +101,6 @@ public class DeliveryResourcesT implements Serializable {
 		this.createdDatetime = createdDatetime;
 	}
 
-	public String getExperience() {
-		return this.experience;
-	}
-
-	public void setExperience(String experience) {
-		this.experience = experience;
-	}
-
 	public String getModifiedBy() {
 		return this.modifiedBy;
 	}
@@ -128,36 +125,12 @@ public class DeliveryResourcesT implements Serializable {
 		this.requirementFulfillment = requirementFulfillment;
 	}
 
-	public Integer getResourcesProvided() {
-		return this.resourcesProvided;
-	}
-
-	public void setResourcesProvided(Integer resourcesProvided) {
-		this.resourcesProvided = resourcesProvided;
-	}
-
-	public Integer getResourcesRequired() {
-		return this.resourcesRequired;
-	}
-
-	public void setResourcesRequired(Integer resourcesRequired) {
-		this.resourcesRequired = resourcesRequired;
-	}
-
 	public String getRole() {
 		return this.role;
 	}
 
 	public void setRole(String role) {
 		this.role = role;
-	}
-
-	public String getSite() {
-		return this.site;
-	}
-
-	public void setSite(String site) {
-		this.site = site;
 	}
 
 	public String getSkill() {
@@ -190,6 +163,30 @@ public class DeliveryResourcesT implements Serializable {
 
 	public void setRgsId(String rgsId) {
 		this.rgsId = rgsId;
+	}
+
+	public DeliveryRgsT getDeliveryRgsT() {
+		return deliveryRgsT;
+	}
+
+	public void setDeliveryRgsT(DeliveryRgsT deliveryRgsT) {
+		this.deliveryRgsT = deliveryRgsT;
+	}
+
+	public UserT getCreatedByUser() {
+		return createdByUser;
+	}
+
+	public void setCreatedByUser(UserT createdByUser) {
+		this.createdByUser = createdByUser;
+	}
+
+	public UserT getModifiedByUser() {
+		return modifiedByUser;
+	}
+
+	public void setModifiedByUser(UserT modifiedByUser) {
+		this.modifiedByUser = modifiedByUser;
 	}
 	
 }
