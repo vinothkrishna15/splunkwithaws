@@ -16,10 +16,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryClusterT;
 import com.tcs.destination.bean.DeliveryMasterT;
+import com.tcs.destination.bean.DeliveryResourcesT;
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.UserT;
@@ -27,6 +30,8 @@ import com.tcs.destination.data.repository.DeliveryCentreRepository;
 import com.tcs.destination.data.repository.DeliveryClusterRepository;
 import com.tcs.destination.data.repository.DeliveryMasterPagingRepository;
 import com.tcs.destination.data.repository.DeliveryMasterRepository;
+import com.tcs.destination.data.repository.DeliveryResourcesRepository;
+import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.DestinationUtils;
@@ -56,6 +61,12 @@ public class DeliveryMasterService {
 	
 	@Autowired
 	DeliveryClusterRepository deliveryClusterRepository;
+	
+	@Autowired
+	DeliveryResourcesRepository deliveryResourcesRepository;
+	
+	@Autowired
+	UserRepository userRepository;
 	
 	
 	private static final Map<String,String>ATTRIBUTE_MAP;
@@ -110,6 +121,11 @@ public class DeliveryMasterService {
 			if (deliveryCentreT != null) {
 				Integer deliveryCentreId = deliveryCentreT
 						.getDeliveryCentreId();
+				
+				List<Integer> deliveryCentreIds = new ArrayList<Integer>();
+				deliveryCentreIds.add(deliveryCentreId);
+				deliveryCentreIds.add(-1);
+				
 				orderBy = ATTRIBUTE_MAP.get(orderBy);
 				if (order.equalsIgnoreCase("DESC")) {
 					sort = new Sort(Direction.DESC, orderBy);
@@ -120,8 +136,8 @@ public class DeliveryMasterService {
 				pageable = new PageRequest(0, 20, sort);
 
 				deliveryMasterTs = deliveryMasterPagingRepository
-						.findByDeliveryCentreIdAndDeliveryStageIn(
-								deliveryCentreId, stages, pageable);
+						.findByDeliveryCentreIdInAndDeliveryStageIn(
+								deliveryCentreIds, stages, pageable);
 
 			}
 			break;
@@ -136,6 +152,8 @@ public class DeliveryMasterService {
 			for (DeliveryCentreT deliveryCentre : deliveryCentres) {
 				deliveryCentreIds.add(deliveryCentre.getDeliveryCentreId());
 			}
+			deliveryCentreIds.add(-1);
+			
 			orderBy = ATTRIBUTE_MAP.get(orderBy);
 			if (order.equalsIgnoreCase("DESC")) {
 				sort = new Sort(Direction.DESC, orderBy);
@@ -193,6 +211,92 @@ public class DeliveryMasterService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Delivery Master not found: " + deliveryMasterId);
 		}
+	}
+
+	@Transactional
+	public boolean updateDelivery(DeliveryMasterT deliveryMaster) throws Exception {
+		
+		
+			logger.debug("Inside updateDelivery() service");
+			String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+			
+			deliveryMaster.setModifiedBy(DestinationUtils.getCurrentUserDetails()
+					.getUserId());
+			
+			Integer deliveryMasterId = deliveryMaster.getDeliveryMasterId();
+			
+			if(deliveryMasterId == null){
+				logger.error("BAD_REQUEST: deliveryMasterId is required for update");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"deliveryMasterId is required for update");
+			}
+			
+			// Check if delivery Master exists
+			if (!deliveryMasterRepository.exists(deliveryMasterId)) {
+				logger.error("NOT_FOUND: DeliveryMaster Record not found for update: {}",
+						deliveryMasterId);
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"Engagement not found for update: " + deliveryMasterId);
+			}
+			
+			// Load db object before update with lazy collections populated for auto
+			// comments
+			// for edit access
+			UserT user = userRepository.findByUserId(userId);
+			String userGroup = user.getUserGroup();
+			DeliveryMasterT deliveryBeforeEdit = deliveryMasterRepository.findOne(deliveryMasterId);
+
+//			if (!isEditAccessRequiredForConnect(connectBeforeEdit, userGroup,
+//					userId)) {
+//				throw new DestinationException(HttpStatus.FORBIDDEN,
+//						"User is not authorized to edit this Connect");
+//			}
+//			ConnectT beforeConnect = loadDbConnectWithLazyCollections(connectId);
+//			// Copy the db object as the above object is managed by current
+//			// hibernate session
+//			ConnectT oldObject = (ConnectT) DestinationUtils.copy(beforeConnect);
+
+			// Update database
+			DeliveryMasterT deliveryAfterEdit = editDelivery(deliveryMaster);
+
+			if (deliveryAfterEdit != null) {
+				logger.info("Engagement has been updated successfully: " + deliveryMasterId);
+//				//			// Invoke Asynchronous Auto Comments Thread
+//				processAutoComments(connectId, oldObject);
+//				//			// Invoke Asynchronous Notifications Thread
+//				//			processNotifications(connectId, oldObject);
+				return true;
+    		}
+			return false;
+		
+	}
+	
+	public DeliveryMasterT editDelivery(DeliveryMasterT deliveryMasterT)
+			throws Exception {
+		
+		List<DeliveryResourcesT> deliveryResourcesTs = deliveryMasterT.getDeliveryResourcesTs();
+		
+		validateDeliveryMaster(deliveryMasterT);
+		
+		populateDeliveryMaster(deliveryMasterT);
+		
+		if(deliveryResourcesTs!=null){
+			deliveryResourcesRepository.save(deliveryResourcesTs);
+		}
+		
+		return (deliveryMasterRepository.save(deliveryMasterT));
+	}
+
+
+	private void validateDeliveryMaster(DeliveryMasterT deliveryMasterT) {
+		
+		
+	}
+
+
+	private void populateDeliveryMaster(DeliveryMasterT deliveryMasterT) {
+		
+		
 	}
 	
 }

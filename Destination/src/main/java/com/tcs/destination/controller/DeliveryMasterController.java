@@ -4,16 +4,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tcs.destination.bean.AsyncJobRequest;
 import com.tcs.destination.bean.DeliveryMasterT;
+import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
+import com.tcs.destination.bean.Status;
+import com.tcs.destination.enums.EntityType;
+import com.tcs.destination.enums.JobName;
+import com.tcs.destination.enums.OperationType;
+import com.tcs.destination.enums.Switch;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.DeliveryMasterService;
 import com.tcs.destination.utils.ResponseConstructors;
@@ -110,6 +119,36 @@ public class DeliveryMasterController {
 		}
 		logger.info("Inside DeliveryMasterController: End of search by id");
 		return response;
+	}
+	
+	@RequestMapping(method = RequestMethod.PUT)
+	public @ResponseBody ResponseEntity<String> editEngagement(
+			@RequestBody DeliveryMasterT deliveryMaster,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+
+		logger.info("Inside DeliveryMasterController: Start of Edit DeliveryMaster");
+		Status status = new Status();
+		status.setStatus(Status.FAILED, "");
+		try {
+			if (deliveryMasterService.updateDelivery(deliveryMaster)) {
+				status.setStatus(Status.SUCCESS, new Integer(deliveryMaster.getDeliveryMasterId()).toString());
+				//jobLauncherController.asyncJobLaunchForNotification(JobName.notification, EntityType.CONNECT, connect.getConnectId(),OperationType.CONNECT_EDIT,connect.getModifiedBy());
+			}
+			logger.info("Inside DeliveryMasterController: End of Edit delivery master");
+			
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while updating delivery master");
+		}
+
 	}
 	
 	
