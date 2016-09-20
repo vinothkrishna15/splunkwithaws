@@ -11,7 +11,8 @@ import com.tcs.destination.bean.DeliveryMasterT;
 
 @Repository
 public interface DeliveryMasterPagingRepository extends PagingAndSortingRepository<DeliveryMasterT, Integer> {
-	Page<DeliveryMasterT> findByDeliveryManagerIdAndDeliveryStageIn(String userId,List<Integer> deliveryStages,Pageable pageable);
+	//Page<DeliveryMasterT> findByDeliveryManagerIdAndDeliveryStageIn(String userId,List<Integer> deliveryStages,Pageable pageable);
+	Page<DeliveryMasterT> findByDeliveryMasterIdInAndDeliveryStageIn(List<Integer> deliveryMasterIds,List<Integer> deliveryStages,Pageable pageable);
 	//Page<DeliveryMasterT> findByDeliveryCentreIdInAndDeliveryStageIn(List<Integer> deliveryCentreIds,List<Integer> deliveryStages,Pageable pageable);
 	Page<DeliveryMasterT> findByDeliveryCentreIdInAndDeliveryStageIn(List<Integer> deliveryCentreIds,List<Integer> deliveryStages,Pageable pageable);
 }

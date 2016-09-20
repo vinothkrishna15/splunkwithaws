@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryClusterT;
+import com.tcs.destination.bean.DeliveryMasterManagerLinkT;
 import com.tcs.destination.bean.DeliveryMasterT;
 import com.tcs.destination.bean.DeliveryRequirementT;
 import com.tcs.destination.bean.DeliveryResourcesT;
@@ -35,6 +36,7 @@ import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.DeliveryCentreRepository;
 import com.tcs.destination.data.repository.DeliveryClusterRepository;
+import com.tcs.destination.data.repository.DeliveryMasterManagerLinkRepository;
 import com.tcs.destination.data.repository.DeliveryMasterPagingRepository;
 import com.tcs.destination.data.repository.DeliveryMasterRepository;
 import com.tcs.destination.data.repository.DeliveryResourcesRepository;
@@ -76,6 +78,9 @@ public class DeliveryMasterService {
 	
 	@Autowired
 	UserRepository userRepository;
+	
+	@Autowired
+	DeliveryMasterManagerLinkRepository deliveryMasterManagerLinkRepository;
 	
 	
 	private static final Map<String,String>ATTRIBUTE_MAP;
@@ -169,9 +174,21 @@ public class DeliveryMasterService {
 			orderBy = ATTRIBUTE_MAP.get(orderBy);
 			sort = getSortFromOrder(order,orderBy);
 			pageable = new PageRequest(page, count, sort);
+			String managerId = loginUser.getUserId();
+			List<DeliveryMasterManagerLinkT> deliveryMasterManagerList = deliveryMasterManagerLinkRepository.findByDeliveryManagerId(managerId);
+			if(CollectionUtils.isEmpty(deliveryMasterManagerList)){
+			logger.error("NOT_FOUND: Delivery Master details not found");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+			"Delivery Master details not found");
+			} else {
+			List<Integer> deliveryMasterIds = new ArrayList<Integer>();
+			for(DeliveryMasterManagerLinkT deliveryMasterManagerLinkT:deliveryMasterManagerList){
+			deliveryMasterIds.add(deliveryMasterManagerLinkT.getDeliveryMasterId());
+			}
 			deliveryMasterTs = deliveryMasterPagingRepository
-					.findByDeliveryManagerIdAndDeliveryStageIn(
-							loginUser.getUserId(), stages, pageable);
+			.findByDeliveryMasterIdInAndDeliveryStageIn(
+			deliveryMasterIds, stages, pageable);
+			}
 			break;
 		default:
 			break;
