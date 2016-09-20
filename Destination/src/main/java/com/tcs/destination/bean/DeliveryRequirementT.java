@@ -76,6 +76,11 @@ public class DeliveryRequirementT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name = "modified_by", insertable = false, updatable = false)
 	private UserT modifiedByUser;
+	
+	//bi-directional many-to-one association to DeliveryRgsT
+	@ManyToOne
+	@JoinColumn(name="delivery_rgs_id",insertable = false, updatable = false)
+	private DeliveryRgsT deliveryRgsT;
 
 	public DeliveryRequirementT() {
 	}
@@ -214,6 +219,14 @@ public class DeliveryRequirementT implements Serializable {
 
 	public void setModifiedByUser(UserT modifiedByUser) {
 		this.modifiedByUser = modifiedByUser;
+	}
+
+	public DeliveryRgsT getDeliveryRgsT() {
+		return deliveryRgsT;
+	}
+
+	public void setDeliveryRgsT(DeliveryRgsT deliveryRgsT) {
+		this.deliveryRgsT = deliveryRgsT;
 	}
 	
 
