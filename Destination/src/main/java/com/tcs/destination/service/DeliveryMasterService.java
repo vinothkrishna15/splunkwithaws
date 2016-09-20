@@ -28,6 +28,8 @@ import com.tcs.destination.bean.DeliveryMasterT;
 import com.tcs.destination.bean.DeliveryRequirementT;
 import com.tcs.destination.bean.DeliveryResourcesT;
 import com.tcs.destination.bean.DeliveryRgsT;
+import com.tcs.destination.bean.OpportunityDeliveryCentreMappingT;
+import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.UserT;
@@ -39,6 +41,7 @@ import com.tcs.destination.data.repository.DeliveryResourcesRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
 import com.tcs.destination.utils.StringUtils;
@@ -458,5 +461,22 @@ public class DeliveryMasterService {
 
 	}
 	
+	/**
+	 * This method is used to save the delivery master details for each delivery centre 
+	 * 
+	 * @param opportunity
+	 * @param opportunityDeliveryCentreMappingT
+	 */
+	public void createDeliveryMaster(OpportunityT opportunity,
+			OpportunityDeliveryCentreMappingT opportunityDeliveryCentreMappingT) {
+		logger.info("Inside saveDeliveryMaster() method");
+		DeliveryMasterT deliveryMasterT= new DeliveryMasterT();
+		deliveryMasterT.setOpportunityId(opportunity.getOpportunityId());
+		deliveryMasterT.setDeliveryCentreId(opportunityDeliveryCentreMappingT.getDeliveryCentreId());
+		deliveryMasterT.setDeliveryStage(0);
+		deliveryMasterT.setCreatedBy(Constants.SYSTEM_USER);
+		deliveryMasterT.setModifiedBy(Constants.SYSTEM_USER);
+		deliveryMasterRepository.save(deliveryMasterT);
+	}
 }
 

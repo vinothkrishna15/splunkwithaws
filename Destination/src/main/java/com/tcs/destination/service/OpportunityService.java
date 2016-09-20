@@ -40,6 +40,7 @@ import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
 import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
 import com.tcs.destination.bean.DeliveryCentreT;
+import com.tcs.destination.bean.DeliveryMasterT;
 import com.tcs.destination.bean.DeliveryOwnershipT;
 import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
@@ -78,6 +79,7 @@ import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.CountryRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.DeliveryCentreRepository;
+import com.tcs.destination.data.repository.DeliveryMasterRepository;
 import com.tcs.destination.data.repository.DeliveryOwnershipRepository;
 import com.tcs.destination.data.repository.NotesTRepository;
 import com.tcs.destination.data.repository.NotificationEventGroupMappingTRepository;
@@ -290,6 +292,12 @@ public class OpportunityService {
 
 	@Autowired
 	WorkflowService workflowService;
+	
+	@Autowired
+	DeliveryMasterRepository deliveryMasterRepository;
+
+	@Autowired
+	private DeliveryMasterService deliveryMasterService;
 
 	/**
 	 * Fetch opportunities by opportunity name
@@ -1011,7 +1019,7 @@ public class OpportunityService {
 			opportunity.setModifiedBy(DestinationUtils.getCurrentUserDetails()
 					.getUserId());
 			createdOpportunity = saveOpportunity(opportunity, false, userGroup,
-					null);
+					null, -1);
 			// check sales stage code and save deal financial file in
 			// workflowbfm_t
 			if (createdOpportunity.getOpportunityId() != null) {
@@ -1170,12 +1178,13 @@ public class OpportunityService {
 	 * @param isUpdate
 	 * @param userGroup
 	 * @param opportunityBeforeEdit
+	 * @param oldSalesStageCode 
 	 * @return
 	 * @throws Exception
 	 */
 	private OpportunityT saveOpportunity(OpportunityT opportunity,
 			boolean isUpdate, String userGroup,
-			OpportunityT opportunityBeforeEdit) throws Exception {
+			OpportunityT opportunityBeforeEdit, int oldSalesStageCode) throws Exception {
 		logger.debug("Inside saveOpportunity() method");
 		validateOpportunityPrimarySubSp(opportunity);
 		if (userGroup.equals(UserGroup.PRACTICE_HEAD.getValue())
@@ -1239,12 +1248,13 @@ public class OpportunityService {
 		}
 
 		validateInactiveIndicators(opportunity);
+//		boolean isISU = validateForCreateEngagement(opportunity,opportunityBeforeEdit);
 
 		if (isUpdate) {
 			deleteChildObjects(opportunity);
 		}
 		OpportunityT baseOpportunity = saveBaseObject(opportunity);
-		saveChildObject(opportunity);
+		saveChildObject(opportunity,oldSalesStageCode);
 		opportunity.setOpportunityId(baseOpportunity.getOpportunityId());
 		return opportunity;
 
@@ -1467,7 +1477,7 @@ public class OpportunityService {
 
 	}
 
-	private OpportunityT saveChildObject(OpportunityT opportunity)
+	private OpportunityT saveChildObject(OpportunityT opportunity, int oldSalesStageCode)
 			throws Exception {
 		logger.debug("Inside saveChildObject() method");
 
@@ -1692,11 +1702,16 @@ public class OpportunityService {
 						.getOpportunityId());
 				opportunityDeliveryCentreMappingTRepository
 						.save(opportunityDeliveryCentreMappingT);
+				//save delivery master object for each delivery centre
+				if(opportunity.getSalesStageCode()!=oldSalesStageCode && opportunity.getSalesStageCode()==9){
+					deliveryMasterService.createDeliveryMaster(opportunity, opportunityDeliveryCentreMappingT);
+				}
 			}
 		}
 		// return opportunityRepository.save(opportunity);
 		return opportunity;
 	}
+
 
 	private OpportunityT saveBaseObject(OpportunityT opportunity)
 			throws Exception {
@@ -1753,7 +1768,7 @@ public class OpportunityService {
 	// Method called from controller
 	@Transactional
 	public void updateOpportunity(OpportunityT opportunity,
-			OpportunityT opportunityBeforeEdit, Status status) throws Exception {
+			OpportunityT opportunityBeforeEdit, Status status, int oldSalesStageCode) throws Exception {
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		String opportunityId = opportunity.getOpportunityId();
 		opportunity.setCreatedBy(userId);
@@ -1780,6 +1795,7 @@ public class OpportunityService {
 		OpportunityT oldObject = (OpportunityT) DestinationUtils
 				.copy(beforeOpp);
 		logger.debug("oldObject" + oldObject);
+		
 		// deal closure comments is mandatory for sales stage codes (11/12/13)
 		if (opportunity.getSalesStageCode() == 11
 				|| opportunity.getSalesStageCode() == 12
@@ -1795,7 +1811,7 @@ public class OpportunityService {
 		}
 		// Update database
 		OpportunityT afterOpp = saveOpportunity(opportunity, true, userGroup,
-				opportunityBeforeEdit);
+				opportunityBeforeEdit, oldSalesStageCode);
 		// check sales stage code and save deal financial file in workflowbfm_t  
 
 		if(afterOpp.getOpportunityId() != null) {
@@ -3221,7 +3237,7 @@ public class OpportunityService {
 		int oldSalesStageCode = opportunityBeforeEdit.getSalesStageCode();
 		Integer oldDealValue = opportunityBeforeEdit.getDigitalDealValue();
 		String oldDealCurrency = opportunityBeforeEdit.getDealCurrency();
-		updateOpportunity(opportunity, opportunityBeforeEdit, status);
+		updateOpportunity(opportunity, opportunityBeforeEdit, status, oldSalesStageCode);
 		// If deal value becomes more than 5 million USD or the opportunity won
 		// or lost, Email notification to be triggered
 		return sendEmailNotification(opportunity, oldSalesStageCode,
