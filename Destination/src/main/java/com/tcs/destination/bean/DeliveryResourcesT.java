@@ -56,12 +56,12 @@ public class DeliveryResourcesT implements Serializable {
 	@JoinColumn(name="delivery_master_id", insertable = false, updatable = false)
 	private DeliveryMasterT deliveryMasterT;
 	
-	@Column(name="rgs_id")
+	@Column(name="delivery_rgs_id")
 	private String rgsId;
 	
 	// bi-directional many-to-one association to DeliveryRgsT
 	@ManyToOne
-	@JoinColumn(name = "rgs_id", insertable = false, updatable = false)
+	@JoinColumn(name = "delivery_rgs_id", insertable = false, updatable = false)
 	private DeliveryRgsT deliveryRgsT;
 	
 	// bi-directional many-to-one association to UserT
