@@ -1,11 +1,14 @@
 package com.tcs.destination.service;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +25,9 @@ import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryClusterT;
 import com.tcs.destination.bean.DeliveryMasterT;
+import com.tcs.destination.bean.DeliveryRequirementT;
 import com.tcs.destination.bean.DeliveryResourcesT;
+import com.tcs.destination.bean.DeliveryRgsT;
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.UserT;
@@ -36,6 +41,7 @@ import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
+import com.tcs.destination.utils.StringUtils;
 
 /**
  * handle service functionalities for delivery
@@ -96,7 +102,7 @@ public class DeliveryMasterService {
 	 * @throws Exception
 	 */
 	public PageDTO findEngagements(Integer stage,String orderBy,String order,
-			int start, int count) throws Exception {
+			int page, int count) throws Exception {
 		PageDTO deliveryMasterDTO = null;
 
 		logger.debug("Starting findEngagements deliveryMasterService");
@@ -127,13 +133,8 @@ public class DeliveryMasterService {
 				deliveryCentreIds.add(-1);
 				
 				orderBy = ATTRIBUTE_MAP.get(orderBy);
-				if (order.equalsIgnoreCase("DESC")) {
-					sort = new Sort(Direction.DESC, orderBy);
-				} else {
-					sort = new Sort(Direction.ASC, orderBy);
-				}
-
-				pageable = new PageRequest(0, 20, sort);
+				sort = getSortFromOrder(order,orderBy);
+				pageable = new PageRequest(page, count, sort);
 
 				deliveryMasterTs = deliveryMasterPagingRepository
 						.findByDeliveryCentreIdInAndDeliveryStageIn(
@@ -155,24 +156,16 @@ public class DeliveryMasterService {
 			deliveryCentreIds.add(-1);
 			
 			orderBy = ATTRIBUTE_MAP.get(orderBy);
-			if (order.equalsIgnoreCase("DESC")) {
-				sort = new Sort(Direction.DESC, orderBy);
-			} else {
-				sort = new Sort(Direction.ASC, orderBy);
-			}
-			pageable = new PageRequest(0, 20, sort);
+			sort = getSortFromOrder(order,orderBy);
+			pageable = new PageRequest(page, count, sort);
 			deliveryMasterTs = deliveryMasterPagingRepository
 					.findByDeliveryCentreIdInAndDeliveryStageIn(
 							deliveryCentreIds, stages, pageable);
 			break;
 		case DELIVERY_MANAGER:
 			orderBy = ATTRIBUTE_MAP.get(orderBy);
-			if (order.equalsIgnoreCase("DESC")) {
-				sort = new Sort(Direction.DESC, orderBy);
-			} else {
-				sort = new Sort(Direction.ASC, orderBy);
-			}
-			pageable = new PageRequest(0, 20, sort);
+			sort = getSortFromOrder(order,orderBy);
+			pageable = new PageRequest(page, count, sort);
 			deliveryMasterTs = deliveryMasterPagingRepository
 					.findByDeliveryManagerIdAndDeliveryStageIn(
 							loginUser.getUserId(), stages, pageable);
@@ -195,6 +188,23 @@ public class DeliveryMasterService {
 	
 	
 	/**
+	 * returns the sort object for given order by column and the order direction
+	 * @param order
+	 * @param orderBy
+	 * @return
+	 */
+	private Sort getSortFromOrder(String order, String orderBy) {
+		Sort sort = null;
+		if (order.equalsIgnoreCase("DESC")) {
+			sort = new Sort(Direction.DESC, orderBy);
+		} else {
+			sort = new Sort(Direction.ASC, orderBy);
+		}
+		return sort;
+	}
+
+
+	/**
 	 * To fetch delivery master details by delivery master id
 	 * 
 	 * @param deliveryMasterId
@@ -205,6 +215,7 @@ public class DeliveryMasterService {
 		logger.debug("Inside findByDeliveryMasterId() service");
 		DeliveryMasterT deliveryMaster = deliveryMasterRepository.findOne(deliveryMasterId);
 		if (deliveryMaster != null) {
+			setData(deliveryMaster);
 			return deliveryMaster;
 		} else {
 			logger.error("NOT_FOUND: Delivery Master Details not found: {}", deliveryMasterId);
@@ -212,6 +223,25 @@ public class DeliveryMasterService {
 					"Delivery Master not found: " + deliveryMasterId);
 		}
 	}
+
+	private void setData(DeliveryMasterT deliveryMaster) {
+		List<DeliveryResourcesT> deliveryResourcesTs = deliveryMaster.getDeliveryResourcesTs();
+	    if(!CollectionUtils.isEmpty(deliveryResourcesTs)){
+	    	for(DeliveryResourcesT deliveryResourcesT:deliveryResourcesTs){
+	    		DeliveryRgsT deliveryRgsT = deliveryResourcesT.getDeliveryRgsT();
+				if (deliveryRgsT != null) {
+					List<DeliveryRequirementT> deliveryRequirementTs = deliveryRgsT
+							.getDeliveryRequirementTs();
+					if (!CollectionUtils.isEmpty(deliveryRequirementTs)) {
+						for (DeliveryRequirementT deliveryRequirementT : deliveryRequirementTs) {
+							deliveryRequirementT.setDeliveryRgsT(null);
+						}
+					}
+				}
+	    	}
+	    }
+	}
+
 
 	@Transactional
 	public boolean updateDelivery(DeliveryMasterT deliveryMaster) throws Exception {
@@ -290,13 +320,142 @@ public class DeliveryMasterService {
 
 	private void validateDeliveryMaster(DeliveryMasterT deliveryMasterT) {
 		
+		//validate mandatory fields - deliveryCentreId,deliveryStage
+		Integer deliveryCentreId = deliveryMasterT.getDeliveryCentreId();
+		if(deliveryCentreId == null) {
+			logger.error("BAD_REQUEST: deliveryCentreId is mandatory");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"deliveryCentreId is mandatory");
+		}
+		
+		Integer deliveryStage = deliveryMasterT.getDeliveryStage();
+		if(deliveryStage == null){
+			logger.error("BAD_REQUEST: deliveryStage is mandatory");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"deliveryStage is mandatory");			
+		}
+		
+		String createdBy = deliveryMasterT.getCreatedBy();
+		if(StringUtils.isEmpty(createdBy)){
+			logger.error("BAD_REQUEST: createdBy is mandatory");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"createdBy is mandatory");			
+		}
+		
+		Timestamp createdDatetime = deliveryMasterT.getCreatedDatetime();
+		if(createdDatetime == null){
+			logger.error("BAD_REQUEST: createdDatetime is mandatory");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"createdDatetime is mandatory");			
+		}
 		
 	}
 
 
 	private void populateDeliveryMaster(DeliveryMasterT deliveryMasterT) {
+		Integer deliveryMasterId = deliveryMasterT.getDeliveryMasterId();
 		
+		DeliveryMasterT deliveryFromDB = deliveryMasterRepository.findOne(deliveryMasterId);
 		
+		setData(deliveryMasterT,deliveryFromDB);
+		
+	}
+
+
+	private void setData(DeliveryMasterT deliveryMasterSource,
+			DeliveryMasterT deliveryMasterDestination) {
+		Integer new_deliveryMasterId = deliveryMasterSource
+				.getDeliveryMasterId();
+		Date new_actualStartDate = deliveryMasterSource.getActualStartDate();
+		Integer new_deliveryCentreId = deliveryMasterSource
+				.getDeliveryCentreId();
+		String new_deliveryPartnerId = deliveryMasterSource
+				.getDeliveryPartnerId();
+		String new_deliveryPartnerName = deliveryMasterSource
+				.getDeliveryPartnerName();
+		List<DeliveryResourcesT> new_deliveryResourcesTs = deliveryMasterSource
+				.getDeliveryResourcesTs();
+		Integer new_deliveryStage = deliveryMasterSource.getDeliveryStage();
+		String new_engagementName = deliveryMasterSource.getEngagementName();
+		Date new_expectedEndDate = deliveryMasterSource.getExpectedEndDate();
+		String new_glId = deliveryMasterSource.getGlId();
+		String new_glName = deliveryMasterSource.getGlName();
+		String new_odc = deliveryMasterSource.getOdc();
+		String new_opportunityId = deliveryMasterSource.getOpportunityId();
+		String new_plId = deliveryMasterSource.getPlId();
+		String new_plName = deliveryMasterSource.getPlName();
+		Date new_scheduledStartDate = deliveryMasterSource
+				.getScheduledStartDate();
+		String new_wonNum = deliveryMasterSource.getWonNum();
+
+		Integer old_deliveryMasterId = deliveryMasterDestination
+				.getDeliveryMasterId();
+		Date old_actualStartDate = deliveryMasterDestination
+				.getActualStartDate();
+		Integer old_deliveryCentreId = deliveryMasterDestination
+				.getDeliveryCentreId();
+		String old_deliveryPartnerId = deliveryMasterDestination
+				.getDeliveryPartnerId();
+		String old_deliveryPartnerName = deliveryMasterDestination
+				.getDeliveryPartnerName();
+		List<DeliveryResourcesT> old_deliveryResourcesTs = deliveryMasterDestination
+				.getDeliveryResourcesTs();
+		Integer old_deliveryStage = deliveryMasterDestination
+				.getDeliveryStage();
+		String old_engagementName = deliveryMasterDestination
+				.getEngagementName();
+		Date old_expectedEndDate = deliveryMasterDestination
+				.getExpectedEndDate();
+		String old_glId = deliveryMasterDestination.getGlId();
+		String old_glName = deliveryMasterDestination.getGlName();
+		String old_odc = deliveryMasterDestination.getOdc();
+		String old_opportunityId = deliveryMasterDestination.getOpportunityId();
+		String old_plId = deliveryMasterDestination.getPlId();
+		String old_plName = deliveryMasterDestination.getPlName();
+		Date old_scheduledStartDate = deliveryMasterDestination
+				.getScheduledStartDate();
+		String old_wonNum = deliveryMasterDestination.getWonNum();
+
+		if (new_actualStartDate != null) {
+			if (old_actualStartDate != null) {
+				if (new_actualStartDate.after(old_actualStartDate)
+						|| new_actualStartDate.before(old_actualStartDate)) {
+					deliveryMasterDestination
+							.setActualStartDate(new_actualStartDate);
+				}
+			} else {
+				deliveryMasterDestination
+						.setActualStartDate(new_actualStartDate);
+			}
+		}
+
+		if (new_expectedEndDate != null) {
+			if (old_expectedEndDate != null) {
+				if (new_expectedEndDate.after(old_expectedEndDate)
+						|| new_expectedEndDate.before(old_expectedEndDate)) {
+					deliveryMasterDestination
+							.setExpectedEndDate(new_expectedEndDate);
+				}
+			} else {
+				deliveryMasterDestination
+						.setExpectedEndDate(new_expectedEndDate);
+			}
+		}
+
+		if (new_scheduledStartDate != null) {
+			if (old_scheduledStartDate != null) {
+				if (new_scheduledStartDate.after(old_scheduledStartDate)
+						|| new_scheduledStartDate
+								.before(old_scheduledStartDate)) {
+					deliveryMasterDestination
+							.setScheduledStartDate(new_scheduledStartDate);
+				}
+			} else {
+				deliveryMasterDestination
+						.setScheduledStartDate(new_scheduledStartDate);
+			}
+		}
+
 	}
 	
 }
