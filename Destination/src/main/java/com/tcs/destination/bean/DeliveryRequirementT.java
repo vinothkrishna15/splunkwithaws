@@ -20,8 +20,8 @@ import java.util.List;
 @JsonFilter(Constants.FILTER)
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "requirementId")
 @Entity
-@Table(name="delivery_rgs_t")
-@NamedQuery(name="DeliveryRgsT.findAll", query="SELECT d FROM DeliveryRequirementT d")
+@Table(name="delivery_requirement_t")
+@NamedQuery(name="DeliveryRequirementT.findAll", query="SELECT d FROM DeliveryRequirementT d")
 public class DeliveryRequirementT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
