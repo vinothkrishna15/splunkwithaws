@@ -118,6 +118,10 @@ public class DeliveryMasterT implements Serializable {
 	// bi-directional many-to-one association to DeliveryResourcesT
 	@OneToMany(mappedBy = "deliveryMasterT")
 	private List<DeliveryResourcesT> deliveryResourcesTs;
+	
+	// bi-directional many-to-one association to DeliveryMasterManagerLinkT
+	@OneToMany(mappedBy = "deliveryMasterT")
+	private List<DeliveryMasterManagerLinkT> deliveryMasterManagerLinkTs;
 
 	public DeliveryMasterT() {
 	}
@@ -328,6 +332,15 @@ public class DeliveryMasterT implements Serializable {
 
 	public void setEngagementName(String engagementName) {
 		this.engagementName = engagementName;
+	}
+
+	public List<DeliveryMasterManagerLinkT> getDeliveryMasterManagerLinkTs() {
+		return deliveryMasterManagerLinkTs;
+	}
+
+	public void setDeliveryMasterManagerLinkTs(
+			List<DeliveryMasterManagerLinkT> deliveryMasterManagerLinkTs) {
+		this.deliveryMasterManagerLinkTs = deliveryMasterManagerLinkTs;
 	}
 	
 }
