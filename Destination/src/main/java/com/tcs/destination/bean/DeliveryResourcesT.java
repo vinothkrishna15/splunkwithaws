@@ -49,7 +49,7 @@ public class DeliveryResourcesT implements Serializable {
 	private String skill;
 	
 	@Column(name="delivery_master_id")
-	private Integer delievryMasterId;
+	private Integer deliveryMasterId;
 
 	//bi-directional many-to-one association to DeliveryMasterT
 	@ManyToOne
@@ -149,12 +149,12 @@ public class DeliveryResourcesT implements Serializable {
 		this.deliveryMasterT = deliveryMasterT;
 	}
 
-	public Integer getDelievryMasterId() {
-		return delievryMasterId;
+	public Integer getDeliveryMasterId() {
+		return deliveryMasterId;
 	}
 
-	public void setDelievryMasterId(Integer delievryMasterId) {
-		this.delievryMasterId = delievryMasterId;
+	public void setDeliveryMasterId(Integer deliveryMasterId) {
+		this.deliveryMasterId = deliveryMasterId;
 	}
 	
 	public String getRgsId() {

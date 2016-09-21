@@ -39,6 +39,7 @@ import com.tcs.destination.data.repository.DeliveryClusterRepository;
 import com.tcs.destination.data.repository.DeliveryMasterManagerLinkRepository;
 import com.tcs.destination.data.repository.DeliveryMasterPagingRepository;
 import com.tcs.destination.data.repository.DeliveryMasterRepository;
+import com.tcs.destination.data.repository.DeliveryRequirementRepository;
 import com.tcs.destination.data.repository.DeliveryResourcesRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.UserGroup;
@@ -81,6 +82,9 @@ public class DeliveryMasterService {
 	
 	@Autowired
 	DeliveryMasterManagerLinkRepository deliveryMasterManagerLinkRepository;
+	
+	@Autowired
+	DeliveryRequirementRepository deliveryRequirementRepository;
 	
 	
 	private static final Map<String,String>ATTRIBUTE_MAP;
@@ -310,7 +314,7 @@ public class DeliveryMasterService {
 //			ConnectT oldObject = (ConnectT) DestinationUtils.copy(beforeConnect);
 
 			// Update database
-			DeliveryMasterT deliveryAfterEdit = editDelivery(deliveryMaster);
+			DeliveryMasterT deliveryAfterEdit = editDelivery(deliveryMaster,deliveryBeforeEdit,userId);
 
 			if (deliveryAfterEdit != null) {
 				logger.info("Engagement has been updated successfully: " + deliveryMasterId);
@@ -324,20 +328,55 @@ public class DeliveryMasterService {
 		
 	}
 	
-	public DeliveryMasterT editDelivery(DeliveryMasterT deliveryMasterT)
+	@Transactional
+	public DeliveryMasterT editDelivery(DeliveryMasterT deliveryMasterT,DeliveryMasterT deliveryBeforeEdit, String loginUserId)
 			throws Exception {
-		
-		List<DeliveryResourcesT> deliveryResourcesTs = deliveryMasterT.getDeliveryResourcesTs();
-		
+
+		List<DeliveryResourcesT> deliveryResourcesTs = deliveryMasterT
+				.getDeliveryResourcesTs();
+		List<DeliveryMasterManagerLinkT> deliveryMasterManagerLinkTs = deliveryMasterT
+				.getDeliveryMasterManagerLinkTs();
 		validateDeliveryMaster(deliveryMasterT);
-		
-		populateDeliveryMaster(deliveryMasterT);
-		
-		if(deliveryResourcesTs!=null){
-			deliveryResourcesRepository.save(deliveryResourcesTs);
+		// populateDeliveryMaster(deliveryMasterT);
+		try {
+			if (deliveryResourcesTs != null) {
+				for(DeliveryResourcesT deliveryResourcesT : deliveryResourcesTs){
+					deliveryResourcesT.setModifiedBy(loginUserId);
+				}
+				deliveryResourcesRepository.save(deliveryResourcesTs);
+			}
+			
+			if (deliveryMasterManagerLinkTs != null) {
+				for(DeliveryMasterManagerLinkT deliveryMasterManagerLinkT : deliveryMasterManagerLinkTs){
+					deliveryMasterManagerLinkT.setModifiedBy(loginUserId);
+				}
+				deliveryMasterManagerLinkRepository.save(deliveryMasterManagerLinkTs);
+			}
+			
+			
+			
+			
+
+			for(DeliveryResourcesT deliveryResourcesT:deliveryResourcesTs){
+				DeliveryRgsT deliveryRgsT = deliveryResourcesT.getDeliveryRgsT();
+				if(deliveryRgsT!=null){
+					List<DeliveryRequirementT> deliveryRequirementTs = deliveryRgsT.getDeliveryRequirementTs();
+				    if(!CollectionUtils.isEmpty(deliveryRequirementTs)){
+				    	for(DeliveryRequirementT deliveryRequirementT : deliveryRequirementTs){
+				    		deliveryRequirementT.setModifiedBy(loginUserId);
+				    	}
+				    	deliveryRequirementRepository.save(deliveryRequirementTs);
+				    }
+				}
+			}
+			
+			
+			return (deliveryMasterRepository.save(deliveryMasterT));
+		} catch (Exception e) {
+			logger.error("Server Error: Backend Error while processing delivery update ");
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Server Error: Backend Error while processing delivery update ");
 		}
-		
-		return (deliveryMasterRepository.save(deliveryMasterT));
 	}
 
 
@@ -370,6 +409,181 @@ public class DeliveryMasterService {
 			logger.error("BAD_REQUEST: createdDatetime is mandatory");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"createdDatetime is mandatory");			
+		}
+		
+		List<DeliveryMasterManagerLinkT> deliveryMasterManagerLinkTs = deliveryMasterT.getDeliveryMasterManagerLinkTs();
+		if(!CollectionUtils.isEmpty(deliveryMasterManagerLinkTs)){
+			for(DeliveryMasterManagerLinkT deliveryMasterManagerLinkT:deliveryMasterManagerLinkTs){
+				String deliveryManagerId = deliveryMasterManagerLinkT.getDeliveryManagerId();
+				if(StringUtils.isEmpty(deliveryManagerId)){
+					logger.error("BAD_REQUEST: deliveryManagerId is mandatory");
+					throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"deliveryManagerId is mandatory");
+				} else {
+					if(!userRepository.exists(deliveryManagerId)){
+						logger.error("BAD_REQUEST: invalid deliveryManagerId");
+						throw new DestinationException(HttpStatus.BAD_REQUEST,
+								"invalid deliveryManagerId");
+					} else {
+						UserT user = userRepository.findOne(deliveryManagerId);
+						String userGroup = user.getUserGroup();
+						if(!UserGroup.DELIVERY_MANAGER.getValue().equalsIgnoreCase(userGroup)){
+							logger.error("BAD_REQUEST: invalid deliveryManagerId");
+							throw new DestinationException(HttpStatus.BAD_REQUEST,
+									"invalid deliveryManagerId");
+						}
+					}
+				}
+				Integer deliveryMasterId = deliveryMasterManagerLinkT.getDeliveryMasterId();
+				if(deliveryMasterId==null){
+					logger.error("BAD_REQUEST: deliveryMasterId is mandatory");
+					throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"deliveryMasterId is mandatory");
+				} else {
+					if(!deliveryMasterRepository.exists(deliveryMasterId)){
+						logger.error("BAD_REQUEST: invalid deliveryMasterId");
+						throw new DestinationException(HttpStatus.BAD_REQUEST,
+								"invalid deliveryMasterId");
+					}
+				}
+				
+				String masterManagerCreatedBy = deliveryMasterManagerLinkT.getCreatedBy();
+				if(StringUtils.isEmpty(masterManagerCreatedBy)){
+					logger.error("BAD_REQUEST: createdBy is mandatory in deliveryMasterManagerLinkT");
+					throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"createdBy is mandatory in deliveryMasterManagerLinkT");			
+				}
+				
+				Timestamp masterManagerCreatedDatetime = deliveryMasterManagerLinkT.getCreatedDatetime();
+				if(masterManagerCreatedDatetime == null){
+					logger.error("BAD_REQUEST: createdDatetime is mandatory in deliveryMasterManagerLinkT");
+					throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"createdDatetime is mandatory in deliveryMasterManagerLinkT");			
+				}
+				
+			}
+		}
+		
+		List<DeliveryResourcesT> deliveryResourcesTs = deliveryMasterT.getDeliveryResourcesTs();
+		if(!CollectionUtils.isEmpty(deliveryResourcesTs)){
+			for(DeliveryResourcesT deliveryResourcesT:deliveryResourcesTs){
+				String deliveryResourcesCreatedBy = deliveryResourcesT.getCreatedBy();
+				if(StringUtils.isEmpty(deliveryResourcesCreatedBy)){
+					logger.error("BAD_REQUEST: createdBy is mandatory in deliveryResourcesT");
+					throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"createdBy is mandatory in deliveryResourcesT");
+				}
+				
+				Timestamp deliveryResourcesCreatedDatetime = deliveryResourcesT.getCreatedDatetime();
+				if(deliveryResourcesCreatedDatetime == null){
+					logger.error("BAD_REQUEST: createdDatetime is mandatory in deliveryResourcesT");
+					throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"createdDatetime is mandatory in deliveryResourcesT");			
+				}
+				
+				Integer deliveryMasterId = deliveryResourcesT.getDeliveryMasterId();
+				if(deliveryMasterId==null){
+					logger.error("BAD_REQUEST: deliveryMasterId is mandatory");
+					throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"deliveryMasterId is mandatory in deliveryResourcesT");
+				} else {
+					if(!deliveryMasterRepository.exists(deliveryMasterId)){
+						logger.error("BAD_REQUEST: invalid deliveryMasterId");
+						throw new DestinationException(HttpStatus.BAD_REQUEST,
+								"invalid deliveryMasterId in deliveryResourcesT");
+					}
+				}
+				
+				String role = deliveryResourcesT.getRole();
+				if(StringUtils.isEmpty(role)){
+					logger.error("BAD_REQUEST: role is mandatory in deliveryResourcesT");
+					throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"role is mandatory in deliveryResourcesT");
+				}
+				
+				String skill = deliveryResourcesT.getSkill();
+				if(StringUtils.isEmpty(skill)){
+					logger.error("BAD_REQUEST: skill is mandatory in deliveryResourcesT");
+					throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"skill is mandatory in deliveryResourcesT");
+				}
+				
+				String requirementFulfillment = deliveryResourcesT.getRequirementFulfillment();
+				if(StringUtils.isEmpty(requirementFulfillment)){
+					logger.error("BAD_REQUEST: requirementFulfillment is mandatory in deliveryResourcesT");
+					throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"requirementFulfillment is mandatory in deliveryResourcesT");
+				}
+				
+				DeliveryRgsT deliveryRgsT = deliveryResourcesT.getDeliveryRgsT();
+				if(deliveryRgsT!=null){
+					List<DeliveryRequirementT> deliveryRequirementTs = deliveryRgsT.getDeliveryRequirementTs();
+				    if(!CollectionUtils.isEmpty(deliveryRequirementTs)){
+				    	for(DeliveryRequirementT deliveryRequirementT : deliveryRequirementTs){
+				    		//String employeeId = deliveryRequirementT.getEmployeeId();
+				    		//String employeeName = deliveryRequirementT.getEmployeeName();
+				    		String createdBy2 = deliveryRequirementT.getCreatedBy();
+				    		
+				    		if(StringUtils.isEmpty(createdBy2)){
+								logger.error("BAD_REQUEST: createdBy is mandatory in deliveryRequirementT");
+								throw new DestinationException(HttpStatus.BAD_REQUEST,
+										"createdBy is mandatory in deliveryRequirementT");
+							}
+							
+							
+							
+				    		Timestamp createdDatetime2 = deliveryRequirementT.getCreatedDatetime();
+							if(deliveryResourcesCreatedDatetime == null){
+								logger.error("BAD_REQUEST: createdDatetime is mandatory in deliveryRequirementT");
+								throw new DestinationException(HttpStatus.BAD_REQUEST,
+										"createdDatetime is mandatory in deliveryRequirementT");			
+							}
+							
+				    		String experience = deliveryRequirementT.getExperience();
+				    		if(StringUtils.isEmpty(experience)){
+								logger.error("BAD_REQUEST: experience is mandatory in deliveryRequirementT");
+								throw new DestinationException(HttpStatus.BAD_REQUEST,
+										"experience is mandatory in deliveryRequirementT");
+							}
+				    		
+				    		String location = deliveryRequirementT.getLocation();
+				    		if(StringUtils.isEmpty(location)){
+								logger.error("BAD_REQUEST: location is mandatory in deliveryRequirementT");
+								throw new DestinationException(HttpStatus.BAD_REQUEST,
+										"location is mandatory in deliveryRequirementT");
+							}
+				    		
+				    		String requirementId = deliveryRequirementT.getRequirementId();
+				    		if(StringUtils.isEmpty(requirementId)){
+								logger.error("BAD_REQUEST: requirementId is mandatory in deliveryRequirementT");
+								throw new DestinationException(HttpStatus.BAD_REQUEST,
+										"requirementId is mandatory in deliveryRequirementT");
+							}
+				    		
+				    		String role2 = deliveryRequirementT.getRole();
+				    		if(StringUtils.isEmpty(role2)){
+								logger.error("BAD_REQUEST: role is mandatory in deliveryRequirementT");
+								throw new DestinationException(HttpStatus.BAD_REQUEST,
+										"role is mandatory in deliveryRequirementT");
+							}
+				    		
+				    		String site = deliveryRequirementT.getSite();
+				    		if(StringUtils.isEmpty(site)){
+								logger.error("BAD_REQUEST: site is mandatory in deliveryRequirementT");
+								throw new DestinationException(HttpStatus.BAD_REQUEST,
+										"site is mandatory in deliveryRequirementT");
+							}
+				    		
+				    		String status = deliveryRequirementT.getStatus();
+				    		if(StringUtils.isEmpty(status)){
+								logger.error("BAD_REQUEST: status is mandatory in deliveryRequirementT");
+								throw new DestinationException(HttpStatus.BAD_REQUEST,
+										"status is mandatory in deliveryRequirementT");
+							}
+				    	}
+				    }
+				}
+			}
 		}
 		
 	}
