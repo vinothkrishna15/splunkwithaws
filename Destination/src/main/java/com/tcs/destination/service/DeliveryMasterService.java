@@ -153,10 +153,11 @@ public class DeliveryMasterService {
 		case DELIVERY_CLUSTER_HEAD:
 			DeliveryClusterT deliveryClusterT = deliveryClusterRepository
 					.findByDeliveryClusterHead(loginUser.getUserId());
+			if(deliveryClusterT!=null){
 			List<DeliveryCentreT> deliveryCentres = deliveryCentreRepository
 					.findByDeliveryClusterId(deliveryClusterT
 							.getDeliveryClusterId());
-
+            if(!CollectionUtils.isEmpty(deliveryCentres)){
 			List<Integer> deliveryCentreIds = new ArrayList<Integer>();
 			for (DeliveryCentreT deliveryCentre : deliveryCentres) {
 				deliveryCentreIds.add(deliveryCentre.getDeliveryCentreId());
@@ -169,6 +170,8 @@ public class DeliveryMasterService {
 			deliveryMasterTs = deliveryMasterPagingRepository
 					.findByDeliveryCentreIdInAndDeliveryStageIn(
 							deliveryCentreIds, stages, pageable);
+            }
+			}
 			break;
 		case DELIVERY_MANAGER:
 			orderBy = ATTRIBUTE_MAP.get(orderBy);
