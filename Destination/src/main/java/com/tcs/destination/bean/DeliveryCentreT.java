@@ -51,7 +51,7 @@ public class DeliveryCentreT implements Serializable {
 	private String deliveryCentreHead;
 	
 	@Column(name="delivery_cluster_id")
-	private String deliveryClusterId;
+	private Integer deliveryClusterId;
 
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
@@ -202,11 +202,11 @@ public class DeliveryCentreT implements Serializable {
 		this.deliveryMasterTs = deliveryMasterTs;
 	}
 
-	public String getDeliveryClusterId() {
+	public Integer getDeliveryClusterId() {
 		return deliveryClusterId;
 	}
 
-	public void setDeliveryClusterId(String deliveryClusterId) {
+	public void setDeliveryClusterId(Integer deliveryClusterId) {
 		this.deliveryClusterId = deliveryClusterId;
 	}
 
