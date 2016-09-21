@@ -957,7 +957,8 @@ public class UserService {
 		// validate user
 		validateUser(user, true);
 		if (userRepository.save(user) != null) {
-			saveOrUpdateUserGeneralSettings(user);//update user general settings
+			//TODO check user group and modify settings
+//			saveOrUpdateUserGeneralSettings(user);//update user general settings
 			updateUserPrivileges(user);//update user access privileges
 			saveOrUpdateUserGoals(user);//update user goals
 			logger.info("End:inside updateUserDetails() of UserService: user Saved : " + user.getUserId());
