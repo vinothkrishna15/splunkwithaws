@@ -8,6 +8,6 @@ import com.tcs.destination.bean.DeliveryRequirementT;
 
 @Repository
 public interface DeliveryRequirementRepository extends
-		CrudRepository<DeliveryRequirementT, Integer> {
+		CrudRepository<DeliveryRequirementT, String> {
 	
 }

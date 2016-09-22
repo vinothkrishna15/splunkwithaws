@@ -567,14 +567,7 @@ public class DeliveryMasterService {
 										"role is mandatory in deliveryRequirementT");
 							}
 				    		
-				    		String site = deliveryRequirementT.getSite();
-				    		if(StringUtils.isEmpty(site)){
-								logger.error("BAD_REQUEST: site is mandatory in deliveryRequirementT");
-								throw new DestinationException(HttpStatus.BAD_REQUEST,
-										"site is mandatory in deliveryRequirementT");
-							}
-				    		
-				    		String status = deliveryRequirementT.getStatus();
+      			    		String status = deliveryRequirementT.getStatus();
 				    		if(StringUtils.isEmpty(status)){
 								logger.error("BAD_REQUEST: status is mandatory in deliveryRequirementT");
 								throw new DestinationException(HttpStatus.BAD_REQUEST,

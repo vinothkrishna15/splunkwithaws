@@ -60,8 +60,6 @@ public class DeliveryRequirementT implements Serializable {
 
 	private String role;
 
-	private String site;
-
 	private String status;
 
 	@Column(name="sub_competency_area")
@@ -179,14 +177,6 @@ public class DeliveryRequirementT implements Serializable {
 
 	public void setRole(String role) {
 		this.role = role;
-	}
-
-	public String getSite() {
-		return this.site;
-	}
-
-	public void setSite(String site) {
-		this.site = site;
 	}
 
 	public String getStatus() {

@@ -125,7 +125,8 @@ public class DataProcessingController {
 		boolean isUploadRequest = false;
 		if ((type > 0 && type < 10) || type == RequestType.PARTNER_MASTER_UPLOAD.getType()
 				|| type == RequestType.PRODUCT_UPLOAD.getType() ||
-				type == RequestType.PRODUCT_CONTACT_UPLOAD.getType()) {			
+				type == RequestType.PRODUCT_CONTACT_UPLOAD.getType()
+				|| type == RequestType.RGS_UPLOAD.getType()) {			
 			isUploadRequest = true;
 		}
 		return isUploadRequest;

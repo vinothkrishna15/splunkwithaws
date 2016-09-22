@@ -172,7 +172,7 @@ public class Constants {
 	public static final String PRODUCT_CONTACT_SHEET = "Product Contacts";
     public static final String PRODUCT_CONTACT_TEMPLATE_LOCATION_PROPERTY_NAME = "productContactSheetTemplate";
 	
-	
+    public static final String RGS_UPLOAD_SUBJECT  = "RGS upload request processed.";
 	
 	public static final String PARTNER_TEMPLATE_LOCATION_PROPERTY_NAME = "partnerSheetTemplate";
 	public static final String PARTNER_CONTACT_TEMPLATE_LOCATION_PROPERTY_NAME = "partnerContactSheetTemplate" ;
