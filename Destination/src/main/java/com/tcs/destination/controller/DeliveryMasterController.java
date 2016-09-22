@@ -121,7 +121,7 @@ public class DeliveryMasterController {
 		return response;
 	}
 	
-	@RequestMapping(method = RequestMethod.PUT)
+	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> editEngagement(
 			@RequestBody DeliveryMasterT deliveryMaster,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
