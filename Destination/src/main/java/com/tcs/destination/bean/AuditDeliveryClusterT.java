@@ -35,6 +35,12 @@ public class AuditDeliveryClusterT implements Serializable {
 	@Column(name="created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
+	@Column(name="delivery_cluster")
+	private String deliveryCluster;
+
+	@Column(name="delivery_cluster_id")
+	private Integer deliveryClusterId;
+
 	@Column(name="new_active")
 	private String newActive;
 
@@ -44,14 +50,8 @@ public class AuditDeliveryClusterT implements Serializable {
 	@Column(name="old_active")
 	private String oldActive;
 
-	@Column(name="old_delivery_cluster")
-	private String oldDeliveryCluster;
-
 	@Column(name="old_delivery_cluster_head")
 	private String oldDeliveryClusterHead;
-
-	@Column(name="old_delivery_cluster_id")
-	private Integer oldDeliveryClusterId;
 
 	@Column(name="operation_type")
 	private Integer operationType;
@@ -83,6 +83,22 @@ public class AuditDeliveryClusterT implements Serializable {
 		this.createdModifiedDatetime = createdModifiedDatetime;
 	}
 
+	public String getDeliveryCluster() {
+		return this.deliveryCluster;
+	}
+
+	public void setDeliveryCluster(String deliveryCluster) {
+		this.deliveryCluster = deliveryCluster;
+	}
+
+	public Integer getDeliveryClusterId() {
+		return this.deliveryClusterId;
+	}
+
+	public void setDeliveryClusterId(Integer deliveryClusterId) {
+		this.deliveryClusterId = deliveryClusterId;
+	}
+
 	public String getNewActive() {
 		return this.newActive;
 	}
@@ -107,28 +123,12 @@ public class AuditDeliveryClusterT implements Serializable {
 		this.oldActive = oldActive;
 	}
 
-	public String getOldDeliveryCluster() {
-		return this.oldDeliveryCluster;
-	}
-
-	public void setOldDeliveryCluster(String oldDeliveryCluster) {
-		this.oldDeliveryCluster = oldDeliveryCluster;
-	}
-
 	public String getOldDeliveryClusterHead() {
 		return this.oldDeliveryClusterHead;
 	}
 
 	public void setOldDeliveryClusterHead(String oldDeliveryClusterHead) {
 		this.oldDeliveryClusterHead = oldDeliveryClusterHead;
-	}
-
-	public Integer getOldDeliveryClusterId() {
-		return this.oldDeliveryClusterId;
-	}
-
-	public void setOldDeliveryClusterId(Integer oldDeliveryClusterId) {
-		this.oldDeliveryClusterId = oldDeliveryClusterId;
 	}
 
 	public Integer getOperationType() {

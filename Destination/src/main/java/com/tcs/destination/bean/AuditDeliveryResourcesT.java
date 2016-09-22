@@ -35,32 +35,32 @@ public class AuditDeliveryResourcesT implements Serializable {
 	@Column(name="created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
+	@Column(name="delivery_master_id")
+	private Integer deliveryMasterId;
+
+	@Column(name="delivery_resource_id")
+	private Integer deliveryResourceId;
+
+	@Column(name="new_delivery_rgs_id")
+	private String newDeliveryRgsId;
+
 	@Column(name="new_requirement_fulfillment")
 	private String newRequirementFulfillment;
 
-	@Column(name="new_rgs_id")
-	private String newRgsId;
+	@Column(name="new_role")
+	private String newRole;
 
-	@Column(name="old_delivery_master_id")
-	private Integer oldDeliveryMasterId;
+	@Column(name="new_skill")
+	private String newSkill;
 
-	@Column(name="old_delivery_resource_id")
-	private Integer oldDeliveryResourceId;
-
-	@Column(name="old_experience")
-	private String oldExperience;
+	@Column(name="old_delivery_rgs_id")
+	private String oldDeliveryRgsId;
 
 	@Column(name="old_requirement_fulfillment")
 	private String oldRequirementFulfillment;
 
-	@Column(name="old_rgs_id")
-	private String oldRgsId;
-
 	@Column(name="old_role")
 	private String oldRole;
-
-	@Column(name="old_site")
-	private String oldSite;
 
 	@Column(name="old_skill")
 	private String oldSkill;
@@ -95,6 +95,30 @@ public class AuditDeliveryResourcesT implements Serializable {
 		this.createdModifiedDatetime = createdModifiedDatetime;
 	}
 
+	public Integer getDeliveryMasterId() {
+		return this.deliveryMasterId;
+	}
+
+	public void setDeliveryMasterId(Integer deliveryMasterId) {
+		this.deliveryMasterId = deliveryMasterId;
+	}
+
+	public Integer getDeliveryResourceId() {
+		return this.deliveryResourceId;
+	}
+
+	public void setDeliveryResourceId(Integer deliveryResourceId) {
+		this.deliveryResourceId = deliveryResourceId;
+	}
+
+	public String getNewDeliveryRgsId() {
+		return this.newDeliveryRgsId;
+	}
+
+	public void setNewDeliveryRgsId(String newDeliveryRgsId) {
+		this.newDeliveryRgsId = newDeliveryRgsId;
+	}
+
 	public String getNewRequirementFulfillment() {
 		return this.newRequirementFulfillment;
 	}
@@ -103,36 +127,28 @@ public class AuditDeliveryResourcesT implements Serializable {
 		this.newRequirementFulfillment = newRequirementFulfillment;
 	}
 
-	public String getNewRgsId() {
-		return this.newRgsId;
+	public String getNewRole() {
+		return this.newRole;
 	}
 
-	public void setNewRgsId(String newRgsId) {
-		this.newRgsId = newRgsId;
+	public void setNewRole(String newRole) {
+		this.newRole = newRole;
 	}
 
-	public Integer getOldDeliveryMasterId() {
-		return this.oldDeliveryMasterId;
+	public String getNewSkill() {
+		return this.newSkill;
 	}
 
-	public void setOldDeliveryMasterId(Integer oldDeliveryMasterId) {
-		this.oldDeliveryMasterId = oldDeliveryMasterId;
+	public void setNewSkill(String newSkill) {
+		this.newSkill = newSkill;
 	}
 
-	public Integer getOldDeliveryResourceId() {
-		return this.oldDeliveryResourceId;
+	public String getOldDeliveryRgsId() {
+		return this.oldDeliveryRgsId;
 	}
 
-	public void setOldDeliveryResourceId(Integer oldDeliveryResourceId) {
-		this.oldDeliveryResourceId = oldDeliveryResourceId;
-	}
-
-	public String getOldExperience() {
-		return this.oldExperience;
-	}
-
-	public void setOldExperience(String oldExperience) {
-		this.oldExperience = oldExperience;
+	public void setOldDeliveryRgsId(String oldDeliveryRgsId) {
+		this.oldDeliveryRgsId = oldDeliveryRgsId;
 	}
 
 	public String getOldRequirementFulfillment() {
@@ -143,28 +159,12 @@ public class AuditDeliveryResourcesT implements Serializable {
 		this.oldRequirementFulfillment = oldRequirementFulfillment;
 	}
 
-	public String getOldRgsId() {
-		return this.oldRgsId;
-	}
-
-	public void setOldRgsId(String oldRgsId) {
-		this.oldRgsId = oldRgsId;
-	}
-
 	public String getOldRole() {
 		return this.oldRole;
 	}
 
 	public void setOldRole(String oldRole) {
 		this.oldRole = oldRole;
-	}
-
-	public String getOldSite() {
-		return this.oldSite;
-	}
-
-	public void setOldSite(String oldSite) {
-		this.oldSite = oldSite;
 	}
 
 	public String getOldSkill() {

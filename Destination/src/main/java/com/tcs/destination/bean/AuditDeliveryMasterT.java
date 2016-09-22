@@ -36,6 +36,9 @@ public class AuditDeliveryMasterT implements Serializable {
 	@Column(name="created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
+	@Column(name="delivery_master_id")
+	private Integer deliveryMasterId;
+
 	@Temporal(TemporalType.DATE)
 	@Column(name="new_actual_start_date")
 	private Date newActualStartDate;
@@ -52,6 +55,9 @@ public class AuditDeliveryMasterT implements Serializable {
 	@Column(name="new_delivery_stage")
 	private Integer newDeliveryStage;
 
+	@Column(name="new_engagement_name")
+	private String newEngagementName;
+
 	@Temporal(TemporalType.DATE)
 	@Column(name="new_expected_end_date")
 	private Date newExpectedEndDate;
@@ -64,9 +70,6 @@ public class AuditDeliveryMasterT implements Serializable {
 
 	@Column(name="new_odc")
 	private String newOdc;
-
-	@Column(name="new_opportunity_id")
-	private String newOpportunityId;
 
 	@Column(name="new_pl_id")
 	private String newPlId;
@@ -88,9 +91,6 @@ public class AuditDeliveryMasterT implements Serializable {
 	@Column(name="old_delivery_centre_id")
 	private Integer oldDeliveryCentreId;
 
-	@Column(name="old_delivery_master_id")
-	private Integer oldDeliveryMasterId;
-
 	@Column(name="old_delivery_partner_id")
 	private String oldDeliveryPartnerId;
 
@@ -99,6 +99,9 @@ public class AuditDeliveryMasterT implements Serializable {
 
 	@Column(name="old_delivery_stage")
 	private Integer oldDeliveryStage;
+
+	@Column(name="old_engagement_name")
+	private String oldEngagementName;
 
 	@Temporal(TemporalType.DATE)
 	@Column(name="old_expected_end_date")
@@ -112,9 +115,6 @@ public class AuditDeliveryMasterT implements Serializable {
 
 	@Column(name="old_odc")
 	private String oldOdc;
-
-	@Column(name="old_opportunity_id")
-	private String oldOpportunityId;
 
 	@Column(name="old_pl_id")
 	private String oldPlId;
@@ -131,6 +131,9 @@ public class AuditDeliveryMasterT implements Serializable {
 
 	@Column(name="operation_type")
 	private Integer operationType;
+
+	@Column(name="opportunity_id")
+	private String opportunityId;
 
 	public AuditDeliveryMasterT() {
 	}
@@ -157,6 +160,14 @@ public class AuditDeliveryMasterT implements Serializable {
 
 	public void setCreatedModifiedDatetime(Timestamp createdModifiedDatetime) {
 		this.createdModifiedDatetime = createdModifiedDatetime;
+	}
+
+	public Integer getDeliveryMasterId() {
+		return this.deliveryMasterId;
+	}
+
+	public void setDeliveryMasterId(Integer deliveryMasterId) {
+		this.deliveryMasterId = deliveryMasterId;
 	}
 
 	public Date getNewActualStartDate() {
@@ -199,6 +210,14 @@ public class AuditDeliveryMasterT implements Serializable {
 		this.newDeliveryStage = newDeliveryStage;
 	}
 
+	public String getNewEngagementName() {
+		return this.newEngagementName;
+	}
+
+	public void setNewEngagementName(String newEngagementName) {
+		this.newEngagementName = newEngagementName;
+	}
+
 	public Date getNewExpectedEndDate() {
 		return this.newExpectedEndDate;
 	}
@@ -229,14 +248,6 @@ public class AuditDeliveryMasterT implements Serializable {
 
 	public void setNewOdc(String newOdc) {
 		this.newOdc = newOdc;
-	}
-
-	public String getNewOpportunityId() {
-		return this.newOpportunityId;
-	}
-
-	public void setNewOpportunityId(String newOpportunityId) {
-		this.newOpportunityId = newOpportunityId;
 	}
 
 	public String getNewPlId() {
@@ -287,14 +298,6 @@ public class AuditDeliveryMasterT implements Serializable {
 		this.oldDeliveryCentreId = oldDeliveryCentreId;
 	}
 
-	public Integer getOldDeliveryMasterId() {
-		return this.oldDeliveryMasterId;
-	}
-
-	public void setOldDeliveryMasterId(Integer oldDeliveryMasterId) {
-		this.oldDeliveryMasterId = oldDeliveryMasterId;
-	}
-
 	public String getOldDeliveryPartnerId() {
 		return this.oldDeliveryPartnerId;
 	}
@@ -317,6 +320,14 @@ public class AuditDeliveryMasterT implements Serializable {
 
 	public void setOldDeliveryStage(Integer oldDeliveryStage) {
 		this.oldDeliveryStage = oldDeliveryStage;
+	}
+
+	public String getOldEngagementName() {
+		return this.oldEngagementName;
+	}
+
+	public void setOldEngagementName(String oldEngagementName) {
+		this.oldEngagementName = oldEngagementName;
 	}
 
 	public Date getOldExpectedEndDate() {
@@ -349,14 +360,6 @@ public class AuditDeliveryMasterT implements Serializable {
 
 	public void setOldOdc(String oldOdc) {
 		this.oldOdc = oldOdc;
-	}
-
-	public String getOldOpportunityId() {
-		return this.oldOpportunityId;
-	}
-
-	public void setOldOpportunityId(String oldOpportunityId) {
-		this.oldOpportunityId = oldOpportunityId;
 	}
 
 	public String getOldPlId() {
@@ -398,4 +401,13 @@ public class AuditDeliveryMasterT implements Serializable {
 	public void setOperationType(Integer operationType) {
 		this.operationType = operationType;
 	}
+
+	public String getOpportunityId() {
+		return this.opportunityId;
+	}
+
+	public void setOpportunityId(String opportunityId) {
+		this.opportunityId = opportunityId;
+	}
+
 }

@@ -35,6 +35,12 @@ public class AuditDeliveryCentreT implements Serializable {
 	@Column(name="created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
+	@Column(name="delivery_centre")
+	private String deliveryCentre;
+
+	@Column(name="delivery_centre_id")
+	private Integer deliveryCentreId;
+
 	@Column(name="new_active")
 	private String newActive;
 
@@ -47,14 +53,8 @@ public class AuditDeliveryCentreT implements Serializable {
 	@Column(name="old_active")
 	private String oldActive;
 
-	@Column(name="old_delivery_centre")
-	private String oldDeliveryCentre;
-
 	@Column(name="old_delivery_centre_head")
 	private String oldDeliveryCentreHead;
-
-	@Column(name="old_delivery_centre_id")
-	private Integer oldDeliveryCentreId;
 
 	@Column(name="old_delivery_cluster_id")
 	private Integer oldDeliveryClusterId;
@@ -89,6 +89,22 @@ public class AuditDeliveryCentreT implements Serializable {
 		this.createdModifiedDatetime = createdModifiedDatetime;
 	}
 
+	public String getDeliveryCentre() {
+		return this.deliveryCentre;
+	}
+
+	public void setDeliveryCentre(String deliveryCentre) {
+		this.deliveryCentre = deliveryCentre;
+	}
+
+	public Integer getDeliveryCentreId() {
+		return this.deliveryCentreId;
+	}
+
+	public void setDeliveryCentreId(Integer deliveryCentreId) {
+		this.deliveryCentreId = deliveryCentreId;
+	}
+
 	public String getNewActive() {
 		return this.newActive;
 	}
@@ -121,28 +137,12 @@ public class AuditDeliveryCentreT implements Serializable {
 		this.oldActive = oldActive;
 	}
 
-	public String getOldDeliveryCentre() {
-		return this.oldDeliveryCentre;
-	}
-
-	public void setOldDeliveryCentre(String oldDeliveryCentre) {
-		this.oldDeliveryCentre = oldDeliveryCentre;
-	}
-
 	public String getOldDeliveryCentreHead() {
 		return this.oldDeliveryCentreHead;
 	}
 
 	public void setOldDeliveryCentreHead(String oldDeliveryCentreHead) {
 		this.oldDeliveryCentreHead = oldDeliveryCentreHead;
-	}
-
-	public Integer getOldDeliveryCentreId() {
-		return this.oldDeliveryCentreId;
-	}
-
-	public void setOldDeliveryCentreId(Integer oldDeliveryCentreId) {
-		this.oldDeliveryCentreId = oldDeliveryCentreId;
 	}
 
 	public Integer getOldDeliveryClusterId() {
