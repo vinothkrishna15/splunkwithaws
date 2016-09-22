@@ -89,6 +89,13 @@ public class DeliveryMasterT implements Serializable {
 	
 	@Column(name="engagement_name")
 	private String engagementName;
+	
+	@Column(name="comments")
+	private String comments;
+	
+	@Column(name="reason")
+	private String reason;
+	
 
 	//bi-directional many-to-one association to DeliveryCentreT
 	@ManyToOne
@@ -342,5 +349,23 @@ public class DeliveryMasterT implements Serializable {
 			List<DeliveryMasterManagerLinkT> deliveryMasterManagerLinkTs) {
 		this.deliveryMasterManagerLinkTs = deliveryMasterManagerLinkTs;
 	}
+
+	public String getComments() {
+		return comments;
+	}
+
+	public void setComments(String comments) {
+		this.comments = comments;
+	}
+
+	public String getReason() {
+		return reason;
+	}
+
+	public void setReason(String reason) {
+		this.reason = reason;
+	}
+	
+	
 	
 }
