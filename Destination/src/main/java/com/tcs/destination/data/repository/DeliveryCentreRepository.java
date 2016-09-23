@@ -15,5 +15,7 @@ public interface DeliveryCentreRepository extends
 	DeliveryCentreT findByDeliveryCentreHead(String deliveryCentreHead);
 	
 	List<DeliveryCentreT> findByDeliveryClusterId(Integer deliveryClusterId);
+
+	DeliveryCentreT findByDeliveryCentreId(Integer id);
 	
 }

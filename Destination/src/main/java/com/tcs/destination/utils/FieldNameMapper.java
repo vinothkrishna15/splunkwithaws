@@ -61,6 +61,26 @@ public class FieldNameMapper {
 		map.put("CoreAttributesUsedForWinning", "Core Attributes Used For Winning");
 		map.put("BidRequestType", "Bid Request Type");
 		
+		map.put("ScheduledStartDate", "Scheduled Start Date");
+		map.put("ActualStartDate", "Actual Start Date");
+		map.put("ExpectedEndDate", "Expected End Date");
+		map.put("WonNum", "WON");
+		map.put("odc", "Offshore Developement Centre");
+		map.put("DeliveryPartnerId", "Delivery Partner Emp ID");
+		map.put("DeliveryPartnerName", "Delivery Partner Name");
+		map.put("GlId", "GL Emp ID");
+		map.put("GlName", "GL Name");
+		map.put("PlId", "PL Emp ID");
+		map.put("PlName", "PL Name");
+		map.put("DeliveryCentreId", "Delivery Centre");
+		map.put("DeliveryStage", "Engagement Stage");
+		map.put("EngagementName", "Engagement Name");
+		map.put("EmployeeId", "Employee Id");
+		map.put("EmployeeName", "Employee Name");
+		map.put("Role", "Role");
+		map.put("Skill", "Skill Sets");
+		map.put("RequirementFulfillment", "No. of Resources");
+		map.put("DeliveryRgsId", "RGS ID");
 		
 		FIELD_NAME_MAP = Collections.unmodifiableMap(map);
 	}
