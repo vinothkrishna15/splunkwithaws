@@ -378,23 +378,20 @@ public class DeliveryMasterService {
 				deliveryMasterManagerLinkRepository.save(deliveryMasterManagerLinkTs);
 			}
 			
-			
-			
-			
-
-			for(DeliveryResourcesT deliveryResourcesT:deliveryResourcesTs){
-				DeliveryRgsT deliveryRgsT = deliveryResourcesT.getDeliveryRgsT();
-				if(deliveryRgsT!=null){
-					List<DeliveryRequirementT> deliveryRequirementTs = deliveryRgsT.getDeliveryRequirementTs();
-				    if(!CollectionUtils.isEmpty(deliveryRequirementTs)){
-				    	for(DeliveryRequirementT deliveryRequirementT : deliveryRequirementTs){
-				    		deliveryRequirementT.setModifiedBy(loginUserId);
-				    	}
-				    	deliveryRequirementRepository.save(deliveryRequirementTs);
-				    }
+			if (deliveryResourcesTs != null) {
+				for(DeliveryResourcesT deliveryResourcesT:deliveryResourcesTs){
+					DeliveryRgsT deliveryRgsT = deliveryResourcesT.getDeliveryRgsT();
+					if(deliveryRgsT!=null){
+						List<DeliveryRequirementT> deliveryRequirementTs = deliveryRgsT.getDeliveryRequirementTs();
+					    if(!CollectionUtils.isEmpty(deliveryRequirementTs)){
+					    	for(DeliveryRequirementT deliveryRequirementT : deliveryRequirementTs){
+					    		deliveryRequirementT.setModifiedBy(loginUserId);
+					    	}
+					    	deliveryRequirementRepository.save(deliveryRequirementTs);
+					    }
+					}
 				}
 			}
-			
 			
 			return (deliveryMasterRepository.save(deliveryMasterT));
 		} catch (Exception e) {
