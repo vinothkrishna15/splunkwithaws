@@ -1,5 +1,7 @@
 package com.tcs.destination.controller;
 
+import java.util.HashSet;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,10 @@ import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.enums.EntityType;
+import com.tcs.destination.enums.JobName;
+import com.tcs.destination.enums.OperationType;
+import com.tcs.destination.enums.Switch;
 import com.tcs.destination.enums.SmartSearchType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.DeliveryMasterService;
