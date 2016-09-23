@@ -2253,7 +2253,11 @@ public class DestinationMailUtils {
 								.findByRequestIdAndStepStatus(requestId,
 										WorkflowStatus.APPROVED.getStatus());
 						subject.append(Constants.WORKFLOW_BFM_STEP1_APPROVED_SUBJECT);
-						
+						// Adding respective GEO Heads to cc Ids	
+						 List<String> geoHeads = userAccessPrivilegesRepository.findUserIdsForCustomerUserGroup(customerMasterT.getGeography(), Constants.Y, UserGroup.GEO_HEADS.getValue());
+						if(CollectionUtils.isNotEmpty(geoHeads)) {
+							ccIds.addAll(geoHeads);
+						}
 						reqStatus = "Approved";
 						salesStageCode = SalesStageCode.valueOf(opportunityT.getSalesStageCode()).getDescription(); 
 					} else {
@@ -3615,7 +3619,11 @@ public class DestinationMailUtils {
 			 List<String> userIdsByIds = getUserIdsById(approvedStep);
 			 ccIds.addAll(userIdsByIds);
 			}
-			
+		// Adding respective GEO Heads to cc Ids	
+		 List<String> geoHeads = userAccessPrivilegesRepository.findUserIdsForCustomerUserGroup(geography, Constants.Y, UserGroup.GEO_HEADS.getValue());
+		if(CollectionUtils.isNotEmpty(geoHeads)) {
+			ccIds.addAll(geoHeads);
+		}
 			if (approvedStep.getUserGroup() != null) {
 				switch (approvedStep.getUserGroup()) {
 				case Constants.WORKFLOW_GEO_HEADS:
