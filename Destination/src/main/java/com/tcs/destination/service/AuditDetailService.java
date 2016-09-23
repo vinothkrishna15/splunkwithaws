@@ -3,6 +3,7 @@ package com.tcs.destination.service;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Timestamp;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -25,6 +26,11 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.tcs.destination.bean.AuditBidDetailsT;
 import com.tcs.destination.bean.AuditBidOfficeGroupOwnerLinkT;
+import com.tcs.destination.bean.AuditDeliveryMasterManagerLinkT;
+import com.tcs.destination.bean.AuditDeliveryMasterT;
+import com.tcs.destination.bean.AuditDeliveryRequirementT;
+import com.tcs.destination.bean.AuditDeliveryResourcesT;
+import com.tcs.destination.bean.AuditEngagementHistoryDTO;
 import com.tcs.destination.bean.AuditEntryDTO;
 import com.tcs.destination.bean.AuditHistoryDTO;
 import com.tcs.destination.bean.AuditHistoryResponseDTO;
@@ -47,6 +53,10 @@ import com.tcs.destination.bean.OpportunityTimelineHistoryT;
 import com.tcs.destination.bean.WorkflowRequestT;
 import com.tcs.destination.data.repository.AuditBidDetailsTRepository;
 import com.tcs.destination.data.repository.AuditBidOfficeGroupOwnerLinkTRepository;
+import com.tcs.destination.data.repository.AuditDeliveryMasterManagerLinkRepository;
+import com.tcs.destination.data.repository.AuditDeliveryMasterRepository;
+import com.tcs.destination.data.repository.AuditDeliveryRequirementTRepository;
+import com.tcs.destination.data.repository.AuditDeliveryResourcesTRepository;
 import com.tcs.destination.data.repository.AuditOpportunityCompetitorLinkTRepository;
 import com.tcs.destination.data.repository.AuditOpportunityCustomerContactLinkTRepository;
 import com.tcs.destination.data.repository.AuditOpportunityOfferingLinkTRepository;
@@ -61,10 +71,12 @@ import com.tcs.destination.data.repository.AuditWorkflowCustomerTRepository;
 import com.tcs.destination.data.repository.AuditWorkflowPartnerTRepository;
 import com.tcs.destination.data.repository.AuditWorkflowStepTRepository;
 import com.tcs.destination.data.repository.ContactRepository;
+import com.tcs.destination.data.repository.DeliveryCentreRepository;
 import com.tcs.destination.data.repository.OpportunityTimelineHistoryTRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.data.repository.WorkflowRequestTRepository;
+import com.tcs.destination.enums.DeliveryStage;
 import com.tcs.destination.enums.EntityTypeId;
 import com.tcs.destination.enums.Operation;
 import com.tcs.destination.exception.DestinationException;
@@ -156,6 +168,21 @@ public class AuditDetailService {
 	
 	@Autowired
 	private OpportunityTimelineHistoryTRepository timelineHistoryRepo;
+
+	@Autowired
+	private AuditDeliveryMasterRepository aDeliveryRepo;
+	
+	@Autowired
+	private DeliveryCentreRepository deliveryCentreRepo;
+
+	@Autowired
+	private AuditDeliveryMasterManagerLinkRepository aDeliveryManagerLinkRepo;
+
+	@Autowired
+	private AuditDeliveryResourcesTRepository aEngResourceRepo;
+
+	@Autowired
+	private AuditDeliveryRequirementTRepository aEngRequirmentRepo;
 	
 	/**
 	 * service method to retrieve the workflow history 
@@ -249,6 +276,38 @@ public class AuditDetailService {
 		}
 		return salesCodeSequenceMap;
 	}
+	
+	/**
+	 * construct the list to track the delivery stage and its date range
+	 * @param engId
+	 * @return
+	 */
+	private List<Map<String, Object>> getEngagementCodeSequenceMap(Integer engId) {
+		List<AuditDeliveryMasterT> engagementAudits = aDeliveryRepo.getDeliveryCodeChanges(engId);
+		
+		if(CollectionUtils.isEmpty(engagementAudits)) {
+			throw new DestinationException(HttpStatus.NOT_FOUND, PropertyUtil.getProperty(ErrorConstants.ENG_AUDIT_NOT_AVAILABLE));
+		}
+		List<Map<String, Object>> deliverySequenceMap = Lists.newArrayList();
+
+		AuditDeliveryMasterT previousStage = engagementAudits.remove(0);
+		for (AuditDeliveryMasterT deliveryStage : engagementAudits) {
+			Date toDate = truncateSeconds(deliveryStage.getCreatedModifiedDatetime());
+			Date fromDate = truncateSeconds(previousStage.getCreatedModifiedDatetime());
+			Map<String, Object> map = createMapWith(fromDate,
+					previousStage.getNewDeliveryStage(), toDate, deliveryStage.getNewDeliveryStage());
+			deliverySequenceMap.add(map);
+			previousStage = deliveryStage;
+		}
+		//add current sales stage code also 
+		Date fromDate = truncateSeconds(previousStage.getCreatedModifiedDatetime());
+		deliverySequenceMap.add(createMapWith(fromDate, previousStage.getNewDeliveryStage(), null, null));
+		
+		logger.info("########################## Sequence map ################################");
+		logger.info("{}", deliverySequenceMap);
+		logger.info("########################## Sequence map ################################");
+		return deliverySequenceMap;
+	}
 
 
 	/**
@@ -294,6 +353,26 @@ public class AuditDetailService {
 			entries = getHistoryFromTimeLine(timeLineHistories, salesCode, startDate);
 		}
 		auditHistories = groupAuditHistory(entries, EntityTypeId.OPPORTUNITY.getType());
+		Collections.sort(auditHistories);
+		dto.setHistories(auditHistories);
+		return dto;
+	}
+	
+	private AuditEngagementHistoryDTO getAuditEngagmentHistoryDTO(
+			Entry<String, List<AuditEntryDTO>> mapEntry) {
+		AuditEngagementHistoryDTO dto = new AuditEngagementHistoryDTO();
+		//salesCode
+		int salesCode = getSalesCode(mapEntry.getKey());
+		//startDate
+		Date startDate = getDate(mapEntry.getKey());
+
+		dto.setEngagementStage(salesCode);
+		dto.setStartDate(startDate);
+		List<AuditHistoryDTO> auditHistories;
+		List<AuditEntryDTO> entries = mapEntry.getValue();
+		
+		auditHistories = groupAuditHistory(entries, EntityTypeId.OPPORTUNITY.getType());
+		//TODO change entity type id
 		Collections.sort(auditHistories);
 		dto.setHistories(auditHistories);
 		return dto;
@@ -454,6 +533,115 @@ public class AuditDetailService {
 		return entries;
 	}
 
+	/**
+	 * fetch all available audit entries from delivery tables
+	 * @param oppId
+	 * @return
+	 */
+	private List<AuditEntryDTO> getEngagementAudits(Integer engId) {
+		List<AuditEntryDTO> entries = Lists.newArrayList();
+		
+		entries.addAll(getEngagementAudit(engId));
+		entries.addAll(getEngManagersAudit(engId));
+		entries.addAll(getEngResourcesAudit(engId));
+		//TODO child table audits
+		
+		return entries;
+	}
+
+	private List<AuditEntryDTO> getEngResourcesAudit(
+			Integer engId) {
+		List<AuditEntryDTO> entries = Lists.newArrayList();
+		List<AuditDeliveryResourcesT> engResources = aEngResourceRepo.findByDeliveryMasterId(engId);
+		if(CollectionUtils.isNotEmpty(engResources)) {
+			Set<String> rgsIds = Sets.newHashSet();
+			for (AuditDeliveryResourcesT aEngReource : engResources) {
+				if(aEngReource.getNewDeliveryRgsId() != null) {
+					rgsIds.add(aEngReource.getNewDeliveryRgsId());
+				}
+				entries.addAll(getEngResourcesAudit(aEngReource));
+			}
+			
+			for (String rgsId : rgsIds) {
+				entries.addAll(getEngRequirementAudtit(rgsId));
+			}
+		}
+		return entries;
+	}
+
+	private List<AuditEntryDTO> getEngResourcesAudit(
+			AuditDeliveryResourcesT aEngReource) {
+		List<AuditEntryDTO> entryDTOs = Lists.newArrayList();
+		String user = userRepository.findUserNameByUserId(aEngReource.getCreatedModifiedBy());
+		Date date = new Date(aEngReource.getCreatedModifiedDatetime().getTime());
+		List<String> fieldArray = Lists.newArrayList("Role", "Skill", 
+				"RequirementFulfillment", "DeliveryRgsId");
+		
+		entryDTOs.addAll(getEntriesFromFields(aEngReource, fieldArray, user, date, null));
+		return entryDTOs;
+	}
+	
+
+	private List<AuditEntryDTO> getEngRequirementAudtit(
+			String rgsId) {
+		List<AuditEntryDTO> entries = Lists.newArrayList();
+		List<AuditDeliveryRequirementT> engReqs = aEngRequirmentRepo.findByOldDeliveryRgsId(rgsId);
+		if(CollectionUtils.isNotEmpty(engReqs)) {
+			for (AuditDeliveryRequirementT aEngReq : engReqs) {
+				entries.addAll(getEngRequirementAudtit(aEngReq));
+			}
+		}
+		return entries;
+	}
+
+
+
+	private List<AuditEntryDTO> getEngRequirementAudtit(
+			AuditDeliveryRequirementT aEngReq) {
+		List<AuditEntryDTO> entryDTOs = Lists.newArrayList();
+		String user = userRepository.findUserNameByUserId(aEngReq.getCreatedModifiedBy());
+		Date date = new Date(aEngReq.getCreatedModifiedDatetime().getTime());
+		List<String> fieldArray = Lists.newArrayList("EmployeeId", "EmployeeName");
+		//TODO is this new_old field or only addition
+		entryDTOs.addAll(getEntriesFromFields(aEngReq, fieldArray, user, date, null));
+		return entryDTOs;
+	}
+
+
+	/**
+	 * list audit entries fro delivery manager addition and remove
+	 * @param engId
+	 * @return
+	 */
+	private List<AuditEntryDTO> getEngManagersAudit(
+			Integer engId) {
+		List<AuditEntryDTO> entries = Lists.newArrayList();
+		List<AuditDeliveryMasterManagerLinkT> aDeliveryManagers = aDeliveryManagerLinkRepo.findByDeliveryMasterId(engId);
+		if(CollectionUtils.isNotEmpty(aDeliveryManagers)) {
+			for (AuditDeliveryMasterManagerLinkT adeliveryManagerLinkT : aDeliveryManagers) {
+				entries.addAll(getEngManagersAudit(adeliveryManagerLinkT));
+			}
+		}
+		return entries;
+	}
+
+	/**
+	 * a audit entry for delivery manager
+	 * @param adeliveryManagerLinkT
+	 * @return
+	 */
+	private List<AuditEntryDTO> getEngManagersAudit(
+			AuditDeliveryMasterManagerLinkT adeliveryManagerLinkT) {
+		Operation operationType = Operation.getByCode(adeliveryManagerLinkT.getOperationType());
+		String user = userRepository.findUserNameByUserId(adeliveryManagerLinkT.getCreatedModifiedBy());
+		Date date = new Date(adeliveryManagerLinkT.getCreatedModifiedDatetime().getTime());
+		String deliveryManager = adeliveryManagerLinkT.getDeliveryManagerId();
+		String fieldName = "Delivery Manager";
+		AuditEntryDTO entry = getEntryByOperation(operationType, user, date,
+				deliveryManager, fieldName, FieldType.USER_ID);
+		return Lists.newArrayList(entry);
+	}
+
 
 	/**
 	 * get all bid related changes
@@ -493,7 +681,7 @@ public class AuditDetailService {
 				"CoreAttributesUsedForWinning", "BidRequestType");
 		
 		for (String fieldName : fieldArray) {
-			AuditEntryDTO entry = getEntry(aBidDetailT, fieldName, user, date);
+			AuditEntryDTO entry = getEntry(aBidDetailT, fieldName, user, date, null);
 			if(entry != null) {
 				entryDTOs.add(entry);
 			}
@@ -531,7 +719,7 @@ public class AuditDetailService {
 		List<AuditEntryDTO> entries = Lists.newArrayList();
 		String user = userRepository.findUserNameByUserId(aBidOffGrpOwner.getCreatedModifiedBy());
 		Date date = new Date(aBidOffGrpOwner.getCreatedModifiedDatetime().getTime());
-		AuditEntryDTO entry = getEntry(aBidOffGrpOwner, "BidOfficeGroupOwner", user, date);
+		AuditEntryDTO entry = getEntry(aBidOffGrpOwner, "BidOfficeGroupOwner", user, date, null);
 		if(entry != null) {
 			String fromVal = entry.getFromVal();
 			String toVal = entry.getToVal();
@@ -866,6 +1054,23 @@ public class AuditDetailService {
 		return entryDTOs;
 	}
 
+	/**
+	 * get all delivery master related changes as audit entries
+	 * @param engId
+	 * @return
+	 */
+	private List<AuditEntryDTO> getEngagementAudit(Integer engId) {
+		//opportunity audit
+		List<AuditEntryDTO> entryDTOs = Lists.newArrayList();
+		
+		List<AuditDeliveryMasterT> engagements = aDeliveryRepo.findByDeliveryMasterId(engId);
+		if(CollectionUtils.isNotEmpty(engagements))
+			for (AuditDeliveryMasterT auditEngagementT : engagements) {
+				entryDTOs.addAll(getEngagementAudit(auditEngagementT));
+			}
+		return entryDTOs;
+	}
+
 
 	/**
 	 * get all opportunity master related changes
@@ -883,9 +1088,9 @@ public class AuditDetailService {
 				"DescriptionForWinLoss","EngagementDuration","SalesStageCode", 
 				"DealType", "Country", "DigitalFlag");
 		
-		entryDTOs.addAll(getEntriesFromFields(auditOpportunityT, fieldArray, user, date));
+		entryDTOs.addAll(getEntriesFromFields(auditOpportunityT, fieldArray, user, date, null));
 		
-		AuditEntryDTO entry = getEntry(auditOpportunityT, "OpportunityOwner", user, date);
+		AuditEntryDTO entry = getEntry(auditOpportunityT, "OpportunityOwner", user, date, null);
 		if(entry != null) {
 			String fromVal = entry.getFromVal();
 			String toVal = entry.getToVal();
@@ -893,6 +1098,33 @@ public class AuditDetailService {
 			entry.setToVal(toVal != null ? userRepository.findUserNameByUserId(toVal) : null);
 			entryDTOs.add(entry);
 		}
+		return entryDTOs;
+	}
+
+	/**
+	 * get all delivery master related changes
+	 * @param auditOpportunityT
+	 * @return
+	 */
+	private List<AuditEntryDTO> getEngagementAudit(
+			AuditDeliveryMasterT auditDeliveryMasterT) {
+		List<AuditEntryDTO> entryDTOs = Lists.newArrayList();
+		String user = userRepository.findUserNameByUserId(auditDeliveryMasterT.getCreatedModifiedBy());
+		Date date = new Date(auditDeliveryMasterT.getCreatedModifiedDatetime().getTime());
+		
+		List<String> fieldArray = Lists.newArrayList("ScheduledStartDate", "ActualStartDate", "ExpectedEndDate",
+				"WonNum", "Odc", "DeliveryPartnerId", "DeliveryPartnerName", "GlId", "GlName",
+				"PlId", "PlName", "EngagementName" );//TODO finalize the fields and add in field map
+		
+		Map<String, FieldType> fieldMap = Maps.newHashMap();
+		fieldMap.put("DeliveryCentreId", FieldType.DELIVERY_CENTRE);
+		fieldMap.put("DeliveryStage", FieldType.DELIVERY_STAGE);
+		fieldMap.put("delivery_manager_id", FieldType.DELIVERY_STAGE);
+		
+		//TODO add engName and delivery manager to audit table
+		
+		entryDTOs.addAll(getEntriesFromFields(auditDeliveryMasterT, fieldArray, user, date, fieldMap));
+		
 		return entryDTOs;
 	}
 
@@ -907,15 +1139,19 @@ public class AuditDetailService {
 	 */
 	private AuditEntryDTO getEntryByOperation(Operation operationType,
 			String user, Date date, String fieldValue, String fieldName) {
+		return getEntryByOperation(operationType, user, date, fieldValue, fieldName, null);
+	}
+
+	private AuditEntryDTO getEntryByOperation(Operation operationType,
+			String user, Date date, String fieldValue, String fieldName, FieldType fieldType) {
 		AuditEntryDTO entry;
 		if(operationType == Operation.ADD) {
-			entry = getAuditEntry(fieldName, null, fieldValue, user, date);
+			entry = getAuditEntry(fieldName, user, date, fieldType, null, fieldValue);
 		} else { //removed
-			entry = getAuditEntry(fieldName, fieldValue, null, user, date);
+			entry = getAuditEntry(fieldName, user, date, fieldType, fieldValue, null);
 		}
 		return entry;
 	}
-
 
 	/**
 	 * group the entries by date and user
@@ -1121,7 +1357,7 @@ public class AuditDetailService {
 		
 		List<String> fieldArray = Lists.newArrayList("WorkflowCompetitorName", "WorkflowCompetitorWebsite", "WorkflowCompetitorNotes");
 		
-		entryDTOs.addAll(getEntriesFromFields(wfCompetitor, fieldArray, user, date));
+		entryDTOs.addAll(getEntriesFromFields(wfCompetitor, fieldArray, user, date, null));
 		return entryDTOs;
 	}
 
@@ -1155,7 +1391,7 @@ public class AuditDetailService {
 		
 		List<String> fieldArray = Lists.newArrayList("PartnerName", "Website", "Facebook", "CorporateHqAddress", "Iou", "Geography", "Notes");
 		
-		entryDTOs.addAll(getEntriesFromFields(wfPartner, fieldArray, user, date));
+		entryDTOs.addAll(getEntriesFromFields(wfPartner, fieldArray, user, date, null));
 		return entryDTOs;
 	}
 
@@ -1190,7 +1426,7 @@ public class AuditDetailService {
 		List<String> fieldArray = Lists.newArrayList("GroupCustomerName", "CustomerName", "Website", "Facebook", 
 				"CorporateHqAddress", "Iou", "Geography", "Remarks");
 		
-		entryDTOs.addAll(getEntriesFromFields(wfCustomer, fieldArray, user, date));
+		entryDTOs.addAll(getEntriesFromFields(wfCustomer, fieldArray, user, date, null));
 		return entryDTOs;
 	}
 
@@ -1201,17 +1437,18 @@ public class AuditDetailService {
 	 * @param fieldName
 	 * @param user
 	 * @param date
+	 * @param fieldType 
 	 * @return
 	 */
-	private AuditEntryDTO getEntry(Object obj, String fieldName, String user, Date date) {
+	private AuditEntryDTO getEntry(Object obj, String fieldName, String user, Date date, FieldType fieldType) {
 		try {
 			Method oldGetter = obj.getClass().getDeclaredMethod("getOld"+fieldName);
 			Method newGetter = obj.getClass().getDeclaredMethod("getNew"+fieldName);
 			Object oldVal = oldGetter.invoke(obj);
 			Object newVal = newGetter.invoke(obj);
 			if(!ObjectUtils.equals(oldVal, newVal)) {
-				return getAuditEntry(fieldName, (oldVal != null )? String.valueOf(oldVal): null, 
-						(newVal != null )? String.valueOf(newVal): null, user, date);
+				return getAuditEntry(fieldName, user, date, fieldType, oldVal,
+						newVal);
 			}
 
 		} catch (InvocationTargetException | IllegalAccessException | IllegalArgumentException | NoSuchMethodException | SecurityException e) {
@@ -1219,6 +1456,50 @@ public class AuditDetailService {
 		}
 
 		return null;
+	}
+
+
+	private AuditEntryDTO getAuditEntry(String fieldName, String user,
+			Date date, FieldType fieldType, Object oldVal, Object newVal) {
+		String dispOldVal = null;
+		String dispNewVal = null;
+		if(fieldType == null) {
+			dispOldVal = (oldVal != null )? String.valueOf(oldVal): null;
+			dispNewVal = (newVal != null )? String.valueOf(newVal): null;
+		} else {
+			switch (fieldType) {
+			case USER_ID:
+				dispOldVal = oldVal != null ? userRepository.findUserNameByUserId(String.valueOf(oldVal)) : null;
+				dispNewVal = newVal != null ? userRepository.findUserNameByUserId(String.valueOf(newVal)) : null;
+				break;
+			case DELIVERY_CENTRE:
+				dispOldVal = oldVal != null ? deliveryCentreRepo.findByDeliveryCentreId((Integer)oldVal).getDeliveryCentre() : null;
+				dispNewVal = newVal != null ? deliveryCentreRepo.findByDeliveryCentreId((Integer)newVal).getDeliveryCentre() : null;
+				break;
+			case DELIVERY_STAGE:
+				dispOldVal = oldVal != null ? DeliveryStage.byStageCode((Integer) oldVal).getStageName() : null;;
+				dispNewVal = newVal != null ? DeliveryStage.byStageCode((Integer) newVal).getStageName() : null;
+				break;
+			default:
+				dispOldVal = (oldVal != null )? String.valueOf(oldVal): null;
+				dispNewVal = (newVal != null )? String.valueOf(newVal): null;
+			}
+		}
+		
+		return getAuditEntry(fieldName, dispOldVal, dispNewVal, user, date);
+	}
+	
+	/**
+	 * creates a {@link AuditEntryDTO},comparing old and new by calling 'getOld' and 'getNew' methods for the provided field name
+	 * using reflection to call getter methods
+	 * @param obj
+	 * @param fieldName
+	 * @param user
+	 * @param date
+	 * @return
+	 */
+	private AuditEntryDTO getEntry(Object obj, String fieldName, String user, Date date) {
+		return getEntry(obj, fieldName, user, date, null);
 	}
 	
 	/**
@@ -1323,15 +1604,25 @@ public class AuditDetailService {
 	 * @param fieldArray
 	 * @param user
 	 * @param date
+	 * @param fieldMap - map of fields where 
 	 * @return
 	 */
 	private List<AuditEntryDTO> getEntriesFromFields(
-			Object entity, List<String> fieldArray, String user, Date date) {
+			Object entity, List<String> fieldArray, String user, Date date, Map<String, FieldType> fieldMap) {
 		List<AuditEntryDTO> entryDTOs = Lists.newArrayList();
 		for (String fieldName : fieldArray) {
 			AuditEntryDTO entry = getEntry(entity, fieldName, user, date);
 			if(entry != null) {
 				entryDTOs.add(entry);
+			}
+		}
+		
+		if(fieldMap != null) {
+			for (Entry<String, FieldType> field : fieldMap.entrySet()) {
+				AuditEntryDTO entry = getEntry(entity, field.getKey(), user, date, field.getValue());
+				if(entry != null) {
+					entryDTOs.add(entry);
+				}
 			}
 		}
 		return entryDTOs;
@@ -1374,5 +1665,38 @@ public class AuditDetailService {
 	
 	private Date truncateSeconds(Timestamp timestamps) {
 		return DateUtils.truncateSeconds(new Date(timestamps.getTime()));
+	}
+
+
+	/**
+	 * the service method - to get engagement history
+	 * @param engId
+	 * @return
+	 */
+	public AuditHistoryResponseDTO<AuditEngagementHistoryDTO> getEngagementHistory(
+			Integer engId) {
+		logger.info("Entering AuditDetailService :: getEngagementHistory");
+		List<AuditEngagementHistoryDTO> histories = Lists.newArrayList();
+		
+		//List<AuditDeliveryMasterT> aDeliveryList = aDeliveryRepo.findByOldDeliveryMasterId(engId);
+		
+		List<Map<String, Object>> engStageSequenceMap = getEngagementCodeSequenceMap(engId);
+		List<AuditEntryDTO> entries = getEngagementAudits(engId);
+		
+		//group entries by sales stage code and date
+		Map<String, List<AuditEntryDTO>> engStageHistoryMap = groupBySalesCode(entries, engStageSequenceMap);
+		
+		for (Entry<String, List<AuditEntryDTO>> mapEntry : engStageHistoryMap.entrySet()) {
+			AuditEngagementHistoryDTO aOppHistory = getAuditEngagmentHistoryDTO(mapEntry);
+			histories.add(aOppHistory);
+		}
+		Collections.sort(histories);
+		logger.info("Ends AuditDetailService :: getOpportunityHistory");
+		return new AuditHistoryResponseDTO<AuditEngagementHistoryDTO>(histories);
+	}
+	
+	enum FieldType {
+		NORMAL, USER_ID, DELIVERY_CENTRE, DELIVERY_STAGE;
+		
 	}
 }

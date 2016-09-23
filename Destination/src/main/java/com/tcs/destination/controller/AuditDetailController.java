@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tcs.destination.bean.AuditEngagementHistoryDTO;
 import com.tcs.destination.bean.AuditHistoryDTO;
 import com.tcs.destination.bean.AuditHistoryResponseDTO;
 import com.tcs.destination.bean.AuditOpportunityHistoryDTO;
@@ -65,6 +66,22 @@ public class AuditDetailController {
 		}
 	}
 
+	@RequestMapping(value = "/engagement", method = RequestMethod.GET)
+	public @ResponseBody AuditHistoryResponseDTO<AuditEngagementHistoryDTO> getEngagementHistory(
+			@RequestParam(value = "id") Integer engId)
+					throws DestinationException {
+		logger.info("Inside AuditDetailController : Start of getEngagementHistory");
+		
+		try {
+			return auditDetailService.getEngagementHistory(engId);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error("Erron on getEngagementHistory", e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the Engagement History");
+		}
+	}
 
 
 }

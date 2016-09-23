@@ -2,7 +2,12 @@ package com.tcs.destination.enums;
 
 public enum DeliveryStage {
 
-	INTIMATED(0,"Intimated"), ACCEPTED(1,"Accepted"), ASSIGNED(2,"Assigned"), PLANNED(3,"Planned"), LIVE(4,"Live");
+	INTIMATED(0,"Intimated"), 
+	ACCEPTED(1,"Accepted"), 
+	ASSIGNED(2,"Assigned"), 
+	PLANNED(3,"Planned"), 
+	LIVE(4,"Live"),
+	OPEN(-1, "Open");
 	
 	private final Integer stageCode;
 	private final String stageName;
