@@ -13,18 +13,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tcs.destination.bean.AsyncJobRequest;
 import com.tcs.destination.bean.DeliveryMasterT;
-import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PageDTO;
-import com.tcs.destination.bean.PaginatedResponse;
+import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.Status;
-import com.tcs.destination.enums.EntityType;
-import com.tcs.destination.enums.JobName;
-import com.tcs.destination.enums.OperationType;
-import com.tcs.destination.enums.Switch;
+import com.tcs.destination.bean.UserT;
+import com.tcs.destination.enums.SmartSearchType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.DeliveryMasterService;
+import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
 /**
@@ -151,5 +148,38 @@ public class DeliveryMasterController {
 
 	}
 	
-	
+	/**
+	 * Service to fetch the delivery master t related information based on search type and the search keyword 
+	 * @param searchType - category type
+	 * @param term - keyword
+	 * @param getAll - true, to retrieve entire result, false to filter the result to only 3 records.(<b>default:false</b>)
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/search/smart", method = RequestMethod.GET)
+	public @ResponseBody String smartSearch(
+			@RequestParam("searchType") String searchType,
+			@RequestParam("term") String term,
+			@RequestParam(value = "getAll", defaultValue = "false") boolean getAll,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "30") int count,
+			@RequestParam(value = "view", defaultValue = "") String view)
+					throws DestinationException {
+		logger.info("Inside DeliveryMasterController: smart search by search term");
+		try {
+			UserT user = DestinationUtils.getCurrentUserDetails();
+			PageDTO<SearchResultDTO<DeliveryMasterT>> res = deliveryMasterService.deliveryMasterSmartSearch(SmartSearchType.get(searchType), term, getAll, page, count,user);
+			logger.info("Inside DeliveryMasterController: End - smart search by search term");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields, view, res, true);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error("Error on smartSearch", e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while retrieving delivery master detail smart search");
+		}
+	}
 }
