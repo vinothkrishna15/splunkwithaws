@@ -727,6 +727,43 @@ public class DeliveryMasterService {
 		deliveryMasterT.setModifiedBy(Constants.SYSTEM_USER);
 		deliveryMasterRepository.save(deliveryMasterT);
 	}
+
+
+	public HashSet<UserT> findDeliveryCentreUserList(int deliveryCentreId, String nameWith) {
+		HashSet<UserT> usersForDeliveryCentre = new HashSet<UserT>();
+
+		DeliveryCentreT deliveryCentre = deliveryCentreRepository.findOne(deliveryCentreId);
+		if (deliveryCentre != null) {
+			String deliveryCentreHead = deliveryCentre.getDeliveryCentreHead();
+			// get all delivery managers for a delivery centre head
+			if (!StringUtils.isEmpty(deliveryCentreHead)) {
+				// retrieve users under this delivery centre head whose user group is delivery manager
+				List<UserT> deliveryManagersForDeliveryCentreList = userRepository.findBySupervisorUserIdAndUserGroupAndUserNameContaining(deliveryCentreHead, Constants.DELIVERY_MANAGER, nameWith);
+				if (CollectionUtils.isNotEmpty(deliveryManagersForDeliveryCentreList)) {
+					for (UserT deliveryManager : deliveryManagersForDeliveryCentreList) {
+						usersForDeliveryCentre.add(deliveryManager);
+					}
+				}
+			}
+			// get all delivery managers for a delivery cluster head (as delivery center head not available) 
+			else {
+				if (deliveryCentre.getDeliveryClusterId() != 0) {
+					DeliveryClusterT deliveryCluster = deliveryClusterRepository.findOne(deliveryCentre.getDeliveryClusterId());
+					String deliveryClusterHead = deliveryCluster.getDeliveryClusterHead();
+					if (!StringUtils.isEmpty(deliveryClusterHead)) {
+						// retrieve users under this delivery centre head whose user group is delivery manager
+						List<UserT> deliveryManagersForDeliveryCentreList = userRepository.findBySupervisorUserIdAndUserGroupAndUserNameContaining(deliveryClusterHead, Constants.DELIVERY_MANAGER, nameWith);
+						if (CollectionUtils.isNotEmpty(deliveryManagersForDeliveryCentreList)) {
+							for (UserT deliveryManager : deliveryManagersForDeliveryCentreList) {
+								usersForDeliveryCentre.add(deliveryManager);
+							}
+						}
+					}
+				}
+			}
+		}
+		return usersForDeliveryCentre;
+	}
 	
 	
 	/**

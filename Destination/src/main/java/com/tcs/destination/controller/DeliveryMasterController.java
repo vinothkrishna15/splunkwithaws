@@ -182,4 +182,29 @@ public class DeliveryMasterController {
 					"Backend error while retrieving delivery master detail smart search");
 		}
 	}
+
+@RequestMapping(value = "/deliverManagersForCentre", method = RequestMethod.GET)
+public @ResponseBody String findAllUsersForDeliveryCentreHeads(
+		@RequestParam(value = "deliveryCentreId", defaultValue = "-1") int deliveryCentreId,
+		@RequestParam(value = "nameWith", defaultValue = "") String nameWith,
+		@RequestParam(value = "fields", defaultValue = "all") String fields,
+		@RequestParam(value = "view", defaultValue = "") String view)
+				throws DestinationException {
+	logger.info("Inside DeliveryMasterController: Start of /deliverCentreUserlist GET");
+	String response = null;
+	HashSet<UserT> deliveryCentreUserList = null;
+	try {
+		deliveryCentreUserList = deliveryMasterService.findDeliveryCentreUserList(deliveryCentreId, nameWith);
+		response = ResponseConstructors.filterJsonForFieldAndViews(fields,
+				view, deliveryCentreUserList);
+	} catch (DestinationException e) {
+		throw e;
+	} catch (Exception e) {
+		logger.error(e.getMessage());
+		throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+				"Backend error in retrieving the deliveryMaster list");
+	}
+	logger.info("Inside DeliveryMasterController: End of /deliverCentreUserlist GET");
+	return response;
+}
 }

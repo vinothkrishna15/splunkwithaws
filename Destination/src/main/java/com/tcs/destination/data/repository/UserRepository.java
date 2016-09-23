@@ -140,14 +140,14 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 	
 	
 	/**
-	 * Find the userId and username of subordinates of the user
+	 * Find the userId and user name of subordinates of the user
 	 * 
 	 * @param userId
 	 * @return
 	 */
 	@Query(value = "WITH RECURSIVE U1 AS (SELECT * FROM user_t WHERE supervisor_user_id = ?1 UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U2.supervisor_user_id = U1.user_id ) SELECT U1.* FROM U1 ORDER BY U1.user_id asc", nativeQuery = true)
 	List<UserT> findSubordinatesBySupervisorId(String userId);
-	 
+	
 	/**
 	 * Find the reporting hierarchy of the user
 	 * 
@@ -173,5 +173,8 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 	
 	@Query(value = "select user_id from user_t where user_name = ?1",nativeQuery = true)
 	String findUserIdByUserName(String secondaryOwner);
+
+	List<UserT> findBySupervisorUserIdAndUserGroupAndUserNameContaining(
+			String deliveryCentreHead, String deliveryManager, String nameWith);
 	
 }
