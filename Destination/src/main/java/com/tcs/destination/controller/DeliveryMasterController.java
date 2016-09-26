@@ -188,8 +188,16 @@ public class DeliveryMasterController {
 					"Backend error while retrieving delivery master detail smart search");
 		}
 	}
-
-@RequestMapping(value = "/deliverManagersForCentre", method = RequestMethod.GET)
+/**
+ * service to retrieve the delivery managers under a delivery center
+ * @param deliveryCentreId
+ * @param nameWith
+ * @param fields
+ * @param view
+ * @return
+ * @throws DestinationException
+ */
+@RequestMapping(value = "/deliveryManagersForCentre", method = RequestMethod.GET)
 public @ResponseBody String findAllUsersForDeliveryCentreHeads(
 		@RequestParam(value = "deliveryCentreId", defaultValue = "-1") int deliveryCentreId,
 		@RequestParam(value = "nameWith", defaultValue = "") String nameWith,
