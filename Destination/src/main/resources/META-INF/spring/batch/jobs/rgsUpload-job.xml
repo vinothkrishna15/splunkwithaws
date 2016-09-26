@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:batch="http://www.springframework.org/schema/batch"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-3.0.xsd
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+	
+	<batch:job id="rgsUpload">
+
+	   <batch:step id="rgsUploadPreprocess" next="rgsDecider">
+         <batch:tasklet>
+         <ref bean="rgsPreprocessor"/>
+         </batch:tasklet>
+		</batch:step>
+		
+		
+	
+		<batch:step id="rgsProcessing" next="rgsDataProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="rgsSpreadSheetReader" writer="rgsWriter" 
+				commit-interval="${upload.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		</batch:step>
+		
+		<batch:step id="rgsDataProcessing" next="rgsUploadPreprocess">
+		 <batch:tasklet> <ref bean="rgsDataTasklet"></ref>
+		 </batch:tasklet>
+		</batch:step>
+		
+
+		 <batch:decision id="rgsDecider" decider="rgsFlowdecider">
+              <batch:next on="PREPROCESS" to="rgsUploadPreprocess" />
+              <batch:next on="RGS_PROCESSING" to="rgsProcessing" />
+              <batch:next on="RGS_DATA_PROCESSING" to="rgsDataProcessing" />
+              <batch:end on="END"/>
+         </batch:decision>
+	</batch:job>
+	
+	<bean id="rgsPreprocessor" class="com.tcs.destination.tasklet.RgsPreprocessor" scope="step"/>
+	
+	<bean id="rgsDataTasklet" class="com.tcs.destination.tasklet.RgsDataTasklet" scope="step">
+	
+	</bean>
+	
+	<!-- Readers -->
+	<bean id="rgsSpreadSheetReader" class="com.tcs.destination.reader.SpreadSheetReader" scope="step">
+		<property name="filePath" value="#{jobExecutionContext['FILE_PATH']}"/>
+		<property name="sheetName" value="Mapping"/>
+		<property name="rowsToSkip" value = "1" />
+	</bean>
+	
+	<!-- Writers -->
+	<bean id="rgsWriter" class="com.tcs.destination.writer.RgsCustomWriter" scope="step">
+		<property name="request" value="#{jobExecutionContext['REQUEST']}"/>
+		<property name="helper" ref="rgsUploadHelper"/>
+		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+		<property name="uploadErrorReport" ref="uploadErrorReport" />
+		<property name="rgsDetailsRepository" ref="rgsRepository"/>
+	</bean>
+	
+	<!-- Decider -->
+    <bean id="rgsFlowdecider" class="com.tcs.destination.decider.RgsDecider" />
+	
+	<bean id="uploadErrorReport" class="com.tcs.destination.service.UploadErrorReport"/>
+	
+	<!-- scheduler  -->
+	<bean id="rgsUploadScheduler" class="com.tcs.destination.scheduler.JobScheduler">
+		<property name="job" ref="rgsUpload"/>
+	</bean>
+	
+	<task:scheduled-tasks>
+        <task:scheduled ref="rgsUploadScheduler" method="run" cron="${rgs.upload.job.cron}"/>
+    </task:scheduled-tasks>
+	
+</beans>
+	

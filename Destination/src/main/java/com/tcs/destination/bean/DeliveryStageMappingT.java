@@ -17,7 +17,7 @@ import java.util.List;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "stage")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "stage", scope=DeliveryMasterT.class)
 @Entity
 @Table(name="delivery_stage_mapping_t")
 @NamedQuery(name="DeliveryStageMappingT.findAll", query="SELECT d FROM DeliveryStageMappingT d")

@@ -55,5 +55,7 @@
     <import resource="jobs/ShareEmail-job.xml"/>
     <import resource="/jobs/weeklyReport-job.xml"/>
     
+    <import resource="/jobs/rgsUpload-job.xml"/>
+    
 </beans>
 	

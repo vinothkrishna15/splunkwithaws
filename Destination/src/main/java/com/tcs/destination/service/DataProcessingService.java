@@ -143,6 +143,9 @@ public class DataProcessingService {
 		case 24:
 		case 25:	
 			entity = EntityType.PARTNER_MASTER.name();
+			break;
+		case 26:
+			entity = EntityType.RGS.name();
 		break;
 		}
 		return entity;

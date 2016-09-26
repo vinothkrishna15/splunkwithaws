@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.Lists;
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryClusterT;
@@ -33,6 +35,7 @@ import com.tcs.destination.bean.OpportunityDeliveryCentreMappingT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
+import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.DeliveryCentreRepository;
 import com.tcs.destination.data.repository.DeliveryClusterRepository;
@@ -43,6 +46,7 @@ import com.tcs.destination.data.repository.DeliveryRequirementRepository;
 import com.tcs.destination.data.repository.DeliveryResourcesRepository;
 import com.tcs.destination.data.repository.DeliveryRgsTRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.enums.SmartSearchType;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
@@ -246,7 +250,7 @@ public class DeliveryMasterService {
 		logger.debug("Inside findByDeliveryMasterId() service");
 		DeliveryMasterT deliveryMaster = deliveryMasterRepository.findOne(deliveryMasterId);
 		if (deliveryMaster != null) {
-			setData(deliveryMaster);
+			removeCyclicData(deliveryMaster);
 			return deliveryMaster;
 		} else {
 			logger.error("NOT_FOUND: Delivery Master Details not found: {}", deliveryMasterId);
@@ -255,9 +259,31 @@ public class DeliveryMasterService {
 		}
 	}
 
-	private void setData(DeliveryMasterT deliveryMaster) {
+	/**
+	 * This method removes the List<DeliveryMasterT> cyclic data 
+	 * 
+	 * @param deliveryMasterTList
+	 */
+	private void removeCyclicData(List<DeliveryMasterT> deliveryMasterTList) {
+		for(DeliveryMasterT deliveryMasterT: deliveryMasterTList){
+			removeCyclicData(deliveryMasterT);
+		}
+	}
+	
+	/**
+	 * This method removes the DeliveryMasterT cyclic data 
+	 * 
+	 * @param deliveryMaster
+	 */
+	private void removeCyclicData(DeliveryMasterT deliveryMaster) {
+		List<DeliveryMasterManagerLinkT> managres = deliveryMaster.getDeliveryMasterManagerLinkTs();
+		if(CollectionUtils.isNotEmpty(managres)){
+			for (DeliveryMasterManagerLinkT deliveryMasterManagerLinkT : managres) {
+				deliveryMasterManagerLinkT.setDeliveryMasterT(null);
+			}
+		}
 		List<DeliveryResourcesT> deliveryResourcesTs = deliveryMaster.getDeliveryResourcesTs();
-	    if(!CollectionUtils.isEmpty(deliveryResourcesTs)){
+	    if(CollectionUtils.isNotEmpty(deliveryResourcesTs)){
 	    	for(DeliveryResourcesT deliveryResourcesT:deliveryResourcesTs){
 	    		DeliveryRgsT deliveryRgsT = deliveryResourcesT.getDeliveryRgsT();
 				if (deliveryRgsT != null) {
@@ -357,23 +383,20 @@ public class DeliveryMasterService {
 				deliveryMasterManagerLinkRepository.save(deliveryMasterManagerLinkTs);
 			}
 			
-			
-			
-			
-
-			for(DeliveryResourcesT deliveryResourcesT:deliveryResourcesTs){
-				DeliveryRgsT deliveryRgsT = deliveryResourcesT.getDeliveryRgsT();
-				if(deliveryRgsT!=null){
-					List<DeliveryRequirementT> deliveryRequirementTs = deliveryRgsT.getDeliveryRequirementTs();
-				    if(!CollectionUtils.isEmpty(deliveryRequirementTs)){
-				    	for(DeliveryRequirementT deliveryRequirementT : deliveryRequirementTs){
-				    		deliveryRequirementT.setModifiedBy(loginUserId);
-				    	}
-				    	deliveryRequirementRepository.save(deliveryRequirementTs);
-				    }
+			if (deliveryResourcesTs != null) {
+				for(DeliveryResourcesT deliveryResourcesT:deliveryResourcesTs){
+					DeliveryRgsT deliveryRgsT = deliveryResourcesT.getDeliveryRgsT();
+					if(deliveryRgsT!=null){
+						List<DeliveryRequirementT> deliveryRequirementTs = deliveryRgsT.getDeliveryRequirementTs();
+					    if(!CollectionUtils.isEmpty(deliveryRequirementTs)){
+					    	for(DeliveryRequirementT deliveryRequirementT : deliveryRequirementTs){
+					    		deliveryRequirementT.setModifiedBy(loginUserId);
+					    	}
+					    	deliveryRequirementRepository.save(deliveryRequirementTs);
+					    }
+					}
 				}
 			}
-			
 			
 			return (deliveryMasterRepository.save(deliveryMasterT));
 		} catch (Exception e) {
@@ -571,14 +594,7 @@ public class DeliveryMasterService {
 										"role is mandatory in deliveryRequirementT");
 							}
 				    		
-				    		String site = deliveryRequirementT.getSite();
-				    		if(StringUtils.isEmpty(site)){
-								logger.error("BAD_REQUEST: site is mandatory in deliveryRequirementT");
-								throw new DestinationException(HttpStatus.BAD_REQUEST,
-										"site is mandatory in deliveryRequirementT");
-							}
-				    		
-				    		String status = deliveryRequirementT.getStatus();
+      			    		String status = deliveryRequirementT.getStatus();
 				    		if(StringUtils.isEmpty(status)){
 								logger.error("BAD_REQUEST: status is mandatory in deliveryRequirementT");
 								throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -716,6 +732,7 @@ public class DeliveryMasterService {
 		deliveryMasterT.setModifiedBy(Constants.SYSTEM_USER);
 		deliveryMasterRepository.save(deliveryMasterT);
 	}
+
 	public List<String> searchByDeliveryRgsId(String idLike, int limitNum) throws Exception {
 		logger.debug("Inside searchByDeliveryRgsId() service");
 		List<String> response = deliveryRgsTRepository.findByRgsIdPattern(idLike + '%', limitNum);
@@ -726,6 +743,227 @@ public class DeliveryMasterService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Delivery Rgs Id not found for pattern: " + idLike);
 		}
+	}
+
+	/**
+	 * Service to retrieve all the delivery managers under a delivery center
+	 * @param deliveryCentreId
+	 * @param nameWith
+	 * @return
+	 */
+	public HashSet<UserT> findDeliveryCentreUserList(int deliveryCentreId, String nameWith) {
+		HashSet<UserT> usersForDeliveryCentre = new HashSet<UserT>();
+
+		DeliveryCentreT deliveryCentre = deliveryCentreRepository.findOne(deliveryCentreId);
+		if (deliveryCentre != null) {
+			String deliveryCentreHead = deliveryCentre.getDeliveryCentreHead();
+			// get all delivery managers for a delivery centre head
+			if (!StringUtils.isEmpty(deliveryCentreHead)) {
+				// retrieve users under this delivery centre head whose user group is delivery manager
+				List<UserT> deliveryManagersForDeliveryCentreList = userRepository.findBySupervisorUserIdAndUserGroupAndUserNameIgnoreCaseContaining(deliveryCentreHead, Constants.DELIVERY_MANAGER, nameWith);
+				if (CollectionUtils.isNotEmpty(deliveryManagersForDeliveryCentreList)) {
+					for (UserT deliveryManager : deliveryManagersForDeliveryCentreList) {
+						usersForDeliveryCentre.add(deliveryManager);
+					}
+				}
+			}
+			// get all delivery managers for a delivery cluster head (as delivery center head not available) 
+			else {
+				if (deliveryCentre.getDeliveryClusterId() != 0) {
+					DeliveryClusterT deliveryCluster = deliveryClusterRepository.findOne(deliveryCentre.getDeliveryClusterId());
+					if (deliveryCluster != null ) {
+						String deliveryClusterHead = deliveryCluster.getDeliveryClusterHead();
+						if (!StringUtils.isEmpty(deliveryClusterHead)) {
+							// retrieve users under this delivery centre head whose user group is delivery manager
+							List<UserT> deliveryManagersForDeliveryCentreList = userRepository.findBySupervisorUserIdAndUserGroupAndUserNameIgnoreCaseContaining(deliveryClusterHead, Constants.DELIVERY_MANAGER, nameWith);
+							if (CollectionUtils.isNotEmpty(deliveryManagersForDeliveryCentreList)) {
+								for (UserT deliveryManager : deliveryManagersForDeliveryCentreList) {
+									usersForDeliveryCentre.add(deliveryManager);
+								}
+							}
+						}
+					}
+				}
+			}
+		}else{
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"The given Delivery Centre not found");
+		}
+		return usersForDeliveryCentre;
+	}
+
+
+	/**
+	 * This method is used to fetch delivery master details 
+	 * 
+	 * @param smartSearchType
+	 * @param term
+	 * @param getAll
+	 * @param page
+	 * @param count
+	 * @param user
+	 * @return
+	 */
+	public PageDTO<SearchResultDTO<DeliveryMasterT>> deliveryMasterSmartSearch(
+			SmartSearchType smartSearchType, String term, boolean getAll,
+			int page, int count, UserT user) {
+		logger.info("DeliveryMasterService::smartSearch type {}", smartSearchType);
+		PageDTO<SearchResultDTO<DeliveryMasterT>> res = new PageDTO<SearchResultDTO<DeliveryMasterT>>();
+		List<SearchResultDTO<DeliveryMasterT>> resList = Lists.newArrayList();
+		SearchResultDTO<DeliveryMasterT> searchResultDTO = new SearchResultDTO<DeliveryMasterT>();
+		if (smartSearchType != null) {
+
+			switch (smartSearchType) {
+			case ALL:
+				resList.add(getDeliveryMasterById(term, getAll, user));
+				resList.add(getDeliveryMasterByCustName(term, getAll, user));
+				resList.add(getDeliveryMasterByDeliveryCentres(term, getAll, user));
+				break;
+			case ID:
+				searchResultDTO = getDeliveryMasterById(term, getAll, user);
+				break;
+			case CUSTOMER:
+				searchResultDTO = getDeliveryMasterByCustName(term, getAll, user);
+				break;
+			case DELIVERY_CENTRE:
+				searchResultDTO = getDeliveryMasterByDeliveryCentres(term, getAll, user);
+				break;
+			default:
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Invalid search type");
+			}
+
+			if (smartSearchType != SmartSearchType.ALL) {
+				// paginate the result if it is fetching entire record(ie.getAll=true)
+				if (getAll) {
+					List<DeliveryMasterT> values = searchResultDTO.getValues();
+					List<DeliveryMasterT> records = PaginationUtils.paginateList(
+							page, count, values);
+					if (CollectionUtils.isNotEmpty(records)) {
+						removeCyclicData(records);
+					}
+					searchResultDTO.setValues(records);
+					res.setTotalCount(values.size());
+				}
+				resList.add(searchResultDTO);
+			}
+		}
+		res.setContent(resList);
+		return res;
+	}
+
+
+	/**
+	 * This method is used to fetch delivery master details for the delivery centres
+	 * 
+	 * @param term
+	 * @param getAll
+	 * @param user
+	 * @return
+	 */
+	private SearchResultDTO<DeliveryMasterT> getDeliveryMasterByDeliveryCentres(
+			String term, boolean getAll, UserT user) {
+		logger.info("Inside getDeliveryMasterById() Method");
+		List<DeliveryMasterT> records = null;
+		String userGroup = user.getUserGroup();
+		if (userGroup.equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue())) {
+			
+			records = deliveryMasterRepository.searchDeliveryClusterDetailsByDeliveryCentres("%" + term + "%", getAll, user.getUserId());
+		
+		} else if(userGroup.equals(UserGroup.DELIVERY_CENTRE_HEAD.getValue())){
+			
+			records = deliveryMasterRepository.searchDeliveryCentreDetailsByDeliveryCentres("%" + term + "%", getAll, user.getUserId());
+		
+		} else if(userGroup.equals(UserGroup.DELIVERY_MANAGER.getValue())){
+			
+			records = deliveryMasterRepository.searchDeliveryManagerDetailsByDeliveryCentres("%" + term + "%", getAll, user.getUserId());
+
+		} else {
+			logger.info("HttpStatus.UNAUTHORIZED, Access Denied");
+			throw new DestinationException(HttpStatus.UNAUTHORIZED, "Access Denied");
+		}
+		return createSearchResultFrom(records, SmartSearchType.DELIVERY_CENTRE, getAll);
+	}
+
+	/**
+	 * This method is used to fetch delivery master details for the given customer name
+	 * 
+	 * @param term
+	 * @param getAll
+	 * @param user
+	 * @return
+	 */
+	private SearchResultDTO<DeliveryMasterT> getDeliveryMasterByCustName(
+			String term, boolean getAll, UserT user) {
+		logger.info("Inside getDeliveryMasterById() Method");
+		List<DeliveryMasterT> records = null;
+		String userGroup = user.getUserGroup();
+		if (userGroup.equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue())) {
+			
+			records = deliveryMasterRepository.searchDeliveryClusterDetailsByCustomerName("%" + term + "%", getAll, user.getUserId());
+		
+		} else if(userGroup.equals(UserGroup.DELIVERY_CENTRE_HEAD.getValue())){
+			
+			records = deliveryMasterRepository.searchDeliveryCentreDetailsByCustomerName("%" + term + "%", getAll, user.getUserId());
+		
+		} else if(userGroup.equals(UserGroup.DELIVERY_MANAGER.getValue())){
+			
+			records = deliveryMasterRepository.searchDeliveryManagerDetailsByCustomerName("%" + term + "%", getAll, user.getUserId());
+
+		} else {
+			logger.info("HttpStatus.UNAUTHORIZED, Access Denied");
+			throw new DestinationException(HttpStatus.UNAUTHORIZED, "Access Denied");
+		}
+		return createSearchResultFrom(records, SmartSearchType.CUSTOMER, getAll);
+	}
+
+	/**
+	 * This method is used to fetch delivery master details for the given opportunity id
+	 * 
+	 * @param term
+	 * @param getAll
+	 * @param user
+	 * @return
+	 */
+	private SearchResultDTO<DeliveryMasterT> getDeliveryMasterById(String term,
+			boolean getAll, UserT user) {
+		logger.info("Inside getDeliveryMasterById() Method");
+		List<DeliveryMasterT> records = null;
+		String userGroup = user.getUserGroup();
+		if (userGroup.equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue())) {
+			
+			records = deliveryMasterRepository.searchDeliveryClusterDetailsById("%" + term + "%", getAll, user.getUserId());
+		
+		} else if(userGroup.equals(UserGroup.DELIVERY_CENTRE_HEAD.getValue())){
+			
+			records = deliveryMasterRepository.searchDeliveryCentreDetailsById("%" + term + "%", getAll, user.getUserId());
+		
+		} else if(userGroup.equals(UserGroup.DELIVERY_MANAGER.getValue())){
+			
+			records = deliveryMasterRepository.searchDeliveryManagerDetailsById("%" + term + "%", getAll, user.getUserId());
+
+		} else {
+			logger.info("HttpStatus.UNAUTHORIZED, Access Denied");
+			throw new DestinationException(HttpStatus.UNAUTHORIZED, "Access Denied");
+		}
+		return createSearchResultFrom(records, SmartSearchType.ID, getAll);
+	}
+
+	/**
+	 * creates {@link SearchResultDTO} from the list of DeliveryMasterT
+	 * 
+	 * @param records
+	 * @param type
+	 * @param getAll
+	 * @return
+	 */
+	private SearchResultDTO<DeliveryMasterT> createSearchResultFrom(
+			List<DeliveryMasterT> records, SmartSearchType type, boolean getAll) {
+		SearchResultDTO<DeliveryMasterT> conRes = new SearchResultDTO<DeliveryMasterT>();
+		conRes.setSearchType(type);
+		conRes.setValues(records);
+		return conRes;
+
 	}
 }
 
