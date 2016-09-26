@@ -41,6 +41,7 @@ import com.tcs.destination.data.repository.DeliveryMasterPagingRepository;
 import com.tcs.destination.data.repository.DeliveryMasterRepository;
 import com.tcs.destination.data.repository.DeliveryRequirementRepository;
 import com.tcs.destination.data.repository.DeliveryResourcesRepository;
+import com.tcs.destination.data.repository.DeliveryRgsTRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
@@ -85,6 +86,9 @@ public class DeliveryMasterService {
 	
 	@Autowired
 	DeliveryRequirementRepository deliveryRequirementRepository;
+	
+	@Autowired
+	DeliveryRgsTRepository deliveryRgsTRepository;
 	
 	
 	private static final Map<String,String>ATTRIBUTE_MAP;
@@ -711,6 +715,17 @@ public class DeliveryMasterService {
 		deliveryMasterT.setCreatedBy(Constants.SYSTEM_USER);
 		deliveryMasterT.setModifiedBy(Constants.SYSTEM_USER);
 		deliveryMasterRepository.save(deliveryMasterT);
+	}
+	public List<String> searchByDeliveryRgsId(String idLike, int limitNum) throws Exception {
+		logger.debug("Inside searchByDeliveryRgsId() service");
+		List<String> response = deliveryRgsTRepository.findByRgsIdPattern(idLike + '%', limitNum);
+		if (response != null && response.size()>0) {
+			return response;
+		} else {
+			logger.error("NOT_FOUND: Delivery Rgs Id not found for pattern:", idLike);
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Delivery Rgs Id not found for pattern: " + idLike);
+		}
 	}
 }
 

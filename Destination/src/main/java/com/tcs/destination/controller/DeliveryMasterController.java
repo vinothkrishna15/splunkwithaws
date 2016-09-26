@@ -1,5 +1,7 @@
 package com.tcs.destination.controller;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.AsyncJobRequest;
 import com.tcs.destination.bean.DeliveryMasterT;
+import com.tcs.destination.bean.DeliveryRgsT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
@@ -150,6 +153,26 @@ public class DeliveryMasterController {
 		}
 
 	}
-	
+	@RequestMapping(value = "/search/rgs", method = RequestMethod.GET)
+	public @ResponseBody List<String> searchByDeliveryRgsId(
+			@RequestParam(value = "idLike", defaultValue = "") String idLike,
+			@RequestParam(value = "limitNum", defaultValue = "20") int limitNum)
+			throws DestinationException {
+
+		logger.info("Inside DeliveryMasterController: Start of search by Delivery Rgs Id pattern: "+idLike+" with limit num:"+limitNum);
+		List<String> response = null;
+		try {
+			response = deliveryMasterService.searchByDeliveryRgsId(idLike,limitNum);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the delivery Rgs Id List for the Rgs Id pattern:"
+							+ idLike);
+		}
+		logger.info("Inside DeliveryMasterController: End of search by Delivery Rgs Id pattern");
+		return response;
+	}
 	
 }
