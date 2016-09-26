@@ -744,7 +744,7 @@ public class DeliveryMasterService {
 			// get all delivery managers for a delivery centre head
 			if (!StringUtils.isEmpty(deliveryCentreHead)) {
 				// retrieve users under this delivery centre head whose user group is delivery manager
-				List<UserT> deliveryManagersForDeliveryCentreList = userRepository.findBySupervisorUserIdAndUserGroupAndUserNameContaining(deliveryCentreHead, Constants.DELIVERY_MANAGER, nameWith);
+				List<UserT> deliveryManagersForDeliveryCentreList = userRepository.findBySupervisorUserIdAndUserGroupAndUserNameIgnoreCaseContaining(deliveryCentreHead, Constants.DELIVERY_MANAGER, nameWith);
 				if (CollectionUtils.isNotEmpty(deliveryManagersForDeliveryCentreList)) {
 					for (UserT deliveryManager : deliveryManagersForDeliveryCentreList) {
 						usersForDeliveryCentre.add(deliveryManager);
@@ -759,7 +759,7 @@ public class DeliveryMasterService {
 						String deliveryClusterHead = deliveryCluster.getDeliveryClusterHead();
 						if (!StringUtils.isEmpty(deliveryClusterHead)) {
 							// retrieve users under this delivery centre head whose user group is delivery manager
-							List<UserT> deliveryManagersForDeliveryCentreList = userRepository.findBySupervisorUserIdAndUserGroupAndUserNameContaining(deliveryClusterHead, Constants.DELIVERY_MANAGER, nameWith);
+							List<UserT> deliveryManagersForDeliveryCentreList = userRepository.findBySupervisorUserIdAndUserGroupAndUserNameIgnoreCaseContaining(deliveryClusterHead, Constants.DELIVERY_MANAGER, nameWith);
 							if (CollectionUtils.isNotEmpty(deliveryManagersForDeliveryCentreList)) {
 								for (UserT deliveryManager : deliveryManagersForDeliveryCentreList) {
 									usersForDeliveryCentre.add(deliveryManager);
