@@ -729,7 +729,12 @@ public class DeliveryMasterService {
 		deliveryMasterRepository.save(deliveryMasterT);
 	}
 
-
+	/**
+	 * Service to retrieve all the delivery managers under a delivery center
+	 * @param deliveryCentreId
+	 * @param nameWith
+	 * @return
+	 */
 	public HashSet<UserT> findDeliveryCentreUserList(int deliveryCentreId, String nameWith) {
 		HashSet<UserT> usersForDeliveryCentre = new HashSet<UserT>();
 
@@ -750,23 +755,28 @@ public class DeliveryMasterService {
 			else {
 				if (deliveryCentre.getDeliveryClusterId() != 0) {
 					DeliveryClusterT deliveryCluster = deliveryClusterRepository.findOne(deliveryCentre.getDeliveryClusterId());
-					String deliveryClusterHead = deliveryCluster.getDeliveryClusterHead();
-					if (!StringUtils.isEmpty(deliveryClusterHead)) {
-						// retrieve users under this delivery centre head whose user group is delivery manager
-						List<UserT> deliveryManagersForDeliveryCentreList = userRepository.findBySupervisorUserIdAndUserGroupAndUserNameContaining(deliveryClusterHead, Constants.DELIVERY_MANAGER, nameWith);
-						if (CollectionUtils.isNotEmpty(deliveryManagersForDeliveryCentreList)) {
-							for (UserT deliveryManager : deliveryManagersForDeliveryCentreList) {
-								usersForDeliveryCentre.add(deliveryManager);
+					if (deliveryCluster != null ) {
+						String deliveryClusterHead = deliveryCluster.getDeliveryClusterHead();
+						if (!StringUtils.isEmpty(deliveryClusterHead)) {
+							// retrieve users under this delivery centre head whose user group is delivery manager
+							List<UserT> deliveryManagersForDeliveryCentreList = userRepository.findBySupervisorUserIdAndUserGroupAndUserNameContaining(deliveryClusterHead, Constants.DELIVERY_MANAGER, nameWith);
+							if (CollectionUtils.isNotEmpty(deliveryManagersForDeliveryCentreList)) {
+								for (UserT deliveryManager : deliveryManagersForDeliveryCentreList) {
+									usersForDeliveryCentre.add(deliveryManager);
+								}
 							}
 						}
 					}
 				}
 			}
+		}else{
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"The given Delivery Centre not found");
 		}
 		return usersForDeliveryCentre;
 	}
-	
-	
+
+
 	/**
 	 * This method is used to fetch delivery master details 
 	 * 

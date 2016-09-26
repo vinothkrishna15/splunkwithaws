@@ -45,7 +45,7 @@ public class DeliveryMasterController {
 
 	@Autowired
 	DeliveryMasterService deliveryMasterService;
-	
+
 	/**
 	 * This method retrieves the delivery master list
 	 * @param page
@@ -67,12 +67,12 @@ public class DeliveryMasterController {
 			@RequestParam(value = "stage", defaultValue = "-1") Integer stage,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws DestinationException {
+					throws DestinationException {
 		logger.info("Inside DeliveryMasterController: Start of /delivery/all GET");
 		String response = null;
 		PageDTO deliveryMasterDTO = null;
 		try {
-			
+
 			deliveryMasterDTO = deliveryMasterService.findEngagements(stage,sortBy, order,
 					page, count);
 			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
@@ -87,7 +87,7 @@ public class DeliveryMasterController {
 		logger.info("Inside DeliveryMasterController: End of /delivery/all GET");
 		return response;
 	}
-	
+
 	/**
 	 * This method is used to get the delivery master details for the given
 	 * delivery master id
@@ -103,7 +103,7 @@ public class DeliveryMasterController {
 			@PathVariable("id") Integer deliveryMasterId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws DestinationException {
+					throws DestinationException {
 
 		logger.info("Inside DeliveryMasterController: Start of search by id");
 		String response = null;
@@ -123,13 +123,13 @@ public class DeliveryMasterController {
 		logger.info("Inside DeliveryMasterController: End of search by id");
 		return response;
 	}
-	
+
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> editEngagement(
 			@RequestBody DeliveryMasterT deliveryMaster,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws DestinationException {
+					throws DestinationException {
 
 		logger.info("Inside DeliveryMasterController: Start of Edit DeliveryMaster");
 		Status status = new Status();
@@ -140,7 +140,7 @@ public class DeliveryMasterController {
 				//jobLauncherController.asyncJobLaunchForNotification(JobName.notification, EntityType.CONNECT, connect.getConnectId(),OperationType.CONNECT_EDIT,connect.getModifiedBy());
 			}
 			logger.info("Inside DeliveryMasterController: End of Edit delivery master");
-			
+
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",
 							status), HttpStatus.OK);
@@ -153,7 +153,7 @@ public class DeliveryMasterController {
 		}
 
 	}
-	
+
 	/**
 	 * Service to fetch the delivery master t related information based on search type and the search keyword 
 	 * @param searchType - category type
@@ -188,37 +188,43 @@ public class DeliveryMasterController {
 					"Backend error while retrieving delivery master detail smart search");
 		}
 	}
-/**
- * service to retrieve the delivery managers under a delivery center
- * @param deliveryCentreId
- * @param nameWith
- * @param fields
- * @param view
- * @return
- * @throws DestinationException
- */
-@RequestMapping(value = "/deliveryManagersForCentre", method = RequestMethod.GET)
-public @ResponseBody String findAllUsersForDeliveryCentreHeads(
-		@RequestParam(value = "deliveryCentreId", defaultValue = "-1") int deliveryCentreId,
-		@RequestParam(value = "nameWith", defaultValue = "") String nameWith,
-		@RequestParam(value = "fields", defaultValue = "all") String fields,
-		@RequestParam(value = "view", defaultValue = "") String view)
-				throws DestinationException {
-	logger.info("Inside DeliveryMasterController: Start of /deliverCentreUserlist GET");
-	String response = null;
-	HashSet<UserT> deliveryCentreUserList = null;
-	try {
-		deliveryCentreUserList = deliveryMasterService.findDeliveryCentreUserList(deliveryCentreId, nameWith);
-		response = ResponseConstructors.filterJsonForFieldAndViews(fields,
-				view, deliveryCentreUserList);
-	} catch (DestinationException e) {
-		throw e;
-	} catch (Exception e) {
-		logger.error(e.getMessage());
-		throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-				"Backend error in retrieving the deliveryMaster list");
+
+	/**
+	 * service to retrieve all the delivery managers under a particular delivery center
+	 * @param deliveryCentreId
+	 * @param nameWith
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/deliveryManagersForCentre", method = RequestMethod.GET)
+	public @ResponseBody String findAllUsersForDeliveryCentreHeads(
+			@RequestParam(value = "deliveryCentreId", defaultValue = "-1") String deliveryCentreId,
+			@RequestParam(value = "nameWith", defaultValue = "") String nameWith,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+					throws DestinationException {
+		logger.info("Inside DeliveryMasterController: Start of /deliverCentreUserlist GET");
+		String response = null;
+		HashSet<UserT> deliveryCentreUserList = null;
+		try {
+			deliveryCentreUserList = deliveryMasterService.findDeliveryCentreUserList(Integer.parseInt(deliveryCentreId), nameWith);
+			if (deliveryCentreUserList.size() == 0) {
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"Delivery Managers not available for this delivery center !");
+			}
+			logger.info("Ending DeliveryMasterController findone method");
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, deliveryCentreUserList);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the deliveryMaster list");
+		}
+		logger.info("Inside DeliveryMasterController: End of /deliverCentreUserlist GET");
+		return response;
 	}
-	logger.info("Inside DeliveryMasterController: End of /deliverCentreUserlist GET");
-	return response;
-}
 }
