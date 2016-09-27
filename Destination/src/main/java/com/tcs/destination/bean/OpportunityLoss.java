@@ -41,6 +41,16 @@ public class OpportunityLoss {
 	
 	@ReportDataItem(columnName = "Owner",width = 50)
 	private String owner;
+	
+	private Integer dealValueInt;
+
+	public Integer getDealValueInt() {
+		return dealValueInt;
+	}
+	
+	public void setDealValueInt(Integer dealValueInt) {
+		this.dealValueInt = dealValueInt;
+	}
 
 	public String getOpportunityId() {
 		return opportunityId;

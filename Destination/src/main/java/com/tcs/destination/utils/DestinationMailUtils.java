@@ -17,7 +17,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import net.sf.dynamicreports.jasper.builder.JasperReportBuilder;
+import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JasperPrint;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -2090,9 +2091,9 @@ public class DestinationMailUtils {
 	String financialYear = DateUtils.getFinancialYr();
 	String financialEndYear = DateUtils.getFinancialEndYr();
 	int weekNumber = DateUtils.weekOfFinancialYr(new Date());
-	JasperReportBuilder reportAPAC;
-	JasperReportBuilder reportAmerica;
-	JasperReportBuilder reportUK;
+	JasperPrint reportAPAC;
+	JasperPrint reportAmerica;
+	JasperPrint reportUK;
 	List<String> apacGeos = Lists.newArrayList();
 	List<String> americaGeos = Lists.newArrayList();
 	List<String> euGeos = Lists.newArrayList();
@@ -2126,12 +2127,22 @@ public class DestinationMailUtils {
 	ByteArrayOutputStream byteArrayOutputStreamAmer = new ByteArrayOutputStream();
 	ByteArrayOutputStream byteArrayOutputStreamAPAC = new ByteArrayOutputStream();
 	ByteArrayOutputStream byteArrayOutputStreamUK = new ByteArrayOutputStream();
-	reportAPAC.toPdf(byteArrayOutputStreamAPAC);
-	logger.info("Report for APAC produced");
-	reportAmerica.toPdf(byteArrayOutputStreamAmer);
-	logger.info("Report for America produced");
-	reportUK.toPdf(byteArrayOutputStreamUK);
-	logger.info("Report for EU/UK produced");
+
+	//Saving the weekly report to Documents
+	
+//	JasperExportManager.exportReportToPdfFile(reportAPAC, "/Users/bnpp/Desktop/Mani_PDF/WeeklyReportAPAC.pdf");
+//	
+//	JasperExportManager.exportReportToPdfFile(reportAmerica, "/Users/bnpp/Desktop/Mani_PDF/WeeklyReportAmerica.pdf");
+//	
+//	JasperExportManager.exportReportToPdfFile(reportUK, "/Users/bnpp/Desktop/Mani_PDF/WeeklyReportUK.pdf");
+	
+	JasperExportManager.exportReportToPdfStream(reportAmerica, byteArrayOutputStreamAmer);
+	
+	JasperExportManager.exportReportToPdfStream(reportAPAC, byteArrayOutputStreamAPAC);
+
+	JasperExportManager.exportReportToPdfStream(reportUK, byteArrayOutputStreamUK);
+
+	
 	byte[] bytesAPAC = byteArrayOutputStreamAPAC.toByteArray();
 	byte[] bytesAmer = byteArrayOutputStreamAmer.toByteArray();
 	byte[] bytesUK = byteArrayOutputStreamUK.toByteArray();
@@ -2142,7 +2153,6 @@ public class DestinationMailUtils {
 			+ ".pdf", bytesAmer);
 	byteMap.put("Weekly Report EU & UK " + reportDateString
 			+ ".pdf", bytesUK);
-	//Saving the weekly report to Documents
 	saveDocuments(byteMap);
 	
 	String templateLoc = weeklyReportEmailTemplateLoc;

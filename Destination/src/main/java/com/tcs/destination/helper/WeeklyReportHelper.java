@@ -3,12 +3,12 @@ package com.tcs.destination.helper;
 import static com.tcs.destination.utils.DateUtils.ACTUAL_FORMAT;
 import static com.tcs.destination.utils.DateUtils.DATE_FORMAT_MONTH;
 import static com.tcs.destination.utils.DateUtils.DATE_FORMAT_MONTH_NAME_WITH_SPACE;
-import static net.sf.dynamicreports.report.builder.DynamicReports.cmp;
-import static net.sf.dynamicreports.report.builder.DynamicReports.report;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -19,11 +19,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.ConnectCustomer;
 import com.tcs.destination.bean.ConnectCustomerContactLinkT;
-import com.tcs.destination.bean.ConnectPartner;
 import com.tcs.destination.bean.ConnectSubSpLinkT;
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.ContactT;
@@ -41,18 +41,15 @@ import com.tcs.destination.service.NumericUtil;
 import com.tcs.destination.service.OpportunityDownloadService;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
-import com.tcs.destination.utils.ReportUtil;
 
-import net.sf.dynamicreports.jasper.builder.JasperReportBuilder;
-import net.sf.dynamicreports.report.builder.DynamicReports;
-import net.sf.dynamicreports.report.builder.component.Components;
-import net.sf.dynamicreports.report.builder.component.TextFieldBuilder;
-import net.sf.dynamicreports.report.builder.style.FontBuilder;
-import net.sf.dynamicreports.report.builder.style.StyleBuilder;
-import net.sf.dynamicreports.report.constant.HorizontalTextAlignment;
-import net.sf.dynamicreports.report.constant.Markup;
-import net.sf.dynamicreports.report.constant.PageOrientation;
-import net.sf.dynamicreports.report.constant.PageType;
+
+
+
+import net.sf.jasperreports.engine.JREmptyDataSource;
+import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 
 /**
  * helper for creating the weekly report
@@ -88,7 +85,7 @@ public class WeeklyReportHelper {
 	 * @return
 	 * @throws Exception
 	 */
-	public JasperReportBuilder constructWeeklyReport(List<String> geos,
+	public JasperPrint constructWeeklyReport(List<String> geos,
 			Date currentDate, Date previousWeekDate, String geography, int weekNumber, String financialYear)
 			throws Exception {
 
@@ -97,123 +94,149 @@ public class WeeklyReportHelper {
 		String currentDateString = DATE_FORMAT_MONTH_NAME_WITH_SPACE.format(currentDate);
 		String previousDateString = DATE_FORMAT_MONTH.format(previousDate);
 		String previousWeekDateString = DATE_FORMAT_MONTH.format(previousWeekDate);
-		FontBuilder defaultFont = DynamicReports.stl.font().setFontName(ReportUtil.FONT_MYRIAD_PRO);
-
-		StyleBuilder boldStyle = DynamicReports.stl.style().setFontSize(ReportUtil.FONT_SIZE_TITLE)
-				.bold();
-		
-		StyleBuilder subTitleStyle = DynamicReports.stl.style().setFontSize(ReportUtil.FONT_SIZE_SUB_TITLE)
-				.bold();
-
-		StyleBuilder reportDateStyle = DynamicReports.stl.style().setFontSize(
-				11).setMarkup(Markup.STYLED);
 		
 		// Opp Wins
 		List<OpportunityWins> opportunityWins = getOpportunityWins(geos,
 				currentDate, previousWeekDate);
 
-		TextFieldBuilder<String> winTitle = getTitle(opportunityWins, "Win(s) Reported-");
+		String totalWinValue = getTotalWinValue(opportunityWins);
 		// Opp Loss
 		List<OpportunityLoss> opportunityLoss = getOpportunityLoss(geos,
 				currentDate, previousWeekDate);
+		
+		String totalLossValue = getTotalLossValue(opportunityLoss);
 
-		TextFieldBuilder<String> lossTitle = getTitle(opportunityLoss, "Loss(s) Reported-");
 		// Opp RFP Submitted
 		List<OpportunityRFPSubmitted> oppRFPSubmitted = getOpportunityRFPSubmitted(
 				geos, currentDate, previousWeekDate);
+		
+		String totalBidsValue = getTotalBidsValue(oppRFPSubmitted);
 
-		TextFieldBuilder<String> rfpSubmittedTitle = getTitle(oppRFPSubmitted,
-				"Bids submitted-");
 		// Customer connects
-		List<ConnectCustomer> customerConnects = getCustomerConnects(geos,
+		List<ConnectCustomer> connects = getCustomerConnects(geos,
 				currentDate, previousWeekDate);
-
-		TextFieldBuilder<String> customerConnectsTitle = getTitle(
-				customerConnects, "Customer connects this week-");
+		Integer customerConnnectsSize = connects.size();
 		// Partner connects
-		List<ConnectPartner> partnerConnects = getPartnerConnects(geos,
+		List<ConnectCustomer> partnerConnects = getPartnerConnects(geos,
 				currentDate, previousWeekDate);
+		connects.addAll(partnerConnects);
+		
+		JasperCompileManager.compileReportToFile("/Users/bnpp/Movies/nPlus1/Destination/src/main/resources/weeklyReport.jrxml", 
+				"/Users/bnpp/Desktop/Mani_PDF/weeklyReport.jasper");
+        
+		JasperCompileManager.compileReportToFile("/Users/bnpp/Movies/nPlus1/Destination/src/main/resources/weeklyReportTitle.jrxml", 
+				"/Users/bnpp/Desktop/Mani_PDF/weeklyReportTitle.jasper");
+		
+		JasperCompileManager.compileReportToFile("/Users/bnpp/Movies/nPlus1/Destination/src/main/resources/performanceSnapshotReport.jrxml", 
+				"/Users/bnpp/Desktop/Mani_PDF/performanceSnapshotReport.jasper");
+		
+		JasperCompileManager.compileReportToFile("/Users/bnpp/Movies/nPlus1/Destination/src/main/resources/opportunityWinsReport.jrxml", 
+				"/Users/bnpp/Desktop/Mani_PDF/opportunityWinsReport.jasper");
+		
+		JasperCompileManager.compileReportToFile("/Users/bnpp/Movies/nPlus1/Destination/src/main/resources/opportunityLossReport.jrxml", 
+				"/Users/bnpp/Desktop/Mani_PDF/opportunityLossReport.jasper");
+		
+		JasperCompileManager.compileReportToFile("/Users/bnpp/Movies/nPlus1/Destination/src/main/resources/opportunityBidsReport.jrxml", 
+				"/Users/bnpp/Desktop/Mani_PDF/opportunityBidsReport.jasper");
+		
+		JasperCompileManager.compileReportToFile("/Users/bnpp/Movies/nPlus1/Destination/src/main/resources/connectsReport.jrxml", 
+				"/Users/bnpp/Desktop/Mani_PDF/connectsReport.jasper");
+		logger.info("######################## compiled ######################");
+		
+		JRBeanCollectionDataSource winColDataSource = new 
+		         JRBeanCollectionDataSource(opportunityWins, false);
+		
+		JRBeanCollectionDataSource lossColDataSource = new 
+		         JRBeanCollectionDataSource(opportunityLoss, false);
+		
+		JRBeanCollectionDataSource bidsColDataSource = new 
+		         JRBeanCollectionDataSource(oppRFPSubmitted, false);
+		
+	     JRBeanCollectionDataSource connectsColDataSource = new 
+		         JRBeanCollectionDataSource(connects, false);
+		
+	     Map<String,Object> parameters = Maps.newHashMap();
+			parameters.put("dealsWonMainP", opportunityWins.size());
+			parameters.put("dealsLossMainP", opportunityLoss.size());
+			parameters.put("totalBidsMainP", oppRFPSubmitted.size());
+			parameters.put("totalConnectsMainP", connects.size());
+			parameters.put("custConnectsMainP", customerConnnectsSize+1);
+			parameters.put("winsValueMainP", StringUtils.isNotEmpty(totalWinValue)?totalWinValue:"0");
+			parameters.put("lossValueMainP", StringUtils.isNotEmpty(totalLossValue)?totalLossValue:"0");
+			parameters.put("bidsValueMainP", StringUtils.isNotEmpty(totalBidsValue)?totalBidsValue:"0");
+			parameters.put("winDataSource", winColDataSource);
+			parameters.put("lossSize", opportunityLoss.size());
+			parameters.put("lossDataSource", lossColDataSource);
+			parameters.put("bidsDataSource", bidsColDataSource);
+			parameters.put("custConnectsDataSource", connectsColDataSource);
+			
+			parameters.put("titleReportParameter", "/Users/bnpp/Desktop/Mani_PDF/weeklyReportTitle.jasper");
+			parameters.put("performanceReportParameter", "/Users/bnpp/Desktop/Mani_PDF/performanceSnapshotReport.jasper");
+			parameters.put("winReportParameter", "/Users/bnpp/Desktop/Mani_PDF/opportunityWinsReport.jasper");
+			parameters.put("lossReportParameter", "/Users/bnpp/Desktop/Mani_PDF/opportunityLossReport.jasper");
+			parameters.put("bidsReportParameter", "/Users/bnpp/Desktop/Mani_PDF/opportunityBidsReport.jasper");
+			parameters.put("custConnectReportParameter", "/Users/bnpp/Desktop/Mani_PDF/connectsReport.jasper");
+			
+			parameters.put("geographyMainP", geography);
+			parameters.put("weekNumberMainP", weekNumber);
+			parameters.put("previousWeekDateMainP", previousWeekDateString);
+			parameters.put("previousDateMainP", previousDateString);
+			parameters.put("reportPublishedDateMainP", currentDateString);
+			parameters.put("financialYearMainP", financialYear);
+			
+			
+			parameters.put("titleDataSource", new JREmptyDataSource());
+			
+			JasperPrint jasperPrint = null;
+			
+			try {
+				jasperPrint = JasperFillManager.fillReport("/Users/bnpp/Desktop/Mani_PDF/weeklyReport.jasper", parameters, new JREmptyDataSource());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			logger.info("######################## fillReport end ######################");
 
-		TextFieldBuilder<String> partnerConnectsTitle = getTitle(
-				partnerConnects, "Partner connects this week-");
-		// Report for wins
-		JasperReportBuilder reportForWins = null;
-		reportForWins = ReportUtil.buildReport(winTitle, opportunityWins);
-		logger.info("Report constructed for wins , Geography :" + geography);
-
-		// Report for opportunity loss
-		JasperReportBuilder reportForLoss = null;
-		reportForLoss = ReportUtil.buildReport(lossTitle, opportunityLoss);
-		logger.info("Report constructed for loss, Geography :" + geography);
-
-		// Report for Opportunity RFP Submitted
-		JasperReportBuilder reportForRFPSubmitted = null;
-		reportForRFPSubmitted = ReportUtil.buildReport(rfpSubmittedTitle,
-				oppRFPSubmitted);
-		logger.info("Report constructed for RFP Submitted, Geography :"
-				+ geography);
-
-		// Report for customer connects
-		JasperReportBuilder reportForCustomerConnects = null;
-		reportForCustomerConnects = ReportUtil.buildReport(
-				customerConnectsTitle, customerConnects);
-		logger.info("Report constructed for customer connects, Geography :"
-				+ geography);
-
-		// Report for Partner connects
-		JasperReportBuilder reportForPartnerConnects = null;
-		reportForPartnerConnects = ReportUtil.buildReport(partnerConnectsTitle,
-				partnerConnects);
-		logger.info("Report constructed for partner connects, Geography :"
-				+ geography);
-
-		// Merging all the sub reports into a single report
-		JasperReportBuilder report = report()
-				.setDefaultFont(defaultFont)
-				.title(cmp
-						.text("Weekly Report for " + geography)
-						.setStyle(boldStyle)
-						.setHorizontalTextAlignment(
-								HorizontalTextAlignment.CENTER),
-						DynamicReports.cmp.verticalGap(5),
-						cmp.text("(W" + weekNumber + "'" + financialYear + ": "
-								+ previousWeekDateString + "-"
-								+ previousDateString+")").setStyle(subTitleStyle).setHorizontalTextAlignment(HorizontalTextAlignment.CENTER),
-								DynamicReports.cmp.verticalGap(10),
-								cmp.text("<i>Report Date :</i> " + currentDateString)
-										.setStyle(reportDateStyle)
-										.setHorizontalTextAlignment(HorizontalTextAlignment.LEFT),			
-						DynamicReports.cmp.verticalGap(20),
-						cmp.verticalList(cmp.subreport(reportForWins),
-								DynamicReports.cmp.verticalGap(30),
-								cmp.subreport(reportForLoss),
-								DynamicReports.cmp.verticalGap(35),
-								cmp.subreport(reportForRFPSubmitted),
-								DynamicReports.cmp.verticalGap(40),
-								cmp.subreport(reportForCustomerConnects),
-								DynamicReports.cmp.verticalGap(40),
-								cmp.subreport(reportForPartnerConnects)))
-				.setPageMargin(
-						DynamicReports.margin(20).setLeft(10).setRight(10))
-				.setPageFormat(PageType.A4, PageOrientation.LANDSCAPE)
-				.pageFooter(
-						Components.text("TCS Confidential")
-								.setHorizontalTextAlignment(
-										HorizontalTextAlignment.RIGHT));
-
-		return report;
+			
+		return jasperPrint;
 	}
 
-	/**
-	 * builds title for weekly report
-	 * 
-	 * @param values
-	 * @param appendValue
-	 * @return
-	 */
-	private TextFieldBuilder<String> getTitle(List<?> values, String appendValue) {
-		return Components.text(new StringBuffer(appendValue).append(" ")
-				.append(values.size()).toString());
+	private String getTotalBidsValue(
+			List<OpportunityRFPSubmitted> oppRFPSubmitted) {
+		String totalBidsValue = null;
+		int sum = 0;
+		if(CollectionUtils.isNotEmpty(oppRFPSubmitted)) {
+			for(OpportunityRFPSubmitted oppWin : oppRFPSubmitted) {
+				sum = sum+oppWin.getDealValueInt();
+			}
+			totalBidsValue = NumericUtil.toUSDinNumberScale(new BigDecimal(sum));
+		}
+		return totalBidsValue;
+	}
+
+	private String getTotalLossValue(List<OpportunityLoss> opportunityLoss) {
+
+		String totalLossValue = null;
+		int sum = 0;
+		if(CollectionUtils.isNotEmpty(opportunityLoss)) {
+			for(OpportunityLoss oppWin : opportunityLoss) {
+				sum = sum+oppWin.getDealValueInt();
+			}
+			totalLossValue = NumericUtil.toUSDinNumberScale(new BigDecimal(sum));
+		}
+		return totalLossValue;
+	
+	}
+
+	private String getTotalWinValue(List<OpportunityWins> opportunityWins) {
+		String totalWinValue = null;
+		int sum = 0;
+		if(CollectionUtils.isNotEmpty(opportunityWins)) {
+			for(OpportunityWins oppWin : opportunityWins) {
+				sum = sum+oppWin.getDealValueInt();
+			}
+			totalWinValue = NumericUtil.toUSDinNumberScale(new BigDecimal(sum));
+		}
+		return totalWinValue;
 	}
 
 	/**
@@ -224,10 +247,10 @@ public class WeeklyReportHelper {
 	 * @param previousWeekDate
 	 * @return
 	 */
-	private List<ConnectPartner> getPartnerConnects(List<String> geos,
+	private List<ConnectCustomer> getPartnerConnects(List<String> geos,
 			Date currentDate, Date previousWeekDate) {
 		logger.debug("Inside getPartnerConnects method");
-		List<ConnectPartner> partnerConnects = Lists.newArrayList();
+		List<ConnectCustomer> partnerConnects = Lists.newArrayList();
 		List<ConnectT> connects = connectRepository.getPartnerConnectsForAWeek(
 				geos, new Timestamp(previousWeekDate.getTime()), new Timestamp(
 						currentDate.getTime()), Constants.PARTNER);
@@ -239,7 +262,7 @@ public class WeeklyReportHelper {
 				List<String> connectContactNames = Lists.newArrayList();
 				List<String> connectContactRoles = Lists.newArrayList();
 				Set<String> connectSubSp = Sets.newHashSet();
-				ConnectPartner partnerConnect = new ConnectPartner();
+				ConnectCustomer partnerConnect = new ConnectCustomer();
 				// Primary Owner
 				partnerConnect.setBdContact(connectT.getPrimaryOwnerUser()
 						.getUserName());
@@ -278,10 +301,10 @@ public class WeeklyReportHelper {
 					}
 				}
 				if (CollectionUtils.isNotEmpty(connectContactNames)) {
-					contactNames = StringUtils.join(connectContactNames, "\n");
+					contactNames = joinString(connectContactNames);
 				}
 				if (CollectionUtils.isNotEmpty(connectContactRoles)) {
-					contactRoles = StringUtils.join(connectContactRoles, "\n");
+					contactRoles = joinString(connectContactRoles);
 				}
 				partnerConnect.setPartnerContact(getValue(contactNames));
 				partnerConnect.setPartnerContactRole(getValue(contactRoles));
@@ -289,7 +312,7 @@ public class WeeklyReportHelper {
 				partnerConnect.setConnectCategory(StringUtils
 						.isNotEmpty(connectT.getType()) ? connectT.getType()
 						: Constants.NOT_AVAILABLE);
-
+				partnerConnect.setType(1);
 				partnerConnects.add(partnerConnect);
 			}
 		}
@@ -364,10 +387,10 @@ public class WeeklyReportHelper {
 					}
 				}
 				if (CollectionUtils.isNotEmpty(connectContactNames)) {
-					contactNames = StringUtils.join(connectContactNames, "\n");
+					contactNames = joinString(connectContactNames);
 				}
 				if (CollectionUtils.isNotEmpty(connectContactRoles)) {
-					contactRoles = StringUtils.join(connectContactRoles, "\n");
+					contactRoles = joinString(connectContactRoles);
 				}
 
 				customerConnect.setCustomerContact(getValue(contactNames));
@@ -376,6 +399,8 @@ public class WeeklyReportHelper {
 				// Connect Type
 				customerConnect
 						.setConnectCategory(getValue(connectT.getType()));
+				
+				customerConnect.setType(0);
 
 				customerConnects.add(customerConnect);
 			}
@@ -451,11 +476,12 @@ public class WeeklyReportHelper {
 						.getOpportunitySubSpLinkTs());
 				oppRFPSubmitted.setSubSp(getValue(displaySubSp));
 				// Deal Value
+				BigDecimal currencyToUSD = opportunityDownloadService
+						.convertCurrencyToUSD(opp.getDealCurrency(),
+								opp.getDigitalDealValue());
 				String dealValue = NumericUtil
-						.toUSDinNumberScale(opportunityDownloadService
-								.convertCurrencyToUSD(opp.getDealCurrency(),
-										opp.getDigitalDealValue()));
-				dealValue = StringUtils.remove(dealValue, "USD");
+						.toUSDinNumberScale(currencyToUSD);
+				oppRFPSubmitted.setDealValueInt(Integer.valueOf(currencyToUSD.intValue()));
 				oppRFPSubmitted.setDealValue(getValue(dealValue));
 				// Expected Date of outcome
 				BidDetailsT bidDetailsT = bidDetailsTRepository
@@ -526,11 +552,12 @@ public class WeeklyReportHelper {
 						.getOpportunitySubSpLinkTs());
 				oppLoss.setSubSp(getValue(displaySubSp));
 				// Deal Value
+				BigDecimal currencyToUSD = opportunityDownloadService
+						.convertCurrencyToUSD(opp.getDealCurrency(),
+								opp.getDigitalDealValue());
 				String dealValue = NumericUtil
-						.toUSDinNumberScale(opportunityDownloadService
-								.convertCurrencyToUSD(opp.getDealCurrency(),
-										opp.getDigitalDealValue()));
-				dealValue = StringUtils.remove(dealValue, "USD");
+						.toUSDinNumberScale(currencyToUSD);
+				oppLoss.setDealValueInt(Integer.valueOf(currencyToUSD.intValue()));
 				oppLoss.setDealValue(getValue(dealValue));
 				// Opportunity win factors
 				oppWinFactors = getLossFactors(opp
@@ -594,11 +621,12 @@ public class WeeklyReportHelper {
 						.getOpportunitySubSpLinkTs());
 				oppWins.setSubSp(getValue(displaySubSp));
 				// Deal Value
+				BigDecimal currencyToUSD = opportunityDownloadService
+						.convertCurrencyToUSD(opp.getDealCurrency(),
+								opp.getDigitalDealValue());
 				String dealValue = NumericUtil
-						.toUSDinNumberScale(opportunityDownloadService
-								.convertCurrencyToUSD(opp.getDealCurrency(),
-										opp.getDigitalDealValue()));
-				dealValue = StringUtils.remove(dealValue, "USD");
+						.toUSDinNumberScale(currencyToUSD);
+				oppWins.setDealValueInt(Integer.valueOf(currencyToUSD.intValue()));
 				oppWins.setDealValue(getValue(dealValue));
 				// Opportunity win factors
 				oppWinFactors = getWinFactors(opp

@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.3.0.final using JasperReports Library version 6.3.0  -->
+<!-- 2016-09-27T10:57:00 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Blank_A4_1" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="9866d204-79c2-42c4-9aa4-457b536e90e4">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<subDataset name="winsDs" uuid="e6f245cf-de1c-4d6c-bc6c-ed5b20dc405e">
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="OpporunityWins "/>
+		<queryString>
+			<![CDATA[]]>
+		</queryString>
+	</subDataset>
+	<parameter name="wins" class="java.lang.Integer"/>
+	<parameter name="winReportParameter" class="java.lang.String"/>
+	<parameter name="winDataSource" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<parameter name="lossReportParameter" class="java.lang.String"/>
+	<parameter name="lossDataSource" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<parameter name="titleDataSource" class="net.sf.jasperreports.engine.JREmptyDataSource"/>
+	<parameter name="titleReportParameter" class="java.lang.String"/>
+	<parameter name="performanceReportParameter" class="java.lang.String"/>
+	<parameter name="dealsWonMainP" class="java.lang.Integer"/>
+	<parameter name="dealsLossMainP" class="java.lang.Integer"/>
+	<parameter name="totalBidsMainP" class="java.lang.Integer"/>
+	<parameter name="totalConnectsMainP" class="java.lang.Integer"/>
+	<parameter name="winsValueMainP" class="java.lang.String"/>
+	<parameter name="lossValueMainP" class="java.lang.String"/>
+	<parameter name="bidsValueMainP" class="java.lang.String"/>
+	<parameter name="bidsReportParameter" class="java.lang.String"/>
+	<parameter name="custConnectReportParameter" class="java.lang.String"/>
+	<parameter name="partnerConnectReportParameter" class="net.sf.jasperreports.engine.JasperReport"/>
+	<parameter name="bidsDataSource" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<parameter name="custConnectsDataSource" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<parameter name="partnerConnectsDataSource" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+	<parameter name="custConnectsMainP" class="java.lang.Integer"/>
+	<parameter name="geographyMainP" class="java.lang.String"/>
+	<parameter name="weekNumberMainP" class="java.lang.Integer"/>
+	<parameter name="previousWeekDateMainP" class="java.lang.String"/>
+	<parameter name="previousDateMainP" class="java.lang.String"/>
+	<parameter name="reportPublishedDateMainP" class="java.lang.String"/>
+	<parameter name="financialYearMainP" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[]]>
+	</queryString>
+	<variable name="custConnectReturnValue" class="java.lang.Integer">
+		<variableExpression><![CDATA[$V{PAGE_NUMBER}]]></variableExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="138" splitType="Stretch">
+			<subreport>
+				<reportElement x="0" y="0" width="595" height="138" uuid="c18237a9-bda3-4645-a71e-f9541c8cbac2">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+				</reportElement>
+				<subreportParameter name="geographyP">
+					<subreportParameterExpression><![CDATA[$P{geographyMainP}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="weekNumberP">
+					<subreportParameterExpression><![CDATA[$P{weekNumberMainP}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="previousWeekDateP">
+					<subreportParameterExpression><![CDATA[$P{previousWeekDateMainP}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="previousDateP">
+					<subreportParameterExpression><![CDATA[$P{previousDateMainP}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="reportPublishedDateP">
+					<subreportParameterExpression><![CDATA[$P{reportPublishedDateMainP}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="financialYearP">
+					<subreportParameterExpression><![CDATA[$P{financialYearMainP}]]></subreportParameterExpression>
+				</subreportParameter>
+				<dataSourceExpression><![CDATA[$P{titleDataSource}]]></dataSourceExpression>
+				<subreportExpression><![CDATA[$P{titleReportParameter}]]></subreportExpression>
+			</subreport>
+		</band>
+	</title>
+	<detail>
+		<band height="491" splitType="Stretch">
+			<subreport>
+				<reportElement positionType="Float" x="0" y="0" width="595" height="49" uuid="58f2befe-aa28-4b1f-b07c-5bba37c34cc9">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<subreportParameter name="dealsWonP">
+					<subreportParameterExpression><![CDATA[$P{dealsWonMainP}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="dealsLossP">
+					<subreportParameterExpression><![CDATA[$P{dealsLossMainP}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="totalBidsP">
+					<subreportParameterExpression><![CDATA[$P{totalBidsMainP}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="totalConnectsP">
+					<subreportParameterExpression><![CDATA[$P{totalConnectsMainP}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="winsValueP">
+					<subreportParameterExpression><![CDATA[$P{winsValueMainP}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="lossValueP">
+					<subreportParameterExpression><![CDATA[$P{lossValueMainP}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="bidsValueP">
+					<subreportParameterExpression><![CDATA[$P{bidsValueMainP}]]></subreportParameterExpression>
+				</subreportParameter>
+				<dataSourceExpression><![CDATA[new net.sf.jasperreports.engine.JREmptyDataSource()]]></dataSourceExpression>
+				<subreportExpression><![CDATA[$P{performanceReportParameter}]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement key="" positionType="Float" x="0" y="51" width="595" height="49" uuid="d55455c5-18ef-4201-aac6-1908a4549930">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<subreportParameter name="dealsWonP">
+					<subreportParameterExpression><![CDATA[$P{dealsWonMainP}]]></subreportParameterExpression>
+				</subreportParameter>
+				<dataSourceExpression><![CDATA[$P{winDataSource}]]></dataSourceExpression>
+				<subreportExpression><![CDATA[$P{winReportParameter}]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement positionType="Float" x="0" y="101" width="595" height="49" uuid="e0923173-3111-427b-85fc-3a77d060a0a2">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<subreportParameter name="dealsLossP">
+					<subreportParameterExpression><![CDATA[$P{dealsLossMainP}]]></subreportParameterExpression>
+				</subreportParameter>
+				<dataSourceExpression><![CDATA[$P{lossDataSource}]]></dataSourceExpression>
+				<subreportExpression><![CDATA[$P{lossReportParameter}]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement positionType="Float" x="0" y="151" width="595" height="49" uuid="9a8101d2-3ea9-4fa2-a79d-1b0dd1927bcd">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<subreportParameter name="bidsSubmittedP">
+					<subreportParameterExpression><![CDATA[$P{totalBidsMainP}]]></subreportParameterExpression>
+				</subreportParameter>
+				<dataSourceExpression><![CDATA[$P{bidsDataSource}]]></dataSourceExpression>
+				<subreportExpression><![CDATA[$P{bidsReportParameter}]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement positionType="Float" x="0" y="201" width="595" height="49" uuid="72f00c82-35d0-4104-aa1a-d61d6b945a65">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<subreportParameter name="totalConnectsP">
+					<subreportParameterExpression><![CDATA[$P{totalConnectsMainP}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="custConnectsP">
+					<subreportParameterExpression><![CDATA[$P{custConnectsMainP}]]></subreportParameterExpression>
+				</subreportParameter>
+				<dataSourceExpression><![CDATA[$P{custConnectsDataSource}]]></dataSourceExpression>
+				<returnValue subreportVariable="custConnectReturnValueSub" toVariable="custConnectReturnValue"/>
+				<subreportExpression><![CDATA[$P{custConnectReportParameter}]]></subreportExpression>
+			</subreport>
+			<break>
+				<reportElement positionType="Float" x="0" y="50" width="100" height="1" uuid="770ab3f6-2c62-4059-be3f-6f90542ef987">
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+				</reportElement>
+			</break>
+			<break>
+				<reportElement positionType="Float" x="0" y="100" width="100" height="1" uuid="cceabe00-ca57-4956-9ceb-fa28ebacf5b9">
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+				</reportElement>
+			</break>
+			<break>
+				<reportElement positionType="Float" x="0" y="150" width="100" height="1" uuid="ddbe4b3a-a91c-4917-8172-9b0ec710d5f1">
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+				</reportElement>
+			</break>
+			<break>
+				<reportElement positionType="Float" x="0" y="200" width="100" height="1" uuid="3e4cb92f-92d5-4503-9ee5-4677acc169b1">
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+				</reportElement>
+			</break>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="42" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+			<textField>
+				<reportElement x="380" y="0" width="175" height="20" forecolor="#393939" uuid="18915816-8a88-48c8-9489-50997ee5fc9c">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA["Page | " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="40" y="0" width="100" height="20" uuid="f334da7a-89b1-4c58-93b7-ef77ff4dc0c4">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+				</reportElement>
+				<textElement>
+					<font fontName="Myriad Pro" size="9"/>
+				</textElement>
+				<text><![CDATA[TCS Confidential]]></text>
+			</staticText>
+		</band>
+	</pageFooter>
+</jasperReport>

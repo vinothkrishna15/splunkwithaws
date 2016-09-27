@@ -35,6 +35,17 @@ public class ConnectCustomer {
 	
 	@ReportDataItem(columnName = "Connect Category")
 	private String connectCategory;
+	
+	@ReportDataItem(columnName = "Partner Contact")
+	private String partnerContact;
+	
+	@ReportDataItem(columnName = "Partner Contact Role")
+	private String partnerContactRole;
+	
+	@ReportDataItem(columnName = "Partner Name")
+	private String partnerName;
+	
+	private Integer type;
 
 	public String getBdContact() {
 		return bdContact;
@@ -107,8 +118,37 @@ public class ConnectCustomer {
 	public void setConnectCategory(String connectCategory) {
 		this.connectCategory = connectCategory;
 	}
-	
-	
-	
+
+	public String getPartnerContact() {
+		return partnerContact;
+	}
+
+	public void setPartnerContact(String partnerContact) {
+		this.partnerContact = partnerContact;
+	}
+
+	public String getPartnerContactRole() {
+		return partnerContactRole;
+	}
+
+	public void setPartnerContactRole(String partnerContactRole) {
+		this.partnerContactRole = partnerContactRole;
+	}
+
+	public String getPartnerName() {
+		return partnerName;
+	}
+
+	public void setPartnerName(String partnerName) {
+		this.partnerName = partnerName;
+	}
+
+	public Integer getType() {
+		return type;
+	}
+
+	public void setType(Integer type) {
+		this.type = type;
+	}
 	
 }

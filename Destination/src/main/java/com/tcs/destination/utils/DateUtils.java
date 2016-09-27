@@ -68,7 +68,7 @@ public class DateUtils {
 	/**
 	 * dd MMMMM yyyy
 	 */
-	public static final DateFormat DATE_FORMAT_MONTH_NAME_WITH_SPACE = new SimpleDateFormat("dd MMMMM yyyy");
+	public static final DateFormat DATE_FORMAT_MONTH_NAME_WITH_SPACE = new SimpleDateFormat("MMMMM dd, yyyy");
 	
 	/**
 	 * MMM dd

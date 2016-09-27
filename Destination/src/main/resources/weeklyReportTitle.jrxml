@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.3.0.final using JasperReports Library version 6.3.0  -->
+<!-- 2016-09-26T19:37:00 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Blank_A4_title" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="0c39b446-0235-45bc-bb6b-90bd49129ba2">
+	<parameter name="geographyP" class="java.lang.String"/>
+	<parameter name="weekNumberP" class="java.lang.Integer"/>
+	<parameter name="previousWeekDateP" class="java.lang.String"/>
+	<parameter name="previousDateP" class="java.lang.String"/>
+	<parameter name="reportPublishedDateP" class="java.lang.String"/>
+	<parameter name="financialYearP" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[]]>
+	</queryString>
+	<background>
+		<band splitType="Prevent"/>
+	</background>
+	<summary>
+		<band height="842" splitType="Prevent">
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+			<image scaleImage="RetainShape">
+				<reportElement positionType="Float" x="0" y="0" width="595" height="842" uuid="745d3148-c15f-4455-b941-141e05ea3d25">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<imageExpression><![CDATA["src/main/resources/report/image/front_page.png"]]></imageExpression>
+			</image>
+			<textField>
+				<reportElement x="0" y="282" width="575" height="27" forecolor="#000000" uuid="4a61f0a2-ed71-48d7-a7c2-8d115a109657">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Right" markup="none">
+					<font fontName="Myriad Pro" size="18" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Weekly Performance Report"+"("+$P{geographyP}+")"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="309" width="575" height="18" forecolor="#000000" uuid="009160e9-f10a-4758-b604-5a547d24dc17">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Right">
+					<font fontName="Myriad Pro" size="10.5" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["W"+$P{weekNumberP}+" "+$P{financialYearP}+":"+$P{previousWeekDateP}+"-"+$P{previousDateP}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="327" width="575" height="18" forecolor="#000000" uuid="7710d1ea-5fa8-4063-84ac-0a279441b32c">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Right">
+					<font fontName="Myriad Pro" size="10.5" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Published Date: "+$P{reportPublishedDateP}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>
