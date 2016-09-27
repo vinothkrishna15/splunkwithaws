@@ -11,6 +11,6 @@ import com.tcs.destination.bean.AuditDeliveryResourcesT;
 public interface AuditDeliveryResourcesTRepository extends
 		CrudRepository<AuditDeliveryResourcesT, Integer> {
 		
-	List<AuditDeliveryResourcesT> findByDeliveryMasterId(Integer id);
+	List<AuditDeliveryResourcesT> findByDeliveryMasterId(String id);
 	
 }

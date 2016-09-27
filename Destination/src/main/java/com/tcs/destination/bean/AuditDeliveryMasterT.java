@@ -37,7 +37,7 @@ public class AuditDeliveryMasterT implements Serializable {
 	private Timestamp createdModifiedDatetime;
 
 	@Column(name="delivery_master_id")
-	private Integer deliveryMasterId;
+	private String deliveryMasterId;
 
 	@Temporal(TemporalType.DATE)
 	@Column(name="new_actual_start_date")
@@ -162,11 +162,11 @@ public class AuditDeliveryMasterT implements Serializable {
 		this.createdModifiedDatetime = createdModifiedDatetime;
 	}
 
-	public Integer getDeliveryMasterId() {
+	public String getDeliveryMasterId() {
 		return this.deliveryMasterId;
 	}
 
-	public void setDeliveryMasterId(Integer deliveryMasterId) {
+	public void setDeliveryMasterId(String deliveryMasterId) {
 		this.deliveryMasterId = deliveryMasterId;
 	}
 

@@ -10,6 +10,6 @@ import com.tcs.destination.bean.AuditDeliveryMasterManagerLinkT;
 @Repository
 public interface AuditDeliveryMasterManagerLinkRepository extends
 		CrudRepository<AuditDeliveryMasterManagerLinkT, Integer> {
-		List<AuditDeliveryMasterManagerLinkT> findByDeliveryMasterId(Integer id);
+		List<AuditDeliveryMasterManagerLinkT> findByDeliveryMasterId(String id);
 	
 }

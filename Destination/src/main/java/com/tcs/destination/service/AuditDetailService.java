@@ -282,7 +282,7 @@ public class AuditDetailService {
 	 * @param engId
 	 * @return
 	 */
-	private List<Map<String, Object>> getEngagementCodeSequenceMap(Integer engId) {
+	private List<Map<String, Object>> getEngagementCodeSequenceMap(String engId) {
 		List<AuditDeliveryMasterT> engagementAudits = aDeliveryRepo.getDeliveryCodeChanges(engId);
 		
 		if(CollectionUtils.isEmpty(engagementAudits)) {
@@ -538,7 +538,7 @@ public class AuditDetailService {
 	 * @param oppId
 	 * @return
 	 */
-	private List<AuditEntryDTO> getEngagementAudits(Integer engId) {
+	private List<AuditEntryDTO> getEngagementAudits(String engId) {
 		List<AuditEntryDTO> entries = Lists.newArrayList();
 		
 		entries.addAll(getEngagementAudit(engId));
@@ -550,7 +550,7 @@ public class AuditDetailService {
 	}
 
 	private List<AuditEntryDTO> getEngResourcesAudit(
-			Integer engId) {
+			String engId) {
 		List<AuditEntryDTO> entries = Lists.newArrayList();
 		List<AuditDeliveryResourcesT> engResources = aEngResourceRepo.findByDeliveryMasterId(engId);
 		if(CollectionUtils.isNotEmpty(engResources)) {
@@ -614,7 +614,7 @@ public class AuditDetailService {
 	 * @return
 	 */
 	private List<AuditEntryDTO> getEngManagersAudit(
-			Integer engId) {
+			String engId) {
 		List<AuditEntryDTO> entries = Lists.newArrayList();
 		List<AuditDeliveryMasterManagerLinkT> aDeliveryManagers = aDeliveryManagerLinkRepo.findByDeliveryMasterId(engId);
 		if(CollectionUtils.isNotEmpty(aDeliveryManagers)) {
@@ -1059,7 +1059,7 @@ public class AuditDetailService {
 	 * @param engId
 	 * @return
 	 */
-	private List<AuditEntryDTO> getEngagementAudit(Integer engId) {
+	private List<AuditEntryDTO> getEngagementAudit(String engId) {
 		//opportunity audit
 		List<AuditEntryDTO> entryDTOs = Lists.newArrayList();
 		
@@ -1114,14 +1114,12 @@ public class AuditDetailService {
 		
 		List<String> fieldArray = Lists.newArrayList("ScheduledStartDate", "ActualStartDate", "ExpectedEndDate",
 				"WonNum", "Odc", "DeliveryPartnerId", "DeliveryPartnerName", "GlId", "GlName",
-				"PlId", "PlName", "EngagementName" );//TODO finalize the fields and add in field map
+				"PlId", "PlName", "EngagementName" );
 		
 		Map<String, FieldType> fieldMap = Maps.newHashMap();
 		fieldMap.put("DeliveryCentreId", FieldType.DELIVERY_CENTRE);
 		fieldMap.put("DeliveryStage", FieldType.DELIVERY_STAGE);
 		fieldMap.put("delivery_manager_id", FieldType.DELIVERY_STAGE);
-		
-		//TODO add engName and delivery manager to audit table
 		
 		entryDTOs.addAll(getEntriesFromFields(auditDeliveryMasterT, fieldArray, user, date, fieldMap));
 		
@@ -1674,7 +1672,7 @@ public class AuditDetailService {
 	 * @return
 	 */
 	public AuditHistoryResponseDTO<AuditEngagementHistoryDTO> getEngagementHistory(
-			Integer engId) {
+			String engId) {
 		logger.info("Entering AuditDetailService :: getEngagementHistory");
 		List<AuditEngagementHistoryDTO> histories = Lists.newArrayList();
 		

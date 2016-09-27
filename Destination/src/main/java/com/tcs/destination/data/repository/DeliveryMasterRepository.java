@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import com.tcs.destination.bean.DeliveryMasterT;
 
 @Repository
-public interface DeliveryMasterRepository extends JpaRepository<DeliveryMasterT, Integer> {
+public interface DeliveryMasterRepository extends JpaRepository<DeliveryMasterT, String> {
 	
 	/*------------------Start of delivery smart search queries-------------------*/
 	

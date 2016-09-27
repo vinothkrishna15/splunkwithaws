@@ -197,7 +197,7 @@ public class DeliveryMasterService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 			"Delivery Master details not found");
 			} else {
-			List<Integer> deliveryMasterIds = new ArrayList<Integer>();
+			List<String> deliveryMasterIds = new ArrayList<String>();
 			for(DeliveryMasterManagerLinkT deliveryMasterManagerLinkT:deliveryMasterManagerList){
 			deliveryMasterIds.add(deliveryMasterManagerLinkT.getDeliveryMasterId());
 			}
@@ -247,7 +247,7 @@ public class DeliveryMasterService {
 	 * @return
 	 * @throws Exception
 	 */
-	public DeliveryMasterT findByDeliveryMasterId(Integer deliveryMasterId) throws Exception {
+	public DeliveryMasterT findByDeliveryMasterId(String deliveryMasterId) throws Exception {
 		logger.debug("Inside findByDeliveryMasterId() service");
 		DeliveryMasterT deliveryMaster = deliveryMasterRepository.findOne(deliveryMasterId);
 		if (deliveryMaster != null) {
@@ -311,7 +311,7 @@ public class DeliveryMasterService {
 			deliveryMaster.setModifiedBy(DestinationUtils.getCurrentUserDetails()
 					.getUserId());
 			
-			Integer deliveryMasterId = deliveryMaster.getDeliveryMasterId();
+			String deliveryMasterId = deliveryMaster.getDeliveryMasterId();
 			
 			if(deliveryMasterId == null){
 				logger.error("BAD_REQUEST: deliveryMasterId is required for update");
@@ -462,7 +462,7 @@ public class DeliveryMasterService {
 						}
 					}
 				}
-				Integer deliveryMasterId = deliveryMasterManagerLinkT.getDeliveryMasterId();
+				String deliveryMasterId = deliveryMasterManagerLinkT.getDeliveryMasterId();
 				if(deliveryMasterId==null){
 					logger.error("BAD_REQUEST: deliveryMasterId is mandatory");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -509,7 +509,7 @@ public class DeliveryMasterService {
 							"createdDatetime is mandatory in deliveryResourcesT");			
 				}
 				
-				Integer deliveryMasterId = deliveryResourcesT.getDeliveryMasterId();
+				String deliveryMasterId = deliveryResourcesT.getDeliveryMasterId();
 				if(deliveryMasterId==null){
 					logger.error("BAD_REQUEST: deliveryMasterId is mandatory");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -611,7 +611,7 @@ public class DeliveryMasterService {
 
 
 	private void populateDeliveryMaster(DeliveryMasterT deliveryMasterT) {
-		Integer deliveryMasterId = deliveryMasterT.getDeliveryMasterId();
+		String deliveryMasterId = deliveryMasterT.getDeliveryMasterId();
 		
 		DeliveryMasterT deliveryFromDB = deliveryMasterRepository.findOne(deliveryMasterId);
 		
@@ -622,7 +622,7 @@ public class DeliveryMasterService {
 
 	private void setData(DeliveryMasterT deliveryMasterSource,
 			DeliveryMasterT deliveryMasterDestination) {
-		Integer new_deliveryMasterId = deliveryMasterSource
+		String new_deliveryMasterId = deliveryMasterSource
 				.getDeliveryMasterId();
 		Date new_actualStartDate = deliveryMasterSource.getActualStartDate();
 		Integer new_deliveryCentreId = deliveryMasterSource
@@ -646,7 +646,7 @@ public class DeliveryMasterService {
 				.getScheduledStartDate();
 		String new_wonNum = deliveryMasterSource.getWonNum();
 
-		Integer old_deliveryMasterId = deliveryMasterDestination
+		String old_deliveryMasterId = deliveryMasterDestination
 				.getDeliveryMasterId();
 		Date old_actualStartDate = deliveryMasterDestination
 				.getActualStartDate();

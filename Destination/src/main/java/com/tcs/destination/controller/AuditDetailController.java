@@ -68,7 +68,7 @@ public class AuditDetailController {
 
 	@RequestMapping(value = "/engagement", method = RequestMethod.GET)
 	public @ResponseBody AuditHistoryResponseDTO<AuditEngagementHistoryDTO> getEngagementHistory(
-			@RequestParam(value = "id") Integer engId)
+			@RequestParam(value = "id") String engId)
 					throws DestinationException {
 		logger.info("Inside AuditDetailController : Start of getEngagementHistory");
 		

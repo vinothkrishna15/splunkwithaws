@@ -109,7 +109,7 @@ public class DeliveryMasterController {
 	 */
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	public @ResponseBody String findByDeliveryMasterId(
-			@PathVariable("id") Integer deliveryMasterId,
+			@PathVariable("id") String deliveryMasterId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 					throws DestinationException {
@@ -124,7 +124,7 @@ public class DeliveryMasterController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in retrieving the delivery master details for the id:"
 							+ deliveryMasterId);
@@ -145,7 +145,7 @@ public class DeliveryMasterController {
 		status.setStatus(Status.FAILED, "");
 		try {
 			if (deliveryMasterService.updateDelivery(deliveryMaster)) {
-				status.setStatus(Status.SUCCESS, new Integer(deliveryMaster.getDeliveryMasterId()).toString());
+				status.setStatus(Status.SUCCESS, deliveryMaster.getDeliveryMasterId());
 				//jobLauncherController.asyncJobLaunchForNotification(JobName.notification, EntityType.CONNECT, connect.getConnectId(),OperationType.CONNECT_EDIT,connect.getModifiedBy());
 			}
 			logger.info("Inside DeliveryMasterController: End of Edit delivery master");
@@ -156,7 +156,7 @@ public class DeliveryMasterController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while updating delivery master");
 		}
@@ -176,7 +176,7 @@ public class DeliveryMasterController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in retrieving the delivery Rgs Id List for the Rgs Id pattern:"
 							+ idLike);

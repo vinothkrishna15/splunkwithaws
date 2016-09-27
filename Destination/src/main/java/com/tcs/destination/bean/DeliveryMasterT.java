@@ -29,7 +29,7 @@ public class DeliveryMasterT implements Serializable {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name="delivery_master_id")
-	private Integer deliveryMasterId;
+	private String deliveryMasterId;
 
 	@Temporal(TemporalType.DATE)
 	@Column(name="actual_start_date")
@@ -133,11 +133,11 @@ public class DeliveryMasterT implements Serializable {
 	public DeliveryMasterT() {
 	}
 
-	public Integer getDeliveryMasterId() {
+	public String getDeliveryMasterId() {
 		return this.deliveryMasterId;
 	}
 
-	public void setDeliveryMasterId(Integer deliveryMasterId) {
+	public void setDeliveryMasterId(String deliveryMasterId) {
 		this.deliveryMasterId = deliveryMasterId;
 	}
 

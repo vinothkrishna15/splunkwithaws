@@ -36,7 +36,7 @@ public class AuditDeliveryResourcesT implements Serializable {
 	private Timestamp createdModifiedDatetime;
 
 	@Column(name="delivery_master_id")
-	private Integer deliveryMasterId;
+	private String deliveryMasterId;
 
 	@Column(name="delivery_resource_id")
 	private Integer deliveryResourceId;
@@ -95,11 +95,11 @@ public class AuditDeliveryResourcesT implements Serializable {
 		this.createdModifiedDatetime = createdModifiedDatetime;
 	}
 
-	public Integer getDeliveryMasterId() {
+	public String getDeliveryMasterId() {
 		return this.deliveryMasterId;
 	}
 
-	public void setDeliveryMasterId(Integer deliveryMasterId) {
+	public void setDeliveryMasterId(String deliveryMasterId) {
 		this.deliveryMasterId = deliveryMasterId;
 	}
 

@@ -36,7 +36,7 @@ public class DeliveryMasterManagerLinkT implements Serializable {
 	private Timestamp modifiedDatetime;
 	
 	@Column(name="delivery_master_id")
-	private Integer deliveryMasterId;
+	private String deliveryMasterId;
 	
 	@Column(name="created_by")
 	private String createdBy;
@@ -102,11 +102,11 @@ public class DeliveryMasterManagerLinkT implements Serializable {
 		this.deliveryMasterT = deliveryMasterT;
 	}
 
-	public Integer getDeliveryMasterId() {
+	public String getDeliveryMasterId() {
 		return deliveryMasterId;
 	}
 
-	public void setDeliveryMasterId(Integer deliveryMasterId) {
+	public void setDeliveryMasterId(String deliveryMasterId) {
 		this.deliveryMasterId = deliveryMasterId;
 	}
 

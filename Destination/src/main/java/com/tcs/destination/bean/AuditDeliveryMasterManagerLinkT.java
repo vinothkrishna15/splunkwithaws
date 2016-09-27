@@ -39,7 +39,7 @@ public class AuditDeliveryMasterManagerLinkT implements Serializable {
 	private String deliveryManagerId;
 
 	@Column(name="delivery_master_id")
-	private Integer deliveryMasterId;
+	private String deliveryMasterId;
 
 	@Column(name="operation_type")
 	private Integer operationType;
@@ -79,11 +79,11 @@ public class AuditDeliveryMasterManagerLinkT implements Serializable {
 		this.deliveryManagerId = deliveryManagerId;
 	}
 
-	public Integer getDeliveryMasterId() {
+	public String getDeliveryMasterId() {
 		return this.deliveryMasterId;
 	}
 
-	public void setDeliveryMasterId(Integer deliveryMasterId) {
+	public void setDeliveryMasterId(String deliveryMasterId) {
 		this.deliveryMasterId = deliveryMasterId;
 	}
 

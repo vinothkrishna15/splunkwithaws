@@ -10,9 +10,9 @@ import org.springframework.stereotype.Repository;
 import com.tcs.destination.bean.DeliveryMasterT;
 
 @Repository
-public interface DeliveryMasterPagingRepository extends PagingAndSortingRepository<DeliveryMasterT, Integer> {
+public interface DeliveryMasterPagingRepository extends PagingAndSortingRepository<DeliveryMasterT, String> {
 	//Page<DeliveryMasterT> findByDeliveryManagerIdAndDeliveryStageIn(String userId,List<Integer> deliveryStages,Pageable pageable);
-	Page<DeliveryMasterT> findByDeliveryMasterIdInAndDeliveryStageIn(List<Integer> deliveryMasterIds,List<Integer> deliveryStages,Pageable pageable);
+	Page<DeliveryMasterT> findByDeliveryMasterIdInAndDeliveryStageIn(List<String> deliveryMasterIds,List<Integer> deliveryStages,Pageable pageable);
 	//Page<DeliveryMasterT> findByDeliveryCentreIdInAndDeliveryStageIn(List<Integer> deliveryCentreIds,List<Integer> deliveryStages,Pageable pageable);
 	Page<DeliveryMasterT> findByDeliveryCentreIdInAndDeliveryStageIn(List<Integer> deliveryCentreIds,List<Integer> deliveryStages,Pageable pageable);
 }
