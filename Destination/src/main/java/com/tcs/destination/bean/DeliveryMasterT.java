@@ -19,7 +19,7 @@ import java.util.List;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "deliveryMasterId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "deliveryMasterId", scope = DeliveryMasterT.class)
 @Entity
 @Table(name="delivery_master_t")
 @NamedQuery(name="DeliveryMasterT.findAll", query="SELECT d FROM DeliveryMasterT d")

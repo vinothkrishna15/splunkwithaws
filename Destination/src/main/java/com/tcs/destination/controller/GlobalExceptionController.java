@@ -48,10 +48,9 @@ public class GlobalExceptionController {
 	public ResponseEntity<Status> handleAllException(Exception e) {
 		if (DestinationUtils.getCurrentUserDetails() != null) 
 			MDC.put("userId", DestinationUtils.getCurrentUserDetails().getUserId());
-		logger.error("Exception: Status-" + HttpStatus.INTERNAL_SERVER_ERROR
-				+ " Message-" + e.getMessage());
+		logger.error("Exception: ", e);
 		Status status = new Status();
-		status.setStatus(Status.FAILED, e.getMessage());
+		status.setStatus(Status.FAILED, "INTERNAL SERVER ERROR");
 		return new ResponseEntity<Status>(status, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
