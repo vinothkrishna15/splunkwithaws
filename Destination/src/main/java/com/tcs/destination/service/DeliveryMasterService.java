@@ -108,6 +108,7 @@ public class DeliveryMasterService {
 		attributeMap.put("deliveryOwnership","opportunityT.deliveryOwnershipT.ownership");
 		attributeMap.put("stage","deliveryStage");
 		attributeMap.put("deliveryCentre","deliveryCentreT.deliveryCentre");
+		attributeMap.put("modifiedDatetime","modifiedDatetime");
 		ATTRIBUTE_MAP = Collections.unmodifiableMap(attributeMap);
 	}
 	
