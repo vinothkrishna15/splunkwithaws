@@ -585,7 +585,7 @@ public class AuditDetailService {
 	private List<AuditEntryDTO> getEngRequirementAudtit(
 			String rgsId) {
 		List<AuditEntryDTO> entries = Lists.newArrayList();
-		List<AuditDeliveryRequirementT> engReqs = aEngRequirmentRepo.findByOldDeliveryRgsId(rgsId);
+		List<AuditDeliveryRequirementT> engReqs = aEngRequirmentRepo.findByDeliveryRgsId(rgsId);
 		if(CollectionUtils.isNotEmpty(engReqs)) {
 			for (AuditDeliveryRequirementT aEngReq : engReqs) {
 				entries.addAll(getEngRequirementAudtit(aEngReq));
