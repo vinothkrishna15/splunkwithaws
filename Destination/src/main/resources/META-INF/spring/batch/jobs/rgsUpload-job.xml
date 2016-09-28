@@ -23,7 +23,7 @@
 		<batch:step id="rgsProcessing" next="rgsDataProcessing">
 			<batch:tasklet>
 				<batch:chunk reader="rgsSpreadSheetReader" writer="rgsWriter" 
-				commit-interval="${upload.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+				commit-interval="${RGSupload.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
 			</batch:tasklet>
 		</batch:step>
 		
