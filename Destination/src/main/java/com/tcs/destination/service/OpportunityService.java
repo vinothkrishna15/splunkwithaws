@@ -1752,8 +1752,7 @@ public class OpportunityService {
 				.getEngagementDuration());
 		baseOpportunityT.setOpportunityId(opportunity.getOpportunityId());
 		baseOpportunityT.setOpportunityOwner(opportunity.getOpportunityOwner());
-		int salesStageCode = opportunity.getSalesStageCode();
-		if (salesStageCode == Constants.CONSTANT_NINE) {
+		if (opportunity.getDeliveryOwnershipId() != 0) {
 			baseOpportunityT.setDeliveryOwnershipId(opportunity
 					.getDeliveryOwnershipId());
 		}
