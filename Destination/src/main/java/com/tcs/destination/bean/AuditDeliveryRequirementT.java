@@ -29,17 +29,21 @@ public class AuditDeliveryRequirementT implements Serializable {
 	@Column(name="audit_delivery_requirement_id")
 	private Integer auditDeliveryRequirementId;
 
+	@Column(name="competency_area")
+	private String competencyArea;
+
 	@Column(name="created_modified_by")
 	private String createdModifiedBy;
 
 	@Column(name="created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
-	@Column(name="new_competency_area")
-	private String newCompetencyArea;
+	@Column(name="delivery_rgs_id")
+	private String deliveryRgsId;
 
-	@Column(name="new_delivery_rgs_id")
-	private String newDeliveryRgsId;
+	private String experience;
+
+	private String location;
 
 	@Column(name="new_employee_id")
 	private String newEmployeeId;
@@ -47,59 +51,26 @@ public class AuditDeliveryRequirementT implements Serializable {
 	@Column(name="new_employee_name")
 	private String newEmployeeName;
 
-	@Column(name="new_experience")
-	private String newExperience;
-
-	@Column(name="new_location")
-	private String newLocation;
-
-	@Column(name="new_role")
-	private String newRole;
-
-	@Column(name="new_site")
-	private String newSite;
-
-	@Column(name="new_status")
-	private String newStatus;
-
-	@Column(name="new_sub_competency_area")
-	private String newSubCompetencyArea;
-
-	@Column(name="old_competency_area")
-	private String oldCompetencyArea;
-
-	@Column(name="old_delivery_rgs_id")
-	private String oldDeliveryRgsId;
-
 	@Column(name="old_employee_id")
 	private String oldEmployeeId;
 
 	@Column(name="old_employee_name")
 	private String oldEmployeeName;
 
-	@Column(name="old_experience")
-	private String oldExperience;
-
-	@Column(name="old_location")
-	private String oldLocation;
-
-	@Column(name="old_role")
-	private String oldRole;
-
-	@Column(name="old_site")
-	private String oldSite;
-
-	@Column(name="old_status")
-	private String oldStatus;
-
-	@Column(name="old_sub_competency_area")
-	private String oldSubCompetencyArea;
-
 	@Column(name="operation_type")
 	private Integer operationType;
 
 	@Column(name="requirement_id")
 	private String requirementId;
+
+	private String role;
+
+	private String site;
+
+	private String status;
+
+	@Column(name="sub_competency_area")
+	private String subCompetencyArea;
 
 	public AuditDeliveryRequirementT() {
 	}
@@ -110,6 +81,14 @@ public class AuditDeliveryRequirementT implements Serializable {
 
 	public void setAuditDeliveryRequirementId(Integer auditDeliveryRequirementId) {
 		this.auditDeliveryRequirementId = auditDeliveryRequirementId;
+	}
+
+	public String getCompetencyArea() {
+		return this.competencyArea;
+	}
+
+	public void setCompetencyArea(String competencyArea) {
+		this.competencyArea = competencyArea;
 	}
 
 	public String getCreatedModifiedBy() {
@@ -128,20 +107,28 @@ public class AuditDeliveryRequirementT implements Serializable {
 		this.createdModifiedDatetime = createdModifiedDatetime;
 	}
 
-	public String getNewCompetencyArea() {
-		return this.newCompetencyArea;
+	public String getDeliveryRgsId() {
+		return this.deliveryRgsId;
 	}
 
-	public void setNewCompetencyArea(String newCompetencyArea) {
-		this.newCompetencyArea = newCompetencyArea;
+	public void setDeliveryRgsId(String deliveryRgsId) {
+		this.deliveryRgsId = deliveryRgsId;
 	}
 
-	public String getNewDeliveryRgsId() {
-		return this.newDeliveryRgsId;
+	public String getExperience() {
+		return this.experience;
 	}
 
-	public void setNewDeliveryRgsId(String newDeliveryRgsId) {
-		this.newDeliveryRgsId = newDeliveryRgsId;
+	public void setExperience(String experience) {
+		this.experience = experience;
+	}
+
+	public String getLocation() {
+		return this.location;
+	}
+
+	public void setLocation(String location) {
+		this.location = location;
 	}
 
 	public String getNewEmployeeId() {
@@ -160,70 +147,6 @@ public class AuditDeliveryRequirementT implements Serializable {
 		this.newEmployeeName = newEmployeeName;
 	}
 
-	public String getNewExperience() {
-		return this.newExperience;
-	}
-
-	public void setNewExperience(String newExperience) {
-		this.newExperience = newExperience;
-	}
-
-	public String getNewLocation() {
-		return this.newLocation;
-	}
-
-	public void setNewLocation(String newLocation) {
-		this.newLocation = newLocation;
-	}
-
-	public String getNewRole() {
-		return this.newRole;
-	}
-
-	public void setNewRole(String newRole) {
-		this.newRole = newRole;
-	}
-
-	public String getNewSite() {
-		return this.newSite;
-	}
-
-	public void setNewSite(String newSite) {
-		this.newSite = newSite;
-	}
-
-	public String getNewStatus() {
-		return this.newStatus;
-	}
-
-	public void setNewStatus(String newStatus) {
-		this.newStatus = newStatus;
-	}
-
-	public String getNewSubCompetencyArea() {
-		return this.newSubCompetencyArea;
-	}
-
-	public void setNewSubCompetencyArea(String newSubCompetencyArea) {
-		this.newSubCompetencyArea = newSubCompetencyArea;
-	}
-
-	public String getOldCompetencyArea() {
-		return this.oldCompetencyArea;
-	}
-
-	public void setOldCompetencyArea(String oldCompetencyArea) {
-		this.oldCompetencyArea = oldCompetencyArea;
-	}
-
-	public String getOldDeliveryRgsId() {
-		return this.oldDeliveryRgsId;
-	}
-
-	public void setOldDeliveryRgsId(String oldDeliveryRgsId) {
-		this.oldDeliveryRgsId = oldDeliveryRgsId;
-	}
-
 	public String getOldEmployeeId() {
 		return this.oldEmployeeId;
 	}
@@ -240,54 +163,6 @@ public class AuditDeliveryRequirementT implements Serializable {
 		this.oldEmployeeName = oldEmployeeName;
 	}
 
-	public String getOldExperience() {
-		return this.oldExperience;
-	}
-
-	public void setOldExperience(String oldExperience) {
-		this.oldExperience = oldExperience;
-	}
-
-	public String getOldLocation() {
-		return this.oldLocation;
-	}
-
-	public void setOldLocation(String oldLocation) {
-		this.oldLocation = oldLocation;
-	}
-
-	public String getOldRole() {
-		return this.oldRole;
-	}
-
-	public void setOldRole(String oldRole) {
-		this.oldRole = oldRole;
-	}
-
-	public String getOldSite() {
-		return this.oldSite;
-	}
-
-	public void setOldSite(String oldSite) {
-		this.oldSite = oldSite;
-	}
-
-	public String getOldStatus() {
-		return this.oldStatus;
-	}
-
-	public void setOldStatus(String oldStatus) {
-		this.oldStatus = oldStatus;
-	}
-
-	public String getOldSubCompetencyArea() {
-		return this.oldSubCompetencyArea;
-	}
-
-	public void setOldSubCompetencyArea(String oldSubCompetencyArea) {
-		this.oldSubCompetencyArea = oldSubCompetencyArea;
-	}
-
 	public Integer getOperationType() {
 		return this.operationType;
 	}
@@ -302,6 +177,38 @@ public class AuditDeliveryRequirementT implements Serializable {
 
 	public void setRequirementId(String requirementId) {
 		this.requirementId = requirementId;
+	}
+
+	public String getRole() {
+		return this.role;
+	}
+
+	public void setRole(String role) {
+		this.role = role;
+	}
+
+	public String getSite() {
+		return this.site;
+	}
+
+	public void setSite(String site) {
+		this.site = site;
+	}
+
+	public String getStatus() {
+		return this.status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	public String getSubCompetencyArea() {
+		return this.subCompetencyArea;
+	}
+
+	public void setSubCompetencyArea(String subCompetencyArea) {
+		this.subCompetencyArea = subCompetencyArea;
 	}
 
 }

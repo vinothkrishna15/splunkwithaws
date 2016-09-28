@@ -1,6 +1,7 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 
 import javax.persistence.*;
 
@@ -34,6 +35,18 @@ public class OpportunityDeliveryCentreMappingT implements Serializable {
 	
 	@Column(name = "delivery_centre_id")
 	private Integer deliveryCentreId;
+	
+	@Column(name="created_datetime")
+	private Timestamp createdDatetime;
+	
+	@Column(name="modified_datetime")
+	private Timestamp modifiedDatetime;
+	
+	@Column(name = "created_by")
+	private String createdBy;
+	
+	@Column(name = "modified_by")
+	private String modifiedBy;
 
 	//bi-directional many-to-one association to DeliveryCentreT
 	@ManyToOne
@@ -44,6 +57,16 @@ public class OpportunityDeliveryCentreMappingT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="opportunity_id", insertable = false, updatable = false)
 	private OpportunityT opportunityT;
+	
+	// bi-directional many-to-one association to UserT
+	@ManyToOne
+	@JoinColumn(name = "created_by", insertable = false, updatable = false)
+	private UserT createdByUser;
+
+	// bi-directional many-to-one association to UserT
+	@ManyToOne
+	@JoinColumn(name = "modified_by", insertable = false, updatable = false)
+	private UserT modifiedByUser;
 
 	public OpportunityDeliveryCentreMappingT() {
 	}
@@ -94,6 +117,54 @@ public class OpportunityDeliveryCentreMappingT implements Serializable {
 
 	public void setDeliveryCentreId(Integer deliveryCentreId) {
 		this.deliveryCentreId = deliveryCentreId;
+	}
+
+	public Timestamp getCreatedDatetime() {
+		return createdDatetime;
+	}
+
+	public void setCreatedDatetime(Timestamp createdDatetime) {
+		this.createdDatetime = createdDatetime;
+	}
+
+	public Timestamp getModifiedDatetime() {
+		return modifiedDatetime;
+	}
+
+	public void setModifiedDatetime(Timestamp modifiedDatetime) {
+		this.modifiedDatetime = modifiedDatetime;
+	}
+
+	public String getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(String createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	public String getModifiedBy() {
+		return modifiedBy;
+	}
+
+	public void setModifiedBy(String modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+
+	public UserT getCreatedByUser() {
+		return createdByUser;
+	}
+
+	public void setCreatedByUser(UserT createdByUser) {
+		this.createdByUser = createdByUser;
+	}
+
+	public UserT getModifiedByUser() {
+		return modifiedByUser;
+	}
+
+	public void setModifiedByUser(UserT modifiedByUser) {
+		this.modifiedByUser = modifiedByUser;
 	}
 
 }
