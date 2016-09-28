@@ -1696,15 +1696,24 @@ public class OpportunityService {
 		}
 
 		if (opportunity.getOpportunityDeliveryCentreMappingTs() != null) {
-			for (OpportunityDeliveryCentreMappingT opportunityDeliveryCentreMappingT : opportunity
-					.getOpportunityDeliveryCentreMappingTs()) {
-				opportunityDeliveryCentreMappingT.setOpportunityId(opportunity
-						.getOpportunityId());
-				opportunityDeliveryCentreMappingTRepository
-						.save(opportunityDeliveryCentreMappingT);
-				//save delivery master object for each delivery centre
-				if(opportunity.getSalesStageCode()!=oldSalesStageCode && opportunity.getSalesStageCode()==9){
-					deliveryMasterService.createDeliveryMaster(opportunity, opportunityDeliveryCentreMappingT);
+			List<OpportunityDeliveryCentreMappingT> deliveryCentresSavedForOpportunity = null;
+			List<OpportunityDeliveryCentreMappingT> deliveryCentrestoBeUpdated = opportunity.getOpportunityDeliveryCentreMappingTs();
+			deliveryCentresSavedForOpportunity = opportunityDeliveryCentreMappingTRepository.findByOpportunityId(opportunity.getOpportunityId());
+			for (OpportunityDeliveryCentreMappingT opportunityDeliveryCentresSaved : deliveryCentresSavedForOpportunity) {
+				if (!deliveryCentrestoBeUpdated.contains(opportunityDeliveryCentresSaved)) {
+					opportunityDeliveryCentreMappingTRepository.delete(opportunityDeliveryCentresSaved);
+				}
+			}
+			for (OpportunityDeliveryCentreMappingT opportunityDeliveryCentresTobeUpdated : deliveryCentrestoBeUpdated) {
+				if (!deliveryCentresSavedForOpportunity.contains(opportunityDeliveryCentresTobeUpdated)) {
+					opportunityDeliveryCentresTobeUpdated.setOpportunityId(opportunity.getOpportunityId());
+					opportunityDeliveryCentresTobeUpdated.setModifiedBy(userId);
+					opportunityDeliveryCentresTobeUpdated.setCreatedBy(userId);
+					opportunityDeliveryCentreMappingTRepository.save(opportunityDeliveryCentresTobeUpdated);
+					//save delivery master object for each delivery centre
+					if(opportunity.getSalesStageCode()!=oldSalesStageCode && opportunity.getSalesStageCode()==9){
+						deliveryMasterService.createDeliveryMaster(opportunity, opportunityDeliveryCentresTobeUpdated);
+					}
 				}
 			}
 		}
