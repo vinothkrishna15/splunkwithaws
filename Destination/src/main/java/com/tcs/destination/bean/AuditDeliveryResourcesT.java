@@ -67,6 +67,16 @@ public class AuditDeliveryResourcesT implements Serializable {
 
 	@Column(name="operation_type")
 	private Integer operationType;
+	
+	private Boolean notified;
+
+	public Boolean getNotified() {
+		return this.notified;
+	}
+
+	public void setNotified(Boolean notified) {
+		this.notified = notified;
+	}
 
 	public AuditDeliveryResourcesT() {
 	}

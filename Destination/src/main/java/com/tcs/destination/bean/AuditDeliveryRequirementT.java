@@ -71,6 +71,16 @@ public class AuditDeliveryRequirementT implements Serializable {
 
 	@Column(name="sub_competency_area")
 	private String subCompetencyArea;
+	
+	private Boolean notified;
+
+	public Boolean getNotified() {
+		return this.notified;
+	}
+
+	public void setNotified(Boolean notified) {
+		this.notified = notified;
+	}
 
 	public AuditDeliveryRequirementT() {
 	}

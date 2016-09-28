@@ -134,6 +134,16 @@ public class AuditDeliveryMasterT implements Serializable {
 
 	@Column(name="opportunity_id")
 	private String opportunityId;
+	
+	private Boolean notified;
+
+	public Boolean getNotified() {
+		return this.notified;
+	}
+
+	public void setNotified(Boolean notified) {
+		this.notified = notified;
+	}
 
 	public AuditDeliveryMasterT() {
 	}
