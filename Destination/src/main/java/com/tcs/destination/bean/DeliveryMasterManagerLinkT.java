@@ -17,7 +17,7 @@ import java.sql.Timestamp;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "deliveryMasterManagerLinkId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "deliveryMasterManagerLinkId", scope=DeliveryMasterManagerLinkT.class)
 @Entity
 @Table(name="delivery_master_manager_link_t")
 @NamedQuery(name="DeliveryMasterManagerLinkT.findAll", query="SELECT d FROM DeliveryMasterManagerLinkT d")
