@@ -11,5 +11,5 @@ import com.tcs.destination.bean.AuditDeliveryRequirementT;
 public interface AuditDeliveryRequirementTRepository extends
 		CrudRepository<AuditDeliveryRequirementT, Integer> {
 		
-	List<AuditDeliveryRequirementT> findByOldDeliveryRgsId(String rgsId);
+	List<AuditDeliveryRequirementT> findByDeliveryRgsId(String rgsId);
 }
