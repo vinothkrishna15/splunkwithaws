@@ -1752,7 +1752,7 @@ public class OpportunityService {
 				.getEngagementDuration());
 		baseOpportunityT.setOpportunityId(opportunity.getOpportunityId());
 		baseOpportunityT.setOpportunityOwner(opportunity.getOpportunityOwner());
-		if (opportunity.getDeliveryOwnershipId() != 0) {
+		if (opportunity.getDeliveryOwnershipId() != null) {
 			baseOpportunityT.setDeliveryOwnershipId(opportunity
 					.getDeliveryOwnershipId());
 		}
