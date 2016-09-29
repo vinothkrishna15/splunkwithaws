@@ -136,6 +136,14 @@ public class AuditDeliveryMasterT implements Serializable {
 	private String opportunityId;
 	
 	private Boolean notified;
+	
+	private String oldComments;
+	
+	private String newComments;
+	
+	private String oldReason;
+	
+	private String newReason;
 
 	public Boolean getNotified() {
 		return this.notified;
@@ -418,6 +426,38 @@ public class AuditDeliveryMasterT implements Serializable {
 
 	public void setOpportunityId(String opportunityId) {
 		this.opportunityId = opportunityId;
+	}
+
+	public String getOldComments() {
+		return oldComments;
+	}
+
+	public void setOldComments(String oldComments) {
+		this.oldComments = oldComments;
+	}
+
+	public String getNewComments() {
+		return newComments;
+	}
+
+	public void setNewComments(String newComments) {
+		this.newComments = newComments;
+	}
+
+	public String getOldReason() {
+		return oldReason;
+	}
+
+	public void setOldReason(String oldReason) {
+		this.oldReason = oldReason;
+	}
+
+	public String getNewReason() {
+		return newReason;
+	}
+
+	public void setNewReason(String newReason) {
+		this.newReason = newReason;
 	}
 
 }
