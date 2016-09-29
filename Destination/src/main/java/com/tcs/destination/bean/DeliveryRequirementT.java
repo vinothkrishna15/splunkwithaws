@@ -79,6 +79,12 @@ public class DeliveryRequirementT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="delivery_rgs_id",insertable = false, updatable = false)
 	private DeliveryRgsT deliveryRgsT;
+	
+	@Column(name="customer_name")
+	private String customerName;
+	
+	@Column(name="branch")
+	private String branch;
 
 	public DeliveryRequirementT() {
 	}
@@ -217,6 +223,22 @@ public class DeliveryRequirementT implements Serializable {
 
 	public void setDeliveryRgsT(DeliveryRgsT deliveryRgsT) {
 		this.deliveryRgsT = deliveryRgsT;
+	}
+
+	public String getCustomerName() {
+		return customerName;
+	}
+
+	public void setCustomerName(String customerName) {
+		this.customerName = customerName;
+	}
+
+	public String getBranch() {
+		return branch;
+	}
+
+	public void setBranch(String branch) {
+		this.branch = branch;
 	}
 	
 
