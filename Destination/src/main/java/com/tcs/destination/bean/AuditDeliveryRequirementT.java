@@ -67,7 +67,11 @@ public class AuditDeliveryRequirementT implements Serializable {
 
 	private String site;
 
-	private String status;
+	@Column(name="old_status")
+	private String oldStatus;
+	
+	@Column(name="new_status")
+	private String newStatus;
 
 	@Column(name="sub_competency_area")
 	private String subCompetencyArea;
@@ -205,20 +209,28 @@ public class AuditDeliveryRequirementT implements Serializable {
 		this.site = site;
 	}
 
-	public String getStatus() {
-		return this.status;
-	}
-
-	public void setStatus(String status) {
-		this.status = status;
-	}
-
 	public String getSubCompetencyArea() {
 		return this.subCompetencyArea;
 	}
 
 	public void setSubCompetencyArea(String subCompetencyArea) {
 		this.subCompetencyArea = subCompetencyArea;
+	}
+
+	public String getOldStatus() {
+		return oldStatus;
+	}
+
+	public void setOldStatus(String oldStatus) {
+		this.oldStatus = oldStatus;
+	}
+
+	public String getNewStatus() {
+		return newStatus;
+	}
+
+	public void setNewStatus(String newStatus) {
+		this.newStatus = newStatus;
 	}
 
 }
