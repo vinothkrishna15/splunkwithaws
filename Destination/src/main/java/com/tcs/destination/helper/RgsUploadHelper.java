@@ -44,10 +44,11 @@ public class RgsUploadHelper {
 	 * @param data
 	 * @param userId
 	 * @param rgst
+	 * @param isRgsIdExists 
 	 * @return
 	 */
 	public UploadServiceErrorDetailsDTO validateRgsData(String[] data,
-			String userId, DeliveryRgsT rgst, DeliveryRequirementT deliveryRequirementT) {
+			String userId, DeliveryRgsT rgst, DeliveryRequirementT deliveryRequirementT, Boolean isRgsIdExists) {
 		
 
 			UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
@@ -62,11 +63,10 @@ public class RgsUploadHelper {
 			}else{
 				rgsId=rgsId.replace(".0", "");
 				if(rgsRepository.exists(rgsId.trim())){
-					error.setRowNumber(rowNumber);
-					errorMsg.append("RGS Id Already exists; ");
-				} else {
+					isRgsIdExists = true;
+				} 
 					rgsId = rgsId.trim();
-				}
+				
 			}
 			
 			String requirementId = data[2];
@@ -75,12 +75,19 @@ public class RgsUploadHelper {
 				errorMsg.append("Requirement Id Is Mandatory; ");
 			}else{
 				requirementId=requirementId.replace(".0", "");
-				if(requirementRepository.exists(requirementId.trim())){
-					error.setRowNumber(rowNumber);
-					errorMsg.append("Requirement Id Already exists; ");
-				}else{
-					requirementId = requirementId.trim();
-				}
+				requirementId = requirementId.trim();
+			}
+			
+			String customerName = data[4];
+			
+			if(!StringUtils.isEmpty(customerName)){
+				customerName = customerName.trim();
+			}
+			
+			String branchName = data[7];
+			
+			if(!StringUtils.isEmpty(branchName)){
+				branchName = branchName.trim();
 			}
 			
 			String location = data[8];
@@ -128,7 +135,15 @@ public class RgsUploadHelper {
 				error.setRowNumber(rowNumber);
 				errorMsg.append("Status Is Mandatory; ");
 			}else{
+				DeliveryRequirementT deliveryRequirementDB = requirementRepository.findOne(requirementId);
 				status = status.trim();
+				if(deliveryRequirementDB!=null){
+				String statusDb = deliveryRequirementDB.getStatus(); 
+				if(status.equalsIgnoreCase(statusDb)){
+					error.setRowNumber(rowNumber);
+					errorMsg.append("Given Status already exists for the Requirement Id; ");
+				}
+				}
 			}
 			
 			if(StringUtils.isEmpty(errorMsg.toString())){
@@ -137,6 +152,8 @@ public class RgsUploadHelper {
 				deliveryRequirementT.setRequirementId(requirementId);
 				deliveryRequirementT.setLocation(location);
 				deliveryRequirementT.setCompetencyArea(competencyArea);
+				deliveryRequirementT.setCustomerName(customerName);
+				deliveryRequirementT.setBranch(branchName);
 				deliveryRequirementT.setSubCompetencyArea(subCompetencyArea);
 				deliveryRequirementT.setExperience(experience);
 				deliveryRequirementT.setRole(role);

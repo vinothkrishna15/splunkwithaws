@@ -29,6 +29,7 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.apache.commons.lang.StringUtils;
 
 import com.tcs.destination.bean.DataProcessingRequestT;
@@ -37,6 +38,7 @@ import com.tcs.destination.bean.DeliveryRgsT;
 import com.tcs.destination.bean.ProductMasterT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
+import com.tcs.destination.data.repository.DeliveryRequirementRepository;
 import com.tcs.destination.data.repository.ProductRepository;
 import com.tcs.destination.data.repository.RgsRepository;
 import com.tcs.destination.enums.Operation;
@@ -69,6 +71,9 @@ public class RgsCustomWriter implements ItemWriter<String[]>, StepExecutionListe
 	private StepExecution stepExecution;
 	
 	Map<String,DeliveryRequirementT> rgsIdRequirementMap;
+	
+	@Autowired
+	private DeliveryRequirementRepository requirementRepository;
 	
 	public DataProcessingRequestRepository getDataProcessingRequestRepository() {
 		return dataProcessingRequestRepository;
@@ -141,24 +146,32 @@ public class RgsCustomWriter implements ItemWriter<String[]>, StepExecutionListe
 		String operation = null; 
 		for (String[] data : items) {
 			int rowNumber = Integer.parseInt(data[0]) + 1;
-			//operation = (String) data[1];
-			//if (operation.equalsIgnoreCase(Operation.ADD.name())) {
-
 				DeliveryRgsT rgst = new DeliveryRgsT();
-				DeliveryRequirementT deliveryRequirementT = new DeliveryRequirementT();
+				DeliveryRequirementT deliveryRequirementT = null;
+				Boolean isRgsIdExists = false;
+				String requirementId = data[2];
+				requirementId=requirementId.replace(".0", "");
+				requirementId = requirementId.trim();
+				
+				DeliveryRequirementT deliveryRequirement = requirementRepository.findOne(requirementId);
+				if(deliveryRequirement!=null){
+					deliveryRequirementT = deliveryRequirement;
+				}else{
+					deliveryRequirementT = new DeliveryRequirementT();
+				}
 				UploadServiceErrorDetailsDTO errorDTO = helper
 						.validateRgsData(data, request.getUserT()
-								.getUserId(), rgst,deliveryRequirementT);
+								.getUserId(), rgst,deliveryRequirementT,isRgsIdExists);
 				if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
 					errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
 							: errorList;
 					errorList.add(errorDTO);
 				} else if (StringUtils.isEmpty(errorDTO.getMessage())) {
-					insertList.add(rgst);
+					if(!isRgsIdExists){
+					    insertList.add(rgst);
+					}
 					rgsIdRequirementMap.put(rgst.getDeliveryRgsId(), deliveryRequirementT);
 				}
-
-			//} 
 		}
 		if (CollectionUtils.isNotEmpty(insertList)) {
 			rgsDetailsRepository.save(insertList);
