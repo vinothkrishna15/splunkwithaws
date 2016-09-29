@@ -174,7 +174,7 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 	@Query(value = "select user_id from user_t where user_name = ?1",nativeQuery = true)
 	String findUserIdByUserName(String secondaryOwner);
 
-	List<UserT> findBySupervisorUserIdAndUserGroupAndUserNameIgnoreCaseContaining(
+	Set<UserT> findBySupervisorUserIdAndUserGroupAndUserNameIgnoreCaseContaining(
 			String deliveryCentreHead, String deliveryManager, String nameWith);
 	
 }

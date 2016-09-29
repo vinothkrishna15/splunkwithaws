@@ -8,8 +8,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +25,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
-import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryClusterT;
 import com.tcs.destination.bean.DeliveryMasterManagerLinkT;
@@ -34,7 +35,6 @@ import com.tcs.destination.bean.DeliveryRgsT;
 import com.tcs.destination.bean.OpportunityDeliveryCentreMappingT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PageDTO;
-import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.DeliveryCentreRepository;
@@ -52,7 +52,6 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
-import com.tcs.destination.utils.StringUtils;
 
 /**
  * handle service functionalities for delivery
@@ -752,40 +751,22 @@ public class DeliveryMasterService {
 	 * @param nameWith
 	 * @return
 	 */
-	public HashSet<UserT> findDeliveryCentreUserList(int deliveryCentreId, String nameWith) {
-		HashSet<UserT> usersForDeliveryCentre = new HashSet<UserT>();
+	public Set<UserT> findDeliveryCentreUserList(int deliveryCentreId, String nameWith) {
+		Set<UserT> usersForDeliveryCentre = new HashSet<UserT>();
 
 		DeliveryCentreT deliveryCentre = deliveryCentreRepository.findOne(deliveryCentreId);
+		String supervisorId = null;
 		if (deliveryCentre != null) {
 			String deliveryCentreHead = deliveryCentre.getDeliveryCentreHead();
 			// get all delivery managers for a delivery centre head
-			if (!StringUtils.isEmpty(deliveryCentreHead)) {
+			if (StringUtils.isNotEmpty(deliveryCentreHead)) {
+				supervisorId = deliveryCentreHead;
+			} else {
+				supervisorId = deliveryCentre.getDeliveryClusterT().getDeliveryClusterHead();
+			}
 				// retrieve users under this delivery centre head whose user group is delivery manager
-				List<UserT> deliveryManagersForDeliveryCentreList = userRepository.findBySupervisorUserIdAndUserGroupAndUserNameIgnoreCaseContaining(deliveryCentreHead, Constants.DELIVERY_MANAGER, nameWith);
-				if (CollectionUtils.isNotEmpty(deliveryManagersForDeliveryCentreList)) {
-					for (UserT deliveryManager : deliveryManagersForDeliveryCentreList) {
-						usersForDeliveryCentre.add(deliveryManager);
-					}
-				}
-			}
-			// get all delivery managers for a delivery cluster head (as delivery center head not available) 
-			else {
-				if (deliveryCentre.getDeliveryClusterId() != 0) {
-					DeliveryClusterT deliveryCluster = deliveryClusterRepository.findOne(deliveryCentre.getDeliveryClusterId());
-					if (deliveryCluster != null ) {
-						String deliveryClusterHead = deliveryCluster.getDeliveryClusterHead();
-						if (!StringUtils.isEmpty(deliveryClusterHead)) {
-							// retrieve users under this delivery centre head whose user group is delivery manager
-							List<UserT> deliveryManagersForDeliveryCentreList = userRepository.findBySupervisorUserIdAndUserGroupAndUserNameIgnoreCaseContaining(deliveryClusterHead, Constants.DELIVERY_MANAGER, nameWith);
-							if (CollectionUtils.isNotEmpty(deliveryManagersForDeliveryCentreList)) {
-								for (UserT deliveryManager : deliveryManagersForDeliveryCentreList) {
-									usersForDeliveryCentre.add(deliveryManager);
-								}
-							}
-						}
-					}
-				}
-			}
+			usersForDeliveryCentre = userRepository.findBySupervisorUserIdAndUserGroupAndUserNameIgnoreCaseContaining(supervisorId, Constants.DELIVERY_MANAGER, nameWith);
+				
 		}else{
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"The given Delivery Centre not found");
