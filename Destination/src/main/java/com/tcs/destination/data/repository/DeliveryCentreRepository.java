@@ -18,4 +18,6 @@ public interface DeliveryCentreRepository extends
 
 	DeliveryCentreT findByDeliveryCentreId(Integer id);
 	
+	List<DeliveryCentreT> findByDeliveryCentreIdIn(List<Integer> deliveryCentreIds);
+	
 }

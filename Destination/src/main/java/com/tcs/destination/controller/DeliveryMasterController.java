@@ -235,7 +235,7 @@ public class DeliveryMasterController {
 	 */
 	@RequestMapping(value = "/deliveryManagersForCentre", method = RequestMethod.GET)
 	public @ResponseBody String findAllUsersForDeliveryCentreHeads(
-			@RequestParam(value = "deliveryCentreId", defaultValue = "-1") String deliveryCentreId,
+			@RequestParam(value = "deliveryCentreIds", defaultValue = "-1") List<Integer> deliveryCentreIds,
 			@RequestParam(value = "nameWith", defaultValue = "") String nameWith,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
@@ -244,7 +244,7 @@ public class DeliveryMasterController {
 		String response = null;
 		Set<UserT> deliveryCentreUserList = null;
 		try {
-			deliveryCentreUserList = deliveryMasterService.findDeliveryCentreUserList(Integer.parseInt(deliveryCentreId), nameWith);
+			deliveryCentreUserList = deliveryMasterService.findDeliveryCentreUserList(deliveryCentreIds, nameWith);
 			if (deliveryCentreUserList.size() == 0) {
 				throw new DestinationException(HttpStatus.NOT_FOUND,
 						"Delivery Managers not available for this delivery center !");

@@ -747,29 +747,40 @@ public class DeliveryMasterService {
 
 	/**
 	 * Service to retrieve all the delivery managers under a delivery center
+	 * 
 	 * @param deliveryCentreId
 	 * @param nameWith
 	 * @return
 	 */
-	public Set<UserT> findDeliveryCentreUserList(int deliveryCentreId, String nameWith) {
+	public Set<UserT> findDeliveryCentreUserList(List<Integer> deliveryCentres,
+			String nameWith) {
 		Set<UserT> usersForDeliveryCentre = new HashSet<UserT>();
 
-		DeliveryCentreT deliveryCentre = deliveryCentreRepository.findOne(deliveryCentreId);
+		List<DeliveryCentreT> deliveryCentresList = deliveryCentreRepository
+				.findByDeliveryCentreIdIn(deliveryCentres);
+		
 		String supervisorId = null;
-		if (deliveryCentre != null) {
-			String deliveryCentreHead = deliveryCentre.getDeliveryCentreHead();
-			// get all delivery managers for a delivery centre head
-			if (StringUtils.isNotEmpty(deliveryCentreHead)) {
-				supervisorId = deliveryCentreHead;
-			} else {
-				supervisorId = deliveryCentre.getDeliveryClusterT().getDeliveryClusterHead();
+		for (DeliveryCentreT deliveryCentre : deliveryCentresList) {
+			if (deliveryCentre != null) {
+				String deliveryCentreHead = deliveryCentre.getDeliveryCentreHead();
+				// get all delivery managers for a delivery centre head
+				if (StringUtils.isNotEmpty(deliveryCentreHead)) {
+					supervisorId = deliveryCentreHead;
+				} else {
+					supervisorId = deliveryCentre.getDeliveryClusterT()
+							.getDeliveryClusterHead();
+				}
+				// retrieve users under this delivery centre head whose user group
+				// is delivery manager
+				usersForDeliveryCentre.addAll(userRepository
+						.findBySupervisorUserIdAndUserGroupAndUserNameIgnoreCaseContaining(
+								supervisorId, Constants.DELIVERY_MANAGER, nameWith));
+
+			} 
+			else {
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"The given Delivery Centre not found");
 			}
-				// retrieve users under this delivery centre head whose user group is delivery manager
-			usersForDeliveryCentre = userRepository.findBySupervisorUserIdAndUserGroupAndUserNameIgnoreCaseContaining(supervisorId, Constants.DELIVERY_MANAGER, nameWith);
-				
-		}else{
-			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"The given Delivery Centre not found");
 		}
 		return usersForDeliveryCentre;
 	}
