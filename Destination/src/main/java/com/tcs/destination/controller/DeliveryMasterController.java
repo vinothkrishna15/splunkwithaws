@@ -162,7 +162,14 @@ public class DeliveryMasterController {
 		}
 
 	}
-
+	
+	/**
+	 * This method retrieves the delivery RGS Id list for an Input RGS Id pattern
+	 * @param idLike
+	 * @param limitNum
+	 * @return List<String>
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/search/rgs", method = RequestMethod.GET)
 	public @ResponseBody List<String> searchByDeliveryRgsId(
 			@RequestParam(value = "idLike", defaultValue = "") String idLike,
