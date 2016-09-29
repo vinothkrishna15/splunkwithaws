@@ -2,9 +2,8 @@ package com.tcs.destination.controller;
 
 
 import java.util.List;
-
 import java.util.HashSet;
-
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,11 +19,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.DeliveryMasterT;
-
 import com.tcs.destination.bean.DeliveryRgsT;
 import com.tcs.destination.bean.OpportunityT;
-
-
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.Status;
@@ -239,7 +235,7 @@ public class DeliveryMasterController {
 					throws DestinationException {
 		logger.info("Inside DeliveryMasterController: Start of /deliverCentreUserlist GET");
 		String response = null;
-		HashSet<UserT> deliveryCentreUserList = null;
+		Set<UserT> deliveryCentreUserList = null;
 		try {
 			deliveryCentreUserList = deliveryMasterService.findDeliveryCentreUserList(Integer.parseInt(deliveryCentreId), nameWith);
 			if (deliveryCentreUserList.size() == 0) {
