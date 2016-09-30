@@ -1705,30 +1705,33 @@ public class OpportunityService {
 			}
 		}
 
-		if (opportunity.getOpportunityDeliveryCentreMappingTs() != null) {
-			List<OpportunityDeliveryCentreMappingT> deliveryCentresSavedForOpportunity = null;
+		List<OpportunityDeliveryCentreMappingT> deliveryCentresFromUI = opportunity
+				.getOpportunityDeliveryCentreMappingTs();
+		List<Integer> storedCentres = opportunityDeliveryCentreMappingTRepository.getIdByOpportunityId(opportunity
+				.getOpportunityId());
 
-			List<OpportunityDeliveryCentreMappingT> deliveryCentrestoBeUpdated = opportunity.getOpportunityDeliveryCentreMappingTs();
-			deliveryCentresSavedForOpportunity = opportunityDeliveryCentreMappingTRepository.findByOpportunityId(opportunity.getOpportunityId());
-			for (OpportunityDeliveryCentreMappingT opportunityDeliveryCentresSaved : deliveryCentresSavedForOpportunity) {
-				if (!deliveryCentrestoBeUpdated.contains(opportunityDeliveryCentresSaved)) {
+		if (deliveryCentresFromUI != null) {
+			for (OpportunityDeliveryCentreMappingT opportunityDeliveryCentreMappingT : deliveryCentresFromUI) {
+				if(opportunityDeliveryCentreMappingT.getOpportunityDeliveryCentreId() != null && storedCentres != null) {
+					storedCentres.remove(opportunityDeliveryCentreMappingT.getOpportunityDeliveryCentreId());
+				}
 
-					opportunityDeliveryCentreMappingTRepository.delete(opportunityDeliveryCentresSaved);
+				opportunityDeliveryCentreMappingT.setOpportunityId(opportunity.getOpportunityId());
+				opportunityDeliveryCentreMappingT.setModifiedBy(userId);
+				opportunityDeliveryCentreMappingT.setCreatedBy(userId);
+				opportunityDeliveryCentreMappingTRepository.save(opportunityDeliveryCentreMappingT);
+				//save delivery master object for each delivery centre
+				if(opportunity.getSalesStageCode()!=oldSalesStageCode && opportunity.getSalesStageCode()==9){
+					deliveryMasterService.createDeliveryMaster(opportunity, opportunityDeliveryCentreMappingT);
 				}
 			}
-			for (OpportunityDeliveryCentreMappingT opportunityDeliveryCentresTobeUpdated : deliveryCentrestoBeUpdated) {
-				if (!deliveryCentresSavedForOpportunity.contains(opportunityDeliveryCentresTobeUpdated)) {
-					opportunityDeliveryCentresTobeUpdated.setOpportunityId(opportunity.getOpportunityId());
-					opportunityDeliveryCentresTobeUpdated.setModifiedBy(userId);
-					opportunityDeliveryCentresTobeUpdated.setCreatedBy(userId);
-					opportunityDeliveryCentreMappingTRepository.save(opportunityDeliveryCentresTobeUpdated);
-					//save delivery master object for each delivery centre
-					if(opportunity.getSalesStageCode()!=oldSalesStageCode && opportunity.getSalesStageCode()==9){
-						deliveryMasterService.createDeliveryMaster(opportunity, opportunityDeliveryCentresTobeUpdated);
-					}
-				}
+			
+			//deleting the removed delivery centres
+			for (Integer id : storedCentres) {
+				opportunityDeliveryCentreMappingTRepository.delete(id);
 			}
 		}
+			
 		// return opportunityRepository.save(opportunity);
 		return opportunity;
 	}
@@ -1773,6 +1776,8 @@ public class OpportunityService {
 				.getEngagementDuration());
 		baseOpportunityT.setOpportunityId(opportunity.getOpportunityId());
 		baseOpportunityT.setOpportunityOwner(opportunity.getOpportunityOwner());
+
+		baseOpportunityT.setIsuOwnReason(opportunity.getIsuOwnReason());
 		if (opportunity.getDeliveryOwnershipId() != null) {
 			baseOpportunityT.setDeliveryOwnershipId(opportunity
 					.getDeliveryOwnershipId());
