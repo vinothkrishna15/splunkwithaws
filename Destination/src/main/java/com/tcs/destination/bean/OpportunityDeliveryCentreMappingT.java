@@ -36,13 +36,13 @@ public class OpportunityDeliveryCentreMappingT implements Serializable {
 	@Column(name = "delivery_centre_id")
 	private Integer deliveryCentreId;
 	
-	@Column(name="created_datetime")
+	@Column(name="created_datetime", updatable=false)
 	private Timestamp createdDatetime;
 	
 	@Column(name="modified_datetime")
 	private Timestamp modifiedDatetime;
 	
-	@Column(name = "created_by")
+	@Column(name = "created_by", updatable=false)
 	private String createdBy;
 	
 	@Column(name = "modified_by")
