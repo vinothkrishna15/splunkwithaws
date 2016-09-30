@@ -1453,14 +1453,26 @@ public class OpportunityService {
 			}
 		}
 
-		if (opportunity.getOpportunityDeliveryCentreMappingTs() != null) {
-			for (OpportunityDeliveryCentreMappingT opportunityDeliveryCentreMappingT : opportunity
-					.getOpportunityDeliveryCentreMappingTs()) {
+		List<OpportunityDeliveryCentreMappingT> deliveryCentresFromUI = opportunity
+				.getOpportunityDeliveryCentreMappingTs();
+		
+		List<Integer> storedCentres = opportunityDeliveryCentreMappingTRepository.getIdByOpportunityId(opportunity
+						.getOpportunityId());
+		if (deliveryCentresFromUI != null) {
+			for (OpportunityDeliveryCentreMappingT opportunityDeliveryCentreMappingT : deliveryCentresFromUI) {
+				if(opportunityDeliveryCentreMappingT.getOpportunityDeliveryCentreId() != null && storedCentres != null) {
+					storedCentres.remove(opportunityDeliveryCentreMappingT.getOpportunityDeliveryCentreId());
+				}
 				opportunityDeliveryCentreMappingT.setOpportunityId(opportunity
 						.getOpportunityId());
 				opportunityDeliveryCentreMappingTRepository.save(opportunityDeliveryCentreMappingT);
 			}
 		}
+		//deleting the removed delivery centres
+		for (Integer id : storedCentres) {
+			opportunityDeliveryCentreMappingTRepository.delete(id);
+		}
+		
 		//		return opportunityRepository.save(opportunity);
 		return opportunity;
 	}
