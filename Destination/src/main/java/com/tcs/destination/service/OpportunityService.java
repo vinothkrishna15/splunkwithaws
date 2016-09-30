@@ -1516,6 +1516,8 @@ public class OpportunityService {
 				.getEngagementDuration());
 		baseOpportunityT.setOpportunityId(opportunity.getOpportunityId());
 		baseOpportunityT.setOpportunityOwner(opportunity.getOpportunityOwner());
+		
+		baseOpportunityT.setIsuOwnReason(opportunity.getIsuOwnReason());
 		if (opportunity.getDeliveryOwnershipId() != null) {
 			baseOpportunityT.setDeliveryOwnershipId(opportunity
 					.getDeliveryOwnershipId());

@@ -139,6 +139,9 @@ public class OpportunityT implements Serializable, Cloneable {
 	
 	@Column(name = "delivery_ownership_id")
 	private Integer deliveryOwnershipId;
+	
+	@Column(name="isu_own_reason")
+	private String isuOwnReason; 
 
 	// bi-directional many-to-one association to BidDetailsT
 	@OneToMany(mappedBy = "opportunityT")
@@ -1294,5 +1297,20 @@ public class OpportunityT implements Serializable, Cloneable {
 	public void setWorkflowBfmRaised(boolean workflowBfmRaised) {
 		this.workflowBfmRaised = workflowBfmRaised;
 	}
+
+	public String getIsuOwnReason() {
+		return isuOwnReason;
+	}
+
+	public void setIsuOwnReason(String isuOwnReason) {
+		this.isuOwnReason = isuOwnReason;
+	}
+
+	public void setOpportunityDeliveryCentreMappingTs(
+			List<OpportunityDeliveryCentreMappingT> opportunityDeliveryCentreMappingTs) {
+		this.opportunityDeliveryCentreMappingTs = opportunityDeliveryCentreMappingTs;
+	}
+	
+	
 
 }
