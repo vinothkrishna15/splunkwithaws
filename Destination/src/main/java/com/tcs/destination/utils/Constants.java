@@ -339,5 +339,6 @@ public class Constants {
 	public static final String defaultUser_CC_BFM = "139339";
 	public static final String notifyUserRolesForBFM = "System Admin,Strategic Group Admin";
 	public static final String DELIVERY_MANAGER = "Delivery Manager";
+	public static final Integer DELIVERY_CENTRE_OPEN = -1;
 
 }

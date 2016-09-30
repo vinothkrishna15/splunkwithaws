@@ -36,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 import com.tcs.destination.bean.AsyncJobRequest;
+import com.tcs.destination.bean.AuditOpportunityDeliveryCentreT;
 import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
 import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
@@ -67,6 +68,7 @@ import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.WorkflowBfmT;
 import com.tcs.destination.bean.WorkflowRequestT;
+import com.tcs.destination.data.repository.AuditOpportunityDeliveryCenterRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
 import com.tcs.destination.data.repository.BidDetailsTRepository;
@@ -295,6 +297,9 @@ public class OpportunityService {
 	
 	@Autowired
 	DeliveryMasterRepository deliveryMasterRepository;
+	
+	@Autowired
+	AuditOpportunityDeliveryCenterRepository auditOpportunityDeliveryCenterRepository;
 
 	@Autowired
 	private DeliveryMasterService deliveryMasterService;
@@ -995,11 +1000,12 @@ public class OpportunityService {
 	 * @throws Exception
 	 */
 	@Transactional
-	public AsyncJobRequest createOpportunity(OpportunityT opportunity,
+	public List<AsyncJobRequest> createOpportunity(OpportunityT opportunity,
 			boolean isBulkDataLoad, String bidRequestType,
 			String actualSubmissionDate, Status status) throws Exception {
+		List<AsyncJobRequest> asyncJobRequests = Lists.newArrayList();
 		logger.debug("Inside createOpportunity() service");
-		AsyncJobRequest asyncJobRequest = new AsyncJobRequest();
+		
 		Boolean deliveryTeamFlag = false;
 		OpportunityT createdOpportunity = null;
 		if (opportunity != null) {
@@ -1036,12 +1042,16 @@ public class OpportunityService {
 						.getSalesStageCode() <= SalesStageCode.CONTRACT_NEGOTIATION
 						.getCodeValue())
 						&& isAboveOrEqualHighDeal(dealValueInUSD)) {
-					asyncJobRequest
-							.setJobName(JobName.opportunityEmailNotification);
-					asyncJobRequest.setEntityType(EntityType.OPPORTUNITY);
-					asyncJobRequest.setEntityId(opportunity.getOpportunityId());
-					asyncJobRequest.setOn(Switch.ON);
-					asyncJobRequest.setDealValue(dealValueInUSD.doubleValue());
+					
+					asyncJobRequests.add(constructAsyncJobRequest(opportunity.getOpportunityId(), EntityType.OPPORTUNITY, JobName.opportunityEmailNotification, 
+							dealValueInUSD.doubleValue(),null));
+				}
+			}
+			List<OpportunityDeliveryCentreMappingT> opportunityDeliveryCentreMappingTs = createdOpportunity.getOpportunityDeliveryCentreMappingTs();
+			if(CollectionUtils.isNotEmpty(opportunityDeliveryCentreMappingTs)) {
+				for(OpportunityDeliveryCentreMappingT opportunityDeliveryCentreMappingT : opportunityDeliveryCentreMappingTs) {
+					asyncJobRequests.add(constructAsyncJobRequest(opportunityDeliveryCentreMappingT.getOpportunityId(), EntityType.OPPORTUNITY, JobName.deliveryEmailNotification, 
+							null,opportunityDeliveryCentreMappingT.getDeliveryCentreId()));
 				}
 			}
 			if (!isBulkDataLoad) {
@@ -1055,7 +1065,7 @@ public class OpportunityService {
 						bidRequestType, actualSubmissionDate);
 			}
 		}
-		return asyncJobRequest;
+		return asyncJobRequests;
 	}
 
 	private void saveBfmFile(OpportunityT createdOpportunity,
@@ -1697,10 +1707,12 @@ public class OpportunityService {
 
 		if (opportunity.getOpportunityDeliveryCentreMappingTs() != null) {
 			List<OpportunityDeliveryCentreMappingT> deliveryCentresSavedForOpportunity = null;
+
 			List<OpportunityDeliveryCentreMappingT> deliveryCentrestoBeUpdated = opportunity.getOpportunityDeliveryCentreMappingTs();
 			deliveryCentresSavedForOpportunity = opportunityDeliveryCentreMappingTRepository.findByOpportunityId(opportunity.getOpportunityId());
 			for (OpportunityDeliveryCentreMappingT opportunityDeliveryCentresSaved : deliveryCentresSavedForOpportunity) {
 				if (!deliveryCentrestoBeUpdated.contains(opportunityDeliveryCentresSaved)) {
+
 					opportunityDeliveryCentreMappingTRepository.delete(opportunityDeliveryCentresSaved);
 				}
 			}
@@ -3224,9 +3236,11 @@ public class OpportunityService {
 	 * @throws Exception
 	 */
 	@Transactional
-	public AsyncJobRequest updateOpportunityT(OpportunityT opportunity,
+	public List<AsyncJobRequest> updateOpportunityT(OpportunityT opportunity,
 			Status status) throws Exception {
 
+		List<AsyncJobRequest> asyncJobRequests = Lists.newArrayList();
+		
 		String opportunityId = opportunity.getOpportunityId();
 		if (opportunityId == null) {
 			logger.error("OpportunityId is required for update");
@@ -3248,8 +3262,9 @@ public class OpportunityService {
 		updateOpportunity(opportunity, opportunityBeforeEdit, status, oldSalesStageCode);
 		// If deal value becomes more than 5 million USD or the opportunity won
 		// or lost, Email notification to be triggered
-		return sendEmailNotification(opportunity, oldSalesStageCode,
-				oldDealValue, oldDealCurrency);
+		asyncJobRequests.addAll(sendEmailNotification(opportunity, oldSalesStageCode,
+				oldDealValue, oldDealCurrency));
+				return asyncJobRequests;
 	}
 
 	/**
@@ -3538,10 +3553,10 @@ public class OpportunityService {
 	 * @return
 	 * @throws Exception
 	 */
-	private AsyncJobRequest sendEmailNotification(OpportunityT opportunity,
+	private List<AsyncJobRequest> sendEmailNotification(OpportunityT opportunity,
 			int oldSalesStageCode, Integer oldDealValue, String oldDealCurrency)
 			throws Exception {
-		AsyncJobRequest asyncJobRequest = new AsyncJobRequest();
+		List<AsyncJobRequest> asyncJobRequests = Lists.newArrayList();
 		logger.info("Inside sendEmailNotification method");
 		boolean emailJobRequired = false;
 		String newDealCurrency = opportunity.getDealCurrency();
@@ -3558,11 +3573,32 @@ public class OpportunityService {
 				|| (oldSalesStageCode != SalesStageCode.LOST.getCodeValue() && newSalesStageCode == SalesStageCode.LOST
 						.getCodeValue())) {
 			emailJobRequired = true;
+			
+			if(newSalesStageCode == SalesStageCode.WIN.getCodeValue()) {
+				List<DeliveryMasterT> deliveryMasters = deliveryMasterRepository.findByOpportunityId(opportunity.getOpportunityId());
+				if(CollectionUtils.isNotEmpty(deliveryMasters)) {
+				for (DeliveryMasterT deliveryMaster : deliveryMasters) {
+				asyncJobRequests.add(constructAsyncJobRequest(deliveryMaster.getDeliveryMasterId(), 
+				EntityType.DELIVERY, JobName.deliveryEmailNotification, null,deliveryMaster.getDeliveryCentreId()));
+				}
+			}
+		}
+			
 		} else if (newDealValue != null
 				&& newSalesStageCode >= SalesStageCode.RFP_SUBMITTED
 						.getCodeValue()
 				&& newSalesStageCode <= SalesStageCode.CONTRACT_NEGOTIATION
 						.getCodeValue()) {
+			List<AuditOpportunityDeliveryCentreT> auditOpportunityDeliveryCentreTs = auditOpportunityDeliveryCenterRepository.
+					findNewlyAddedDeliveryCentresForOpportunity(opportunity.getOpportunityId());
+			if(CollectionUtils.isNotEmpty(auditOpportunityDeliveryCentreTs)) {
+				for(AuditOpportunityDeliveryCentreT auditOppDelivery : auditOpportunityDeliveryCentreTs) {
+					asyncJobRequests.add(constructAsyncJobRequest(auditOppDelivery.getOpportunityId(), 
+							EntityType.OPPORTUNITY, JobName.deliveryEmailNotification, null,auditOppDelivery.getDeliveryCentreId()));
+				}
+			}
+			
+			
 			if (isAboveOrEqualHighDeal(newDealValueInUSD)
 					&& (!isAboveOrEqualHighDeal(oldDealValueInUSD) || oldSalesStageCode != newSalesStageCode)) {
 				emailJobRequired = true;
@@ -3570,15 +3606,11 @@ public class OpportunityService {
 		}
 
 		if (emailJobRequired) {
-			asyncJobRequest.setJobName(JobName.opportunityEmailNotification);
-			asyncJobRequest.setEntityType(EntityType.OPPORTUNITY);
-			asyncJobRequest.setEntityId(opportunity.getOpportunityId());
-			asyncJobRequest.setOn(Switch.ON);
-			asyncJobRequest.setDealValue(newDealValueInUSD.doubleValue());
+			asyncJobRequests.add(constructAsyncJobRequest(opportunity.getOpportunityId(), EntityType.OPPORTUNITY, JobName.opportunityEmailNotification, 
+					newDealValueInUSD.doubleValue(),null));
 		}
-
 		logger.info("email Job Trigger Required For Opportunity {}");
-		return asyncJobRequest;
+		return asyncJobRequests;
 
 	}
 
@@ -3593,5 +3625,17 @@ public class OpportunityService {
 		BigDecimal fiveMillion = new BigDecimal(Constants.FIVE_MILLION);
 		return (value != null && value.compareTo(fiveMillion) >= 0);
 	}
+	
+	public AsyncJobRequest constructAsyncJobRequest(String entityId, EntityType entityType, 
+			JobName jobName, Double dealValue, Integer deliveryCentreId) {
+			AsyncJobRequest asyncJobRequest = new AsyncJobRequest();
+			asyncJobRequest.setJobName(jobName);
+			asyncJobRequest.setEntityType(entityType);
+			asyncJobRequest.setEntityId(entityId);
+			asyncJobRequest.setOn(Switch.ON);
+			asyncJobRequest.setDealValue(dealValue);
+			asyncJobRequest.setDeliveryCentreId(deliveryCentreId);
+			return asyncJobRequest;
+		}
 
 }

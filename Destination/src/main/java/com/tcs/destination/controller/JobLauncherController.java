@@ -134,7 +134,8 @@ public class JobLauncherController {
 			JobName jobName,
 			String entityType,
 			String entityId,
-			Double dealValue)			
+			Double dealValue,
+			Integer deliveryCentreId)			
 			throws Exception {
 		
 		logger.info("Inside Job Laucher Controller: Launching job asynchronous"
@@ -146,7 +147,7 @@ public class JobLauncherController {
 		JobExecution execution;
 		try {
 			job = jobRegistry.getJob(jobName.getJob());
-			execution = asyncJobLauncher.run(job, getJobParameter(job, entityType, entityId, dealValue));
+			execution = asyncJobLauncher.run(job, getJobParameter(job, entityType, entityId, dealValue, deliveryCentreId));
 
 			logger.info("Job: {} exit status:{}.", job.getName(),
 					execution.getStatus());
@@ -212,14 +213,14 @@ public class JobLauncherController {
 	 * @return JobParameters
 	 */
 	private JobParameters getJobParameter(Job job, String entityType,
-			String entityId, Double dealValue) {
+			String entityId, Double dealValue, Integer deliveryCentreId) {
 		String dateParam = DateUtils.getCurrentDateForBatch();
 		logger.info("Job: {} starting with parameters: {}.", job.getName(),
 				dateParam);
 		return new JobParametersBuilder().addString("date", dateParam)
 				.addString("EntityType", entityType)
 				.addString("entityId", entityId)
-				.addDouble("dealValue", dealValue)
+				.addDouble("dealValue", dealValue).addString("deliveryCentreId",deliveryCentreId!=null? deliveryCentreId.toString() : null)
 				.addLong("time", System.currentTimeMillis()).toJobParameters();
 	}
 	

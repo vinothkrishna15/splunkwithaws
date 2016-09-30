@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tcs.destination.bean.AsyncJobRequest;
 import com.tcs.destination.bean.DeliveryMasterT;
 import com.tcs.destination.bean.DeliveryRgsT;
 import com.tcs.destination.bean.OpportunityT;
@@ -50,6 +51,9 @@ public class DeliveryMasterController {
 
 	@Autowired
 	DeliveryMasterService deliveryMasterService;
+	
+	@Autowired
+	private JobLauncherController jobLauncherController;
 
 	/**
 	 * This method retrieves the delivery master list
@@ -140,10 +144,15 @@ public class DeliveryMasterController {
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
-			if (deliveryMasterService.updateDelivery(deliveryMaster)) {
+			List<AsyncJobRequest> asyncJobRequests = deliveryMasterService.updateDelivery(deliveryMaster);
+			for(AsyncJobRequest asyncJobRequest : asyncJobRequests) {
+			if (asyncJobRequest.getOn().equals(Switch.ON)) {
+			jobLauncherController.asyncJobLaunch(asyncJobRequest.getJobName(), asyncJobRequest.getEntityType().name(), asyncJobRequest.getEntityId(), asyncJobRequest.getDealValue(), asyncJobRequest.getDeliveryCentreId());
+				}
+			}
+
 				status.setStatus(Status.SUCCESS, deliveryMaster.getDeliveryMasterId());
 				//jobLauncherController.asyncJobLaunchForNotification(JobName.notification, EntityType.CONNECT, connect.getConnectId(),OperationType.CONNECT_EDIT,connect.getModifiedBy());
-			}
 			logger.info("Inside DeliveryMasterController: End of Edit delivery master");
 
 			return new ResponseEntity<String>(

@@ -64,6 +64,10 @@ public interface DeliveryMasterRepository extends JpaRepository<DeliveryMasterT,
 			+ " ORDER BY modified_datetime DESC LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery=true)
 	List<DeliveryMasterT> searchDeliveryManagerDetailsByCustomerName(@Param("term") String term,
 			@Param("getAll") boolean getAll, @Param("userId") String userId);
+
+	
 	
 	/*------------------End of delivery smart search queries-------------------*/
+	
+	List<DeliveryMasterT> findByOpportunityId(String opportunityId);
 }

@@ -1,0 +1,29 @@
+<html>
+	<body>
+		Dear User,
+		<p>
+     
+             Please be informed that the following opportunity has been rejected to be delivered from ${deliveryCenter} by ${deliveryClusterHeadName}.<br/><br/>
+             
+             Opportunity Id        : <b>${opportunityId}</b><br/>
+             Engagement Id         : <b>${engagementId}</b><br/>
+             CRM ID                : <b>${crmId}</b><br/>
+             Customer Name         : <b>${customerName}</b><br/>
+             Opportunity Name      : <b>${opportunityName}</b><br/>
+             Delivery Center       : <b>${deliveryCenter}</b><br/><br/>
+             
+             The following details are provided for rejection:<br/>
+             Reasons               : <b>${rejectionReasons}</b><br/>
+             Comments              : <b>${comments}</b><br/><br/>
+   
+        </p>		
+		<p>
+		Regards,<br>
+		Team DESTiNATION
+		</p>
+		<br>
+		<p>
+		Note: This is a system-generated e-mail. Please do not respond to this mail.
+		</p>
+	</body>
+</html>

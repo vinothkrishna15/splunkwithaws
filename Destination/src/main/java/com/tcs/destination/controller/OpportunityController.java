@@ -232,9 +232,11 @@ public class OpportunityController {
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "Save unsuccessful");
 		try {
-			AsyncJobRequest asyncJobRequest = opportunityService.createOpportunity(opportunity, false, null, null,status);
-            if (asyncJobRequest.getOn().equals(Switch.ON)) {
-				jobLauncherController.asyncJobLaunch(asyncJobRequest.getJobName(), asyncJobRequest.getEntityType().name(), asyncJobRequest.getEntityId(), asyncJobRequest.getDealValue());
+			List<AsyncJobRequest> asyncJobRequest = opportunityService.createOpportunity(opportunity, false, null, null,status);
+			for(AsyncJobRequest jobRequest : asyncJobRequest) {
+				if (jobRequest.getOn().equals(Switch.ON)) {
+					jobLauncherController.asyncJobLaunch(jobRequest.getJobName(), jobRequest.getEntityType().name(), jobRequest.getEntityId(), jobRequest.getDealValue(), jobRequest.getDeliveryCentreId());
+				}
 			}
             jobLauncherController.asyncJobLaunchForNotification(JobName.notification, EntityType.OPPORTUNITY, opportunity.getOpportunityId(),OperationType.OPPORTUNITY_CREATE,opportunity.getModifiedBy());
 			logger.info("Inside OpportunityController: End of create opportunity");
@@ -269,11 +271,12 @@ public class OpportunityController {
 		logger.info("Inside OpportunityController: Start of edit opportunity");
 		Status status = new Status();
 		try {
-			AsyncJobRequest asyncJobRequest = opportunityService.updateOpportunityT(opportunity, status);
-			if (asyncJobRequest.getOn().equals(Switch.ON)) {
-				jobLauncherController.asyncJobLaunch(asyncJobRequest.getJobName(), asyncJobRequest.getEntityType().name(), asyncJobRequest.getEntityId(), asyncJobRequest.getDealValue());
+			List<AsyncJobRequest> asyncJobRequest = opportunityService.updateOpportunityT(opportunity, status);
+			for(AsyncJobRequest jobRequest : asyncJobRequest) {
+				if (jobRequest.getOn().equals(Switch.ON)) {
+					jobLauncherController.asyncJobLaunch(jobRequest.getJobName(), jobRequest.getEntityType().name(), jobRequest.getEntityId(), jobRequest.getDealValue(), jobRequest.getDeliveryCentreId());
+				}
 			}
-			
 			jobLauncherController.asyncJobLaunchForNotification(JobName.notification, EntityType.OPPORTUNITY, opportunity.getOpportunityId(),OperationType.OPPORTUNITY_EDIT,opportunity.getModifiedBy());
 
 			

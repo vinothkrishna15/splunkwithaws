@@ -1,0 +1,28 @@
+<html>
+	<body>
+		Dear Delivery Manager,
+		<p>
+     
+             The following Delivery Engagement has been assigned to you.<br/><br/>
+             
+             Engagement Id         : <b>${engagementId}</b><br/>
+             Opportunity Id        : <b>${opportunityId}</b><br/>
+             Customer Name         : <b>${customerName}</b><br/>
+             Opportunity Name      : <b>${opportunityName}</b><br/>
+             Engagement Start Date : <b>${engagementStartDate}</b><br/>
+             Engagement Duration   : <b>${engagementDuration}</b><br/>
+             Delivery Ownership    : <b>${deliveryOwnership}</b><br/>
+             Delivery Center       : <b>${deliveryCenter}</b><br/><br/>
+             
+             Please log into DESTiNATION and plan this engagement.<br/><br/>    
+        </p>		
+		<p>
+		Regards,<br>
+		Team DESTiNATION
+		</p>
+		<br>
+		<p>
+		Note: This is a system-generated e-mail. Please do not respond to this mail.
+		</p>
+	</body>
+</html>

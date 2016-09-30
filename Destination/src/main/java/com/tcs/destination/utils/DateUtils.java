@@ -803,7 +803,14 @@ public class DateUtils {
 	 * @return
 	 */
 	public static String format(Date date, DateFormat sdfr) {
-		return sdfr.format( date );
+		if(date != null) {
+			return sdfr.format( date );
+		}
+		return null;
+	}
+	
+	public static void main(String[] args) {
+		format(null, ACTUAL_FORMAT);
 	}
 	
 	/**

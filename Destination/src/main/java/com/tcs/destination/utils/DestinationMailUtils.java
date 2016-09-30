@@ -21,6 +21,7 @@ import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperPrint;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 import org.apache.velocity.app.VelocityEngine;
@@ -37,6 +38,10 @@ import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DataProcessingRequestT;
+import com.tcs.destination.bean.DeliveryCentreT;
+import com.tcs.destination.bean.DeliveryClusterT;
+import com.tcs.destination.bean.DeliveryMasterManagerLinkT;
+import com.tcs.destination.bean.DeliveryMasterT;
 import com.tcs.destination.bean.DestinationMailMessage;
 import com.tcs.destination.bean.DocumentsT;
 import com.tcs.destination.bean.GeographyMappingT;
@@ -57,6 +62,9 @@ import com.tcs.destination.bean.WorkflowStepT;
 import com.tcs.destination.data.repository.BidDetailsTRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ContactRepository;
+import com.tcs.destination.data.repository.DeliveryCentreRepository;
+import com.tcs.destination.data.repository.DeliveryMasterManagerLinkRepository;
+import com.tcs.destination.data.repository.DeliveryMasterRepository;
 import com.tcs.destination.data.repository.DocumentsTRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.OpportunityReopenRequestRepository;
@@ -74,6 +82,7 @@ import com.tcs.destination.data.repository.WorkflowPartnerRepository;
 import com.tcs.destination.data.repository.WorkflowProcessTemplateRepository;
 import com.tcs.destination.data.repository.WorkflowRequestTRepository;
 import com.tcs.destination.data.repository.WorkflowStepTRepository;
+import com.tcs.destination.enums.DeliveryStage;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.EntityTypeId;
 import com.tcs.destination.enums.Geography;
@@ -91,6 +100,15 @@ import com.tcs.destination.service.UserService;
 
 @Component
 public class DestinationMailUtils {
+	
+	private static final Logger logger = LoggerFactory
+			.getLogger(DestinationMailUtils.class);
+	
+	private static final String[] deliverySubjectSearchList = { "<environmentName>", "<customerName>",
+		"<opportunityId>", "<deliveryCenter>"};
+
+	private static final int PATH_B_LAST_STEP_NUMBER = 4;
+	private static final int PATH_A_LAST_STEP_NUMBER = 5;
 
 	@Value("${senderEmailId}")
 	private String senderEmailId;
@@ -223,6 +241,46 @@ public class DestinationMailUtils {
 	@Value("${weeklyReportEmailId}")
 	private String weeklyReportEmailId;
 	
+	//Delivery Emails Subject
+	
+	@Value("${deliveryIntimatedPriorWinSubject}")
+	private String deliveryIntimatedPriorWinSubject;
+	
+	@Value("${deliveryIntimatedSubject}")
+	private String deliveryIntimatedSubject;
+	
+	@Value("${deliveryAcceptedSubject}")
+	private String deliveryAcceptedSubject;
+	
+	@Value("${deliveryRejectedSubject}")
+	private String deliveryRejectedSubject;
+	
+	@Value("${deliveryAssignedSubject}")
+	private String deliveryAssignedSubject;
+	
+	@Value("${deliveryLiveSubject}")
+	private String deliveryLiveSubject;
+	
+	@Value("${deliveryIntimatedPriorWinTemplateLoc}")
+	private String deliveryIntimatedPriorWinTemplateLoc;
+	
+	@Value("${deliveryIntimatedTemplateLoc}")
+	private String deliveryIntimatedTemplateLoc;
+	
+	@Value("${deliveryAcceptedTemplateLoc}")
+	private String deliveryAcceptedTemplateLoc;
+	
+	@Value("${deliveryRejectedTemplateLoc}")
+	private String deliveryRejectedTemplateLoc;
+	
+	@Value("${deliveryAssignedTemplateLoc}")
+	private String deliveryAssignedTemplateLoc;
+	
+	@Value("${deliveryLiveTemplateLoc}")
+	private String deliveryLiveTemplateLoc;
+	
+	
+	
 	@Autowired
 	private UserService userService;
 
@@ -298,6 +356,12 @@ public class DestinationMailUtils {
 	//added for workflow bfm changes
 	@Autowired
 	WorkflowBfmTRepository workflowBfmTRepository;
+	
+	@Autowired
+	DeliveryMasterRepository deliveryMasterRepository;
+	
+	@Autowired
+	DeliveryCentreRepository deliveryCentreRepository;
 
 	@Autowired
 	private DestinationMailSender destMailSender;
@@ -308,13 +372,6 @@ public class DestinationMailUtils {
 	@Value("${userDetailsApprovalTemplate}")
 	private String userDetailsApprovalTemplate;
 
-	private static final Logger logger = LoggerFactory
-			.getLogger(DestinationMailUtils.class);
-	
-	private static final int PATH_B_LAST_STEP_NUMBER = 4;
-	
-	private static final int PATH_A_LAST_STEP_NUMBER = 5;
-	
 	/**
 	 * @param user
 	 * @param requestedDateTime
@@ -3773,6 +3830,216 @@ public class DestinationMailUtils {
 					+ workflowRequestT.getRequestId());
 			
 	}
+	
+	public void sendDeliveryEmails(String entityId, String entityType, Integer deliveryCenterId) throws Exception {
+		
+	
+				DestinationMailMessage message = getDeliveryMailDetails(entityId,entityType, deliveryCenterId);
+				destMailSender.send(message);
+		
+	}
+
+	private DestinationMailMessage getDeliveryMailDetails(
+			String entityId, String entityType, Integer deliveryCenterId) {
+		DestinationMailMessage message = new DestinationMailMessage();
+		Map<String, Object> data = Maps.newHashMap();
+		List<String> reciepientIds = Lists.newArrayList();
+		List<String> ccIds = Lists.newArrayList();
+		String subject = null;
+		String templateLoc = null;
+		switch (EntityType.getByValue(entityType)) {
+		case DELIVERY :
+			DeliveryMasterT deliveryMaster = deliveryMasterRepository.findOne(entityId);
+			if(deliveryMaster!=null) {
+				DeliveryCentreT deliveryCentreT = deliveryMaster.getDeliveryCentreT();
+				DeliveryClusterT deliveryClusterT = deliveryCentreT.getDeliveryClusterT();
+				OpportunityT opportunity = deliveryMaster.getOpportunityT();
+				CustomerMasterT customer = opportunity.getCustomerMasterT();
+				
+				data.putAll(getDataForDelivery(deliveryMaster));
+				data.putAll(getDataForOpportunityDelivery(opportunity));
+				
+				String[] replacementList = { mailSubjectAppendEnvName,
+						customer.getCustomerName(), opportunity.getOpportunityId(),
+						deliveryCentreT.getDeliveryCentre() };
+				
+				String deliveryClusterHead = deliveryClusterT.getDeliveryClusterHead();
+				String deliveryCentreHead = deliveryCentreT.getDeliveryCentreHead();
+				if (StringUtils.isEmpty(deliveryCentreHead)) {
+					//assign cluster head if centre head is not available
+					deliveryCentreHead = deliveryClusterHead;
+				}
+				
+				switch (DeliveryStage.byStageCode(deliveryMaster.getDeliveryStage())) {
+				case INTIMATED:
+					if(deliveryCentreT.getDeliveryCentreId() == Constants.DELIVERY_CENTRE_OPEN) {
+						subject = StringUtils.replaceEach(deliveryRejectedSubject,
+								deliverySubjectSearchList, replacementList);
+						List<String> pmo = userAccessPrivilegesRepository
+								.findUserIdsForCustomerUserGroup(
+										customer.getGeography(), Constants.Y,
+										UserGroup.PMO.getValue());
+						List<String> geoHeads = userAccessPrivilegesRepository
+								.findUserIdsForCustomerUserGroup(
+										customer.getGeography(), Constants.Y,
+										UserGroup.GEO_HEADS.getValue());
+						reciepientIds.add(opportunity.getPrimaryOwnerUser()
+								.getUserId());
+						ccIds.addAll(userRepository
+								.findUserIdByUserGroup(UserGroup.STRATEGIC_INITIATIVES
+										.getValue()));
+						reciepientIds.addAll(pmo);
+						reciepientIds.addAll(geoHeads);
+						
+						templateLoc = deliveryRejectedTemplateLoc;
+					} else {
+						subject = StringUtils.replaceEach(deliveryIntimatedSubject,
+								deliverySubjectSearchList, replacementList);
+						reciepientIds.add(deliveryClusterHead);
+						templateLoc = deliveryIntimatedTemplateLoc;
+					}
+					
+					break;
+				case ACCEPTED:
+					subject = StringUtils.replaceEach(deliveryAcceptedSubject,
+							deliverySubjectSearchList, replacementList);
+
+					if (StringUtils.equals(deliveryCentreHead, deliveryClusterHead)) {
+						reciepientIds.add(deliveryClusterHead);
+					} else {
+						reciepientIds.add(deliveryCentreHead);
+						ccIds.add(deliveryClusterHead);
+					}
+					templateLoc = deliveryAcceptedTemplateLoc;
+
+					break;
+				case ASSIGNED:
+					subject = StringUtils.replaceEach(deliveryAssignedSubject,
+							deliverySubjectSearchList, replacementList);
+					
+					reciepientIds.addAll(getDeliveryManagers(deliveryMaster
+							.getDeliveryMasterManagerLinkTs()));
+					ccIds.add(deliveryClusterHead);
+					ccIds.add(deliveryCentreHead);
+					templateLoc = deliveryAssignedTemplateLoc;
+					break;
+				case LIVE:
+					subject = StringUtils.replaceEach(deliveryLiveSubject,
+							deliverySubjectSearchList, replacementList);
+					reciepientIds.add(deliveryCentreHead);
+					List<String> assignedManagers = getDeliveryManagers(deliveryMaster
+							.getDeliveryMasterManagerLinkTs());
+					ccIds.add(deliveryClusterHead);
+					ccIds.addAll(assignedManagers);
+					List<String> strategicInitiatives = userRepository
+							.findUserIdByUserGroup(UserGroup.STRATEGIC_INITIATIVES.getValue());
+					ccIds.addAll(strategicInitiatives);
+					templateLoc = deliveryLiveTemplateLoc;
+					break;
+				default:
+					break;
+				}
+			}
+			
+			
+			
+			break;
+		case OPPORTUNITY :
+			OpportunityT opportunity = opportunityRepository.findOne(entityId);
+			if(opportunity!=null) {
+				data.putAll(getDataForOpportunityDelivery(opportunity));
+				
+				DeliveryCentreT deliveryCentre = deliveryCentreRepository.findOne(deliveryCenterId);
+				reciepientIds.add(deliveryCentre.getDeliveryClusterT().getDeliveryClusterHead());
+				String[] replacementList = { mailSubjectAppendEnvName,
+						opportunity.getCustomerMasterT().getCustomerName(), opportunity.getOpportunityId(),
+						deliveryCentre.getDeliveryCentre() };
+				data.put("deliveryCenter", deliveryCentre.getDeliveryCentre());
+				subject = StringUtils.replaceEach(deliveryIntimatedPriorWinSubject,
+						deliverySubjectSearchList, replacementList);
+				templateLoc = deliveryIntimatedPriorWinTemplateLoc;
+			}
+			
+			
+			break;
+		default :
+			break;
+			
+		}
+		
+		message = constructMailMessage(reciepientIds, ccIds,
+				null, subject, templateLoc, data);
+		
+		return message;
+	}
+
+	private Map<String, Object> getDataForDelivery(
+			DeliveryMasterT deliveryMaster) {
+		Map<String, Object> data = Maps.newHashMap();
+		data.put("engagementId", defaultIfEmpty(deliveryMaster.getDeliveryMasterId()));
+		data.put("actualStartDate", defaultIfEmpty(DateUtils.format(deliveryMaster.getActualStartDate(), DateUtils.ACTUAL_FORMAT)));
+		data.put("deliveryCenter", defaultIfEmpty(deliveryMaster.getDeliveryCentreT().getDeliveryCentre()));
+		data.put("rejectionReasons", defaultIfEmpty(deliveryMaster.getReason()));
+		data.put("comments", defaultIfEmpty(deliveryMaster.getComments()));
+		data.put("won", defaultIfEmpty(deliveryMaster.getWonNum()));
+		return data;
+	}
+
+	private Map<String, Object> getDataForOpportunityDelivery(
+			OpportunityT opportunity) {
+		Map<String, Object> data = Maps.newHashMap();
+		data .put("opportunityId", defaultIfEmpty(opportunity.getOpportunityId()));
+		data.put("customerName", defaultIfEmpty(opportunity.getCustomerMasterT()
+		.getCustomerName()));
+		data.put("opportunityName", defaultIfEmpty(opportunity.getOpportunityName()));
+		data.put("engagementStartDate",	defaultIfEmpty(DateUtils.format(opportunity.getEngagementStartDate(), DateUtils.ACTUAL_FORMAT)));
+		data.put("engagementDuration", defaultIfEmpty(opportunity.getEngagementDuration()));
+		data.put("deliveryOwnership", defaultIfEmpty(opportunity.getDeliveryOwnershipT().getOwnership()));
+		// Getting bid details
+		BidDetailsT bidDetailsT = bidDetailsTRepository
+				.findFirstByOpportunityIdOrderByModifiedDatetimeDesc(opportunity
+						.getOpportunityId());
+		if(bidDetailsT !=null) {
+			data.put("winProbability", defaultIfEmpty(bidDetailsT.getWinProbability()));
+		}
+		
+		data.put("opportunityOwner", defaultIfEmpty(opportunity.getPrimaryOwnerUser().getUserName()));
+		data.put("salesStage", defaultIfEmpty(SalesStageCode.valueOf(opportunity.getSalesStageCode()).getDescription()));
+		return data;
+	}
+
+	private String defaultIfEmpty(Object value) {
+		 return String.valueOf(ObjectUtils.defaultIfNull(value, Constants.NOT_AVAILABLE));
+	}
+
+	private DestinationMailMessage constructMailMessage(List<String> recipientIdList,
+			List<String> ccList, List<String> bccList, String subject, String mailTemplateLoc, Map<String, Object> data) {
+		
+		DestinationMailMessage message = new DestinationMailMessage();
+		message.setRecipients(listMailIdsFromUserIds(recipientIdList));
+		message.setCcList(listMailIdsFromUserIds(ccList));
+		message.setBccList(listMailIdsFromUserIds(bccList));
+		message.setSubject(subject);
+		String msg = mergeTmplWithData(data, mailTemplateLoc);
+		message.setMessage(msg);
+		logger.info("Subject : "+subject);
+		logger.info("Message : "+msg);
+		return message;
+	}
+	
+	private List<String> getDeliveryManagers(List<DeliveryMasterManagerLinkT> deliveryManagers) {
+		
+		List<String> assignedManagers = Lists.newArrayList();
+		if(CollectionUtils.isNotEmpty(deliveryManagers)) {
+			for(DeliveryMasterManagerLinkT deliveryMasterManagerLinkT : deliveryManagers) {
+				assignedManagers.add(deliveryMasterManagerLinkT.getDeliveryManagerId());
+			}
+		}
+		return assignedManagers;
+		
+		
+	}
+	
 		
 	}
 

@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
+import com.tcs.destination.bean.AsyncJobRequest;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryClusterT;
 import com.tcs.destination.bean.DeliveryMasterManagerLinkT;
@@ -46,6 +47,9 @@ import com.tcs.destination.data.repository.DeliveryRequirementRepository;
 import com.tcs.destination.data.repository.DeliveryResourcesRepository;
 import com.tcs.destination.data.repository.DeliveryRgsTRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.enums.DeliveryStage;
+import com.tcs.destination.enums.EntityType;
+import com.tcs.destination.enums.JobName;
 import com.tcs.destination.enums.SmartSearchType;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
@@ -92,6 +96,9 @@ public class DeliveryMasterService {
 	
 	@Autowired
 	DeliveryRgsTRepository deliveryRgsTRepository;
+	
+	@Autowired
+	OpportunityService opportunityService;
 	
 	
 	private static final Map<String,String>ATTRIBUTE_MAP;
@@ -301,61 +308,60 @@ public class DeliveryMasterService {
 
 
 	@Transactional
-	public boolean updateDelivery(DeliveryMasterT deliveryMaster) throws Exception {
-		
-		
-			logger.debug("Inside updateDelivery() service");
-			String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-			
-			deliveryMaster.setModifiedBy(DestinationUtils.getCurrentUserDetails()
-					.getUserId());
-			
-			String deliveryMasterId = deliveryMaster.getDeliveryMasterId();
-			
-			if(deliveryMasterId == null){
-				logger.error("BAD_REQUEST: deliveryMasterId is required for update");
-				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"deliveryMasterId is required for update");
+	public List<AsyncJobRequest> updateDelivery(DeliveryMasterT deliveryMaster)
+			throws Exception {
+
+		List<AsyncJobRequest> asyncJobRequests = Lists.newArrayList();
+
+		logger.debug("Inside updateDelivery() service");
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+
+		deliveryMaster.setModifiedBy(DestinationUtils.getCurrentUserDetails()
+				.getUserId());
+
+		String deliveryMasterId = deliveryMaster.getDeliveryMasterId();
+
+		if (deliveryMasterId == null) {
+			logger.error("BAD_REQUEST: deliveryMasterId is required for update");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"deliveryMasterId is required for update");
+		}
+
+		// Check if delivery Master exists
+		if (!deliveryMasterRepository.exists(deliveryMasterId)) {
+			logger.error(
+					"NOT_FOUND: DeliveryMaster Record not found for update: {}",
+					deliveryMasterId);
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Engagement not found for update: " + deliveryMasterId);
+		}
+		DeliveryMasterT deliveryBeforeEdit = deliveryMasterRepository
+				.findOne(deliveryMasterId);
+
+		Integer oldDeliveryStage = deliveryBeforeEdit.getDeliveryStage();
+		Integer oldDeliveryCentreId = deliveryBeforeEdit.getDeliveryCentreId();
+
+		// Update database
+		DeliveryMasterT deliveryAfterEdit = editDelivery(deliveryMaster,
+				deliveryBeforeEdit, userId);
+		if (deliveryAfterEdit != null) {
+			logger.info("Engagement has been updated successfully: "
+					+ deliveryMasterId);
+			if ((deliveryAfterEdit.getDeliveryStage() != oldDeliveryStage && deliveryAfterEdit
+					.getDeliveryStage() != DeliveryStage.PLANNED.getStageCode())
+					|| (deliveryAfterEdit.getDeliveryCentreId() != oldDeliveryCentreId && deliveryAfterEdit
+							.getDeliveryCentreId() == Constants.DELIVERY_CENTRE_OPEN)) {
+				asyncJobRequests.add(opportunityService
+						.constructAsyncJobRequest(
+								deliveryAfterEdit.getDeliveryMasterId(),
+								EntityType.DELIVERY,
+								JobName.deliveryEmailNotification, null,
+								deliveryAfterEdit.getDeliveryCentreId()));
 			}
-			
-			// Check if delivery Master exists
-			if (!deliveryMasterRepository.exists(deliveryMasterId)) {
-				logger.error("NOT_FOUND: DeliveryMaster Record not found for update: {}",
-						deliveryMasterId);
-				throw new DestinationException(HttpStatus.NOT_FOUND,
-						"Engagement not found for update: " + deliveryMasterId);
-			}
-			
-			// Load db object before update with lazy collections populated for auto
-			// comments
-			// for edit access
-			UserT user = userRepository.findByUserId(userId);
-			String userGroup = user.getUserGroup();
-			DeliveryMasterT deliveryBeforeEdit = deliveryMasterRepository.findOne(deliveryMasterId);
+		}
 
-//			if (!isEditAccessRequiredForConnect(connectBeforeEdit, userGroup,
-//					userId)) {
-//				throw new DestinationException(HttpStatus.FORBIDDEN,
-//						"User is not authorized to edit this Connect");
-//			}
-//			ConnectT beforeConnect = loadDbConnectWithLazyCollections(connectId);
-//			// Copy the db object as the above object is managed by current
-//			// hibernate session
-//			ConnectT oldObject = (ConnectT) DestinationUtils.copy(beforeConnect);
+		return asyncJobRequests;
 
-			// Update database
-			DeliveryMasterT deliveryAfterEdit = editDelivery(deliveryMaster,deliveryBeforeEdit,userId);
-
-			if (deliveryAfterEdit != null) {
-				logger.info("Engagement has been updated successfully: " + deliveryMasterId);
-//				//			// Invoke Asynchronous Auto Comments Thread
-//				processAutoComments(connectId, oldObject);
-//				//			// Invoke Asynchronous Notifications Thread
-//				//			processNotifications(connectId, oldObject);
-				return true;
-    		}
-			return false;
-		
 	}
 	
 	@Transactional

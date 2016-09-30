@@ -1,0 +1,31 @@
+<html>
+	<body>
+		Dear Delivery Centre Head,
+		<p>
+     
+             Your Cluster Head has accepted a Delivery Engagement, to be delivered from your Delivery center.<br/><br/>
+             
+             Further details are given below:<br/><br/>
+             
+             Engagement Id         : <b>${engagementId}</b><br/>
+             Opportunity Id        : <b>${opportunityId}</b><br/>
+             Customer Name         : <b>${customerName}</b><br/>
+             Opportunity Name      : <b>${opportunityName}</b><br/>
+             Engagement Start Date : <b>${engagementStartDate}</b><br/>
+             Engagement Duration   : <b>${engagementDuration}</b><br/>
+             Delivery Ownership    : <b>${deliveryOwnership}</b><br/>
+             Delivery Center       : <b>${deliveryCenter}</b><br/><br/>
+             
+             You are requested to log in to DESTiNATION and tag a Delivery manager to provide planning and 
+             fulfilment details.<br/><br/>    
+        </p>		
+		<p>
+		Regards,<br>
+		Team DESTiNATION
+		</p>
+		<br>
+		<p>
+		Note: This is a system-generated e-mail. Please do not respond to this mail.
+		</p>
+	</body>
+</html>
