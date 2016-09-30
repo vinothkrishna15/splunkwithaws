@@ -158,17 +158,18 @@ public class BuildOpportunityReportService {
 		switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 		case BDM:
 		case PRACTICE_OWNER:
+		case DELIVERY_MANAGER:
 			userIds.add(userId);
 			opportunityIds = opportunityRepository.findOpportunitiesByRoleWith(fromDate, toDate, salesStage, userIds, 
 					geoList, countryList, iouList, serviceLinesList);
 			break;
 		case BDM_SUPERVISOR:
 		case PRACTICE_HEAD:
+		case DELIVERY_CLUSTER_HEAD:
+		case DELIVERY_CENTRE_HEAD:
 			List<String> subOrdinatesList = userRepository.getAllSubordinatesIdBySupervisorId(userId);
 			userIds.addAll(subOrdinatesList);
-			if(!userIds.contains(userId)){
-				userIds.add(userId);
-			}
+			userIds.add(userId);
 			opportunityIds = opportunityRepository.findOpportunitiesByRoleWith(fromDate, toDate, salesStage, userIds, 
 					geoList, countryList, iouList, serviceLinesList);
 			break;
@@ -219,7 +220,6 @@ public class BuildOpportunityReportService {
 			getOpportunityReportWithOptionalFields(opportunityIdList, headerRow, spreadSheet, currentRow, fields, headerRow, currency, headerColumnNo);
 		}
 	}
-
 
 	/**
 	 * This Method is used to set Opportunity Report Mandatory fields header to excel
@@ -839,10 +839,13 @@ public class BuildOpportunityReportService {
 			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 			case BDM:
 			case PRACTICE_OWNER:
+			case DELIVERY_MANAGER:
 				opportunityList = opportunityRepository.findPipelineSummaryServiceLineByRole(salesStagePipeline, userIds, geoList, countryList, iouList, serviceLinesList);
 				break;
 			case BDM_SUPERVISOR:
 			case PRACTICE_HEAD:
+			case DELIVERY_CLUSTER_HEAD:
+			case DELIVERY_CENTRE_HEAD:
 				opportunityList = opportunityRepository.findPipelineSummaryServiceLineByRole(salesStagePipeline, userIds, geoList, countryList, iouList, serviceLinesList);
 				break;
 			default:
@@ -898,10 +901,13 @@ public class BuildOpportunityReportService {
 			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 			case BDM:
 			case PRACTICE_OWNER:
+			case DELIVERY_MANAGER:
 				opportunityList = opportunityRepository.findPipelineSummaryServiceLineByRole(salesStageAnticipating, userIds, geoList, countryList, iouList, serviceLinesList);
 				break;
 			case BDM_SUPERVISOR:
 			case PRACTICE_HEAD:
+			case DELIVERY_CLUSTER_HEAD:
+			case DELIVERY_CENTRE_HEAD:
 				opportunityList = opportunityRepository.findPipelineSummaryServiceLineByRole(salesStageAnticipating, userIds, geoList, countryList, iouList, serviceLinesList);
 				break;
 			default:
@@ -2678,10 +2684,13 @@ public class BuildOpportunityReportService {
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 				case BDM:
 				case PRACTICE_OWNER:
+				case DELIVERY_MANAGER:
 					serviceLineOpportunityList = opportunityRepository.findOpportunitiesWithServiceLineByRole(fromDate, toDate, salesStageCode, userIds,  geoList, countryList, iouList, serviceLinesList);
 					break;
 				case BDM_SUPERVISOR:
 				case PRACTICE_HEAD:
+				case DELIVERY_CLUSTER_HEAD:
+				case DELIVERY_CENTRE_HEAD:
 					serviceLineOpportunityList = opportunityRepository.findOpportunitiesWithServiceLineByRole(fromDate, toDate, salesStageCode, userIds,  geoList, countryList, iouList, serviceLinesList);
 					break;
 				default:
@@ -2711,10 +2720,13 @@ public class BuildOpportunityReportService {
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 				case BDM:
 				case PRACTICE_OWNER:
+				case DELIVERY_MANAGER:
 					geographyOpportunityList = opportunityRepository.findOpportunitiesWithGeographyByRole(fromDate, toDate, salesStageCode, userIds, geoList, countryList, iouList, serviceLinesList);
 					break;
 				case BDM_SUPERVISOR:
 				case PRACTICE_HEAD:
+				case DELIVERY_CLUSTER_HEAD:
+				case DELIVERY_CENTRE_HEAD:
 					geographyOpportunityList = opportunityRepository.findOpportunitiesWithGeographyByRole(fromDate, toDate, salesStageCode, userIds, geoList, countryList, iouList, serviceLinesList);
 					break;
 				default:
@@ -2745,10 +2757,13 @@ public class BuildOpportunityReportService {
 					switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 					case BDM:
 					case PRACTICE_OWNER:
+					case DELIVERY_MANAGER:
 						iouOpportunityList = opportunityRepository.findOpportunitiesWithIouByRole(fromDate, toDate, salesStageCode, userIds, geoList, countryList, iouList, serviceLinesList);
 						break;
 					case BDM_SUPERVISOR:
 					case PRACTICE_HEAD:
+					case DELIVERY_CLUSTER_HEAD:
+					case DELIVERY_CENTRE_HEAD:
 						iouOpportunityList = opportunityRepository.findOpportunitiesWithIouByRole(fromDate, toDate, salesStageCode, userIds, geoList, countryList, iouList, serviceLinesList);
 						break;
 					default:
@@ -2845,9 +2860,16 @@ public class BuildOpportunityReportService {
 		case PRACTICE_OWNER:
 			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.OPPWHEREBDMPRIMARYORSALESOWNER);
 			break;
+		case DELIVERY_MANAGER:
+			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.DELOPPWHEREUSERPRIMARYORSALESOWNER);
+			break;
 		case BDM_SUPERVISOR:
 		case PRACTICE_HEAD:
 			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.OPPWHEREBDMSUPERVISORPRIMARYORSALESOWNER);
+			break;
+		case DELIVERY_CLUSTER_HEAD:
+		case DELIVERY_CENTRE_HEAD:
+			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.OPPWHEREDELVTEAMPRIMARYORSALESOWNER);
 			break;
 		default :
 			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.FULLACCESS);

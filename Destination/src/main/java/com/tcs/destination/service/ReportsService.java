@@ -3567,15 +3567,16 @@ private String getBidDetailedQueryString(String userId, Date startDate, Date end
 			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 			case BDM:
 			case PRACTICE_OWNER:
+			case DELIVERY_MANAGER:
 				userIds.add(userId);
 				break;
 			case BDM_SUPERVISOR:
 			case PRACTICE_HEAD:
+			case DELIVERY_CLUSTER_HEAD:
+			case DELIVERY_CENTRE_HEAD:
 				List<String> subOrdinatesList =userRepository.getAllSubordinatesIdBySupervisorId(userId);
 				userIds.addAll(subOrdinatesList);
-				if(!userIds.contains(userId)){
-					userIds.add(userId);
-				}
+				userIds.add(userId);
 				break;
 			}
 
@@ -3584,10 +3585,13 @@ private String getBidDetailedQueryString(String userId, Date startDate, Date end
 					switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 					case BDM:
 					case PRACTICE_OWNER:
+					case DELIVERY_MANAGER:
 						opportunityList = opportunityRepository.findSummaryGeographyByRole(salesStageList.get(i), userIds, geoList, countryList, iouList, serviceLinesList);
 						break;
 					case BDM_SUPERVISOR:
 					case PRACTICE_HEAD:
+					case DELIVERY_CLUSTER_HEAD:
+					case DELIVERY_CENTRE_HEAD:
 						opportunityList = opportunityRepository.findSummaryGeographyByRole(salesStageList.get(i), userIds, geoList, countryList, iouList, serviceLinesList);
 						break;
 					default:
@@ -3609,10 +3613,13 @@ private String getBidDetailedQueryString(String userId, Date startDate, Date end
 						switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 						case BDM:
 						case PRACTICE_OWNER:
+						case DELIVERY_MANAGER:
 							opportunityList = opportunityRepository.findSummaryIouByRole(salesStageList.get(i), userIds, geoList, countryList, iouList, serviceLinesList);
 							break;
 						case BDM_SUPERVISOR:
 						case PRACTICE_HEAD:
+						case DELIVERY_CLUSTER_HEAD:
+						case DELIVERY_CENTRE_HEAD:
 							opportunityList = opportunityRepository.findSummaryIouByRole(salesStageList.get(i), userIds, geoList, countryList, iouList, serviceLinesList);
 							break;
 						default:
