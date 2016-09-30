@@ -2267,7 +2267,11 @@ public class DestinationMailUtils {
 						
 						
 						subject.append(Constants.WORKFLOW_BFM_STEP1_REJECTED_SUBJECT);
-						
+						// Adding respective GEO Heads to cc Ids	
+						 List<String> geoHeads = userAccessPrivilegesRepository.findUserIdsForCustomerUserGroup(customerMasterT.getGeography(), Constants.Y, UserGroup.GEO_HEADS.getValue());
+						if(CollectionUtils.isNotEmpty(geoHeads)) {
+							ccIds.addAll(geoHeads);
+						}
 						reqStatus = "Rejected";
 						salesStageCode = SalesStageCode.valueOf(SalesStageCode.RFP_IN_PROGRESS.getCode()).getDescription(); 
 					}
@@ -2870,6 +2874,12 @@ public class DestinationMailUtils {
 		CustomerMasterT customer = opportunity.getCustomerMasterT();
 		String customerName = customer.getCustomerName();
 		String geography = customer.getGeography();
+		
+		List<String> geoHeads = userAccessPrivilegesRepository.findUserIdsForCustomerUserGroup(geography, Constants.Y, UserGroup.GEO_HEADS.getValue());
+		if(CollectionUtils.isNotEmpty(geoHeads)) {
+			ccIds.addAll(geoHeads);
+		}
+		
 		// populate subject
 		StringBuffer subject = new StringBuffer("");
 		subject.append(Constants.WORKFLOW_BFM_ESCALATE_PATH_A_REJECTED_SUBJECT);
@@ -3143,12 +3153,19 @@ public class DestinationMailUtils {
 		List<String> recepientIds = new ArrayList<String>();
 		List<String> ccIds = new ArrayList<String>();
 		
+		
+		
 		String templateLoc = workflowPendingBFMEscalateBApproveRejectTemplateLoc;
 		
 		OpportunityT opportunity = workflowBfmT.getOpportunityT();
 		CustomerMasterT customer = opportunity.getCustomerMasterT();
 		String customerName = customer.getCustomerName();
 		String geography = customer.getGeography();
+		
+		List<String> geoHeads = userAccessPrivilegesRepository.findUserIdsForCustomerUserGroup(geography, Constants.Y, UserGroup.GEO_HEADS.getValue());
+		if(CollectionUtils.isNotEmpty(geoHeads)) {
+			ccIds.addAll(geoHeads);
+		}
 		
 		// populate subject
 		StringBuffer subject = new StringBuffer("");
@@ -3702,6 +3719,11 @@ public class DestinationMailUtils {
 		
 		List<String> recepientIds = new ArrayList<String>();
 		List<String> ccIds = new ArrayList<String>();
+		
+		List<String> geoHeads = userAccessPrivilegesRepository.findUserIdsForCustomerUserGroup(geography, Constants.Y, UserGroup.GEO_HEADS.getValue());
+		if(CollectionUtils.isNotEmpty(geoHeads)) {
+			ccIds.addAll(geoHeads);
+		}
 		
 		if(StringUtils.isEmpty(rejectedStep.getComments())){
 			workflowMap.put("comments","Not Provided");	
