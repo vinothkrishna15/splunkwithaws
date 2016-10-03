@@ -388,7 +388,7 @@ public class OpportunityController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-		logger.info("Inside OpportunityController: Start of OpportunityReopenRequestService /reopen GET");
+		logger.info("Inside OpportunityController: Start of OpportunityReopenRequestService /reopen   GET");
 		String response = null;
 		List<OpportunityReopenRequestT> opportunityReopenRequestTs;
 		try {

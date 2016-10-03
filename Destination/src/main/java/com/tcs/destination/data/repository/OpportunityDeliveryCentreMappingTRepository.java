@@ -18,4 +18,8 @@ public interface OpportunityDeliveryCentreMappingTRepository extends
 	@Query(value = "select opportunity_delivery_centre_id from opportunity_delivery_centre_mapping_t  where opportunity_id = :opportunityId", nativeQuery=true)
 	List<Integer> getIdByOpportunityId(@Param("opportunityId") String opportunityId);
 
+	@Query(value = "select opportunity_delivery_centre_id from opportunity_delivery_centre_mapping_t  where opportunity_id = :opportunityId", nativeQuery=true)
+	List<Integer> getIdByOpportunityId(@Param("opportunityId") String opportunityId);
+
+	
 }
