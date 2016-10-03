@@ -356,7 +356,9 @@ public class DeliveryMasterService {
 								deliveryAfterEdit.getDeliveryMasterId(),
 								EntityType.DELIVERY,
 								JobName.deliveryEmailNotification, null,
-								deliveryAfterEdit.getDeliveryCentreId()));
+								deliveryAfterEdit
+								.getDeliveryCentreId() == Constants.DELIVERY_CENTRE_OPEN ? 
+										oldDeliveryCentreId : deliveryAfterEdit.getDeliveryCentreId()));
 			}
 		}
 

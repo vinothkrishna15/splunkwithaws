@@ -10,7 +10,7 @@
              Customer Name         : <b>${customerName}</b><br/>
              Opportunity Name      : <b>${opportunityName}</b><br/>
              Delivery Ownership    : <b>${deliveryOwnership}</b><br/>
-             Delivery Center       : <b>${deliveryCenter}</b><br/>
+             Delivery Centre       : <b>${deliveryCenter}</b><br/>
              Win Probability       : <b>${winProbability}</b><br/>
              BD Contact            : <b>${opportunityOwner}</b><br/><br/>
              

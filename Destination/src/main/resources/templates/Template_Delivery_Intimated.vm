@@ -12,7 +12,7 @@
              Engagement Start Date : <b>${engagementStartDate}</b><br/>
              Engagement Duration   : <b>${engagementDuration}</b><br/>
              Delivery Ownership    : <b>${deliveryOwnership}</b><br/>
-             Delivery Center       : <b>${deliveryCenter}</b><br/><br/>
+             Delivery Centre       : <b>${deliveryCenter}</b><br/><br/>
              
              Please log in to DESTiNATION and tag the DC to own Delivery of the project.<br/><br/>    
         </p>		

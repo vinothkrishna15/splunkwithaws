@@ -35,7 +35,7 @@ public class DeliveryMasterT implements Serializable {
 	@Column(name="actual_start_date")
 	private Date actualStartDate;
 
-	@Column(name="created_datetime")
+	@Column(name="created_datetime", updatable=false)
 	private Timestamp createdDatetime;
 
 	@Temporal(TemporalType.DATE)
@@ -81,7 +81,7 @@ public class DeliveryMasterT implements Serializable {
 	@Column(name="delivery_partner_name")
 	private String deliveryPartnerName;
 	
-	@Column(name="created_by")
+	@Column(name="created_by", updatable=false)
 	private String createdBy;
 	
 	@Column(name="modified_by")

@@ -63,7 +63,6 @@ import com.tcs.destination.data.repository.BidDetailsTRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.DeliveryCentreRepository;
-import com.tcs.destination.data.repository.DeliveryMasterManagerLinkRepository;
 import com.tcs.destination.data.repository.DeliveryMasterRepository;
 import com.tcs.destination.data.repository.DocumentsTRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
@@ -3831,16 +3830,33 @@ public class DestinationMailUtils {
 			
 	}
 	
-	public void sendDeliveryEmails(String entityId, String entityType, Integer deliveryCenterId) throws Exception {
-		
-	
-				DestinationMailMessage message = getDeliveryMailDetails(entityId,entityType, deliveryCenterId);
-				destMailSender.send(message);
-		
+	/**
+	 * Sends email for delivery flow
+	 * 
+	 * @param entityId
+	 * @param entityType
+	 * @param deliveryCenterId
+	 * @throws Exception
+	 */
+	public void sendDeliveryEmails(String entityId, String entityType,
+			Integer deliveryCenterId) throws Exception {
+		DestinationMailMessage message = getDeliveryMailDetails(entityId,
+				entityType, deliveryCenterId);
+		destMailSender.send(message);
+		logger.info("Mail Sent for Engagement "+entityId);
+
 	}
 
+	/**
+	 * Gets the details related to delivery emails
+	 * @param entityId
+	 * @param entityType
+	 * @param deliveryCenterId
+	 * @return
+	 */
 	private DestinationMailMessage getDeliveryMailDetails(
-			String entityId, String entityType, Integer deliveryCenterId) {
+             String entityId,String entityType, Integer deliveryCenterId) {
+		logger.info("Inside getDeliveryMailDetails Method");
 		DestinationMailMessage message = new DestinationMailMessage();
 		Map<String, Object> data = Maps.newHashMap();
 		List<String> reciepientIds = Lists.newArrayList();
@@ -3848,33 +3864,46 @@ public class DestinationMailUtils {
 		String subject = null;
 		String templateLoc = null;
 		switch (EntityType.getByValue(entityType)) {
-		case DELIVERY :
-			DeliveryMasterT deliveryMaster = deliveryMasterRepository.findOne(entityId);
-			if(deliveryMaster!=null) {
-				DeliveryCentreT deliveryCentreT = deliveryMaster.getDeliveryCentreT();
-				DeliveryClusterT deliveryClusterT = deliveryCentreT.getDeliveryClusterT();
+		// Entity Type -> Delivery : Opportunity tagged for engagement after win
+		case DELIVERY:
+			DeliveryMasterT deliveryMaster = deliveryMasterRepository
+					.findOne(entityId);
+			if (deliveryMaster != null) {
+				DeliveryCentreT deliveryCentreT = deliveryMaster
+						.getDeliveryCentreT();
+				DeliveryClusterT deliveryClusterT = deliveryCentreT
+						.getDeliveryClusterT();
 				OpportunityT opportunity = deliveryMaster.getOpportunityT();
 				CustomerMasterT customer = opportunity.getCustomerMasterT();
-				
+				// getting data for mail message content
 				data.putAll(getDataForDelivery(deliveryMaster));
 				data.putAll(getDataForOpportunityDelivery(opportunity));
-				
+
 				String[] replacementList = { mailSubjectAppendEnvName,
-						customer.getCustomerName(), opportunity.getOpportunityId(),
+						customer.getCustomerName(),
+						opportunity.getOpportunityId(),
 						deliveryCentreT.getDeliveryCentre() };
-				
-				String deliveryClusterHead = deliveryClusterT.getDeliveryClusterHead();
-				String deliveryCentreHead = deliveryCentreT.getDeliveryCentreHead();
+
+				String deliveryClusterHead = deliveryClusterT
+						.getDeliveryClusterHead();
+				String deliveryCentreHead = deliveryCentreT
+						.getDeliveryCentreHead();
 				if (StringUtils.isEmpty(deliveryCentreHead)) {
-					//assign cluster head if centre head is not available
+					// assign cluster head if centre head is not available
 					deliveryCentreHead = deliveryClusterHead;
 				}
-				
-				switch (DeliveryStage.byStageCode(deliveryMaster.getDeliveryStage())) {
+
+				switch (DeliveryStage.byStageCode(deliveryMaster
+						.getDeliveryStage())) {
 				case INTIMATED:
-					if(deliveryCentreT.getDeliveryCentreId() == Constants.DELIVERY_CENTRE_OPEN) {
-						subject = StringUtils.replaceEach(deliveryRejectedSubject,
+					if (deliveryCentreT.getDeliveryCentreId() == Constants.DELIVERY_CENTRE_OPEN) {
+						subject = StringUtils.replaceEach(
+								deliveryRejectedSubject,
 								deliverySubjectSearchList, replacementList);
+						DeliveryCentreT deliveryCentre = deliveryCentreRepository
+								.findOne(deliveryCenterId);
+						data.put("rejectedDeliveryCenter",
+								deliveryCentre.getDeliveryCentre());
 						List<String> pmo = userAccessPrivilegesRepository
 								.findUserIdsForCustomerUserGroup(
 										customer.getGeography(), Constants.Y,
@@ -3890,21 +3919,23 @@ public class DestinationMailUtils {
 										.getValue()));
 						reciepientIds.addAll(pmo);
 						reciepientIds.addAll(geoHeads);
-						
+
 						templateLoc = deliveryRejectedTemplateLoc;
 					} else {
-						subject = StringUtils.replaceEach(deliveryIntimatedSubject,
+						subject = StringUtils.replaceEach(
+								deliveryIntimatedSubject,
 								deliverySubjectSearchList, replacementList);
 						reciepientIds.add(deliveryClusterHead);
 						templateLoc = deliveryIntimatedTemplateLoc;
 					}
-					
+
 					break;
 				case ACCEPTED:
 					subject = StringUtils.replaceEach(deliveryAcceptedSubject,
 							deliverySubjectSearchList, replacementList);
 
-					if (StringUtils.equals(deliveryCentreHead, deliveryClusterHead)) {
+					if (StringUtils.equals(deliveryCentreHead,
+							deliveryClusterHead)) {
 						reciepientIds.add(deliveryClusterHead);
 					} else {
 						reciepientIds.add(deliveryCentreHead);
@@ -3916,7 +3947,7 @@ public class DestinationMailUtils {
 				case ASSIGNED:
 					subject = StringUtils.replaceEach(deliveryAssignedSubject,
 							deliverySubjectSearchList, replacementList);
-					
+
 					reciepientIds.addAll(getDeliveryManagers(deliveryMaster
 							.getDeliveryMasterManagerLinkTs()));
 					ccIds.add(deliveryClusterHead);
@@ -3932,49 +3963,61 @@ public class DestinationMailUtils {
 					ccIds.add(deliveryClusterHead);
 					ccIds.addAll(assignedManagers);
 					List<String> strategicInitiatives = userRepository
-							.findUserIdByUserGroup(UserGroup.STRATEGIC_INITIATIVES.getValue());
+							.findUserIdByUserGroup(UserGroup.STRATEGIC_INITIATIVES
+									.getValue());
 					ccIds.addAll(strategicInitiatives);
 					templateLoc = deliveryLiveTemplateLoc;
 					break;
 				default:
 					break;
 				}
+			} else {
+				throw new DestinationException("Engagement Not Found :"
+						+ entityId);
 			}
-			
-			
-			
 			break;
-		case OPPORTUNITY :
+		// Entity Type -> Opportunity : Intimating cluster head of delivery
+		// centres tagged to Opportunity prior win
+		case OPPORTUNITY:
 			OpportunityT opportunity = opportunityRepository.findOne(entityId);
-			if(opportunity!=null) {
+			if (opportunity != null) {
+				// getting data for mail message content
 				data.putAll(getDataForOpportunityDelivery(opportunity));
-				
-				DeliveryCentreT deliveryCentre = deliveryCentreRepository.findOne(deliveryCenterId);
-				reciepientIds.add(deliveryCentre.getDeliveryClusterT().getDeliveryClusterHead());
+				DeliveryCentreT deliveryCentre = deliveryCentreRepository
+						.findOne(deliveryCenterId);
+				reciepientIds.add(deliveryCentre.getDeliveryClusterT()
+						.getDeliveryClusterHead());
 				String[] replacementList = { mailSubjectAppendEnvName,
-						opportunity.getCustomerMasterT().getCustomerName(), opportunity.getOpportunityId(),
+						opportunity.getCustomerMasterT().getCustomerName(),
+						opportunity.getOpportunityId(),
 						deliveryCentre.getDeliveryCentre() };
 				data.put("deliveryCenter", deliveryCentre.getDeliveryCentre());
-				subject = StringUtils.replaceEach(deliveryIntimatedPriorWinSubject,
+				subject = StringUtils.replaceEach(
+						deliveryIntimatedPriorWinSubject,
 						deliverySubjectSearchList, replacementList);
 				templateLoc = deliveryIntimatedPriorWinTemplateLoc;
+			} else {
+				throw new DestinationException("Opportunity Not Found :"
+						+ entityId);
 			}
-			
-			
 			break;
-		default :
+		default:
 			break;
-			
 		}
-		
-		message = constructMailMessage(reciepientIds, ccIds,
-				null, subject, templateLoc, data);
-		
+		message = constructMailMessage(reciepientIds, ccIds, null, subject,
+				templateLoc, data);
+
 		return message;
 	}
 
+	/**
+	 * gets the data map for a particular engagement
+	 * @param deliveryMaster
+	 * @return
+	 */
 	private Map<String, Object> getDataForDelivery(
 			DeliveryMasterT deliveryMaster) {
+		logger.debug("Inside getDataForDelivery method");
 		Map<String, Object> data = Maps.newHashMap();
 		data.put("engagementId", defaultIfEmpty(deliveryMaster.getDeliveryMasterId()));
 		data.put("actualStartDate", defaultIfEmpty(DateUtils.format(deliveryMaster.getActualStartDate(), DateUtils.ACTUAL_FORMAT)));
@@ -3982,11 +4025,19 @@ public class DestinationMailUtils {
 		data.put("rejectionReasons", defaultIfEmpty(deliveryMaster.getReason()));
 		data.put("comments", defaultIfEmpty(deliveryMaster.getComments()));
 		data.put("won", defaultIfEmpty(deliveryMaster.getWonNum()));
+		data.put("rejectedDeliveryClusterHeadName",defaultIfEmpty(deliveryMaster.getModifiedByUser().getUserName()));
+		logger.debug("End of getDataForDelivery method");
 		return data;
 	}
 
+	/**
+	 * Gets the data map of Opportunity tagged for delivery
+	 * @param opportunity
+	 * @return
+	 */
 	private Map<String, Object> getDataForOpportunityDelivery(
 			OpportunityT opportunity) {
+		logger.debug("Inside getDataForOpportunityDelivery method");
 		Map<String, Object> data = Maps.newHashMap();
 		data .put("opportunityId", defaultIfEmpty(opportunity.getOpportunityId()));
 		data.put("customerName", defaultIfEmpty(opportunity.getCustomerMasterT()
@@ -3995,6 +4046,7 @@ public class DestinationMailUtils {
 		data.put("engagementStartDate",	defaultIfEmpty(DateUtils.format(opportunity.getEngagementStartDate(), DateUtils.ACTUAL_FORMAT)));
 		data.put("engagementDuration", defaultIfEmpty(opportunity.getEngagementDuration()));
 		data.put("deliveryOwnership", defaultIfEmpty(opportunity.getDeliveryOwnershipT().getOwnership()));
+		data.put("crmId", defaultIfEmpty(opportunity.getCrmId()));
 		// Getting bid details
 		BidDetailsT bidDetailsT = bidDetailsTRepository
 				.findFirstByOpportunityIdOrderByModifiedDatetimeDesc(opportunity
@@ -4005,16 +4057,34 @@ public class DestinationMailUtils {
 		
 		data.put("opportunityOwner", defaultIfEmpty(opportunity.getPrimaryOwnerUser().getUserName()));
 		data.put("salesStage", defaultIfEmpty(SalesStageCode.valueOf(opportunity.getSalesStageCode()).getDescription()));
+		logger.debug("End of getDataForOpportunityDelivery method");
 		return data;
 	}
 
+	/**
+	 * Assigns default value as 'Not Available' if the given object is empty
+	 * @param value
+	 * @return
+	 */
 	private String defaultIfEmpty(Object value) {
 		 return String.valueOf(ObjectUtils.defaultIfNull(value, Constants.NOT_AVAILABLE));
 	}
 
-	private DestinationMailMessage constructMailMessage(List<String> recipientIdList,
-			List<String> ccList, List<String> bccList, String subject, String mailTemplateLoc, Map<String, Object> data) {
-		
+	/**
+	 * Method used to construct Mail details such as recipients,subject,mail content
+	 * @param recipientIdList
+	 * @param ccList
+	 * @param bccList
+	 * @param subject
+	 * @param mailTemplateLoc
+	 * @param data
+	 * @return
+	 */
+	private DestinationMailMessage constructMailMessage(
+			List<String> recipientIdList, List<String> ccList,
+			List<String> bccList, String subject, String mailTemplateLoc,
+			Map<String, Object> data) {
+		logger.debug("Inside constructMailMessage method");
 		DestinationMailMessage message = new DestinationMailMessage();
 		message.setRecipients(listMailIdsFromUserIds(recipientIdList));
 		message.setCcList(listMailIdsFromUserIds(ccList));
@@ -4022,25 +4092,31 @@ public class DestinationMailUtils {
 		message.setSubject(subject);
 		String msg = mergeTmplWithData(data, mailTemplateLoc);
 		message.setMessage(msg);
-		logger.info("Subject : "+subject);
-		logger.info("Message : "+msg);
+		logger.info("Subject : " + subject);
+		logger.info("Message : " + msg);
+		logger.debug("End of constructMailMessage method");
 		return message;
 	}
 	
-	private List<String> getDeliveryManagers(List<DeliveryMasterManagerLinkT> deliveryManagers) {
-		
+	/**
+	 * Method used to get the list of delivery managers id's
+	 * @param deliveryManagers
+	 * @return
+	 */
+	private List<String> getDeliveryManagers(
+			List<DeliveryMasterManagerLinkT> deliveryManagers) {
+		logger.debug("Inside getDeliveryManagers method");
 		List<String> assignedManagers = Lists.newArrayList();
-		if(CollectionUtils.isNotEmpty(deliveryManagers)) {
-			for(DeliveryMasterManagerLinkT deliveryMasterManagerLinkT : deliveryManagers) {
-				assignedManagers.add(deliveryMasterManagerLinkT.getDeliveryManagerId());
+		if (CollectionUtils.isNotEmpty(deliveryManagers)) {
+			for (DeliveryMasterManagerLinkT deliveryMasterManagerLinkT : deliveryManagers) {
+				assignedManagers.add(deliveryMasterManagerLinkT
+						.getDeliveryManagerId());
 			}
 		}
+		logger.debug("End of getDeliveryManagers method");
 		return assignedManagers;
-		
-		
 	}
 	
-		
-	}
+}
 
 

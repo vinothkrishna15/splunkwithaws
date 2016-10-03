@@ -11,14 +11,20 @@ import org.springframework.stereotype.Component;
 
 import com.tcs.destination.utils.DestinationMailUtils;
 
+/**
+ * Tasklet to send emails related to delivery flow
+ * 
+ * @author TCS
+ *
+ */
 @Component("deliveryEmailNotificationTasklet")
 public class DeliveryEmailNotificationTasklet implements Tasklet {
 
-    private DestinationMailUtils destinationMailUtils;
-	
+	private DestinationMailUtils destinationMailUtils;
+
 	private static final Logger logger = LoggerFactory
 			.getLogger(DeliveryEmailNotificationTasklet.class);
-	
+
 	@Override
 	public RepeatStatus execute(StepContribution contribution,
 			ChunkContext chunkContext) throws Exception {
@@ -27,8 +33,10 @@ public class DeliveryEmailNotificationTasklet implements Tasklet {
 				.getStepExecution().getJobExecution().getJobParameters();
 		String entityId = jobParameters.getString("entityId");
 		String entityType = jobParameters.getString("EntityType");
-		Integer deliveryCenterId = Integer.parseInt(jobParameters.getString("deliveryCentreId"));
-		destinationMailUtils.sendDeliveryEmails(entityId,entityType,deliveryCenterId);
+		Integer deliveryCenterId = Integer.parseInt(jobParameters
+				.getString("deliveryCentreId"));
+		destinationMailUtils.sendDeliveryEmails(entityId, entityType,
+				deliveryCenterId);
 		return RepeatStatus.FINISHED;
 	}
 
@@ -36,10 +44,9 @@ public class DeliveryEmailNotificationTasklet implements Tasklet {
 		return destinationMailUtils;
 	}
 
-	public void setDestinationMailUtils(DestinationMailUtils destinationMailUtils) {
+	public void setDestinationMailUtils(
+			DestinationMailUtils destinationMailUtils) {
 		this.destinationMailUtils = destinationMailUtils;
 	}
-	
-	
 
 }

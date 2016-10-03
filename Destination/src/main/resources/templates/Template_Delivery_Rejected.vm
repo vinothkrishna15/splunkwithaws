@@ -3,15 +3,14 @@
 		Dear User,
 		<p>
      
-             Please be informed that the following opportunity has been rejected to be delivered from ${deliveryCenter} by ${deliveryClusterHeadName}.<br/><br/>
+             Please be informed that the following opportunity has been rejected to be delivered from ${rejectedDeliveryCenter} by ${rejectedDeliveryClusterHeadName}.<br/><br/>
              
              Opportunity Id        : <b>${opportunityId}</b><br/>
              Engagement Id         : <b>${engagementId}</b><br/>
              CRM ID                : <b>${crmId}</b><br/>
              Customer Name         : <b>${customerName}</b><br/>
-             Opportunity Name      : <b>${opportunityName}</b><br/>
-             Delivery Center       : <b>${deliveryCenter}</b><br/><br/>
-             
+             Opportunity Name      : <b>${opportunityName}</b><br/><br/>
+                          
              The following details are provided for rejection:<br/>
              Reasons               : <b>${rejectionReasons}</b><br/>
              Comments              : <b>${comments}</b><br/><br/>

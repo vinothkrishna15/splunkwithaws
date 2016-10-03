@@ -29,7 +29,7 @@ public class DeliveryMasterManagerLinkT implements Serializable {
 	@Column(name="delivery_master_manager_link_id")
 	private String deliveryMasterManagerLinkId;
 
-	@Column(name="created_datetime")
+	@Column(name="created_datetime", updatable = false)
 	private Timestamp createdDatetime;
 
 	@Column(name="modified_datetime")
@@ -38,7 +38,7 @@ public class DeliveryMasterManagerLinkT implements Serializable {
 	@Column(name="delivery_master_id")
 	private String deliveryMasterId;
 	
-	@Column(name="created_by")
+	@Column(name="created_by", updatable = false)
 	private String createdBy;
 	
 	@Column(name="modified_by")

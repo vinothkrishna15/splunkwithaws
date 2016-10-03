@@ -10,7 +10,7 @@
              Customer Name         : <b>${customerName}</b><br/>
              Opportunity Name      : <b>${opportunityName}</b><br/>
              Delivery Ownership    : <b>${deliveryOwnership}</b><br/>
-             Delivery Center(s)    : <b>${deliveryCenter}</b><br/>
+             Delivery Centre       : <b>${deliveryCenter}</b><br/>
              WON                   : <b>${won}</b><br/>
              Actual Start Date     : <b>${actualStartDate}</b><br/><br/>
         </p>		
