@@ -143,9 +143,6 @@ public class OpportunityT implements Serializable, Cloneable {
 	@Column(name = "delivery_ownership_id")
 	private Integer deliveryOwnershipId;
 	
-	@Column(name="delivery_type")
-	private String deliveryType;
-	
 	@Column(name="isu_own_reason")
 	private String isuOwnReason; 
 
@@ -1324,14 +1321,6 @@ public class OpportunityT implements Serializable, Cloneable {
 	public void setOpportunityDeliveryCentreMappingTs(
 			List<OpportunityDeliveryCentreMappingT> opportunityDeliveryCentreMappingTs) {
 		this.opportunityDeliveryCentreMappingTs = opportunityDeliveryCentreMappingTs;
-	}
-
-	public String getDeliveryType() {
-		return deliveryType;
-	}
-
-	public void setDeliveryType(String deliveryType) {
-		this.deliveryType = deliveryType;
 	}
 
 	public List<DeliveryMasterT> getDeliveryMasterTs() {
