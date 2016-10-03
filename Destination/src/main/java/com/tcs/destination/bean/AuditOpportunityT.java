@@ -169,10 +169,10 @@ public class AuditOpportunityT implements Serializable {
 	private String newIsuOwnReason;
 	
 	@Column(name="old_delivery_ownership_id")
-	private String oldDeliveryOwnershipId;
+	private Integer oldDeliveryOwnershipId;
 	
 	@Column(name="new_delivery_ownership_id")
-	private String newDeliveryOwnershipId;
+	private Integer newDeliveryOwnershipId;
 	
 	public AuditOpportunityT() {
 	}
@@ -563,19 +563,19 @@ public class AuditOpportunityT implements Serializable {
 		this.newIsuOwnReason = newIsuOwnReason;
 	}
 
-	public String getOldDeliveryOwnershipId() {
+	public Integer getOldDeliveryOwnershipId() {
 		return oldDeliveryOwnershipId;
 	}
 
-	public void setOldDeliveryOwnershipId(String oldDeliveryOwnershipId) {
+	public void setOldDeliveryOwnershipId(Integer oldDeliveryOwnershipId) {
 		this.oldDeliveryOwnershipId = oldDeliveryOwnershipId;
 	}
 
-	public String getNewDeliveryOwnershipId() {
+	public Integer getNewDeliveryOwnershipId() {
 		return newDeliveryOwnershipId;
 	}
 
-	public void setNewDeliveryOwnershipId(String newDeliveryOwnershipId) {
+	public void setNewDeliveryOwnershipId(Integer newDeliveryOwnershipId) {
 		this.newDeliveryOwnershipId = newDeliveryOwnershipId;
 	}
 

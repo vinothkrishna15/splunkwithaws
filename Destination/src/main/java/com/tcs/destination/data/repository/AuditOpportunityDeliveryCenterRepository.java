@@ -19,4 +19,6 @@ public interface AuditOpportunityDeliveryCenterRepository extends CrudRepository
 	List<AuditOpportunityDeliveryCentreT> findNewlyAddedDeliveryCentresForOpportunity(@Param("opportunityId")
 			String opportunityId);
 
+	List<AuditOpportunityDeliveryCentreT> findByOpportunityId(String oppId);
+
 }

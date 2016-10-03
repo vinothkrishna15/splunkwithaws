@@ -35,6 +35,7 @@ import com.tcs.destination.bean.AuditHistoryDTO;
 import com.tcs.destination.bean.AuditHistoryResponseDTO;
 import com.tcs.destination.bean.AuditOpportunityCompetitorLinkT;
 import com.tcs.destination.bean.AuditOpportunityCustomerContactLinkT;
+import com.tcs.destination.bean.AuditOpportunityDeliveryCentreT;
 import com.tcs.destination.bean.AuditOpportunityHistoryDTO;
 import com.tcs.destination.bean.AuditOpportunityOfferingLinkT;
 import com.tcs.destination.bean.AuditOpportunityPartnerLinkT;
@@ -58,6 +59,7 @@ import com.tcs.destination.data.repository.AuditDeliveryRequirementTRepository;
 import com.tcs.destination.data.repository.AuditDeliveryResourcesTRepository;
 import com.tcs.destination.data.repository.AuditOpportunityCompetitorLinkTRepository;
 import com.tcs.destination.data.repository.AuditOpportunityCustomerContactLinkTRepository;
+import com.tcs.destination.data.repository.AuditOpportunityDeliveryCenterRepository;
 import com.tcs.destination.data.repository.AuditOpportunityOfferingLinkTRepository;
 import com.tcs.destination.data.repository.AuditOpportunityPartnerLinkTRepository;
 import com.tcs.destination.data.repository.AuditOpportunityRepository;
@@ -71,6 +73,7 @@ import com.tcs.destination.data.repository.AuditWorkflowPartnerTRepository;
 import com.tcs.destination.data.repository.AuditWorkflowStepTRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.DeliveryCentreRepository;
+import com.tcs.destination.data.repository.DeliveryOwnershipRepository;
 import com.tcs.destination.data.repository.OpportunityTimelineHistoryTRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.UserRepository;
@@ -182,6 +185,12 @@ public class AuditDetailService {
 
 	@Autowired
 	private AuditDeliveryRequirementTRepository aEngRequirmentRepo;
+
+	@Autowired
+	private DeliveryOwnershipRepository deliveryOwnershipRepo;
+
+	@Autowired
+	private AuditOpportunityDeliveryCenterRepository aOppoDeliveryCentreRepo;
 	
 	/**
 	 * service method to retrieve the workflow history 
@@ -528,6 +537,8 @@ public class AuditDetailService {
 		entries.addAll(getTcsContactAudit(oppId));
 		entries.addAll(getWinLossFactorAudit(oppId));
 		entries.addAll(getBidDetailsAudit(oppId));
+		entries.addAll(getDeliveryCentreAudit(oppId));
+		
 		return entries;
 	}
 
@@ -1001,6 +1012,31 @@ public class AuditDetailService {
 				custContact, fieldName);
 		return Lists.newArrayList(entry);
 	}
+	
+
+	private List<AuditEntryDTO> getDeliveryCentreAudit(
+			String oppId) {
+		List<AuditEntryDTO> entries = Lists.newArrayList();
+		List<AuditOpportunityDeliveryCentreT> aDeliveryCentres = aOppoDeliveryCentreRepo.findByOpportunityId(oppId);
+		if(CollectionUtils.isNotEmpty(aDeliveryCentres)) {
+			for (AuditOpportunityDeliveryCentreT aDeliveryCentre : aDeliveryCentres) {
+				entries.addAll(getDeliveryCentreAudit(aDeliveryCentre));
+			}
+		}
+		return entries;
+	}
+
+
+	private List<AuditEntryDTO> getDeliveryCentreAudit(
+			AuditOpportunityDeliveryCentreT aDeliveryCentre) {
+		Operation operationType = Operation.getByCode(aDeliveryCentre.getOperationType());
+		String user = userRepository.findUserNameByUserId(aDeliveryCentre.getCreatedModifiedBy());
+		Date date = new Date(aDeliveryCentre.getCreatedModifiedDatetime().getTime());
+		
+		String fieldName = "Delivery Centre";
+		AuditEntryDTO entry = getEntryByOperation(operationType, user, date, aDeliveryCentre.getDeliveryCentreId(), fieldName, FieldType.DELIVERY_CENTRE);
+		return Lists.newArrayList(entry);
+	}
 
 
 	/**
@@ -1098,18 +1134,22 @@ public class AuditDetailService {
 		List<String> fieldArray = Lists.newArrayList("CrmId", "OpportunityName", "OpportunityDescription", "StrategicDeal", 
 				"DealCurrency", "OverallDealSize", "DigitalDealValue", "DealClosureDate",
 				"DescriptionForWinLoss","EngagementDuration","SalesStageCode", 
-				"DealType", "Country", "DigitalFlag");
+				"DealType", "Country", "DigitalFlag", "IsuOwnReason");
 		
-		entryDTOs.addAll(getEntriesFromFields(auditOpportunityT, fieldArray, user, date, null));
+		Map<String, FieldType> fieldMap = Maps.newHashMap();
+		fieldMap.put("DeliveryOwnershipId", FieldType.OWNERSHIP_ID);
+		fieldMap.put("OpportunityOwner", FieldType.USER_ID);
 		
-		AuditEntryDTO entry = getEntry(auditOpportunityT, "OpportunityOwner", user, date, null);
+		entryDTOs.addAll(getEntriesFromFields(auditOpportunityT, fieldArray, user, date, fieldMap));
+		
+		/*AuditEntryDTO entry = getEntry(auditOpportunityT, "OpportunityOwner", user, date, null);
 		if(entry != null) {
 			String fromVal = entry.getFromVal();
 			String toVal = entry.getToVal();
 			entry.setFromVal(fromVal != null ? userRepository.findUserNameByUserId(fromVal) : null);
 			entry.setToVal(toVal != null ? userRepository.findUserNameByUserId(toVal) : null);
 			entryDTOs.add(entry);
-		}
+		}*/
 		return entryDTOs;
 	}
 
@@ -1131,7 +1171,6 @@ public class AuditDetailService {
 		Map<String, FieldType> fieldMap = Maps.newHashMap();
 		fieldMap.put("DeliveryCentreId", FieldType.DELIVERY_CENTRE);
 		fieldMap.put("DeliveryStage", FieldType.DELIVERY_STAGE);
-		fieldMap.put("delivery_manager_id", FieldType.DELIVERY_STAGE);
 		
 		entryDTOs.addAll(getEntriesFromFields(auditDeliveryMasterT, fieldArray, user, date, fieldMap));
 		
@@ -1153,7 +1192,7 @@ public class AuditDetailService {
 	}
 
 	private AuditEntryDTO getEntryByOperation(Operation operationType,
-			String user, Date date, String fieldValue, String fieldName, FieldType fieldType) {
+			String user, Date date, Object fieldValue, String fieldName, FieldType fieldType) {
 		AuditEntryDTO entry;
 		if(operationType == Operation.ADD) {
 			entry = getAuditEntry(fieldName, user, date, fieldType, null, fieldValue);
@@ -1487,12 +1526,17 @@ public class AuditDetailService {
 				dispNewVal = newVal != null ? deliveryCentreRepo.findByDeliveryCentreId((Integer)newVal).getDeliveryCentre() : null;
 				break;
 			case DELIVERY_STAGE:
-				dispOldVal = oldVal != null ? DeliveryStage.byStageCode((Integer) oldVal).getStageName() : null;;
+				dispOldVal = oldVal != null ? DeliveryStage.byStageCode((Integer) oldVal).getStageName() : null;
 				dispNewVal = newVal != null ? DeliveryStage.byStageCode((Integer) newVal).getStageName() : null;
 				break;
+			case OWNERSHIP_ID:
+				Integer n2 = (Integer) newVal;
+				dispOldVal = oldVal != null ? deliveryOwnershipRepo.findOne((Integer) oldVal).getOwnership() : null;
+				dispNewVal = newVal != null ? deliveryOwnershipRepo.findOne(n2).getOwnership() : null;
+				break;
 			default:
-				dispOldVal = (oldVal != null )? String.valueOf(oldVal): null;
-				dispNewVal = (newVal != null )? String.valueOf(newVal): null;
+				dispOldVal = (oldVal != null ) ? String.valueOf(oldVal): null;
+				dispNewVal = (newVal != null ) ? String.valueOf(newVal): null;
 			}
 		}
 		
@@ -1706,7 +1750,7 @@ public class AuditDetailService {
 	}
 	
 	enum FieldType {
-		NORMAL, USER_ID, DELIVERY_CENTRE, DELIVERY_STAGE;
+		NORMAL, USER_ID, DELIVERY_CENTRE, DELIVERY_STAGE, OWNERSHIP_ID;
 		
 	}
 }
