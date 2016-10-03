@@ -137,12 +137,16 @@ public class AuditDeliveryMasterT implements Serializable {
 	
 	private Boolean notified;
 	
+	@Column(name="old_comments")
 	private String oldComments;
 	
+	@Column(name="new_comments")
 	private String newComments;
 	
+	@Column(name="old_reason")
 	private String oldReason;
 	
+	@Column(name="new_reason")
 	private String newReason;
 
 	public Boolean getNotified() {
