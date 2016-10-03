@@ -161,7 +161,19 @@ public class AuditOpportunityT implements Serializable {
 
 	@Column(name="opportunity_id")
 	private String opportunityId;
-
+	
+	@Column(name="old_isu_own_reason")
+	private String oldIsuOwnReason;
+	
+	@Column(name="new_isu_own_reason")
+	private String newIsuOwnReason;
+	
+	@Column(name="old_delivery_ownership_id")
+	private String oldDeliveryOwnershipId;
+	
+	@Column(name="new_delivery_ownership_id")
+	private String newDeliveryOwnershipId;
+	
 	public AuditOpportunityT() {
 	}
 
@@ -533,6 +545,38 @@ public class AuditOpportunityT implements Serializable {
 
 	public void setOpportunityId(String opportunityId) {
 		this.opportunityId = opportunityId;
+	}
+
+	public String getOldIsuOwnReason() {
+		return oldIsuOwnReason;
+	}
+
+	public void setOldIsuOwnReason(String oldIsuOwnReason) {
+		this.oldIsuOwnReason = oldIsuOwnReason;
+	}
+
+	public String getNewIsuOwnReason() {
+		return newIsuOwnReason;
+	}
+
+	public void setNewIsuOwnReason(String newIsuOwnReason) {
+		this.newIsuOwnReason = newIsuOwnReason;
+	}
+
+	public String getOldDeliveryOwnershipId() {
+		return oldDeliveryOwnershipId;
+	}
+
+	public void setOldDeliveryOwnershipId(String oldDeliveryOwnershipId) {
+		this.oldDeliveryOwnershipId = oldDeliveryOwnershipId;
+	}
+
+	public String getNewDeliveryOwnershipId() {
+		return newDeliveryOwnershipId;
+	}
+
+	public void setNewDeliveryOwnershipId(String newDeliveryOwnershipId) {
+		this.newDeliveryOwnershipId = newDeliveryOwnershipId;
 	}
 
 }
