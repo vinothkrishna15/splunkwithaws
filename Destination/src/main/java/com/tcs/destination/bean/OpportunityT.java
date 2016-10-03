@@ -225,11 +225,6 @@ public class OpportunityT implements Serializable, Cloneable {
 	@ManyToOne
 	@JoinColumn(name = "opportunity_owner", insertable = false, updatable = false)
 	private UserT primaryOwnerUser;
-	
-	// bi-directional many-to-one association to DeliveryTypeMappingT
-	@ManyToOne
-	@JoinColumn(name = "delivery_type", insertable = false, updatable = false)
-	private DeliveryTypeMappingT deliveryTypeMappingT;
 
 	// bi-directional many-to-one association to
 	// OpportunityTcsAccountContactLinkT
@@ -1308,14 +1303,6 @@ public class OpportunityT implements Serializable, Cloneable {
 
 	public void setDeliveryTeamFlag(Boolean deliveryTeamFlag) {
 		this.deliveryTeamFlag = deliveryTeamFlag;
-	}
-
-	public DeliveryTypeMappingT getDeliveryTypeMappingT() {
-		return deliveryTypeMappingT;
-	}
-
-	public void setDeliveryTypeMappingT(DeliveryTypeMappingT deliveryTypeMappingT) {
-		this.deliveryTypeMappingT = deliveryTypeMappingT;
 	}
 
 	public void setOpportunityDeliveryCentreMappingTs(
