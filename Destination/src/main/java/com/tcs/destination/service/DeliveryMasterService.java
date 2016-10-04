@@ -68,7 +68,7 @@ public class DeliveryMasterService {
 
 	private static final Logger logger = LoggerFactory.getLogger(DeliveryMasterService.class);
 
-	private static final int numDeliveryStages = 6;
+	private static final int numDeliveryStages = 5;
 	
 	@Autowired
 	DeliveryMasterRepository deliveryMasterRepository;
@@ -138,17 +138,20 @@ public class DeliveryMasterService {
 		String loginUserGroup = loginUser.getUserGroup();
 
 		List<Integer> stages = new ArrayList<Integer>();
-		if (stage == -1) {
-			for (int i = 0; i < numDeliveryStages; i++)
-				stages.add(i);
-		} else {
-			stages.add(stage);
-		}
+		
 		Page<DeliveryMasterT> deliveryMasterTs = null;
 		Sort sort = null;
 		Pageable pageable = null;
 		switch (UserGroup.valueOf(UserGroup.getName(loginUserGroup))) {
 		case DELIVERY_CENTRE_HEAD:
+			
+			if (stage == -1) {
+				for (int i = 1; i < numDeliveryStages; i++)
+					stages.add(i);
+			} else {
+				stages.add(stage);
+			}
+			
 			DeliveryCentreT deliveryCentreT = deliveryCentreRepository
 					.findByDeliveryCentreHead(loginUser.getUserId());
 			if (deliveryCentreT != null) {
@@ -170,6 +173,14 @@ public class DeliveryMasterService {
 			}
 			break;
 		case DELIVERY_CLUSTER_HEAD:
+			
+			if (stage == -1) {
+				for (int i = 0; i < numDeliveryStages; i++)
+					stages.add(i);
+			} else {
+				stages.add(stage);
+			}
+			
 			DeliveryClusterT deliveryClusterT = deliveryClusterRepository
 					.findByDeliveryClusterHead(loginUser.getUserId());
 			if(deliveryClusterT!=null){
@@ -193,6 +204,12 @@ public class DeliveryMasterService {
 			}
 			break;
 		case DELIVERY_MANAGER:
+			if (stage == -1) {
+				for (int i = 2; i < numDeliveryStages; i++)
+					stages.add(i);
+			} else {
+				stages.add(stage);
+			}
 			orderBy = ATTRIBUTE_MAP.get(orderBy);
 			sort = getSortFromOrder(order,orderBy);
 			pageable = new PageRequest(page, count, sort);
