@@ -2,7 +2,7 @@
 	<body>
 		<p>Dear User,</p>
 		<p>
-             Please be informed that the following opportunity has been rejected to be delivered from ${rejectedDeliveryCenter} by ${rejectedDeliveryClusterHeadName}.
+             Please be informed that the following opportunity has been rejected for delivery from ${rejectedDeliveryCenter} by ${rejectedDeliveryClusterHeadName}.
         </p>     
         <p>
 		  <table>
