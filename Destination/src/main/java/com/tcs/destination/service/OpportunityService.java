@@ -470,7 +470,7 @@ public class OpportunityService {
 	}
 
 	/**
-	 * To fetch all the delivery centres
+	 * To fetch all the delivery centres except open
 	 * 
 	 * @return
 	 */
@@ -478,8 +478,9 @@ public class OpportunityService {
 	public List<DeliveryCentreT> fetchDeliveryCentre() {
 		logger.debug("Inside fetchDeliveryCentre() service");
 		List<DeliveryCentreT> deliveryCentre = new ArrayList<DeliveryCentreT>();
-		deliveryCentre = (List<DeliveryCentreT>) deliveryCentreRepository
-				.findAll();
+		// Retrieving all delivery centres except open ->delivery centre id -1
+		deliveryCentre = deliveryCentreRepository
+				.findByDeliveryCentreIdGreaterThanEqual(Constants.CONSTANT_ZERO);
 		return deliveryCentre;
 	}
 
