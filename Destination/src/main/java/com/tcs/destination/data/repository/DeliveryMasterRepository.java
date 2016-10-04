@@ -26,7 +26,7 @@ public interface DeliveryMasterRepository extends JpaRepository<DeliveryMasterT,
 			@Param("getAll") boolean getAll, @Param("userId") String userId);
 
 	@Query(value="SELECT * FROM delivery_master_t where delivery_master_id in (SELECT delivery_master_id FROM delivery_master_manager_link_t WHERE delivery_manager_id=(:userId))"
-			+ " UPPER(opportunity_id) like UPPER(:term) ORDER BY modified_datetime DESC LIMIT CASE WHEN :getAll THEN null ELSE 3 END",nativeQuery=true)
+			+ " AND UPPER(opportunity_id) like UPPER(:term) ORDER BY modified_datetime DESC LIMIT CASE WHEN :getAll THEN null ELSE 3 END",nativeQuery=true)
 	List<DeliveryMasterT> searchDeliveryManagerDetailsById(@Param("term") String term,
 			@Param("getAll") boolean getAll, @Param("userId") String userId);
 
