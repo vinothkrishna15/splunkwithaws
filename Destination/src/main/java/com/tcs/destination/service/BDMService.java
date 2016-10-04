@@ -143,7 +143,8 @@ public class BDMService {
 			}
 			Date fromDate = DateUtils.getDateFromFinancialYear(financialYear, true);
 			Date toDate = DateUtils.getDateFromFinancialYear(financialYear, false);
-			if (userGroup.equals("BDM") || userGroup.equals("Practice Owner")) {
+			if (userGroup.equals(UserGroup.BDM.getValue()) || userGroup.equals(UserGroup.PRACTICE_OWNER.getValue())
+					|| userGroup.equals(UserGroup.DELIVERY_MANAGER.getValue())) {
 				if (isDashboardByYear) {
 					if(financialYear.equals(DateUtils.getCurrentFinancialYear())){
 						isCurrentFinancialYear=true;
@@ -154,7 +155,7 @@ public class BDMService {
 				}
 			} else {
 				logger.error("NOT_FOUND: User is not BDM: {}", userId);
-				throw new DestinationException(HttpStatus.NOT_FOUND, "User is not BDM/Practice Owner: " + userId);
+				throw new DestinationException(HttpStatus.NOT_FOUND, "User is not BDM/Practice Owner/Delivery Manager: " + userId);
 			}
 		} else {
 			logger.error("NOT_FOUND: User not found: {}", userId);
@@ -184,7 +185,11 @@ public class BDMService {
 		UserT user = userService.findByUserId(userId);
 		if (user != null) {
 			String userGroup = user.getUserGroupMappingT().getUserGroup();
-			if (userGroup.equals("BDM Supervisor") || userGroup.equals("Practice Head")  || userGroup.equals("PMO")) {
+			if (userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue()) 
+					|| userGroup.equals(UserGroup.PRACTICE_HEAD.getValue()) 
+					|| userGroup.equals(UserGroup.PMO.getValue()) 
+					|| userGroup.equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+					|| userGroup.equals(UserGroup.DELIVERY_CENTRE_HEAD.getValue())) {
 				userIds = new ArrayList<String>();
 				bdmSupervisorDashboardDetails = new BDMSupervisorDashboardDTO();
 				
