@@ -1,20 +1,37 @@
 <html>
 	<body>
-		Dear Cluster Head,
+		<p>Dear Cluster Head,</p>
 		<p>
-     
              The below mentioned opportunity has been tagged to be delivered from your Cluster:<br/>
-             This opportunity is currently at ${salesStage}.<br/><br/>
-             
-             Opportunity Id        : <b>${opportunityId}</b><br/>
-             Customer Name         : <b>${customerName}</b><br/>
-             Opportunity Name      : <b>${opportunityName}</b><br/>
-             Delivery Ownership    : <b>${deliveryOwnership}</b><br/>
-             Delivery Centre       : <b>${deliveryCenter}</b><br/>
-             Win Probability       : <b>${winProbability}</b><br/>
-             BD Contact            : <b>${opportunityOwner}</b><br/><br/>
-             
-             Please log in to DESTiNATION to see more information. We will intimate you again if this opportunity is a win.<br/><br/>    
+             This opportunity is currently at ${salesStage}.
+        </p>   
+        <p>  
+          <table>
+		  	<tr>
+		  		<td><b>Opportunity Id</b></td> <td>:</td><td>${opportunityId}</td> 
+		  	</tr>
+		  	<tr>
+		  		<td><b>Customer Name</b></td><td>:</td><td>${customerName}</td> 
+		  	</tr>
+		  	<tr>
+		  		<td><b>Opportunity Name</b></td><td>:</td><td>${opportunityName}</td> 
+		  	</tr>
+		  	<tr>
+		  		<td><b>Delivery Ownership</b></td><td>:</td><td>${deliveryOwnership}</td> 
+		  	</tr>
+		  	<tr>
+		  		<td><b>Delivery Centre</b></td><td>:</td><td>${deliveryCenter}</td> 
+		  	</tr>
+		  	<tr>
+		  		<td><b>Win Probability</b></td><td>:</td><td>${winProbability}</td> 
+		  	</tr>
+		  	<tr>
+		  		<td><b>BD Contact</b></td><td>:</td><td>${opportunityOwner}</td> 
+		  	</tr>
+		  </table>
+		</p>
+		<p>
+             Please log in to DESTiNATION to see more information. We will intimate you again if this opportunity is a win.
         </p>		
 		<p>
 		Regards,<br>

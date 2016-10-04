@@ -1,20 +1,39 @@
 <html>
 	<body>
-		Dear Cluster Head,
+		<p>Dear Cluster Head,</p>
 		<p>
-     
-             The below mentioned opportunity has been won and tagged to be delivered from your Cluster:<br/><br/>
-             
-             Engagement Id         : <b>${engagementId}</b><br/>
-             Opportunity Id        : <b>${opportunityId}</b><br/>
-             Customer Name         : <b>${customerName}</b><br/>
-             Opportunity Name      : <b>${opportunityName}</b><br/>
-             Engagement Start Date : <b>${engagementStartDate}</b><br/>
-             Engagement Duration   : <b>${engagementDuration}</b><br/>
-             Delivery Ownership    : <b>${deliveryOwnership}</b><br/>
-             Delivery Centre       : <b>${deliveryCenter}</b><br/><br/>
-             
-             Please log in to DESTiNATION and tag the DC to own Delivery of the project.<br/><br/>    
+             The below mentioned opportunity has been won and tagged to be delivered from your Cluster:
+        </p>  
+        <p>
+		  <table>
+		  	<tr>
+		  		<td><b>Engagement Id</b></td> <td>:</td><td>${engagementId}</td> 
+		  	</tr>
+		  	<tr>
+		  		<td><b>Opportunity Id</b></td><td>:</td><td>${opportunityId}</td> 
+		  	</tr>
+		  	<tr>
+		  		<td><b>Customer Name</b></td><td>:</td><td>${customerName}</td> 
+		  	</tr>
+		  	<tr>
+		  		<td><b>Opportunity Name</b></td><td>:</td><td>${opportunityName}</td> 
+		  	</tr>
+		  	<tr>
+		  		<td><b>Engagement Start Date</b></td><td>:</td><td>${engagementStartDate}</td> 
+		  	</tr>
+		  	<tr>
+		  		<td><b>Engagement Duration</b></td><td>:</td><td>${engagementDuration}</td> 
+		  	</tr>
+		  	<tr>
+		  		<td><b>Delivery Ownership</b></td><td>:</td><td>${deliveryOwnership}</td> 
+		  	</tr>
+		  	<tr>
+		  		<td><b>Delivery Centre</b></td><td>:</td><td>${deliveryCenter}</td> 
+		  	</tr>
+		  </table>
+		</p>
+        <p> 
+             Please log in to DESTiNATION and tag the DC to own Delivery of the project.    
         </p>		
 		<p>
 		Regards,<br>
