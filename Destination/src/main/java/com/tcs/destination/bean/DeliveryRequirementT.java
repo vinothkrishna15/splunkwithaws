@@ -86,6 +86,9 @@ public class DeliveryRequirementT implements Serializable {
 	@Column(name="branch")
 	private String branch;
 	
+	@Column(name="iou_name")
+	private String iouName;
+	
 	public DeliveryRequirementT() {
 	}
 
@@ -239,6 +242,14 @@ public class DeliveryRequirementT implements Serializable {
 
 	public void setBranch(String branch) {
 		this.branch = branch;
+	}
+
+	public String getIouName() {
+		return iouName;
+	}
+
+	public void setIouName(String iouName) {
+		this.iouName = iouName;
 	}
 	
 

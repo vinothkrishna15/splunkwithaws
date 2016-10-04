@@ -146,6 +146,12 @@ public class RgsUploadHelper {
 				}
 			}
 			
+			String iouName = data[5];
+			if(!StringUtils.isEmpty(iouName)){
+				iouName = iouName.trim();
+			}
+			
+			
 			if(StringUtils.isEmpty(errorMsg.toString())){
 				rgst.setDeliveryRgsId(rgsId);
 				deliveryRequirementT.setDeliveryRgsId(rgsId);
@@ -154,6 +160,7 @@ public class RgsUploadHelper {
 				deliveryRequirementT.setCompetencyArea(competencyArea);
 				deliveryRequirementT.setCustomerName(customerName);
 				deliveryRequirementT.setBranch(branchName);
+				deliveryRequirementT.setIouName(iouName);
 				deliveryRequirementT.setSubCompetencyArea(subCompetencyArea);
 				deliveryRequirementT.setExperience(experience);
 				deliveryRequirementT.setRole(role);
