@@ -2595,7 +2595,7 @@ public class OpportunityService {
 					opportunityList.size());
 			int toIndex = PaginationUtils.getEndIndex(page, count,
 					opportunityList.size()) + 1;
-			opportunity = opportunity.subList(fromIndex, toIndex);
+			opportunityList = opportunityList.subList(fromIndex, toIndex);
 			opportunityResponse.setOpportunityTs(opportunityList);
 			logger.debug("OpportunityT  after pagination size is "
 					+ opportunityList.size());
