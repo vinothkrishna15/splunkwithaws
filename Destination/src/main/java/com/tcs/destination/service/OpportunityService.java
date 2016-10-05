@@ -40,6 +40,7 @@ import com.tcs.destination.bean.AuditOpportunityDeliveryCentreT;
 import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
 import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
+import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryMasterT;
 import com.tcs.destination.bean.DeliveryOwnershipT;
@@ -1081,7 +1082,10 @@ public class OpportunityService {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"BFM file name should not be empty!");
 			}
-			workflowBfmt.setBfmFileName(opportunity.getBfmFileName());
+			
+			String fileName = getFormattedBFMFileName(opportunity);
+			workflowBfmt.setBfmFileName(fileName);
+			
 			workflowBfmt.setDealFinancialFile(opportunity
 					.getDealFinancialFile());
 			workflowBfmt
@@ -1102,6 +1106,18 @@ public class OpportunityService {
 			status.setStatus(Status.SUCCESS, opportunity.getOpportunityId());	
 		}
 	}
+
+
+	/**
+	 * This method returns the formatted file name for BFM for a given opportunity
+	 * @param opportunity
+	 * @return
+	 */
+	private String getFormattedBFMFileName(OpportunityT opportunity) {
+		CustomerMasterT customerMaster = customerRepository.findOne(opportunity.getCustomerId());
+		return opportunity.getOpportunityId() + "_" + customerMaster.getCustomerName() + "." + DestinationUtils.getExtension(opportunity.getBfmFileName());
+	}
+	
 
 	/**
 	 * This method is used to update Opportunity Timeline History. Sales Stage

@@ -629,7 +629,8 @@ public class WorkflowController {
 			bfmStream = new InputStreamResource(new ByteArrayInputStream(bfmT.getDealFinancialFile()));
 			
 			respHeaders = new HttpHeaders();
-			String fileName = bfmT.getOpportunityId() + "_" + bfmT.getOpportunityT().getCustomerMasterT().getCustomerName() + "." + DestinationUtils.getExtension(bfmT.getBfmFileName());
+			//String fileName = bfmT.getOpportunityId() + "_" + bfmT.getOpportunityT().getCustomerMasterT().getCustomerName() + "." + DestinationUtils.getExtension(bfmT.getBfmFileName());
+			String fileName = bfmT.getBfmFileName();
 			respHeaders.add("reportName", fileName);
 			respHeaders.setContentDispositionFormData("attachment", fileName);
 			respHeaders.setContentType(MediaType
