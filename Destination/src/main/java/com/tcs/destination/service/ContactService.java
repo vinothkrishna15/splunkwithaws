@@ -1385,5 +1385,16 @@ public class ContactService {
 		conRes.setValues(records);
 		return conRes;
 	}
+	
+	/**
+	 * This method is used to prevent sensitive info in the contact while retrieval
+	 * @param contact
+	 */
+	public void preventSensitiveInfoForDelivery(ContactT contactT) {
+		if (contactT != null) {
+			contactT.setContactEmailId(null);
+			contactT.setContactTelephone(null);
+		}
+	}
 
 }

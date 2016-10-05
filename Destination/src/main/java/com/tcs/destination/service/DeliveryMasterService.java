@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.tcs.destination.bean.AsyncJobRequest;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryClusterT;
@@ -826,6 +827,8 @@ public class DeliveryMasterService {
 			SmartSearchType smartSearchType, String term, boolean getAll,
 			int page, int count, UserT user) {
 		logger.info("DeliveryMasterService::smartSearch type {}", smartSearchType);
+		Set<DeliveryMasterT> deliveryMasterSet = Sets.newHashSet();
+		List<DeliveryMasterT> deliveryMasterTs = Lists.newArrayList();
 		PageDTO<SearchResultDTO<DeliveryMasterT>> res = new PageDTO<SearchResultDTO<DeliveryMasterT>>();
 		List<SearchResultDTO<DeliveryMasterT>> resList = Lists.newArrayList();
 		SearchResultDTO<DeliveryMasterT> searchResultDTO = new SearchResultDTO<DeliveryMasterT>();
@@ -833,38 +836,35 @@ public class DeliveryMasterService {
 
 			switch (smartSearchType) {
 			case ALL:
-				resList.add(getDeliveryMasterById(term, getAll, user));
-				resList.add(getDeliveryMasterByCustName(term, getAll, user));
-				resList.add(getDeliveryMasterByDeliveryCentres(term, getAll, user));
+				deliveryMasterSet.addAll(getDeliveryMasterById(term, getAll, user));
+				deliveryMasterSet.addAll(getDeliveryMasterByCustName(term, getAll, user));
+				deliveryMasterSet.addAll(getDeliveryMasterByDeliveryCentres(term, getAll, user));
+				deliveryMasterTs.addAll(deliveryMasterSet);
 				break;
 			case ID:
-				searchResultDTO = getDeliveryMasterById(term, getAll, user);
+				deliveryMasterTs = getDeliveryMasterById(term, getAll, user);
 				break;
 			case CUSTOMER:
-				searchResultDTO = getDeliveryMasterByCustName(term, getAll, user);
+				deliveryMasterTs = getDeliveryMasterByCustName(term, getAll, user);
 				break;
 			case DELIVERY_CENTRE:
-				searchResultDTO = getDeliveryMasterByDeliveryCentres(term, getAll, user);
+				deliveryMasterTs = getDeliveryMasterByDeliveryCentres(term, getAll, user);
 				break;
 			default:
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"Invalid search type");
 			}
 
-			if (smartSearchType != SmartSearchType.ALL) {
-				// paginate the result if it is fetching entire record(ie.getAll=true)
-				if (getAll) {
-					List<DeliveryMasterT> values = searchResultDTO.getValues();
-					List<DeliveryMasterT> records = PaginationUtils.paginateList(
-							page, count, values);
-					if (CollectionUtils.isNotEmpty(records)) {
-						removeCyclicData(records);
-					}
-					searchResultDTO.setValues(records);
-					res.setTotalCount(values.size());
-				}
-				resList.add(searchResultDTO);
+			// paginate the result if it is fetching entire record(ie.getAll=true)
+			List<DeliveryMasterT> records = PaginationUtils.paginateList(
+					page, count, deliveryMasterTs);
+			if (CollectionUtils.isNotEmpty(records)) {
+				removeCyclicData(records);
 			}
+			searchResultDTO.setValues(records);
+			searchResultDTO.setSearchType(smartSearchType);
+			res.setTotalCount(deliveryMasterTs.size());
+			resList.add(searchResultDTO);
 		}
 		res.setContent(resList);
 		return res;
@@ -879,7 +879,7 @@ public class DeliveryMasterService {
 	 * @param user
 	 * @return
 	 */
-	private SearchResultDTO<DeliveryMasterT> getDeliveryMasterByDeliveryCentres(
+	private List<DeliveryMasterT> getDeliveryMasterByDeliveryCentres(
 			String term, boolean getAll, UserT user) {
 		logger.info("Inside getDeliveryMasterById() Method");
 		List<DeliveryMasterT> records = null;
@@ -900,7 +900,7 @@ public class DeliveryMasterService {
 			logger.info("HttpStatus.UNAUTHORIZED, Access Denied");
 			throw new DestinationException(HttpStatus.UNAUTHORIZED, "Access Denied");
 		}
-		return createSearchResultFrom(records, SmartSearchType.DELIVERY_CENTRE, getAll);
+		return records;
 	}
 
 	/**
@@ -911,7 +911,7 @@ public class DeliveryMasterService {
 	 * @param user
 	 * @return
 	 */
-	private SearchResultDTO<DeliveryMasterT> getDeliveryMasterByCustName(
+	private List<DeliveryMasterT> getDeliveryMasterByCustName(
 			String term, boolean getAll, UserT user) {
 		logger.info("Inside getDeliveryMasterById() Method");
 		List<DeliveryMasterT> records = null;
@@ -932,7 +932,7 @@ public class DeliveryMasterService {
 			logger.info("HttpStatus.UNAUTHORIZED, Access Denied");
 			throw new DestinationException(HttpStatus.UNAUTHORIZED, "Access Denied");
 		}
-		return createSearchResultFrom(records, SmartSearchType.CUSTOMER, getAll);
+		return records;
 	}
 
 	/**
@@ -943,7 +943,7 @@ public class DeliveryMasterService {
 	 * @param user
 	 * @return
 	 */
-	private SearchResultDTO<DeliveryMasterT> getDeliveryMasterById(String term,
+	private List<DeliveryMasterT> getDeliveryMasterById(String term,
 			boolean getAll, UserT user) {
 		logger.info("Inside getDeliveryMasterById() Method");
 		List<DeliveryMasterT> records = null;
@@ -964,7 +964,7 @@ public class DeliveryMasterService {
 			logger.info("HttpStatus.UNAUTHORIZED, Access Denied");
 			throw new DestinationException(HttpStatus.UNAUTHORIZED, "Access Denied");
 		}
-		return createSearchResultFrom(records, SmartSearchType.ID, getAll);
+		return records;
 	}
 
 	/**

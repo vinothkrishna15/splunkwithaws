@@ -335,9 +335,9 @@ public class BDMDetailedReportService {
 				row = (SXSSFRow) spreadSheet.createRow((short) ++currentRow);
 				setBDMReportMandatoryDetails(row, spreadSheet, currency, isIncludingSupervisor, opportunity,cellStyleDateFormat);
 			
-				int currentCol=14;
+				int currentCol=15;
 				if(isIncludingSupervisor){
-					currentCol=15;
+					currentCol=16;
 				}
 				int colValue = currentCol;
 				if (currency.size() > 1) {
@@ -531,6 +531,8 @@ public class BDMDetailedReportService {
 				if(isIncludingSupervisor){
 					row.createCell(columnNo++).setCellValue(oppOwner.getSupervisorUserName()+", "+salesOwnerSupervisor);
 				}
+				//set opportunity id
+				row.createCell(columnNo++).setCellValue(opportunity.getOpportunityId());
 				//set opportunity owner name
 				row.createCell(columnNo++).setCellValue(oppOwner.getUserName());
 				
@@ -605,7 +607,7 @@ public class BDMDetailedReportService {
 			if(isIncludingSupervisor){
 				headerList.add("Supervisor");
 			}
-			headerList.add("Opportunity Owner");headerList.add("Sales Support Owners");headerList.add("Display Primary Service Line");headerList.add("Display Secondary Service Line");
+			headerList.add("Opportunity Id");headerList.add("Opportunity Owner");headerList.add("Sales Support Owners");headerList.add("Display Primary Service Line");headerList.add("Display Secondary Service Line");
 			headerList.add("Display Geography");headerList.add("Display IOU");headerList.add("Country");headerList.add("Group Customer Name");
 			headerList.add("Customer Name");headerList.add("Sales Stage");headerList.add("Expected Date Of Outcome");headerList.add("CRM ID");
 			int columnNo = 0;
@@ -639,9 +641,9 @@ public class BDMDetailedReportService {
 			SXSSFRow row = null;
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
 			setBDMSupervisorMandatoryHeaderToExcel(row, currentRow, spreadSheet, cellStyle, currency, isIncludingSupervisor);
-			int columnNo = 15;
+			int columnNo = 16;
 			if(isIncludingSupervisor){
-				columnNo=16;
+				columnNo=17;
 			}
 			if(fields.contains("projectDealValue")){
 				row.createCell(columnNo).setCellValue("Project Digital Deal Value");
