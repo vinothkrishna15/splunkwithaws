@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.3.0.final using JasperReports Library version 6.3.0  -->
-<!-- 2016-09-26T20:51:29 -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Blank_A4_bids" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isSummaryNewPage="true" uuid="e3ec1057-fd78-499e-b4be-d299cceda193">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
-	<parameter name="bidsSubmittedP" class="java.lang.Integer"/>
+<!-- 2016-10-05T16:27:46 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Blank_A4_sub2" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="20" isSummaryNewPage="true" uuid="a7bebcdc-b11a-42f7-b4b9-45a7774c811a">
+	<parameter name="dealsLossP" class="java.lang.Integer"/>
 	<queryString>
 		<![CDATA[]]>
 	</queryString>
@@ -13,7 +12,7 @@
 	<field name="opportunityName" class="java.lang.String"/>
 	<field name="subSp" class="java.lang.String"/>
 	<field name="dealValue" class="java.lang.String"/>
-	<field name="outcomeExpectedDate" class="java.lang.String"/>
+	<field name="lossFactors" class="java.lang.String"/>
 	<field name="competitors" class="java.lang.String"/>
 	<field name="owner" class="java.lang.String"/>
 	<field name="opportunityDescription" class="java.lang.String"/>
@@ -33,7 +32,7 @@
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="Myriad Pro" size="12" isBold="true"/>
 				</textElement>
-				<textFieldExpression><![CDATA["Total Bids Submitted -"+$P{bidsSubmittedP}]]></textFieldExpression>
+				<textFieldExpression><![CDATA["Total Loss(s) Reported - "+$P{dealsLossP}]]></textFieldExpression>
 			</textField>
 			<image scaleImage="FillFrame">
 				<reportElement x="0" y="0" width="595" height="66" uuid="4a8d9ef8-e76b-4cdb-8e60-23bea2e1578b">
@@ -42,7 +41,7 @@
 					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 				</reportElement>
-				<imageExpression><![CDATA["src/main/resources/report/image/header.png"]]></imageExpression>
+				<imageExpression><![CDATA["report/image/header.png"]]></imageExpression>
 			</image>
 		</band>
 	</pageHeader>
@@ -385,7 +384,7 @@
 					<textElement>
 						<font fontName="Myriad Pro" size="10.5"/>
 					</textElement>
-					<textFieldExpression><![CDATA[$F{outcomeExpectedDate}]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$F{lossFactors}]]></textFieldExpression>
 				</textField>
 				<staticText>
 					<reportElement x="250" y="0" width="20" height="24" forecolor="#393939" uuid="04b74b12-5ea1-40c4-954c-e61af5e76d9e">
@@ -409,7 +408,7 @@
 					<textElement>
 						<font fontName="Myriad Pro" size="10.5"/>
 					</textElement>
-					<text><![CDATA[Outcome Expected Date]]></text>
+					<text><![CDATA[Loss Reasons]]></text>
 				</staticText>
 			</frame>
 			<frame>
