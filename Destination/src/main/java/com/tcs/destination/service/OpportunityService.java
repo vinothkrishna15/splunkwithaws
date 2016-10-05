@@ -2053,9 +2053,6 @@ public class OpportunityService {
 						.setEnableEditAccess(isEditAccessRequiredForOpportunity(
 								opportunityT, userGroup, userId, false));
 				checkAccessControl(opportunityT, previledgedOppIdList);
-				checkDeliveryTeamAccessControl(opportunityT,
-						previledgedOppIdList);
-
 			}
 
 		} catch (Exception e) {
@@ -2102,26 +2099,6 @@ public class OpportunityService {
 
 	}
 
-	private void checkDeliveryTeamAccessControl(OpportunityT opportunityT,
-			List<String> previledgedOppIdList) throws Exception {
-
-		// previledgedOppIdList is null only while it is a single opportunity.
-		if (previledgedOppIdList != null) {
-			if (!previledgedOppIdList.contains(opportunityT.getOpportunityId())) {
-				preventSensitiveInfo(opportunityT);
-			}
-		} else {
-			List<String> opportunityIdList = new ArrayList<String>();
-			opportunityIdList.add(opportunityT.getOpportunityId());
-			previledgedOppIdList = opportunityDao
-					.getPriviledgedOpportunityId(opportunityIdList);
-			if ((previledgedOppIdList == null || previledgedOppIdList.size() == 0)
-					&& (!opportunityT.isEnableEditAccess())) {
-
-				preventSensitiveInfo(opportunityT);
-			}
-		}
-	}
 
 	public void preventSensitiveInfo(List<OpportunityT> opportunityTs) {
 		for (OpportunityT opportunityT : opportunityTs) {
