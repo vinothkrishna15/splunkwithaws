@@ -1015,9 +1015,10 @@ public class OpportunityService {
 					.getUserId();
 			UserT user = userRepository.findByUserId(userId);
 			String userGroup = user.getUserGroup();
-			if ((userGroup.equals(UserGroup.DELIVERY_CENTRE_HEAD.toString()))
-					|| (userGroup.equals(UserGroup.DELIVERY_CENTRE_HEAD
-							.toString()))) {
+			UserGroup userGroupE = UserGroup.getUserGroup(userGroup);
+			if (userGroupE == UserGroup.DELIVERY_CENTRE_HEAD
+					|| userGroupE == UserGroup.DELIVERY_CENTRE_HEAD
+					|| userGroupE == UserGroup.DELIVERY_MANAGER) {
 				deliveryTeamFlag = true;
 			}
 			opportunity.setDeliveryTeamFlag(deliveryTeamFlag);
