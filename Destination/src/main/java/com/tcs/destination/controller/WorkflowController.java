@@ -653,14 +653,13 @@ public class WorkflowController {
 	 * @throws DestinationException
 	 */
 	@RequestMapping(value = "/bfm/templatedownload", method = RequestMethod.GET)
-	public ResponseEntity<InputStreamResource> downloadBFMFTemplateile(
-			@RequestParam("requestId") Integer id)
+	public ResponseEntity<InputStreamResource> downloadBFMFTemplateile()
 			throws DestinationException {
 		logger.info("Inside WorkflowController: Start of downloadBFMFTemplateile download");
 		HttpHeaders respHeaders = null;
 		InputStreamResource bfmStream = null;
 		try {
-			bfmStream =  workflowService.downloadBfmTemplate(id);
+			bfmStream =  workflowService.downloadBfmTemplate();
 			
 			respHeaders = new HttpHeaders();
 			String fileName = "OPP_BFMTemplateFile.xlsm";

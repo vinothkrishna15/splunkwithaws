@@ -4559,9 +4559,13 @@ public class WorkflowService {
 		}
 	}
 
-	public InputStreamResource downloadBfmTemplate(Integer id)
+	/**
+	 * service method to download the deal financial template
+	 * @return
+	 * @throws Exception
+	 */
+	public InputStreamResource downloadBfmTemplate()
 			throws Exception {
-
 		Workbook workbook = null;
 		InputStreamResource inputStreamResource = null;
 		logger.debug("Begin: inside downloadBfmTemplate() of WorkflowService");
