@@ -646,5 +646,39 @@ public class WorkflowController {
 		}
 	}
 	
+	/**
+	 * Service method used to download the template for deal financial file
+	 * @param id - request id
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/bfm/templatedownload", method = RequestMethod.GET)
+	public ResponseEntity<InputStreamResource> downloadBFMFTemplateile(
+			@RequestParam("requestId") Integer id)
+			throws DestinationException {
+		logger.info("Inside WorkflowController: Start of downloadBFMFTemplateile download");
+		HttpHeaders respHeaders = null;
+		InputStreamResource bfmStream = null;
+		try {
+			bfmStream =  workflowService.downloadBfmTemplate(id);
+			
+			respHeaders = new HttpHeaders();
+			String fileName = "OPP_BFMTemplateFile.xlsm";
+			respHeaders.add("reportName", fileName);
+			respHeaders.setContentDispositionFormData("attachment", fileName);
+			respHeaders.setContentType(MediaType
+					.parseMediaType("application/octet-stream"));
+			logger.info("Inside WorkflowController: BFM Template Downloaded Successfully ");
+			return new ResponseEntity<InputStreamResource>(
+					bfmStream, respHeaders, HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR : ", e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in downloading the BFM Tempalte file");
+		}
+	}
+	
 
 }

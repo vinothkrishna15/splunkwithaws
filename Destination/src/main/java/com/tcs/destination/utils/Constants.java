@@ -81,6 +81,8 @@ public class Constants {
 	public static final String OPPORTUNITY_TEMPLATE_OPPORTUNITY_SHEET_NAME = "Opportunity";
 	public static final String OPPORTUNITY_TEMPLATE_TCS_AND_CUSTOMER_SHEET_NAME = "TCS & Customer Contact(Ref)";
 	
+	public static final String BFM_DEAL_FINANCIAL_TEMPLATE_LOCATION_PROPERTY_NAME = "bfmDealFinancialSheetTemplate";
+
 	public static final String CONNECT = "Connect";
 	public static final String OPPORTUNITY = "Opportunity";
 	public static final String TASK = "Task";

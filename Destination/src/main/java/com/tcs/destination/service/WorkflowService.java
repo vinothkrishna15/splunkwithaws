@@ -4,6 +4,9 @@ import static com.tcs.destination.enums.EntityTypeId.COMPETITOR;
 import static com.tcs.destination.enums.EntityTypeId.CUSTOMER;
 import static com.tcs.destination.enums.EntityTypeId.PARTNER;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,10 +23,12 @@ import javax.persistence.Query;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -97,7 +102,9 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DestinationMailUtils;
 import com.tcs.destination.utils.DestinationUtils;
+import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.PaginationUtils;
+import com.tcs.destination.utils.PropertyUtil;
 import com.tcs.destination.utils.QueryConstants;
 //import com.tcs.destination.utils.StringUtils;
 
@@ -4551,4 +4558,32 @@ public class WorkflowService {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, "Backend error while retrieving BFM file");
 		}
 	}
+
+	public InputStreamResource downloadBfmTemplate(Integer id)
+			throws Exception {
+
+		Workbook workbook = null;
+		InputStreamResource inputStreamResource = null;
+		logger.debug("Begin: inside downloadBfmTemplate() of WorkflowService");
+
+		try {
+			workbook = ExcelUtils.getWorkBook(new File
+					(PropertyUtil.getProperty
+							(Constants.BFM_DEAL_FINANCIAL_TEMPLATE_LOCATION_PROPERTY_NAME)));
+			ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
+			workbook.write(byteOutPutStream);
+			byteOutPutStream.flush();
+			byteOutPutStream.close();
+			byte[] bytes = byteOutPutStream.toByteArray();
+			inputStreamResource = new InputStreamResource(new ByteArrayInputStream(bytes));
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"An Internal Exception has occured");
+		}
+		logger.debug("End: inside  downloadBfmTemplate() of WorkflowService");
+		return inputStreamResource;
+	}
+
 }
