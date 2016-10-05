@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.3.0.final using JasperReports Library version 6.3.0  -->
-<!-- 2016-10-05T16:27:33 -->
+<!-- 2016-10-05T19:29:29 -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Blank_sub1_" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="20" isSummaryNewPage="true" uuid="e8e4e7af-e30d-446d-8f73-7a5bca67755a">
 	<parameter name="dealsWonP" class="java.lang.Integer"/>
 	<queryString>
@@ -32,7 +32,7 @@
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="Myriad Pro" size="12" isBold="true"/>
 				</textElement>
-				<textFieldExpression><![CDATA["Total Win(s) Reported "+$P{dealsWonP}]]></textFieldExpression>
+				<textFieldExpression><![CDATA["Total Win(s) Reported - "+$P{dealsWonP}]]></textFieldExpression>
 			</textField>
 			<image scaleImage="FillFrame">
 				<reportElement x="0" y="0" width="595" height="66" uuid="4a8d9ef8-e76b-4cdb-8e60-23bea2e1578b">
@@ -63,7 +63,7 @@
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$V{REPORT_COUNT}+"."]]></textFieldExpression>
 				</textField>
@@ -94,7 +94,7 @@
 				<staticText>
 					<reportElement positionType="Float" x="45" y="0" width="195" height="24" forecolor="#393939" uuid="d515ce48-8f74-422f-8ec2-4792887f35c1"/>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Opportunity Id]]></text>
 				</staticText>
@@ -133,7 +133,7 @@
 				<staticText>
 					<reportElement positionType="Float" x="45" y="0" width="195" height="24" forecolor="#393939" uuid="38ca3d0d-2878-4fa1-b590-74b94dd3b7f6"/>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<text><![CDATA[CRM ID]]></text>
 				</staticText>
@@ -172,7 +172,7 @@
 				<staticText>
 					<reportElement positionType="Float" x="45" y="0" width="195" height="24" forecolor="#393939" uuid="147d83e8-9fb1-41a2-b02b-a6e401c23012"/>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Customer Name]]></text>
 				</staticText>
@@ -211,7 +211,7 @@
 				<staticText>
 					<reportElement positionType="Float" x="45" y="0" width="195" height="24" forecolor="#393939" uuid="a7526751-d7eb-4c25-adbf-900ec88d22f0"/>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Opportunity Name]]></text>
 				</staticText>
@@ -250,7 +250,7 @@
 				<staticText>
 					<reportElement positionType="Float" x="45" y="0" width="195" height="24" forecolor="#393939" uuid="ab1e49b5-1751-487b-8d3f-019fe65ff598"/>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Opportunity Description]]></text>
 				</staticText>
@@ -289,7 +289,7 @@
 				<staticText>
 					<reportElement positionType="Float" x="45" y="0" width="195" height="24" forecolor="#393939" uuid="44d37107-0418-4d23-88d3-6b6f596e69aa"/>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Service Line]]></text>
 				</staticText>
@@ -328,7 +328,7 @@
 				<staticText>
 					<reportElement positionType="Float" x="45" y="0" width="195" height="24" forecolor="#393939" uuid="9b4ca056-6651-4057-a8b0-252292aaa789"/>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Deal Value]]></text>
 				</staticText>
@@ -367,7 +367,7 @@
 				<staticText>
 					<reportElement positionType="Float" x="45" y="0" width="195" height="24" forecolor="#393939" uuid="3eec7478-e723-4fe8-b961-cc87afd9dcb6"/>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Win Factors]]></text>
 				</staticText>
@@ -406,7 +406,7 @@
 				<staticText>
 					<reportElement positionType="Float" x="45" y="0" width="195" height="24" forecolor="#393939" uuid="baa82d26-a4ba-4320-8bbb-820b0c2d9870"/>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Competitor(s)]]></text>
 				</staticText>
@@ -445,7 +445,7 @@
 				<staticText>
 					<reportElement positionType="Float" x="45" y="0" width="195" height="24" forecolor="#393939" uuid="2e178923-bf97-4956-adc5-05ca8abaa581"/>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Owner]]></text>
 				</staticText>

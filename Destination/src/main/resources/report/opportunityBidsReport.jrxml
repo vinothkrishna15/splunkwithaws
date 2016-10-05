@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.3.0.final using JasperReports Library version 6.3.0  -->
-<!-- 2016-10-05T16:28:07 -->
+<!-- 2016-10-05T19:28:31 -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Blank_A4_bids" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isSummaryNewPage="true" uuid="e3ec1057-fd78-499e-b4be-d299cceda193">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
 	<parameter name="bidsSubmittedP" class="java.lang.Integer"/>
@@ -63,7 +63,7 @@
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 					</reportElement>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$V{REPORT_COUNT}+"."]]></textFieldExpression>
 				</textField>
@@ -75,7 +75,7 @@
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Opportunity Id]]></text>
 				</staticText>
@@ -143,7 +143,7 @@
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<text><![CDATA[CRM ID]]></text>
 				</staticText>
@@ -187,7 +187,7 @@
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Customer Name]]></text>
 				</staticText>
@@ -231,7 +231,7 @@
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Opportunity Name]]></text>
 				</staticText>
@@ -275,7 +275,7 @@
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Opportunity Description]]></text>
 				</staticText>
@@ -319,7 +319,7 @@
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Service Line]]></text>
 				</staticText>
@@ -363,7 +363,7 @@
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Deal Value]]></text>
 				</staticText>
@@ -407,7 +407,7 @@
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Outcome Expected Date]]></text>
 				</staticText>
@@ -451,7 +451,7 @@
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Competitor(s)]]></text>
 				</staticText>
@@ -495,7 +495,7 @@
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Owner]]></text>
 				</staticText>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.3.0.final using JasperReports Library version 6.3.0  -->
-<!-- 2016-10-05T16:28:28 -->
+<!-- 2016-10-05T19:27:40 -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Blank_A4_cust_connects" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="20" isSummaryNewPage="true" uuid="51d98947-709a-4335-8f52-9881218517e0">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
@@ -79,7 +79,7 @@
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 					</reportElement>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$V{REPORT_COUNT}+"."]]></textFieldExpression>
 				</textField>
@@ -91,7 +91,7 @@
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<text><![CDATA[BD Contact]]></text>
 				</staticText>
@@ -159,7 +159,7 @@
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Connect Date]]></text>
 				</staticText>
@@ -198,7 +198,7 @@
 				<textField>
 					<reportElement positionType="Float" x="45" y="0" width="195" height="24" forecolor="#393939" uuid="8b926958-9742-482d-8083-896e49385c79"/>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[($F{type} == 0 ? "Customer" : "Partner")+" Name"]]></textFieldExpression>
 				</textField>
@@ -242,7 +242,7 @@
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Connect Name]]></text>
 				</staticText>
@@ -286,7 +286,7 @@
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Service Line]]></text>
 				</staticText>
@@ -331,7 +331,7 @@
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<text><![CDATA[IOU]]></text>
 				</staticText>
@@ -370,7 +370,7 @@
 				<textField>
 					<reportElement x="45" y="0" width="195" height="24" forecolor="#393939" uuid="950f7b54-e4db-4225-b067-adfbb5753309"/>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[($F{type} == 0 ? "Customer" : "Partner") + " Contact"]]></textFieldExpression>
 				</textField>
@@ -409,7 +409,7 @@
 				<textField>
 					<reportElement x="45" y="0" width="195" height="24" forecolor="#393939" uuid="255b5dd6-e595-4877-b44e-b97d195114c5"/>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[($F{type} == 0 ? "Customer" : "Partner") + " Contact Role"]]></textFieldExpression>
 				</textField>
@@ -453,7 +453,7 @@
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Connect Category]]></text>
 				</staticText>
