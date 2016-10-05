@@ -45,7 +45,10 @@ public class DestinationUserDefaultObjectsHelper {
 		List<UserSubscriptions> userNotificationLeaderShipList = new ArrayList<UserSubscriptions>();
 		switch (userGroup) {
 		case BDM: 
-		case BDM_SUPERVISOR: 
+		case DELIVERY_MANAGER:	
+		case BDM_SUPERVISOR:
+		case DELIVERY_CLUSTER_HEAD:
+		case DELIVERY_CENTRE_HEAD:		
 		case PRACTICE_OWNER:
 		case PRACTICE_HEAD:
 			userNotificationLeaderShipList.add(getNotification(userId,16,1,Constants.N, notifyTypeEventMap));
@@ -75,7 +78,8 @@ public class DestinationUserDefaultObjectsHelper {
 			String userId, UserGroup userGroup, Map<String, NotificationTypeEventMappingT> notifyTypeEventMap) {
 		List<UserSubscriptions> userNotificationSupervisorList = new ArrayList<UserSubscriptions>();
 		switch (userGroup) {
-		case BDM: {
+		case BDM:
+		case DELIVERY_MANAGER:{
 			userNotificationSupervisorList.add(getNotification(userId,11,1,Constants.N, notifyTypeEventMap));
 			userNotificationSupervisorList.add(getNotification(userId,11,2,Constants.N, notifyTypeEventMap));
 			userNotificationSupervisorList.add(getNotification(userId,11,3,Constants.N, notifyTypeEventMap));
@@ -98,6 +102,8 @@ public class DestinationUserDefaultObjectsHelper {
 			break;
 		}
 		case BDM_SUPERVISOR: 
+		case DELIVERY_CLUSTER_HEAD:
+		case DELIVERY_CENTRE_HEAD:		
 		case GEO_HEADS: 
 		case PRACTICE_OWNER:
 		case PRACTICE_HEAD:
@@ -164,7 +170,10 @@ public class DestinationUserDefaultObjectsHelper {
 		
 		switch (userGroup) {
 		case BDM: 
+		case DELIVERY_MANAGER:	
 		case BDM_SUPERVISOR:
+		case DELIVERY_CLUSTER_HEAD:
+		case DELIVERY_CENTRE_HEAD:	
 		case PRACTICE_OWNER:
 		case PRACTICE_HEAD:
 			userNotificationCollaborationList.add(getNotification(userId,8,1,Constants.Y, notifyTypeEventMap));
@@ -212,8 +221,11 @@ public class DestinationUserDefaultObjectsHelper {
 			String userId, UserGroup userGroup, Map<String, NotificationTypeEventMappingT> notifyTypeEventMap) {
 		List<UserSubscriptions> userNotificationReminderList = new ArrayList<UserSubscriptions>();
 		switch (userGroup) {
-		case BDM: 
+		case BDM:
+		case DELIVERY_MANAGER:	
 		case BDM_SUPERVISOR:
+		case DELIVERY_CLUSTER_HEAD:
+		case DELIVERY_CENTRE_HEAD:	
 		case PRACTICE_OWNER:
 		case PRACTICE_HEAD:
 		case GEO_HEADS: 
@@ -255,8 +267,11 @@ public class DestinationUserDefaultObjectsHelper {
 		List<UserSubscriptions> userNotificationGeneralSettingsList = new ArrayList<UserSubscriptions>();
 		
 		switch (userGroup) {
-		case BDM: 
+		case BDM:
+		case DELIVERY_MANAGER:	
 		case BDM_SUPERVISOR:
+		case DELIVERY_CLUSTER_HEAD:
+		case DELIVERY_CENTRE_HEAD:
 		case PRACTICE_OWNER:
 		case PRACTICE_HEAD:
 		case GEO_HEADS: 
