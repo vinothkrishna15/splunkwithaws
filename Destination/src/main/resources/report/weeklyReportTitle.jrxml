@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.3.0.final using JasperReports Library version 6.3.0  -->
-<!-- 2016-10-05T16:25:50 -->
+<!-- 2016-10-06T16:27:53 -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Blank_A4_title" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="0c39b446-0235-45bc-bb6b-90bd49129ba2">
 	<parameter name="geographyP" class="java.lang.String"/>
 	<parameter name="weekNumberP" class="java.lang.Integer"/>
@@ -46,7 +46,7 @@
 				<textElement textAlignment="Right">
 					<font fontName="Myriad Pro" size="10.5" isBold="false"/>
 				</textElement>
-				<textFieldExpression><![CDATA["W"+$P{weekNumberP}+" "+$P{financialYearP}+":"+$P{previousWeekDateP}+"-"+$P{previousDateP}]]></textFieldExpression>
+				<textFieldExpression><![CDATA["W"+$P{weekNumberP}+"'"+$P{financialYearP}+": "+$P{previousWeekDateP}+"-"+$P{previousDateP}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="0" y="327" width="575" height="18" forecolor="#000000" uuid="7710d1ea-5fa8-4063-84ac-0a279441b32c">
@@ -55,10 +55,10 @@
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 				</reportElement>
-				<textElement textAlignment="Right">
-					<font fontName="Myriad Pro" size="10.5" isBold="false"/>
+				<textElement textAlignment="Right" markup="html">
+					<font fontName="Myriad Pro" size="10.5" isBold="false" isItalic="false" isUnderline="false"/>
 				</textElement>
-				<textFieldExpression><![CDATA["Published Date: "+$P{reportPublishedDateP}]]></textFieldExpression>
+				<textFieldExpression><![CDATA["<I><U>Published Date:</U></I> "+$P{reportPublishedDateP}]]></textFieldExpression>
 			</textField>
 		</band>
 	</summary>

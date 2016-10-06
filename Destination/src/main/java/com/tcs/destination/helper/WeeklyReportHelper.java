@@ -114,28 +114,25 @@ public class WeeklyReportHelper {
 		// Partner connects
 		List<ConnectCustomer> partnerConnects = getPartnerConnects(geos,
 				currentDate, previousWeekDate);
+		Integer partnerConnnectsSize = partnerConnects.size();
 		connects.addAll(partnerConnects);
 		
 		JRBeanCollectionDataSource winColDataSource = new 
 		         JRBeanCollectionDataSource(opportunityWins, false);
-		
 		JRBeanCollectionDataSource lossColDataSource = new 
 		         JRBeanCollectionDataSource(opportunityLoss, false);
-		
 		JRBeanCollectionDataSource bidsColDataSource = new 
 		         JRBeanCollectionDataSource(oppRFPSubmitted, false);
-		
 	     JRBeanCollectionDataSource connectsColDataSource = new 
 		         JRBeanCollectionDataSource(connects, false);
 		
-		
-		/*JasperReport titleSubReport = JasperCompileManager.compileReport("/Users/PocCoe/Desktop/Raz/code/nP1Check/Destination/src/main/resources/report/weeklyReportTitle.jrxml");
-		JasperReport performanceSnapshotReport = JasperCompileManager.compileReport("/Users/PocCoe/Desktop/Raz/code/nP1Check/Destination/src/main/resources/report/performanceSnapshotReport.jrxml");
-		JasperReport opportunityWinsReport = JasperCompileManager.compileReport("/Users/PocCoe/Desktop/Raz/code/nP1Check/Destination/src/main/resources/report/opportunityWinsReport.jrxml");
-		JasperReport opportunityLossReport = JasperCompileManager.compileReport("/Users/PocCoe/Desktop/Raz/code/nP1Check/Destination/src/main/resources/report/opportunityLossReport.jrxml");
-		JasperReport opportunityBidsReport = JasperCompileManager.compileReport("/Users/PocCoe/Desktop/Raz/code/nP1Check/Destination/src/main/resources/report/opportunityBidsReport.jrxml");
-		JasperReport connectsReport = JasperCompileManager.compileReport("/Users/PocCoe/Desktop/Raz/code/nP1Check/Destination/src/main/resources/report/connectsReport.jrxml");
-		*/
+	/*	String titleSubReport = JasperCompileManager.compileReportToFile("/Users/PocCoe/Desktop/Raz/code/nP1Check/Destination/src/main/resources/report/weeklyReportTitle.jrxml");
+		String performanceSnapshotReport = JasperCompileManager.compileReportToFile("/Users/PocCoe/Desktop/Raz/code/nP1Check/Destination/src/main/resources/report/performanceSnapshotReport.jrxml");
+		String opportunityWinsReport = JasperCompileManager.compileReportToFile("/Users/PocCoe/Desktop/Raz/code/nP1Check/Destination/src/main/resources/report/opportunityWinsReport.jrxml");
+		String opportunityLossReport = JasperCompileManager.compileReportToFile("/Users/PocCoe/Desktop/Raz/code/nP1Check/Destination/src/main/resources/report/opportunityLossReport.jrxml");
+		String opportunityBidsReport = JasperCompileManager.compileReportToFile("/Users/PocCoe/Desktop/Raz/code/nP1Check/Destination/src/main/resources/report/opportunityBidsReport.jrxml");
+		String connectsReport = JasperCompileManager.compileReportToFile("/Users/PocCoe/Desktop/Raz/code/nP1Check/Destination/src/main/resources/report/connectsReport.jrxml");
+	*/	
 		String titleSubReport = "report/jasper/weeklyReportTitle.jasper";
 		String performanceSnapshotReport = "report/jasper/performanceSnapshotReport.jasper";
 		String opportunityWinsReport = "report/jasper/opportunityWinsReport.jasper";
@@ -151,9 +148,10 @@ public class WeeklyReportHelper {
 			parameters.put("totalBidsMainP", oppRFPSubmitted.size());
 			parameters.put("totalConnectsMainP", connects.size());
 			parameters.put("custConnectsMainP", customerConnnectsSize+1);
-			parameters.put("winsValueMainP", StringUtils.isNotEmpty(totalWinValue)?totalWinValue:"0");
-			parameters.put("lossValueMainP", StringUtils.isNotEmpty(totalLossValue)?totalLossValue:"0");
-			parameters.put("bidsValueMainP", StringUtils.isNotEmpty(totalBidsValue)?totalBidsValue:"0");
+			parameters.put("partConnectsMainP", partnerConnnectsSize+1);
+			parameters.put("winsValueMainP", StringUtils.isNotEmpty(totalWinValue)?totalWinValue:"USD 0M");
+			parameters.put("lossValueMainP", StringUtils.isNotEmpty(totalLossValue)?totalLossValue:"USD 0M");
+			parameters.put("bidsValueMainP", StringUtils.isNotEmpty(totalBidsValue)?totalBidsValue:"USD 0M");
 			parameters.put("winDataSource", winColDataSource);
 			parameters.put("lossSize", opportunityLoss.size());
 			parameters.put("lossDataSource", lossColDataSource);
@@ -177,7 +175,6 @@ public class WeeklyReportHelper {
 			parameters.put("titleDataSource", new JREmptyDataSource());
 			
 			JasperPrint jasperPrint = null;
-			
 			try {
 				jasperPrint = JasperFillManager.fillReport(getClass().getResourceAsStream("/report/jasper/weeklyReport.jasper"), parameters, new JREmptyDataSource());
 			} catch (Exception e) {
@@ -275,6 +272,8 @@ public class WeeklyReportHelper {
 				List<String> connectContactRoles = Lists.newArrayList();
 				Set<String> connectSubSp = Sets.newHashSet();
 				ConnectCustomer partnerConnect = new ConnectCustomer();
+				//Connect Id
+				partnerConnect.setConnectId(connectT.getConnectId());
 				// Primary Owner
 				partnerConnect.setBdContact(connectT.getPrimaryOwnerUser()
 						.getUserName());
@@ -358,6 +357,8 @@ public class WeeklyReportHelper {
 				List<String> connectContactRoles = Lists.newArrayList();
 				Set<String> connectSubSp = Sets.newHashSet();
 				ConnectCustomer customerConnect = new ConnectCustomer();
+				//Connect Id
+				customerConnect.setConnectId(connectT.getConnectId());
 				// Primary Owner
 				customerConnect.setBdContact(connectT.getPrimaryOwnerUser()
 						.getUserName());
@@ -499,12 +500,16 @@ public class WeeklyReportHelper {
 				BidDetailsT bidDetailsT = bidDetailsTRepository
 						.findFirstByOpportunityIdOrderByModifiedDatetimeDesc(opp
 								.getOpportunityId());
+				String bidType = null;
 				if (bidDetailsT != null) {
 					expectedDateOfOutcome = (bidDetailsT
 							.getExpectedDateOfOutcome() != null) ? ACTUAL_FORMAT
 							.format(bidDetailsT.getExpectedDateOfOutcome())
 							: expectedDateOfOutcome;
+							bidType = bidDetailsT.getBidRequestType();		
 				}
+				oppRFPSubmitted.setBidType(StringUtils.isNotEmpty(bidType) ? bidType : 
+					Constants.NOT_AVAILABLE);
 				oppRFPSubmitted.setOutcomeExpectedDate(expectedDateOfOutcome);
 				// Opportunity competitors
 				oppCompetitor = getCompetitors(opp
