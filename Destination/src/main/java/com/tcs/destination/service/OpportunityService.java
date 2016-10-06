@@ -1017,7 +1017,7 @@ public class OpportunityService {
 			String userGroup = user.getUserGroup();
 			UserGroup userGroupE = UserGroup.getUserGroup(userGroup);
 			if (userGroupE == UserGroup.DELIVERY_CENTRE_HEAD
-					|| userGroupE == UserGroup.DELIVERY_CENTRE_HEAD
+					|| userGroupE == UserGroup.DELIVERY_CLUSTER_HEAD
 					|| userGroupE == UserGroup.DELIVERY_MANAGER) {
 				deliveryTeamFlag = true;
 			}

@@ -149,6 +149,8 @@ public class CustomerService {
 	public CustomerMasterT findById(String customerId, List<String> toCurrency)
 			throws Exception {
 		logger.debug("Inside findById() service");
+		UserT userT= DestinationUtils.getCurrentUserDetails();
+		String userGroup = userT.getUserGroup();
 		CustomerMasterT customerMasterT = customerRepository
 				.findOne(customerId);
 		if (customerMasterT == null) {
@@ -156,7 +158,13 @@ public class CustomerService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Customer not found: " + customerId);
 		}
-		prepareCustomerDetails(customerMasterT, null);
+		if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+				|| userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+				|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())){
+			prepareDeliveryCustomerDetails(customerMasterT, userT);
+		} else {
+			prepareCustomerDetails(customerMasterT, null);
+		}
 		beaconConverterService.convertOpportunityCurrency(
 				customerMasterT.getOpportunityTs(), toCurrency);
 		return customerMasterT;
@@ -440,7 +448,6 @@ public class CustomerService {
 	 */
 	public PaginatedResponse findByNameStarting(String startsWith, int page,
 			int count) throws Exception {
-
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		Pageable pageable = new PageRequest(page, count);
 		logger.debug("Starts With" + startsWith);
@@ -496,27 +503,47 @@ public class CustomerService {
 		}
 	}
 
-	
-	
-
 	private void prepareCustomerDetails(List<CustomerMasterT> customerMasterList)
 			throws Exception {
 		logger.debug("Inside prepareCustomerDetails() method");
-
+		UserT userT= DestinationUtils.getCurrentUserDetails();
+		String userGroup = userT.getUserGroup();
 		if (customerMasterList != null && !customerMasterList.isEmpty()) {
 			ArrayList<String> customerNameList = new ArrayList<String>();
 			for (CustomerMasterT customerMasterT : customerMasterList) {
 				customerNameList.add(customerMasterT.getCustomerName());
 			}
-			customerNameList =  customerDao.getPreviledgedCustomerName(DestinationUtils
-					.getCurrentUserDetails().getUserId(), customerNameList,
-					true);
-
-			for (CustomerMasterT customerMasterT : customerMasterList) {
-				prepareCustomerDetails(customerMasterT, customerNameList);
+			if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+					|| userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+					|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())){
+				for (CustomerMasterT customerMasterT : customerMasterList) {
+					prepareDeliveryCustomerDetails(customerMasterT, userT);
+				}
+			} else {
+				customerNameList =  customerDao.getPreviledgedCustomerName(userT.getUserId(), 
+						customerNameList, true);
+				for (CustomerMasterT customerMasterT : customerMasterList) {
+					prepareCustomerDetails(customerMasterT, customerNameList);
+				}
 			}
 		}
+	}
 
+	/**
+	 * This method is used to prepare delivery customer for his and his subordinates
+	 * 
+	 * @param customerMasterT
+	 * @param userT
+	 */
+	private void prepareDeliveryCustomerDetails(CustomerMasterT customerMasterT, UserT userT) {
+		removeCyclicForLinkedContactTs(customerMasterT);
+		List<String> userIds = userRepository.getAllSubordinatesIdBySupervisorId(userT.getUserId());
+		userIds.add(userT.getUserId());
+		for (ContactCustomerLinkT contactCustomerLinkT : customerMasterT.getContactCustomerLinkTs()) {
+			if(!userIds.contains(contactCustomerLinkT.getContactT().getCreatedByUser().getUserId())){
+				contactService.preventSensitiveInfoForDelivery(contactCustomerLinkT.getContactT());
+			}
+		}
 	}
 
 	private void prepareCustomerDetails(CustomerMasterT customerMasterT,
@@ -548,17 +575,17 @@ public class CustomerService {
 	/**
 	 * This method is used to hide the sensitive information of customer contact
 	 * @param customerMasterT
+	 * @param userGroup 
 	 */
 	private void hideSensitiveInfo(CustomerMasterT customerMasterT) {
 		logger.debug("Inside hideSensitiveInfo() method");
-
 		opportunityService.preventSensitiveInfo(customerMasterT
 				.getOpportunityTs());
-		for (ContactCustomerLinkT contactCustomerLinkT : customerMasterT
-				.getContactCustomerLinkTs())
-			contactService.preventSensitiveInfo(contactCustomerLinkT
-					.getContactT());
-
+			for (ContactCustomerLinkT contactCustomerLinkT : customerMasterT
+					.getContactCustomerLinkTs()) {
+				contactService.preventSensitiveInfo(contactCustomerLinkT
+						.getContactT());
+			}
 	}
 
 	

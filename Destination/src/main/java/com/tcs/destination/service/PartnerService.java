@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
+import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.GeographyCountryMappingT;
 import com.tcs.destination.bean.GeographyMappingT;
@@ -132,12 +133,13 @@ public class PartnerService {
 	
 	@Autowired
 	PartnerSubSpMappingTRepository partnerSubSpMappingRepository;
+	
+	@Autowired
+	ContactService contactService;
 
 	private Map<String, GeographyMappingT> geographyMapping = null;
 
 	private Map<String, GeographyCountryMappingT> geographyCountryMapping = null;
-
-
 
 	/**
 	 * This service saves partner details into partner_master_t
@@ -183,6 +185,7 @@ public class PartnerService {
 	public PartnerMasterT findById(String partnerId, List<String> toCurrency)
 			throws Exception {
 		logger.debug("Begin:Inside findById method of PartnerService");
+		UserT userT= DestinationUtils.getCurrentUserDetails();
 		PartnerMasterT partner = partnerRepository.findOne(partnerId);
 		if (partner == null) {
 			logger.error("NOT_FOUND: No such partner found.");
@@ -194,7 +197,7 @@ public class PartnerService {
 			beaconConverterService.convertOpportunityCurrency(
 					opportunityPartnerLinkT.getOpportunityT(), toCurrency);
 		}
-		preparePartner(partner);
+		preparePartner(partner, userT);
 		logger.debug("End:Inside findById method of PartnerService");
 		return partner;
 	}
@@ -409,13 +412,15 @@ public class PartnerService {
 		return paginatedResponse;
 	}
 	private void preparePartner(List<PartnerMasterT> partners) {
+		UserT userT= DestinationUtils.getCurrentUserDetails();
 		for (PartnerMasterT partner : partners) {
-			preparePartner(partner);
+			preparePartner(partner, userT);
 		}
 	}
 
-	private void preparePartner(PartnerMasterT partner) {
+	private void preparePartner(PartnerMasterT partner, UserT userT) {
 		if (partner != null) {
+			prepareDeliveryPartnerContact(partner,userT);
 			List<OpportunityPartnerLinkT> opportunityPartnerLinkTs = partner
 					.getOpportunityPartnerLinkTs();
 			for (OpportunityPartnerLinkT opportunityPartnerLinkT : opportunityPartnerLinkTs) {
@@ -445,6 +450,31 @@ public class PartnerService {
 					}
 				}
 			}
+		}
+	}
+
+	private void prepareDeliveryPartnerContact(PartnerMasterT partner,
+			UserT userT) {
+		String userGroup = userT.getUserGroup();
+		List<String> userIds = userRepository.getAllSubordinatesIdBySupervisorId(userT.getUserId());
+		userIds.add(userT.getUserId());
+		if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+				|| userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+				|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())){
+			List<PartnerContactLinkT> partnerContactLinkTs = partner.getPartnerContactLinkTs();
+			for (PartnerContactLinkT partnerContactLinkT : partnerContactLinkTs) {
+				partnerContactLinkT.getContactT().setPartnerContactLinkTs(null);
+				if (partnerContactLinkT.getContactT() != null) {
+					preventSensitiveInfoForDelivery(partnerContactLinkT.getContactT(), userIds);
+				}
+			}
+		}
+	}
+	
+	private void preventSensitiveInfoForDelivery(ContactT contactT,
+			List<String> userIds) {
+		if(!userIds.contains(contactT.getCreatedByUser().getUserId())){
+			contactService.preventSensitiveInfoForDelivery(contactT);
 		}
 	}
 

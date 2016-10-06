@@ -31,6 +31,7 @@ import com.tcs.destination.bean.ConnectsSplitDTO;
 import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.ContactRoleMappingT;
 import com.tcs.destination.bean.ContactT;
+import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.OpportunitiesSplitDTO;
 import com.tcs.destination.bean.OpportunityCustomerContactLinkT;
 import com.tcs.destination.bean.OpportunityT;
@@ -40,14 +41,17 @@ import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerContactLinkT;
 import com.tcs.destination.bean.ProductContactLinkT;
 import com.tcs.destination.bean.SearchResultDTO;
+import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.ContactCustomerLinkTRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.ContactRoleMappingTRepository;
 import com.tcs.destination.data.repository.PartnerContactLinkTRepository;
 import com.tcs.destination.data.repository.ProductContactLinkTRepository;
+import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.ContactType;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.SmartSearchType;
+import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.UserAccessPrivilegeQueryBuilder;
 import com.tcs.destination.utils.Constants;
@@ -91,6 +95,9 @@ public class ContactService {
 
 	@Autowired
 	ProductContactLinkTRepository productContactLinkTRepository;
+
+	@Autowired
+	UserRepository userRepository;
 
 
 
@@ -137,27 +144,38 @@ public class ContactService {
 	 * This method is used to find contact details for the given contact id.
 	 * 
 	 * @param contactId
-	 * @param userId
+	 * @param userT
 	 * @return contact details for the given contact id.
 	 */
-	public ContactT findById(String contactId, String userId) throws Exception {
+	public ContactT findById(String contactId, UserT userT) throws Exception {
 		logger.debug("Inside findTaskById Service");
+		String userGroup = userT.getUserGroup();
 		ContactT contact = contactRepository.findOne(contactId);
-		// if (!userId
-		// .equals(DestinationUtils.getCurrentUserDetails().getUserId()))
-		// throw new DestinationException(HttpStatus.FORBIDDEN,
-		// "User Id and Login User Detail does not match");
 		if (contact == null) {
 			logger.error("NOT_FOUND: No contact found for the ContactId");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Contact found");
 		}
 		removeCyclicForLinkedContactTs(contact);
-		if (contact.getContactCategory().equals(EntityType.CUSTOMER.name())) {
-			prepareContactDetails(contact, null);
+		if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+				|| userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+				|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())){
+			prepareDeliveryContactDetails(contact, userT);
+		} else {
+			if (contact.getContactCategory().equals(EntityType.CUSTOMER.name())) {
+				prepareContactDetails(contact, null);
+			}
 		}
 		updateContactTFor360(contact);
 		return contact;
+	}
+
+	public void prepareDeliveryContactDetails(ContactT contact, UserT userT) {
+		List<String> userIds = userRepository.getAllSubordinatesIdBySupervisorId(userT.getUserId());
+		userIds.add(userT.getUserId());
+		if(!userIds.contains(contact.getCreatedByUser().getUserId())){
+			preventSensitiveInfoForDelivery(contact);
+		}
 	}
 
 	/**
@@ -833,23 +851,44 @@ public class ContactService {
 			throws Exception {
 		removeCyclicForLinkedContactTs(contactList);
 		logger.debug("Inside prepareContactDetails() method");
-
+		UserT userT = DestinationUtils.getCurrentUserDetails();
+		String userGroup = userT.getUserGroup();
 		if (contactList != null && !contactList.isEmpty()) {
 			ArrayList<String> contactIdList = new ArrayList<String>();
 			for (ContactT contactT : contactList) {
 				contactIdList.add(contactT.getContactId());
 			}
-			contactIdList = getPreviledgedContactIds(DestinationUtils
-					.getCurrentUserDetails().getUserId(), contactIdList, true);
 
-			for (ContactT contactT : contactList) {
-				if (contactT.getContactCategory().equals(
-						EntityType.CUSTOMER.name())) {
-					prepareContactDetails(contactT, contactIdList);
+			if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+					|| userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+					|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())) {
+				prepareDeliveryContactListDetails(contactList, userT);
+			} else {
+				contactIdList = getPreviledgedContactIds(DestinationUtils
+						.getCurrentUserDetails().getUserId(), contactIdList, true);
+				for (ContactT contactT : contactList) {
+					if (contactT.getContactCategory().equals(
+							EntityType.CUSTOMER.name())) {
+						prepareContactDetails(contactT, contactIdList);
+					}
 				}
 			}
 		}
 	}
+
+	/**
+	 * This method is used to hide sensitive information for Delivery team if they are not created the contact
+	 * 
+	 * @param contactList
+	 * @param userT
+	 */
+	private void prepareDeliveryContactListDetails(
+			List<ContactT> contactList, UserT userT) {
+		for (ContactT contactT : contactList) {
+			prepareDeliveryContactDetails(contactT, userT);
+		}
+	}
+
 
 	/**
 	 * This method inserts contact to the database
@@ -1384,6 +1423,17 @@ public class ContactService {
 		conRes.setSearchType(type);
 		conRes.setValues(records);
 		return conRes;
+	}
+
+	/**
+	 * This method is used to prevent sensitive info in the contact while retrieval
+	 * @param contact
+	 */
+	public void preventSensitiveInfoForDelivery(ContactT contactT) {
+		if (contactT != null) {
+			contactT.setContactEmailId(null);
+			contactT.setContactTelephone(null);
+		}
 	}
 
 }
