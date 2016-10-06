@@ -39,7 +39,7 @@ public class AuditDeliveryResourcesT implements Serializable {
 	private String deliveryMasterId;
 
 	@Column(name="delivery_resource_id")
-	private Integer deliveryResourceId;
+	private String deliveryResourceId;
 
 	@Column(name="new_delivery_rgs_id")
 	private String newDeliveryRgsId;
@@ -113,11 +113,11 @@ public class AuditDeliveryResourcesT implements Serializable {
 		this.deliveryMasterId = deliveryMasterId;
 	}
 
-	public Integer getDeliveryResourceId() {
+	public String getDeliveryResourceId() {
 		return this.deliveryResourceId;
 	}
 
-	public void setDeliveryResourceId(Integer deliveryResourceId) {
+	public void setDeliveryResourceId(String deliveryResourceId) {
 		this.deliveryResourceId = deliveryResourceId;
 	}
 
