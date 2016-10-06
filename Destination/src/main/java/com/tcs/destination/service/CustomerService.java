@@ -149,6 +149,8 @@ public class CustomerService {
 	public CustomerMasterT findById(String customerId, List<String> toCurrency)
 			throws Exception {
 		logger.debug("Inside findById() service");
+		UserT userT= DestinationUtils.getCurrentUserDetails();
+		String userGroup = userT.getUserGroup();
 		CustomerMasterT customerMasterT = customerRepository
 				.findOne(customerId);
 		if (customerMasterT == null) {
@@ -156,7 +158,13 @@ public class CustomerService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Customer not found: " + customerId);
 		}
-		prepareCustomerDetails(customerMasterT, null);
+		if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+				|| userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+				|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())){
+			prepareDeliveryCustomerDetails(customerMasterT, userT);
+		} else {
+			prepareCustomerDetails(customerMasterT, null);
+		}
 		beaconConverterService.convertOpportunityCurrency(
 				customerMasterT.getOpportunityTs(), toCurrency);
 		return customerMasterT;

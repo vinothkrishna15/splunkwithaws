@@ -27,6 +27,7 @@ import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
+import com.tcs.destination.bean.UserT;
 import com.tcs.destination.enums.SmartSearchType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.ContactService;
@@ -71,10 +72,10 @@ public class ContactController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 					throws DestinationException {
-		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		UserT userT = DestinationUtils.getCurrentUserDetails();
 		logger.info("Inside ContactController: Start of retrieving the contact by contact id");
 		try {
-			ContactT contact = contactService.findById(contactId, userId);
+			ContactT contact = contactService.findById(contactId, userT);
 			logger.info("Inside ContactController: End of retrieving the contact by contact id");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, contact);

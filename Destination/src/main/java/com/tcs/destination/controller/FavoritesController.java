@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserFavoritesT;
+import com.tcs.destination.bean.UserT;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.FavoritesService;
 import com.tcs.destination.utils.DestinationUtils;
@@ -56,7 +57,7 @@ public class FavoritesController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		UserT userT = DestinationUtils.getCurrentUserDetails();
 		logger.info("Inside favorites controller : Start of retrieving the favourites");
 		try {
 			if (page < 0 && count < 0) {
@@ -64,7 +65,7 @@ public class FavoritesController {
 						"Invalid pagination request");
 			}
 			PaginatedResponse favourites = myFavService.findFavoritesFor(
-					userId, entityType, page, count);
+					userT, entityType, page, count);
 			logger.info("Inside favorites controller : End of retrieving the favourites");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, favourites);
@@ -171,7 +172,7 @@ public class FavoritesController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		UserT userT = DestinationUtils.getCurrentUserDetails();
 		logger.info("Inside favorites controller : Start of retrieving the favourites for user");
 		try {
 			// if page and count are negative
@@ -180,7 +181,7 @@ public class FavoritesController {
 						"Invalid pagination request");
 			}
 			// calling service
-			PaginatedResponse favourites = myFavService.findFavoritesForUser(userId, page, count);
+			PaginatedResponse favourites = myFavService.findFavoritesForUser(userT, page, count);
 			logger.info("Inside favorites controller : End of retrieving the favourites for user");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, favourites);
@@ -189,7 +190,7 @@ public class FavoritesController {
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					"Backend error in retrieving the favourites for " + userId);
+					"Backend error in retrieving the favourites for " + userT.getUserId());
 		}
 	}
 

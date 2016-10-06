@@ -10,12 +10,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.ConnectT;
+import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.UserFavoritesT;
+import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.FavoritesSearchedRepository;
 import com.tcs.destination.enums.EntityType;
+import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.exception.NoSuchEntityException;
 
@@ -37,14 +40,14 @@ public class FavoritesService {
 	
 /**
  * This method finds the favorites for an user
- * @param userId
+ * @param userT
  * @param entityType
  * @param start
  * @param count
  * @return
  * @throws Exception
  */
-	public PaginatedResponse findFavoritesFor(String userId, String entityType,
+	public PaginatedResponse findFavoritesFor(UserT userT, String entityType,
 			int start, int count) throws Exception {
 		PaginatedResponse favorites = null;
 
@@ -54,14 +57,14 @@ public class FavoritesService {
 			
 			Page<UserFavoritesT> userFavorites = userFavRepository
 					.findByUserIdAndEntityTypeIgnoreCaseOrderByCreatedDatetimeDesc(
-							userId, entityType, pageable);
+							userT.getUserId(), entityType, pageable);
 
 			if (userFavorites.getContent().isEmpty()) {
 				logger.error("NOT_FOUND: No Relevent Data Found in the database");
 				throw new DestinationException(HttpStatus.NOT_FOUND,
 						"No Favorites found");
 			} else {
-				prepareFavorites(userFavorites);
+				prepareFavorites(userFavorites, userT);
 				favorites = new PaginatedResponse();
 				favorites.setUserFavoritesTs(userFavorites.getContent());
 				favorites.setTotalCount(userFavorites.getTotalElements());
@@ -241,17 +244,25 @@ public class FavoritesService {
 	 * This method is used to remove cyclic dependency in UserFavoritesT
 	 * 
 	 * @param userFavorites
+	 * @param userT 
 	 * @throws DestinationException
 	 */
-	private void prepareFavorites(Iterable<UserFavoritesT> userFavorites)
+	private void prepareFavorites(Iterable<UserFavoritesT> userFavorites, UserT userT)
 			throws DestinationException {
 		logger.debug("Starting prepareFavorites service");
+		String userGroup = userT.getUserGroup();
 		for (UserFavoritesT userFavoritesT : userFavorites) {
 			if (userFavoritesT.getContactT() != null) {
 				contactService.removeCyclicForLinkedContactTs(userFavoritesT
 						.getContactT());
-				contactService.prepareContactDetails(
-						userFavoritesT.getContactT(), null);
+				if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+						|| userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+						|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())) {
+					contactService.prepareDeliveryContactDetails(userFavoritesT.getContactT(), userT);
+				} else {
+					contactService.prepareContactDetails(
+							userFavoritesT.getContactT(), null);
+				}
 				userFavoritesT.getContactT().setUserFavoritesTs(null);
 			}
 			if (userFavoritesT.getCustomerMasterT() != null && userFavoritesT.getCustomerMasterT().isActive()==true) {
@@ -292,15 +303,16 @@ public class FavoritesService {
 		logger.debug("Ending prepareFavorites service");
 	}
 
+
 	/**
 	 * This service retrieves for the favorites of a users
 	 * 
-	 * @param userId
+	 * @param userT
 	 * @param page
 	 * @param count
 	 * @return
 	 */
-	public PaginatedResponse findFavoritesForUser(String userId, int page, int count) {
+	public PaginatedResponse findFavoritesForUser(UserT userT, int page, int count) {
 
 		PaginatedResponse favorites = new PaginatedResponse();;
 		Page<UserFavoritesT> userFavorites = null;
@@ -309,14 +321,14 @@ public class FavoritesService {
 			Pageable pageable = new PageRequest(page, count);
 			
 			userFavorites = userFavRepository
-					.findByUserIdOrderByCreatedDatetimeDesc(userId, pageable);
+					.findByUserIdOrderByCreatedDatetimeDesc(userT.getUserId(), pageable);
 
 			if (userFavorites.getContent().isEmpty()) { // If NO favorites are found
 				logger.error("NOT_FOUND: No Relevent Data Found in the database");
 				throw new DestinationException(HttpStatus.NOT_FOUND,
 						"No Favorites found");
 			} else { // If favorites exists for the user
-				prepareFavorites(userFavorites); // remove cyclic dependency
+				prepareFavorites(userFavorites, userT); // remove cyclic dependency
 				favorites.setUserFavoritesTs(userFavorites.getContent()); 
 				favorites.setTotalCount(userFavorites.getTotalElements());
 				logger.debug("Ending findFavoritesForUser Favorites Service");
