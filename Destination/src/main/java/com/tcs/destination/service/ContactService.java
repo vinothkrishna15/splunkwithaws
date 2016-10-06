@@ -31,6 +31,7 @@ import com.tcs.destination.bean.ConnectsSplitDTO;
 import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.ContactRoleMappingT;
 import com.tcs.destination.bean.ContactT;
+import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.OpportunitiesSplitDTO;
 import com.tcs.destination.bean.OpportunityCustomerContactLinkT;
 import com.tcs.destination.bean.OpportunityT;
@@ -156,12 +157,12 @@ public class ContactService {
 					"No Contact found");
 		}
 		removeCyclicForLinkedContactTs(contact);
-		if (contact.getContactCategory().equals(EntityType.CUSTOMER.name())) {
-			if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
-					|| userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
-					|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())){
-				prepareDeliveryContactDetails(contact, userT);
-			} else {
+		if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+				|| userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+				|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())){
+			prepareDeliveryContactDetails(contact, userT);
+		} else {
+			if (contact.getContactCategory().equals(EntityType.CUSTOMER.name())) {
 				prepareContactDetails(contact, null);
 			}
 		}
@@ -850,23 +851,44 @@ public class ContactService {
 			throws Exception {
 		removeCyclicForLinkedContactTs(contactList);
 		logger.debug("Inside prepareContactDetails() method");
-
+		UserT userT = DestinationUtils.getCurrentUserDetails();
+		String userGroup = userT.getUserGroup();
 		if (contactList != null && !contactList.isEmpty()) {
 			ArrayList<String> contactIdList = new ArrayList<String>();
 			for (ContactT contactT : contactList) {
 				contactIdList.add(contactT.getContactId());
 			}
-			contactIdList = getPreviledgedContactIds(DestinationUtils
-					.getCurrentUserDetails().getUserId(), contactIdList, true);
 
-			for (ContactT contactT : contactList) {
-				if (contactT.getContactCategory().equals(
-						EntityType.CUSTOMER.name())) {
-					prepareContactDetails(contactT, contactIdList);
+			if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+					|| userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+					|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())) {
+				prepareDeliveryContactListDetails(contactList, userT);
+			} else {
+				contactIdList = getPreviledgedContactIds(DestinationUtils
+						.getCurrentUserDetails().getUserId(), contactIdList, true);
+				for (ContactT contactT : contactList) {
+					if (contactT.getContactCategory().equals(
+							EntityType.CUSTOMER.name())) {
+						prepareContactDetails(contactT, contactIdList);
+					}
 				}
 			}
 		}
 	}
+
+	/**
+	 * This method is used to hide sensitive information for Delivery team if they are not created the contact
+	 * 
+	 * @param contactList
+	 * @param userT
+	 */
+	private void prepareDeliveryContactListDetails(
+			List<ContactT> contactList, UserT userT) {
+		for (ContactT contactT : contactList) {
+			prepareDeliveryContactDetails(contactT, userT);
+		}
+	}
+
 
 	/**
 	 * This method inserts contact to the database
