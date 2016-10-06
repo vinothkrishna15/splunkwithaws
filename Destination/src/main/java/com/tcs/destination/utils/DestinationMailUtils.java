@@ -3982,7 +3982,7 @@ public class DestinationMailUtils {
 					reciepientIds.add(deliveryCentreHead);
 					List<String> assignedManagers = getDeliveryManagers(deliveryMaster
 							.getDeliveryMasterManagerLinkTs());
-					data.put("deliveryManager",deliveryMaster.getModifiedBy());
+					data.put("deliveryManager",deliveryMaster.getModifiedByUser().getUserName());
 					ccIds.add(deliveryClusterHead);
 					ccIds.addAll(assignedManagers);
 					List<String> strategicInitiatives = userRepository
