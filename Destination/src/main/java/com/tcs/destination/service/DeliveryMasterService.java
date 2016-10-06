@@ -69,7 +69,7 @@ public class DeliveryMasterService {
 
 	private static final Logger logger = LoggerFactory.getLogger(DeliveryMasterService.class);
 
-	private static final int numDeliveryStages = 5;
+	private static final int numDeliveryStages = 6;
 	
 	@Autowired
 	DeliveryMasterRepository deliveryMasterRepository;
