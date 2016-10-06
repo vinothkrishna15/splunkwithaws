@@ -513,15 +513,16 @@ public class CustomerService {
 			for (CustomerMasterT customerMasterT : customerMasterList) {
 				customerNameList.add(customerMasterT.getCustomerName());
 			}
-
-			for (CustomerMasterT customerMasterT : customerMasterList) {
-				if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
-						|| userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
-						|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())){
+			if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+					|| userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+					|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())){
+				for (CustomerMasterT customerMasterT : customerMasterList) {
 					prepareDeliveryCustomerDetails(customerMasterT, userT);
-				} else {
-					customerNameList =  customerDao.getPreviledgedCustomerName(userT.getUserId(), 
-							customerNameList, true);
+				}
+			} else {
+				customerNameList =  customerDao.getPreviledgedCustomerName(userT.getUserId(), 
+						customerNameList, true);
+				for (CustomerMasterT customerMasterT : customerMasterList) {
 					prepareCustomerDetails(customerMasterT, customerNameList);
 				}
 			}
