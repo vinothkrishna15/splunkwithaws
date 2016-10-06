@@ -31,7 +31,7 @@ public interface DeliveryMasterRepository extends JpaRepository<DeliveryMasterT,
 			@Param("getAll") boolean getAll, @Param("userId") String userId);
 
 	@Query(value="SELECT * FROM delivery_master_t where delivery_centre_id in (SELECT delivery_centre_id FROM delivery_centre_t where delivery_cluster_id in ("
-			+ " SELECT delivery_cluster_id FROM delivery_cluster_t WHERE delivery_cluster_head=(:userId)) AND UPPER(delivery_centre) like UPPER(:term)  OR delivery_centre_id=-1) "
+			+ " SELECT delivery_cluster_id FROM delivery_cluster_t WHERE delivery_cluster_head=(:userId) OR delivery_centre_id=-1) AND UPPER(delivery_centre) like UPPER(:term)) "
 			+ " ORDER BY modified_datetime DESC LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery=true)
 	List<DeliveryMasterT> searchDeliveryClusterDetailsByDeliveryCentres(@Param("term") String term,
 			@Param("getAll") boolean getAll, @Param("userId") String userId);
