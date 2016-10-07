@@ -810,6 +810,12 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 			@Param("previousWeekDate") Timestamp previousWeekDate,
 			@Param("currentWeekDate") Timestamp currentWeekDate,
 			@Param("connectCategory") String connectCategory);
+
+	
+	@Query(value= "select * from connect_t where primary_owner in (:userIds)  "
+			+ " UNION select (CNN.*) from connect_t CNN JOIN connect_secondary_owner_link_t CSLT ON (CNN.connect_id=CSLT.connect_id) "
+			+ " where CSLT.secondary_owner in (:userIds) ", nativeQuery=true)
+	List<ConnectT> getConnectByOwners(@Param("userIds") List<String> userIds);
 	
 	
 }

@@ -2557,7 +2557,7 @@ public class OpportunityService {
 				|| userGroup.equals(UserGroup.DELIVERY_MANAGER.getValue())) {
 			List<String> userIds = userRepository.getAllSubordinatesIdBySupervisorId(user.getUserId());
 			userIds.add(user.getUserId());
-			List<OpportunityT> deliveryOppList = validateAndGetDeliveryOpportunities(opportunity, userId);
+			List<OpportunityT> deliveryOppList = validateAndGetDeliveryOpportunities(opportunity, userIds);
 			opportunityList.addAll(deliveryOppList);
 		} else {
 			opportunityList.addAll(opportunity);

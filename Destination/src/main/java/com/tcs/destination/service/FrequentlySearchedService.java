@@ -13,10 +13,12 @@ import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.FrequentlySearchedCustomerPartnerT;
 import com.tcs.destination.bean.FrequentlySearchedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
+import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.FrequentlySearchedRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.enums.EntityType;
+import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
@@ -41,6 +43,9 @@ public class FrequentlySearchedService {
 	@Autowired
 	FrequentlySearchedRepository frequentRepository;
 
+	@Autowired
+	private CustomerService customerService;
+
 	/**
 	 * This method searches  and finds the frequently searched 
 	 * customers and partners
@@ -52,6 +57,8 @@ public class FrequentlySearchedService {
 	public List<FrequentlySearchedResponse> findFrequent(String entityType,
 			int count) throws Exception {
 		logger.debug("Begin: findFrequent() of FrequentlySearchedService");
+		UserT userT= DestinationUtils.getCurrentUserDetails();
+		String userGroup = userT.getUserGroup();
 		if (EntityType.contains(entityType)) {
 			List<Object[]> frequentMapping = frequentRepository
 					.findFrequentEntities(entityType, count);
@@ -62,6 +69,11 @@ public class FrequentlySearchedService {
 				for (Object[] frequent : frequentMapping) {
 					CustomerMasterT customer = customerRepository
 							.findactivecust(frequent[1].toString());
+					if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+							|| userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+							|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())){
+						customerService.prepareDeliveryCustomerDetails(customer, userT);
+					}
 					FrequentlySearchedResponse frequentResponse = ResponseConstructors
 							.convertToFrequentlySearchedResponse(
 									Integer.parseInt(frequent[0].toString()),

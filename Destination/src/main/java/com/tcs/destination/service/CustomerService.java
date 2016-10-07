@@ -558,7 +558,8 @@ public class CustomerService {
 		customerMasterT.setConnectTs(connectTs);
 		
 		List<OpportunityT> opportunityts = opportunityRepository.findAllDeliveryOpportunitiesByOwnersAndCustomer(customerMasterT.getCustomerId(), userIds);
-		customerMasterT.setOpportunityTs(opportunityts);
+		
+		customerMasterT.setOpportunityTs(opportunityts); 
 	}
 
 	private void prepareCustomerDetails(CustomerMasterT customerMasterT,
