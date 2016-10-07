@@ -840,6 +840,8 @@ public class CustomerService {
 	public PaginatedResponse search(String groupCustomerNameWith,
 			String nameWith, List<String> geography, List<String> displayIOU,
 			boolean inactive, int page, int count) throws DestinationException {
+		UserT userT= DestinationUtils.getCurrentUserDetails();
+		String userGroup = userT.getUserGroup();
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		if (geography.isEmpty())
 			geography.add("");
@@ -855,6 +857,16 @@ public class CustomerService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Customer available");
 		}
+		if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+				|| userGroup.contains(UserGroup.DELIVERY_CENTRE_HEAD.getValue()) 
+				|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())) {
+			
+			for(CustomerMasterT customer : customerMasterTs) {
+				prepareDeliveryCustomerDetails(customer, userT);
+			}
+			
+		}
+		
 
 		paginatedResponse.setTotalCount(customerMasterTs.size());
 
