@@ -21,11 +21,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
+import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.GeographyCountryMappingT;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
+import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerContactLinkT;
@@ -42,6 +44,7 @@ import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.OpportunityPartnerLinkTRepository;
+import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.PartnerContactLinkTRepository;
 import com.tcs.destination.data.repository.PartnerDao;
 import com.tcs.destination.data.repository.PartnerRepository;
@@ -140,6 +143,9 @@ public class PartnerService {
 	private Map<String, GeographyMappingT> geographyMapping = null;
 
 	private Map<String, GeographyCountryMappingT> geographyCountryMapping = null;
+
+	@Autowired
+	private OpportunityRepository opportunityRepository;
 
 	/**
 	 * This service saves partner details into partner_master_t
@@ -420,7 +426,7 @@ public class PartnerService {
 
 	private void preparePartner(PartnerMasterT partner, UserT userT) {
 		if (partner != null) {
-			prepareDeliveryPartnerContact(partner,userT);
+			preparePartnerDelivery(partner,userT);
 			List<OpportunityPartnerLinkT> opportunityPartnerLinkTs = partner
 					.getOpportunityPartnerLinkTs();
 			for (OpportunityPartnerLinkT opportunityPartnerLinkT : opportunityPartnerLinkTs) {
@@ -453,13 +459,13 @@ public class PartnerService {
 		}
 	}
 
-	private void prepareDeliveryPartnerContact(PartnerMasterT partner,
+	private void preparePartnerDelivery(PartnerMasterT partner,
 			UserT userT) {
 		String userGroup = userT.getUserGroup();
 		List<String> userIds = userRepository.getAllSubordinatesIdBySupervisorId(userT.getUserId());
 		userIds.add(userT.getUserId());
 		if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
-				|| userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+				|| userGroup.contains(UserGroup.DELIVERY_CENTRE_HEAD.getValue()) 
 				|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())){
 			List<PartnerContactLinkT> partnerContactLinkTs = partner.getPartnerContactLinkTs();
 			for (PartnerContactLinkT partnerContactLinkT : partnerContactLinkTs) {
@@ -469,6 +475,12 @@ public class PartnerService {
 				}
 			}
 		}
+		List<ConnectT> connectTs = connectRepository.getConnectByOwners(userIds);
+		partner.setConnectTs(connectTs);
+		
+		List<OpportunityPartnerLinkT> opportunityPartnerLinkTs = opportunityRepository.findAllDeliveryOpportunitiesByOwnersAndPartner(partner.getPartnerId(), userIds);
+		partner.setOpportunityPartnerLinkTs(opportunityPartnerLinkTs);
+		
 	}
 	
 	private void preventSensitiveInfoForDelivery(ContactT contactT,

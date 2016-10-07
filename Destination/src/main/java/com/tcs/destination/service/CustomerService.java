@@ -166,7 +166,7 @@ public class CustomerService {
 					"Customer not found: " + customerId);
 		}
 		if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
-				|| userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+				|| userGroup.contains(UserGroup.DELIVERY_CENTRE_HEAD.getValue()) 
 				|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())){
 			prepareDeliveryCustomerDetails(customerMasterT, userT);
 		} else {
@@ -524,7 +524,7 @@ public class CustomerService {
 				customerNameList.add(customerMasterT.getCustomerName());
 			}
 			if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
-					|| userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+					|| userGroup.contains(UserGroup.DELIVERY_CENTRE_HEAD.getValue()) 
 					|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())){
 				for (CustomerMasterT customerMasterT : customerMasterList) {
 					prepareDeliveryCustomerDetails(customerMasterT, userT);

@@ -70,7 +70,7 @@ public class FrequentlySearchedService {
 					CustomerMasterT customer = customerRepository
 							.findactivecust(frequent[1].toString());
 					if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
-							|| userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+							|| userGroup.contains(UserGroup.DELIVERY_CENTRE_HEAD.getValue()) 
 							|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())){
 						customerService.prepareDeliveryCustomerDetails(customer, userT);
 					}

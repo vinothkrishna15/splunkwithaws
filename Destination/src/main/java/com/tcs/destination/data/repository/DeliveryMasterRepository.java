@@ -70,4 +70,21 @@ public interface DeliveryMasterRepository extends JpaRepository<DeliveryMasterT,
 	/*------------------End of delivery smart search queries-------------------*/
 	
 	List<DeliveryMasterT> findByOpportunityId(String opportunityId);
+
+	@Query(value="SELECT * FROM delivery_master_t where (delivery_stage = (:stage) OR (-1) =(:stage)) "
+			+ " AND UPPER(opportunity_id) like UPPER(:term) ORDER BY modified_datetime DESC LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery=true)
+	List<DeliveryMasterT> searchForSIDetailsById(@Param("term") String term,
+			@Param("getAll") boolean getAll, @Param("stage") int stage);
+
+	@Query(value="SELECT * FROM delivery_master_t where (delivery_stage = (:stage) OR (-1) =(:stage)) "
+			+ " AND opportunity_id IN (SELECT opportunity_id FROM opportunity_t WHERE customer_id IN ( SELECT customer_id from customer_master_t WHERE UPPER(customer_name) like UPPER(:term))) "
+			+ " ORDER BY modified_datetime DESC LIMIT CASE WHEN :getAll THEN null ELSE 3 END ", nativeQuery=true) 
+	List<DeliveryMasterT> searchForSIDetailsByCustomerName(@Param("term") String term,
+			@Param("getAll") boolean getAll, @Param("stage") int stage);
+
+	@Query(value="SELECT * FROM delivery_master_t where (delivery_stage = (:stage) OR (-1) =(:stage)) "
+			+ " AND delivery_centre_id in (SELECT delivery_centre_id FROM delivery_centre_t "
+			+ " where UPPER(delivery_centre) like UPPER(:term)) ORDER BY modified_datetime DESC LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery=true) 
+	List<DeliveryMasterT> searchForSIDetailsByCentres(@Param("term") String term,
+			@Param("getAll") boolean getAll, @Param("stage") int stage);
 }

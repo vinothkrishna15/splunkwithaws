@@ -322,8 +322,8 @@ public class OpportunityService {
 			UserT user, int page, int count) throws Exception {
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		String userGroup = user.getUserGroup();
-		if (userGroup.equals(UserGroup.DELIVERY_CENTRE_HEAD.getValue())
-				|| userGroup.equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue())
+		if (userGroup.equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue())
+				|| userGroup.equals(UserGroup.DELIVERY_CENTRE_HEAD.getValue())
 				|| userGroup.equals(UserGroup.DELIVERY_MANAGER.getValue())) {
 			paginatedResponse = findByOpportunityNameAndDelivaryFlag(nameWith,
 					customerId, currencies, isAjax, user, page, count);

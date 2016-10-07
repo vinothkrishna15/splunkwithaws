@@ -158,7 +158,7 @@ public class ContactService {
 		}
 		removeCyclicForLinkedContactTs(contact);
 		if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
-				|| userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+				|| userGroup.contains(UserGroup.DELIVERY_CENTRE_HEAD.getValue()) 
 				|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())){
 			prepareDeliveryContactDetails(contact, userT);
 		} else {
@@ -860,7 +860,7 @@ public class ContactService {
 			}
 
 			if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
-					|| userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+					|| userGroup.contains(UserGroup.DELIVERY_CENTRE_HEAD.getValue()) 
 					|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())) {
 				prepareDeliveryContactListDetails(contactList, userT);
 			} else {
