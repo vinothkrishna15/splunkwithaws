@@ -38,7 +38,17 @@ public class RgsUploadHelper {
 	@Autowired
 	private DeliveryRequirementRepository requirementRepository;
 	
-	
+	private static final int RGS_ID_COL_INDEX = 1;
+	private static final int REQ_ID_COL_INDEX = 2;
+	private static final int CUSTOMER_COL_INDEX = 9;
+	private static final int BRANCH_COL_INDEX = 10;
+	private static final int LOCATION_COL_INDEX = 7;
+	private static final int COMPETENCY_COL_INDEX = 4;
+	private static final int SUB_COMP_COL_INDEX = 5;
+	private static final int EXPERIENCE_COL_INDEX = 6;
+	private static final int ROLE_COL_INDEX = 3;
+	private static final int STATUS_COL_INDEX = 8;
+	private static final int IOU_COL_INDEX = 11;
 
 	/**
 	 * @param data
@@ -56,7 +66,7 @@ public class RgsUploadHelper {
 			StringBuffer errorMsg = new StringBuffer("");
 			
 			
-			String rgsId = data[1];
+			String rgsId = data[RGS_ID_COL_INDEX];
 			if(StringUtils.isEmpty(rgsId)){
 				error.setRowNumber(rowNumber);
 				errorMsg.append("RGS Id Is Mandatory; ");
@@ -69,7 +79,7 @@ public class RgsUploadHelper {
 				
 			}
 			
-			String requirementId = data[2];
+			String requirementId = data[REQ_ID_COL_INDEX];
 			if(StringUtils.isEmpty(requirementId)){
 				error.setRowNumber(rowNumber);
 				errorMsg.append("Requirement Id Is Mandatory; ");
@@ -78,19 +88,19 @@ public class RgsUploadHelper {
 				requirementId = requirementId.trim();
 			}
 			
-			String customerName = data[4];
+			String customerName = data[CUSTOMER_COL_INDEX];
 			
 			if(!StringUtils.isEmpty(customerName)){
 				customerName = customerName.trim();
 			}
 			
-			String branchName = data[7];
+			String branchName = data[BRANCH_COL_INDEX];
 			
 			if(!StringUtils.isEmpty(branchName)){
 				branchName = branchName.trim();
 			}
 			
-			String location = data[8];
+			String location = data[LOCATION_COL_INDEX];
 			
 			if(StringUtils.isEmpty(location)){
 				error.setRowNumber(rowNumber);
@@ -99,19 +109,19 @@ public class RgsUploadHelper {
 				location = location.trim();
 			}
 			
-			String competencyArea = data[12];
+			String competencyArea = data[COMPETENCY_COL_INDEX];
 			
 			if(!StringUtils.isEmpty(competencyArea)){
 				competencyArea = competencyArea.trim();
 			}
 			
-			String subCompetencyArea = data[14];
+			String subCompetencyArea = data[SUB_COMP_COL_INDEX];
 			
 			if(!StringUtils.isEmpty(subCompetencyArea)){
 				subCompetencyArea = subCompetencyArea.trim();
 			}
 			
-			String experience = data[18];
+			String experience = data[EXPERIENCE_COL_INDEX];
 			
 			if(StringUtils.isEmpty(experience)){
 				error.setRowNumber(rowNumber);
@@ -120,7 +130,7 @@ public class RgsUploadHelper {
 				experience = experience.trim();
 			}
 			
-			String role = data[21];
+			String role = data[ROLE_COL_INDEX];
 			
 			if(StringUtils.isEmpty(role)){
 				error.setRowNumber(rowNumber);
@@ -129,7 +139,7 @@ public class RgsUploadHelper {
 				role = role.trim();
 			}
 			
-			String status = data[64];
+			String status = data[STATUS_COL_INDEX];
 			
 			if(StringUtils.isEmpty(status)){
 				error.setRowNumber(rowNumber);
@@ -146,7 +156,7 @@ public class RgsUploadHelper {
 				}
 			}
 			
-			String iouName = data[5];
+			String iouName = data[IOU_COL_INDEX];
 			if(!StringUtils.isEmpty(iouName)){
 				iouName = iouName.trim();
 			}
