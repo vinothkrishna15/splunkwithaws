@@ -663,7 +663,7 @@ public class WorkflowController {
 			bfmStream =  workflowService.downloadBfmTemplate();
 			
 			respHeaders = new HttpHeaders();
-			String fileName = "OPP_BFMTemplateFile.xlsm";
+			String fileName = "Deal_Financials_Template_FY17_eff_3rd_Aug_2016_v2.xlsx";
 			respHeaders.add("reportName", fileName);
 			respHeaders.setContentDispositionFormData("attachment", fileName);
 			respHeaders.setContentType(MediaType
