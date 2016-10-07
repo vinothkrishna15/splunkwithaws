@@ -554,7 +554,7 @@ public class CustomerService {
 				contactService.preventSensitiveInfoForDelivery(contactCustomerLinkT.getContactT());
 			}
 		}
-		List<ConnectT> connectTs = connectRepository.getConnectByOwners(userIds);
+		List<ConnectT> connectTs = connectRepository.getConnectByOwnersAndCustomer(userIds, customerMasterT.getCustomerId());
 		customerMasterT.setConnectTs(connectTs);
 		
 		List<OpportunityT> opportunityts = opportunityRepository.findAllDeliveryOpportunitiesByOwnersAndCustomer(customerMasterT.getCustomerId(), userIds);

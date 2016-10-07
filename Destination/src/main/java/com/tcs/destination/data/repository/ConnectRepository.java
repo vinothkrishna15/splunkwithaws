@@ -816,6 +816,16 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 			+ " UNION select (CNN.*) from connect_t CNN JOIN connect_secondary_owner_link_t CSLT ON (CNN.connect_id=CSLT.connect_id) "
 			+ " where CSLT.secondary_owner in (:userIds) ", nativeQuery=true)
 	List<ConnectT> getConnectByOwners(@Param("userIds") List<String> userIds);
+
+	@Query(value= "select * from connect_t where partner_id = (:partId) and primary_owner in (:userIds)  "
+			+ " UNION select (CNN.*) from connect_t CNN JOIN connect_secondary_owner_link_t CSLT ON (CNN.connect_id=CSLT.connect_id) "
+			+ " where CSLT.secondary_owner in (:userIds) ", nativeQuery=true)
+	List<ConnectT> getConnectByOwnersAndPartner(@Param("userIds") List<String> userIds,  @Param("partId") String partIds);
+
+	@Query(value= "select * from connect_t where customer_id = (:custId) and primary_owner in (:userIds)  "
+			+ " UNION select (CNN.*) from connect_t CNN JOIN connect_secondary_owner_link_t CSLT ON (CNN.connect_id=CSLT.connect_id) "
+			+ " where CSLT.secondary_owner in (:userIds) ", nativeQuery=true)
+	List<ConnectT> getConnectByOwnersAndCustomer(@Param("userIds") List<String> userIds, @Param("custId") String custIds);
 	
 	
 }

@@ -477,7 +477,7 @@ public class PartnerService {
 			
 			List<OpportunityPartnerLinkT> opportunityPartnerLinkTs = opportunityRepository.findAllDeliveryOpportunitiesByOwnersAndPartner(partner.getPartnerId(), userIds);
 			partner.setOpportunityPartnerLinkTs(opportunityPartnerLinkTs);
-			List<ConnectT> connectTs = connectRepository.getConnectByOwners(userIds);
+			List<ConnectT> connectTs = connectRepository.getConnectByOwnersAndPartner(userIds, partner.getPartnerId());
 			partner.setConnectTs(connectTs);
 		}
 		
