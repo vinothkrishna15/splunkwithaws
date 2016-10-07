@@ -213,6 +213,7 @@ public class DeliveryMasterController {
 			@RequestParam("searchType") String searchType,
 			@RequestParam("term") String term,
 			@RequestParam(value = "getAll", defaultValue = "false") boolean getAll,
+			@RequestParam(value = "stage", defaultValue = "-1") int stage,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "page", defaultValue = "0") int page,
 			@RequestParam(value = "count", defaultValue = "30") int count,
@@ -221,7 +222,7 @@ public class DeliveryMasterController {
 		logger.info("Inside DeliveryMasterController: smart search by search term");
 		try {
 			UserT user = DestinationUtils.getCurrentUserDetails();
-			PageDTO<SearchResultDTO<DeliveryMasterT>> res = deliveryMasterService.deliveryMasterSmartSearch(SmartSearchType.get(searchType), term, getAll, page, count,user);
+			PageDTO<SearchResultDTO<DeliveryMasterT>> res = deliveryMasterService.deliveryMasterSmartSearch(SmartSearchType.get(searchType), term, getAll, page, count, user, stage);
 			logger.info("Inside DeliveryMasterController: End - smart search by search term");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields, view, res);
 		} catch (DestinationException e) {

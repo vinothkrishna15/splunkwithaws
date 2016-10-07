@@ -821,11 +821,12 @@ public class DeliveryMasterService {
 	 * @param page
 	 * @param count
 	 * @param user
+	 * @param stage 
 	 * @return
 	 */
 	public PageDTO<SearchResultDTO<DeliveryMasterT>> deliveryMasterSmartSearch(
 			SmartSearchType smartSearchType, String term, boolean getAll,
-			int page, int count, UserT user) {
+			int page, int count, UserT user, int stage) {
 		logger.info("DeliveryMasterService::smartSearch type {}", smartSearchType);
 		Set<DeliveryMasterT> deliveryMasterSet = Sets.newHashSet();
 		List<DeliveryMasterT> deliveryMasterTs = Lists.newArrayList();
@@ -836,19 +837,19 @@ public class DeliveryMasterService {
 
 			switch (smartSearchType) {
 			case ALL:
-				deliveryMasterSet.addAll(getDeliveryMasterById(term, getAll, user));
-				deliveryMasterSet.addAll(getDeliveryMasterByCustName(term, getAll, user));
-				deliveryMasterSet.addAll(getDeliveryMasterByDeliveryCentres(term, getAll, user));
+				deliveryMasterSet.addAll(getDeliveryMasterById(term, getAll, user, stage));
+				deliveryMasterSet.addAll(getDeliveryMasterByCustName(term, getAll, user, stage));
+				deliveryMasterSet.addAll(getDeliveryMasterByDeliveryCentres(term, getAll, user, stage));
 				deliveryMasterTs.addAll(deliveryMasterSet);
 				break;
 			case ID:
-				deliveryMasterTs = getDeliveryMasterById(term, getAll, user);
+				deliveryMasterTs = getDeliveryMasterById(term, getAll, user, stage);
 				break;
 			case CUSTOMER:
-				deliveryMasterTs = getDeliveryMasterByCustName(term, getAll, user);
+				deliveryMasterTs = getDeliveryMasterByCustName(term, getAll, user, stage);
 				break;
 			case DELIVERY_CENTRE:
-				deliveryMasterTs = getDeliveryMasterByDeliveryCentres(term, getAll, user);
+				deliveryMasterTs = getDeliveryMasterByDeliveryCentres(term, getAll, user, stage);
 				break;
 			default:
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -877,24 +878,26 @@ public class DeliveryMasterService {
 	 * @param term
 	 * @param getAll
 	 * @param user
+	 * @param stage 
 	 * @return
 	 */
 	private List<DeliveryMasterT> getDeliveryMasterByDeliveryCentres(
-			String term, boolean getAll, UserT user) {
+			String term, boolean getAll, UserT user, int stage) {
 		logger.info("Inside getDeliveryMasterById() Method");
+		
 		List<DeliveryMasterT> records = null;
 		String userGroup = user.getUserGroup();
 		if (userGroup.equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue())) {
 			
-			records = deliveryMasterRepository.searchDeliveryClusterDetailsByDeliveryCentres("%" + term + "%", getAll, user.getUserId());
+			records = deliveryMasterRepository.searchDeliveryClusterDetailsByDeliveryCentres("%" + term + "%", getAll, user.getUserId(), stage);
 		
 		} else if(userGroup.equals(UserGroup.DELIVERY_CENTRE_HEAD.getValue())){
 			
-			records = deliveryMasterRepository.searchDeliveryCentreDetailsByDeliveryCentres("%" + term + "%", getAll, user.getUserId());
+			records = deliveryMasterRepository.searchDeliveryCentreDetailsByDeliveryCentres("%" + term + "%", getAll, user.getUserId(), stage);
 		
 		} else if(userGroup.equals(UserGroup.DELIVERY_MANAGER.getValue())){
 			
-			records = deliveryMasterRepository.searchDeliveryManagerDetailsByDeliveryCentres("%" + term + "%", getAll, user.getUserId());
+			records = deliveryMasterRepository.searchDeliveryManagerDetailsByDeliveryCentres("%" + term + "%", getAll, user.getUserId(), stage);
 
 		} else {
 			logger.info("HttpStatus.UNAUTHORIZED, Access Denied");
@@ -909,24 +912,25 @@ public class DeliveryMasterService {
 	 * @param term
 	 * @param getAll
 	 * @param user
+	 * @param stage 
 	 * @return
 	 */
 	private List<DeliveryMasterT> getDeliveryMasterByCustName(
-			String term, boolean getAll, UserT user) {
+			String term, boolean getAll, UserT user, int stage) {
 		logger.info("Inside getDeliveryMasterById() Method");
 		List<DeliveryMasterT> records = null;
 		String userGroup = user.getUserGroup();
 		if (userGroup.equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue())) {
 			
-			records = deliveryMasterRepository.searchDeliveryClusterDetailsByCustomerName("%" + term + "%", getAll, user.getUserId());
+			records = deliveryMasterRepository.searchDeliveryClusterDetailsByCustomerName("%" + term + "%", getAll, user.getUserId(), stage);
 		
 		} else if(userGroup.equals(UserGroup.DELIVERY_CENTRE_HEAD.getValue())){
 			
-			records = deliveryMasterRepository.searchDeliveryCentreDetailsByCustomerName("%" + term + "%", getAll, user.getUserId());
+			records = deliveryMasterRepository.searchDeliveryCentreDetailsByCustomerName("%" + term + "%", getAll, user.getUserId(), stage);
 		
 		} else if(userGroup.equals(UserGroup.DELIVERY_MANAGER.getValue())){
 			
-			records = deliveryMasterRepository.searchDeliveryManagerDetailsByCustomerName("%" + term + "%", getAll, user.getUserId());
+			records = deliveryMasterRepository.searchDeliveryManagerDetailsByCustomerName("%" + term + "%", getAll, user.getUserId(), stage);
 
 		} else {
 			logger.info("HttpStatus.UNAUTHORIZED, Access Denied");
@@ -941,24 +945,25 @@ public class DeliveryMasterService {
 	 * @param term
 	 * @param getAll
 	 * @param user
+	 * @param stage 
 	 * @return
 	 */
 	private List<DeliveryMasterT> getDeliveryMasterById(String term,
-			boolean getAll, UserT user) {
+			boolean getAll, UserT user, int stage) {
 		logger.info("Inside getDeliveryMasterById() Method");
 		List<DeliveryMasterT> records = null;
 		String userGroup = user.getUserGroup();
 		if (userGroup.equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue())) {
 			
-			records = deliveryMasterRepository.searchDeliveryClusterDetailsById("%" + term + "%", getAll, user.getUserId());
+			records = deliveryMasterRepository.searchDeliveryClusterDetailsById("%" + term + "%", getAll, user.getUserId(), stage);
 		
 		} else if(userGroup.equals(UserGroup.DELIVERY_CENTRE_HEAD.getValue())){
 			
-			records = deliveryMasterRepository.searchDeliveryCentreDetailsById("%" + term + "%", getAll, user.getUserId());
+			records = deliveryMasterRepository.searchDeliveryCentreDetailsById("%" + term + "%", getAll, user.getUserId(), stage);
 		
 		} else if(userGroup.equals(UserGroup.DELIVERY_MANAGER.getValue())){
 			
-			records = deliveryMasterRepository.searchDeliveryManagerDetailsById("%" + term + "%", getAll, user.getUserId());
+			records = deliveryMasterRepository.searchDeliveryManagerDetailsById("%" + term + "%", getAll, user.getUserId(), stage);
 
 		} else {
 			logger.info("HttpStatus.UNAUTHORIZED, Access Denied");
@@ -967,21 +972,5 @@ public class DeliveryMasterService {
 		return records;
 	}
 
-	/**
-	 * creates {@link SearchResultDTO} from the list of DeliveryMasterT
-	 * 
-	 * @param records
-	 * @param type
-	 * @param getAll
-	 * @return
-	 */
-	private SearchResultDTO<DeliveryMasterT> createSearchResultFrom(
-			List<DeliveryMasterT> records, SmartSearchType type, boolean getAll) {
-		SearchResultDTO<DeliveryMasterT> conRes = new SearchResultDTO<DeliveryMasterT>();
-		conRes.setSearchType(type);
-		conRes.setValues(records);
-		return conRes;
-
-	}
 }
 
