@@ -173,6 +173,31 @@ public class DeliveryMasterService {
 
 			}
 			break;
+		case STRATEGIC_INITIATIVES:
+			if (stage == -1) {
+				for (int i = 0; i < numDeliveryStages; i++)
+					stages.add(i);
+			} else {
+				stages.add(stage);
+			}
+			
+			List<DeliveryCentreT> deliveryCentresSI = (List<DeliveryCentreT>) deliveryCentreRepository.findAll();
+			 if(!CollectionUtils.isEmpty(deliveryCentresSI)){
+					List<Integer> deliveryCentreIds = new ArrayList<Integer>();
+					for (DeliveryCentreT deliveryCentre : deliveryCentresSI) {
+						deliveryCentreIds.add(deliveryCentre.getDeliveryCentreId());
+					}
+					orderBy = ATTRIBUTE_MAP.get(orderBy);
+					sort = getSortFromOrder(order,orderBy);
+					pageable = new PageRequest(page, count, sort);
+					deliveryMasterTs = deliveryMasterPagingRepository
+								.findByDeliveryCentreIdInAndDeliveryStageIn(
+										deliveryCentreIds, stages, pageable);
+						
+					
+			 }
+			 
+			 break;
 		case DELIVERY_CLUSTER_HEAD:
 			
 			if (stage == -1) {
