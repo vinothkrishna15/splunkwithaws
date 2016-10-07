@@ -1797,7 +1797,7 @@ public class ConnectService {
 	// edit access for connect
 	private boolean isEditAccessRequiredForConnect(ConnectT connect,
 			String userGroup, String userId) {
-		logger.info("Inside validateEditAccessForConnect method");
+		logger.debug("Inside validateEditAccessForConnect method");
 		boolean isEditAccessRequired = false;
 		if (userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
 			isEditAccessRequired = true;
@@ -1806,9 +1806,12 @@ public class ConnectService {
 		} else {
 			switch (UserGroup.getUserGroup(userGroup)) {
 			case BDM :
+			case DELIVERY_MANAGER:	
 				isEditAccessRequired = false;
 				break;
 			case BDM_SUPERVISOR:
+			case DELIVERY_CLUSTER_HEAD:
+			case DELIVERY_CENTRE_HEAD:	
 				isEditAccessRequired = opportunityService.isSubordinateAsOwner(userId, null,
 						connect.getConnectId());
 				break;
@@ -1829,7 +1832,7 @@ public class ConnectService {
 				break;
 			}
 		}
-		logger.info("Is Edit Access Required for connect: " +isEditAccessRequired);
+		logger.debug("Is Edit Access Required for connect: " +isEditAccessRequired);
 		return isEditAccessRequired;
 	}
 
@@ -2254,4 +2257,5 @@ public class ConnectService {
 						fromTimestamp, customerId, "%"+ term.toUpperCase() +"%");
 		return connects;
 	}
+
 }
