@@ -194,10 +194,10 @@ public class DeliveryMasterService {
 								.findByDeliveryCentreIdInAndDeliveryStageIn(
 										deliveryCentreIds, stages, pageable);
 						
-					break;
+					
 			 }
 			 
-			
+			 break;
 		case DELIVERY_CLUSTER_HEAD:
 			
 			if (stage == -1) {
