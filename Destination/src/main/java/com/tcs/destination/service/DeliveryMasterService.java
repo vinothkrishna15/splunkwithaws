@@ -899,6 +899,10 @@ public class DeliveryMasterService {
 			
 			records = deliveryMasterRepository.searchDeliveryManagerDetailsByDeliveryCentres("%" + term + "%", getAll, user.getUserId(), stage);
 
+		} else if(userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
+			
+			records = deliveryMasterRepository.searchForSIDetailsByCentres("%" + term + "%", getAll, stage);
+					
 		} else {
 			logger.info("HttpStatus.UNAUTHORIZED, Access Denied");
 			throw new DestinationException(HttpStatus.UNAUTHORIZED, "Access Denied");
@@ -932,6 +936,10 @@ public class DeliveryMasterService {
 			
 			records = deliveryMasterRepository.searchDeliveryManagerDetailsByCustomerName("%" + term + "%", getAll, user.getUserId(), stage);
 
+		} else if(userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
+			
+			records = deliveryMasterRepository.searchForSIDetailsByCustomerName("%" + term + "%", getAll, stage);
+
 		} else {
 			logger.info("HttpStatus.UNAUTHORIZED, Access Denied");
 			throw new DestinationException(HttpStatus.UNAUTHORIZED, "Access Denied");
@@ -964,6 +972,10 @@ public class DeliveryMasterService {
 		} else if(userGroup.equals(UserGroup.DELIVERY_MANAGER.getValue())){
 			
 			records = deliveryMasterRepository.searchDeliveryManagerDetailsById("%" + term + "%", getAll, user.getUserId(), stage);
+
+		} else if(userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
+			
+			records = deliveryMasterRepository.searchForSIDetailsById("%" + term + "%", getAll, stage);
 
 		} else {
 			logger.info("HttpStatus.UNAUTHORIZED, Access Denied");
