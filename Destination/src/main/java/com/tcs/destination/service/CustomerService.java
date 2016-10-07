@@ -24,11 +24,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 import com.tcs.destination.bean.BeaconCustomerMappingT;
+import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.IouBeaconMappingT;
 import com.tcs.destination.bean.IouCustomerMappingT;
+import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.QueryBufferDTO;
@@ -39,6 +41,7 @@ import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BeaconCustomerMappingRepository;
 import com.tcs.destination.data.repository.BeaconRepository;
+import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.CustomerDao;
 import com.tcs.destination.data.repository.CustomerIOUMappingRepository;
@@ -136,9 +139,13 @@ public class CustomerService {
 	Map<String, IouCustomerMappingT> mapOfIouCustomerMappingT = null;
 	Map<String, IouBeaconMappingT> mapOfIouBeaconMappingT = null;
 
+	@Autowired
+	private ConnectRepository connectRepository;
 
-	
-	
+	@Autowired
+	private ConnectService connectService;
+
+
 	/**
 	 * This method is used to fetch customer details using customer id
 	 * @param customerId
@@ -535,7 +542,7 @@ public class CustomerService {
 	 * @param customerMasterT
 	 * @param userT
 	 */
-	private void prepareDeliveryCustomerDetails(CustomerMasterT customerMasterT, UserT userT) {
+	public void prepareDeliveryCustomerDetails(CustomerMasterT customerMasterT, UserT userT) {
 		removeCyclicForLinkedContactTs(customerMasterT);
 		List<String> userIds = userRepository.getAllSubordinatesIdBySupervisorId(userT.getUserId());
 		userIds.add(userT.getUserId());
@@ -544,6 +551,11 @@ public class CustomerService {
 				contactService.preventSensitiveInfoForDelivery(contactCustomerLinkT.getContactT());
 			}
 		}
+		List<ConnectT> connectTs = connectRepository.getConnectByOwners(userIds);
+		customerMasterT.setConnectTs(connectTs);
+		
+		List<OpportunityT> opportunityts = opportunityRepository.findAllDeliveryOpportunitiesByOwnersAndCustomer(customerMasterT.getCustomerId(), userIds);
+		customerMasterT.setOpportunityTs(opportunityts);
 	}
 
 	private void prepareCustomerDetails(CustomerMasterT customerMasterT,
