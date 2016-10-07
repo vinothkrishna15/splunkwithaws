@@ -1785,6 +1785,7 @@ public class OpportunityService {
 					.getDeliveryOwnershipId());
 		}
 		baseOpportunityT.setSalesStageCode(opportunity.getSalesStageCode());
+		baseOpportunityT.setDeliveryTeamFlag(opportunity.getDeliveryTeamFlag());
 		opportunity.setOpportunityId(opportunityRepository.save(
 				baseOpportunityT).getOpportunityId());
 		logger.debug("ID " + baseOpportunityT.getOpportunityId());
