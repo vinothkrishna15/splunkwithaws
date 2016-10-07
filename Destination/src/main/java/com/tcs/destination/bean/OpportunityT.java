@@ -1,6 +1,7 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
@@ -86,7 +87,7 @@ public class OpportunityT implements Serializable, Cloneable {
 	private String documentsAttached;
 
 	@Column(name = "engagement_duration")
-	private String engagementDuration;
+	private BigDecimal engagementDuration;
 
 	@Temporal(TemporalType.DATE)
 	@Column(name = "engagement_start_date")
@@ -455,11 +456,11 @@ public class OpportunityT implements Serializable, Cloneable {
 		this.documentsAttached = documentsAttached;
 	}
 
-	public String getEngagementDuration() {
+	public BigDecimal getEngagementDuration() {
 		return this.engagementDuration;
 	}
 
-	public void setEngagementDuration(String engagementDuration) {
+	public void setEngagementDuration(BigDecimal engagementDuration) {
 		this.engagementDuration = engagementDuration;
 	}
 

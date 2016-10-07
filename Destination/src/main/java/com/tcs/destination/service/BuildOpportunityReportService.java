@@ -751,7 +751,7 @@ public class BuildOpportunityReportService {
 		
 			if (engmtDurationFlag) {
 				if(opportunity.getEngagementDuration()!=null) {
-				row.createCell(colValue).setCellValue(opportunity.getEngagementDuration());
+				row.createCell(colValue).setCellValue(opportunity.getEngagementDuration().toString());
 				}
 				colValue++;
 			}
