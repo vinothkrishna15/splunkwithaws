@@ -474,12 +474,12 @@ public class PartnerService {
 					preventSensitiveInfoForDelivery(partnerContactLinkT.getContactT(), userIds);
 				}
 			}
+			
+			List<OpportunityPartnerLinkT> opportunityPartnerLinkTs = opportunityRepository.findAllDeliveryOpportunitiesByOwnersAndPartner(partner.getPartnerId(), userIds);
+			partner.setOpportunityPartnerLinkTs(opportunityPartnerLinkTs);
+			List<ConnectT> connectTs = connectRepository.getConnectByOwners(userIds);
+			partner.setConnectTs(connectTs);
 		}
-		List<ConnectT> connectTs = connectRepository.getConnectByOwners(userIds);
-		partner.setConnectTs(connectTs);
-		
-		List<OpportunityPartnerLinkT> opportunityPartnerLinkTs = opportunityRepository.findAllDeliveryOpportunitiesByOwnersAndPartner(partner.getPartnerId(), userIds);
-		partner.setOpportunityPartnerLinkTs(opportunityPartnerLinkTs);
 		
 	}
 	
