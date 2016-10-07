@@ -1837,6 +1837,7 @@ public class OpportunityService {
 						"Deal closure comments is mandatory for the opportuniy for sales stage codes (11,12 and 13)");
 			}
 		}
+		opportunity.setDeliveryTeamFlag(opportunityBeforeEdit.getDeliveryTeamFlag());
 		// Update database
 		OpportunityT afterOpp = saveOpportunity(opportunity, true, userGroup,
 				opportunityBeforeEdit, oldSalesStageCode);
