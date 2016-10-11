@@ -22,12 +22,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 import com.tcs.destination.bean.ConnectT;
-import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.GeographyCountryMappingT;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
-import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerContactLinkT;
@@ -475,7 +473,7 @@ public class PartnerService {
 				}
 			}
 			
-			List<OpportunityPartnerLinkT> opportunityPartnerLinkTs = opportunityRepository.findAllDeliveryOpportunitiesByOwnersAndPartner(partner.getPartnerId(), userIds);
+			List<OpportunityPartnerLinkT> opportunityPartnerLinkTs = opportunityPartnerLinkTRepository.findAllDeliveryOpportunitiesByOwnersAndPartner(partner.getPartnerId(), userIds);
 			partner.setOpportunityPartnerLinkTs(opportunityPartnerLinkTs);
 			List<ConnectT> connectTs = connectRepository.getConnectByOwnersAndPartner(userIds, partner.getPartnerId());
 			partner.setConnectTs(connectTs);
