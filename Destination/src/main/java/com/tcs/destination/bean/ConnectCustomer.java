@@ -46,6 +46,8 @@ public class ConnectCustomer {
 	private String partnerName;
 	
 	private Integer type;
+	
+	private String connectId;
 
 	public String getBdContact() {
 		return bdContact;
@@ -149,6 +151,14 @@ public class ConnectCustomer {
 
 	public void setType(Integer type) {
 		this.type = type;
+	}
+
+	public String getConnectId() {
+		return connectId;
+	}
+
+	public void setConnectId(String connectId) {
+		this.connectId = connectId;
 	}
 	
 }

@@ -19,5 +19,12 @@ public interface DeliveryCentreRepository extends
 	DeliveryCentreT findByDeliveryCentreId(Integer id);
 	
 	List<DeliveryCentreT> findByDeliveryCentreIdIn(List<Integer> deliveryCentreIds);
+
+	/**
+	 * Retrieves all the delivery centres except open -> delivery centre id -1
+	 * @param deliveryCentreId
+	 * @return
+	 */
+	List<DeliveryCentreT> findByDeliveryCentreIdGreaterThanEqual(int deliveryCentreId);
 	
 }

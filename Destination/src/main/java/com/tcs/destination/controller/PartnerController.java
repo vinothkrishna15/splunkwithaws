@@ -144,7 +144,7 @@ public class PartnerController {
 			logger.error("Destination Exception" + e.getMessage());
 			throw e;
 		} catch (Exception e) {
-			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while retrieving partner details");
 		}

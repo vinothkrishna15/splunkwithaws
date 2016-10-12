@@ -1380,23 +1380,30 @@ public interface OpportunityRepository extends
 
 	/*--------------------End of Delivery team opportunity smart search query-----------------------------*/
 	
-	@Query(value="(SELECT (OP.*) as oppId FROM opportunity_t OP WHERE delivery_team_flag = true ORDER BY OP.modified_datetime DESC) "
-			+ " UNION (select (OPP.*) as oppId from opportunity_t OPP Join opportunity_delivery_centre_mapping_t OPPDCM on (OPP.opportunity_id=OPPDCM.opportunity_id) "
-			+ " Join delivery_centre_t DC on OPPDCM.delivery_centre_id=DC.delivery_centre_id  Join delivery_cluster_t DCL on DC.delivery_cluster_id=DCL.delivery_cluster_id where "
-			+ " (delivery_centre_head in (?1) OR delivery_cluster_head in (?1)) ORDER BY OPP.modified_datetime DESC)", nativeQuery=true)
-	List<OpportunityT> findDeliveryOpportunityIdsByDeliveryFlagAndOwner(List<String> userIds);
+	@Query(value="(SELECT (OP.*) as oppId FROM opportunity_t OP WHERE delivery_team_flag = true ORDER BY OP.modified_datetime DESC) UNION (select (OPP.*) as oppId from opportunity_t OPP "
+			+ " Join opportunity_delivery_centre_mapping_t OPPDCM on (OPP.opportunity_id=OPPDCM.opportunity_id) Join delivery_centre_t DC on OPPDCM.delivery_centre_id=DC.delivery_centre_id "
+			+ " Join delivery_cluster_t DCL on DC.delivery_cluster_id=DCL.delivery_cluster_id where (delivery_centre_head in (:userIds) OR delivery_cluster_head in (:userIds))"
+			+ " ORDER BY OPP.modified_datetime DESC)", nativeQuery=true)
+	List<OpportunityT> findDeliveryOpportunityIdsByDeliveryFlagAndOwner(@Param("userIds") List<String> userIds);
 
 	@Query(value="(select * from opportunity_t where delivery_team_flag =true ORDER BY modified_datetime DESC) UNION (select (OPP.*) from opportunity_t OPP "
 			+ " Join opportunity_delivery_centre_mapping_t OPPDCM on (OPP.opportunity_id=OPPDCM.opportunity_id) Join delivery_centre_t DC on OPPDCM.delivery_centre_id=DC.delivery_centre_id "
 			+ " Join delivery_cluster_t DCL on DC.delivery_cluster_id=DCL.delivery_cluster_id where OPP.deal_closure_date between ?1 and ?2 "
-			+ "  and delivery_centre_head in (?3) OR (delivery_cluster_head in (?3)) ORDER BY modified_datetime DESC)", nativeQuery=true)
+			+ "  and (delivery_centre_head in (?3) OR (delivery_cluster_head in (?3))) ORDER BY modified_datetime DESC)", nativeQuery=true)
 	List<OpportunityT> findAllDeliveryOpportunitiesByYearAndOwners(Date fromDate, 
 			Date toDate, List<String> userIds);
 	
 	@Query(value="(select * from opportunity_t where delivery_team_flag =true ORDER BY modified_datetime DESC) UNION (select (OPP.*) from opportunity_t OPP "
 			+ " Join opportunity_delivery_centre_mapping_t OPPDCM on (OPP.opportunity_id=OPPDCM.opportunity_id) Join delivery_centre_t DC on OPPDCM.delivery_centre_id=DC.delivery_centre_id "
 			+ " Join delivery_cluster_t DCL on DC.delivery_cluster_id=DCL.delivery_cluster_id where "
-			+ " delivery_centre_head in (?1) OR (delivery_cluster_head in (?1)) ORDER BY modified_datetime DESC)", nativeQuery=true)
+			+ " (delivery_centre_head in (?1) OR (delivery_cluster_head in (?1))) ORDER BY modified_datetime DESC)", nativeQuery=true)
 	List<OpportunityT> findAllDeliveryOpportunitiesByOwners(List<String> userIds);
+	
+	@Query(value="(select * from opportunity_t where delivery_team_flag =true AND customer_id = ?1 ORDER BY modified_datetime DESC)"
+			+ " UNION (select (OPP.*) from opportunity_t OPP Join opportunity_delivery_centre_mapping_t OPPDCM on "
+			+ " (OPP.opportunity_id=OPPDCM.opportunity_id) Join delivery_centre_t DC on OPPDCM.delivery_centre_id=DC.delivery_centre_id "
+			+ " Join delivery_cluster_t DCL on DC.delivery_cluster_id=DCL.delivery_cluster_id "
+			+ " where customer_id = ?1 AND (delivery_centre_head in (?2) OR (delivery_cluster_head in (?2))) ORDER BY modified_datetime DESC)", nativeQuery=true) 
+	List<OpportunityT> findAllDeliveryOpportunitiesByOwnersAndCustomer(String customerId, List<String> userIds);
 	
 }

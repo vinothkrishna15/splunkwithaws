@@ -1204,7 +1204,10 @@ public class PerformanceReportService {
 			case BDM:
 			case BDM_SUPERVISOR:
 			case PRACTICE_HEAD:
-			case PRACTICE_OWNER:	
+			case PRACTICE_OWNER:
+			case DELIVERY_CLUSTER_HEAD:
+			case DELIVERY_CENTRE_HEAD:
+			case DELIVERY_MANAGER:	
 				logger.error("User is not authorized to access this service");
 				throw new DestinationException(HttpStatus.UNAUTHORIZED,
 						"User is not authorised to access this service");

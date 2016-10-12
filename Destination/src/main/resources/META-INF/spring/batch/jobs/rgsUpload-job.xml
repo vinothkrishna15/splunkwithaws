@@ -50,7 +50,7 @@
 	<!-- Readers -->
 	<bean id="rgsSpreadSheetReader" class="com.tcs.destination.reader.SpreadSheetReader" scope="step">
 		<property name="filePath" value="#{jobExecutionContext['FILE_PATH']}"/>
-		<property name="sheetName" value="Mapping"/>
+		<property name="sheetName" value="RGS_Details"/>
 		<property name="rowsToSkip" value = "1" />
 	</bean>
 	

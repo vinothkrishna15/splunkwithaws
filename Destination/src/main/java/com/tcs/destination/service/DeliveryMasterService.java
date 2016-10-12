@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.tcs.destination.bean.AsyncJobRequest;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryClusterT;
@@ -138,17 +139,20 @@ public class DeliveryMasterService {
 		String loginUserGroup = loginUser.getUserGroup();
 
 		List<Integer> stages = new ArrayList<Integer>();
-		if (stage == -1) {
-			for (int i = 0; i < numDeliveryStages; i++)
-				stages.add(i);
-		} else {
-			stages.add(stage);
-		}
+		
 		Page<DeliveryMasterT> deliveryMasterTs = null;
 		Sort sort = null;
 		Pageable pageable = null;
 		switch (UserGroup.valueOf(UserGroup.getName(loginUserGroup))) {
 		case DELIVERY_CENTRE_HEAD:
+			
+			if (stage == -1) {
+				for (int i = 1; i < numDeliveryStages; i++)
+					stages.add(i);
+			} else {
+				stages.add(stage);
+			}
+			
 			DeliveryCentreT deliveryCentreT = deliveryCentreRepository
 					.findByDeliveryCentreHead(loginUser.getUserId());
 			if (deliveryCentreT != null) {
@@ -169,7 +173,40 @@ public class DeliveryMasterService {
 
 			}
 			break;
+		case STRATEGIC_INITIATIVES:
+			if (stage == -1) {
+				for (int i = 0; i < numDeliveryStages; i++)
+					stages.add(i);
+			} else {
+				stages.add(stage);
+			}
+			
+			List<DeliveryCentreT> deliveryCentresSI = (List<DeliveryCentreT>) deliveryCentreRepository.findAll();
+			 if(!CollectionUtils.isEmpty(deliveryCentresSI)){
+					List<Integer> deliveryCentreIds = new ArrayList<Integer>();
+					for (DeliveryCentreT deliveryCentre : deliveryCentresSI) {
+						deliveryCentreIds.add(deliveryCentre.getDeliveryCentreId());
+					}
+					orderBy = ATTRIBUTE_MAP.get(orderBy);
+					sort = getSortFromOrder(order,orderBy);
+					pageable = new PageRequest(page, count, sort);
+					deliveryMasterTs = deliveryMasterPagingRepository
+								.findByDeliveryCentreIdInAndDeliveryStageIn(
+										deliveryCentreIds, stages, pageable);
+						
+					
+			 }
+			 
+			 break;
 		case DELIVERY_CLUSTER_HEAD:
+			
+			if (stage == -1) {
+				for (int i = 0; i < numDeliveryStages; i++)
+					stages.add(i);
+			} else {
+				stages.add(stage);
+			}
+			
 			DeliveryClusterT deliveryClusterT = deliveryClusterRepository
 					.findByDeliveryClusterHead(loginUser.getUserId());
 			if(deliveryClusterT!=null){
@@ -193,6 +230,12 @@ public class DeliveryMasterService {
 			}
 			break;
 		case DELIVERY_MANAGER:
+			if (stage == -1) {
+				for (int i = 2; i < numDeliveryStages; i++)
+					stages.add(i);
+			} else {
+				stages.add(stage);
+			}
 			orderBy = ATTRIBUTE_MAP.get(orderBy);
 			sort = getSortFromOrder(order,orderBy);
 			pageable = new PageRequest(page, count, sort);
@@ -803,12 +846,15 @@ public class DeliveryMasterService {
 	 * @param page
 	 * @param count
 	 * @param user
+	 * @param stage 
 	 * @return
 	 */
 	public PageDTO<SearchResultDTO<DeliveryMasterT>> deliveryMasterSmartSearch(
 			SmartSearchType smartSearchType, String term, boolean getAll,
-			int page, int count, UserT user) {
+			int page, int count, UserT user, int stage) {
 		logger.info("DeliveryMasterService::smartSearch type {}", smartSearchType);
+		Set<DeliveryMasterT> deliveryMasterSet = Sets.newHashSet();
+		List<DeliveryMasterT> deliveryMasterTs = Lists.newArrayList();
 		PageDTO<SearchResultDTO<DeliveryMasterT>> res = new PageDTO<SearchResultDTO<DeliveryMasterT>>();
 		List<SearchResultDTO<DeliveryMasterT>> resList = Lists.newArrayList();
 		SearchResultDTO<DeliveryMasterT> searchResultDTO = new SearchResultDTO<DeliveryMasterT>();
@@ -816,38 +862,35 @@ public class DeliveryMasterService {
 
 			switch (smartSearchType) {
 			case ALL:
-				resList.add(getDeliveryMasterById(term, getAll, user));
-				resList.add(getDeliveryMasterByCustName(term, getAll, user));
-				resList.add(getDeliveryMasterByDeliveryCentres(term, getAll, user));
+				deliveryMasterSet.addAll(getDeliveryMasterById(term, getAll, user, stage));
+				deliveryMasterSet.addAll(getDeliveryMasterByCustName(term, getAll, user, stage));
+				deliveryMasterSet.addAll(getDeliveryMasterByDeliveryCentres(term, getAll, user, stage));
+				deliveryMasterTs.addAll(deliveryMasterSet);
 				break;
 			case ID:
-				searchResultDTO = getDeliveryMasterById(term, getAll, user);
+				deliveryMasterTs = getDeliveryMasterById(term, getAll, user, stage);
 				break;
 			case CUSTOMER:
-				searchResultDTO = getDeliveryMasterByCustName(term, getAll, user);
+				deliveryMasterTs = getDeliveryMasterByCustName(term, getAll, user, stage);
 				break;
 			case DELIVERY_CENTRE:
-				searchResultDTO = getDeliveryMasterByDeliveryCentres(term, getAll, user);
+				deliveryMasterTs = getDeliveryMasterByDeliveryCentres(term, getAll, user, stage);
 				break;
 			default:
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"Invalid search type");
 			}
 
-			if (smartSearchType != SmartSearchType.ALL) {
-				// paginate the result if it is fetching entire record(ie.getAll=true)
-				if (getAll) {
-					List<DeliveryMasterT> values = searchResultDTO.getValues();
-					List<DeliveryMasterT> records = PaginationUtils.paginateList(
-							page, count, values);
-					if (CollectionUtils.isNotEmpty(records)) {
-						removeCyclicData(records);
-					}
-					searchResultDTO.setValues(records);
-					res.setTotalCount(values.size());
-				}
-				resList.add(searchResultDTO);
+			// paginate the result if it is fetching entire record(ie.getAll=true)
+			List<DeliveryMasterT> records = PaginationUtils.paginateList(
+					page, count, deliveryMasterTs);
+			if (CollectionUtils.isNotEmpty(records)) {
+				removeCyclicData(records);
 			}
+			searchResultDTO.setValues(records);
+			searchResultDTO.setSearchType(smartSearchType);
+			res.setTotalCount(deliveryMasterTs.size());
+			resList.add(searchResultDTO);
 		}
 		res.setContent(resList);
 		return res;
@@ -860,30 +903,36 @@ public class DeliveryMasterService {
 	 * @param term
 	 * @param getAll
 	 * @param user
+	 * @param stage 
 	 * @return
 	 */
-	private SearchResultDTO<DeliveryMasterT> getDeliveryMasterByDeliveryCentres(
-			String term, boolean getAll, UserT user) {
+	private List<DeliveryMasterT> getDeliveryMasterByDeliveryCentres(
+			String term, boolean getAll, UserT user, int stage) {
 		logger.info("Inside getDeliveryMasterById() Method");
+		
 		List<DeliveryMasterT> records = null;
 		String userGroup = user.getUserGroup();
 		if (userGroup.equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue())) {
 			
-			records = deliveryMasterRepository.searchDeliveryClusterDetailsByDeliveryCentres("%" + term + "%", getAll, user.getUserId());
+			records = deliveryMasterRepository.searchDeliveryClusterDetailsByDeliveryCentres("%" + term + "%", getAll, user.getUserId(), stage);
 		
 		} else if(userGroup.equals(UserGroup.DELIVERY_CENTRE_HEAD.getValue())){
 			
-			records = deliveryMasterRepository.searchDeliveryCentreDetailsByDeliveryCentres("%" + term + "%", getAll, user.getUserId());
+			records = deliveryMasterRepository.searchDeliveryCentreDetailsByDeliveryCentres("%" + term + "%", getAll, user.getUserId(), stage);
 		
 		} else if(userGroup.equals(UserGroup.DELIVERY_MANAGER.getValue())){
 			
-			records = deliveryMasterRepository.searchDeliveryManagerDetailsByDeliveryCentres("%" + term + "%", getAll, user.getUserId());
+			records = deliveryMasterRepository.searchDeliveryManagerDetailsByDeliveryCentres("%" + term + "%", getAll, user.getUserId(), stage);
 
+		} else if(userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
+			
+			records = deliveryMasterRepository.searchForSIDetailsByCentres("%" + term + "%", getAll, stage);
+					
 		} else {
 			logger.info("HttpStatus.UNAUTHORIZED, Access Denied");
 			throw new DestinationException(HttpStatus.UNAUTHORIZED, "Access Denied");
 		}
-		return createSearchResultFrom(records, SmartSearchType.DELIVERY_CENTRE, getAll);
+		return records;
 	}
 
 	/**
@@ -892,30 +941,35 @@ public class DeliveryMasterService {
 	 * @param term
 	 * @param getAll
 	 * @param user
+	 * @param stage 
 	 * @return
 	 */
-	private SearchResultDTO<DeliveryMasterT> getDeliveryMasterByCustName(
-			String term, boolean getAll, UserT user) {
+	private List<DeliveryMasterT> getDeliveryMasterByCustName(
+			String term, boolean getAll, UserT user, int stage) {
 		logger.info("Inside getDeliveryMasterById() Method");
 		List<DeliveryMasterT> records = null;
 		String userGroup = user.getUserGroup();
 		if (userGroup.equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue())) {
 			
-			records = deliveryMasterRepository.searchDeliveryClusterDetailsByCustomerName("%" + term + "%", getAll, user.getUserId());
+			records = deliveryMasterRepository.searchDeliveryClusterDetailsByCustomerName("%" + term + "%", getAll, user.getUserId(), stage);
 		
 		} else if(userGroup.equals(UserGroup.DELIVERY_CENTRE_HEAD.getValue())){
 			
-			records = deliveryMasterRepository.searchDeliveryCentreDetailsByCustomerName("%" + term + "%", getAll, user.getUserId());
+			records = deliveryMasterRepository.searchDeliveryCentreDetailsByCustomerName("%" + term + "%", getAll, user.getUserId(), stage);
 		
 		} else if(userGroup.equals(UserGroup.DELIVERY_MANAGER.getValue())){
 			
-			records = deliveryMasterRepository.searchDeliveryManagerDetailsByCustomerName("%" + term + "%", getAll, user.getUserId());
+			records = deliveryMasterRepository.searchDeliveryManagerDetailsByCustomerName("%" + term + "%", getAll, user.getUserId(), stage);
+
+		} else if(userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
+			
+			records = deliveryMasterRepository.searchForSIDetailsByCustomerName("%" + term + "%", getAll, stage);
 
 		} else {
 			logger.info("HttpStatus.UNAUTHORIZED, Access Denied");
 			throw new DestinationException(HttpStatus.UNAUTHORIZED, "Access Denied");
 		}
-		return createSearchResultFrom(records, SmartSearchType.CUSTOMER, getAll);
+		return records;
 	}
 
 	/**
@@ -924,47 +978,36 @@ public class DeliveryMasterService {
 	 * @param term
 	 * @param getAll
 	 * @param user
+	 * @param stage 
 	 * @return
 	 */
-	private SearchResultDTO<DeliveryMasterT> getDeliveryMasterById(String term,
-			boolean getAll, UserT user) {
+	private List<DeliveryMasterT> getDeliveryMasterById(String term,
+			boolean getAll, UserT user, int stage) {
 		logger.info("Inside getDeliveryMasterById() Method");
 		List<DeliveryMasterT> records = null;
 		String userGroup = user.getUserGroup();
 		if (userGroup.equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue())) {
 			
-			records = deliveryMasterRepository.searchDeliveryClusterDetailsById("%" + term + "%", getAll, user.getUserId());
+			records = deliveryMasterRepository.searchDeliveryClusterDetailsById("%" + term + "%", getAll, user.getUserId(), stage);
 		
 		} else if(userGroup.equals(UserGroup.DELIVERY_CENTRE_HEAD.getValue())){
 			
-			records = deliveryMasterRepository.searchDeliveryCentreDetailsById("%" + term + "%", getAll, user.getUserId());
+			records = deliveryMasterRepository.searchDeliveryCentreDetailsById("%" + term + "%", getAll, user.getUserId(), stage);
 		
 		} else if(userGroup.equals(UserGroup.DELIVERY_MANAGER.getValue())){
 			
-			records = deliveryMasterRepository.searchDeliveryManagerDetailsById("%" + term + "%", getAll, user.getUserId());
+			records = deliveryMasterRepository.searchDeliveryManagerDetailsById("%" + term + "%", getAll, user.getUserId(), stage);
+
+		} else if(userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
+			
+			records = deliveryMasterRepository.searchForSIDetailsById("%" + term + "%", getAll, stage);
 
 		} else {
 			logger.info("HttpStatus.UNAUTHORIZED, Access Denied");
 			throw new DestinationException(HttpStatus.UNAUTHORIZED, "Access Denied");
 		}
-		return createSearchResultFrom(records, SmartSearchType.ID, getAll);
+		return records;
 	}
 
-	/**
-	 * creates {@link SearchResultDTO} from the list of DeliveryMasterT
-	 * 
-	 * @param records
-	 * @param type
-	 * @param getAll
-	 * @return
-	 */
-	private SearchResultDTO<DeliveryMasterT> createSearchResultFrom(
-			List<DeliveryMasterT> records, SmartSearchType type, boolean getAll) {
-		SearchResultDTO<DeliveryMasterT> conRes = new SearchResultDTO<DeliveryMasterT>();
-		conRes.setSearchType(type);
-		conRes.setValues(records);
-		return conRes;
-
-	}
 }
 

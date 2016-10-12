@@ -1,5 +1,6 @@
 package com.tcs.destination.helper;
 
+import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -549,7 +550,7 @@ public class OpportunityUploadHelper {
 						+ OpportunityUploadConstants.ENGAGEMENT_DURATION_MAX_SIZE
 						+ " characters");
 			} else {
-				opportunity.setEngagementDuration(engagementDuration);
+				opportunity.setEngagementDuration(new BigDecimal(engagementDuration));
 			}
 		}
 

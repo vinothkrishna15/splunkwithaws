@@ -42,6 +42,8 @@ public class OpportunityRFPSubmitted {
 	private String owner;
 	
 	private Integer dealValueInt;
+	
+	private String bidType;
 
 	public Integer getDealValueInt() {
 		return dealValueInt;
@@ -137,6 +139,14 @@ public class OpportunityRFPSubmitted {
 
 	public void setOpportunityDescription(String opportunityDescription) {
 		this.opportunityDescription = opportunityDescription;
+	}
+
+	public String getBidType() {
+		return bidType;
+	}
+
+	public void setBidType(String bidType) {
+		this.bidType = bidType;
 	}
 	
 }

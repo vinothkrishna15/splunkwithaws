@@ -365,7 +365,7 @@ public class OpportunityUploadService {
 				// ENGAGEMENT DURATION
 				if (!StringUtils.isEmpty(listOfCellValues.get(37))) {
 				    validateCellByStringLength(listOfCellValues.get(37),OpportunityUploadConstants.ENGAGEMENT_DURATION, 37, OpportunityUploadConstants.ENGAGEMENT_DURATION_MAX_SIZE);
-				    opp.setEngagementDuration((listOfCellValues.get(37)));
+				    opp.setEngagementDuration(new BigDecimal(listOfCellValues.get(37)));
 				}
 
 				// ENGAGEMENT START DATE

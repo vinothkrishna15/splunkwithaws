@@ -327,13 +327,16 @@ public class UserNotificationSettingsService {
 				boolean flag = true;
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 				case BDM :
-				case PRACTICE_OWNER:	
+				case PRACTICE_OWNER:
+				case DELIVERY_MANAGER:	
 					if(notificationTypeEventMappingT.getGroupId() == NotificationSettingGroup.SUPERVISOR.getGroupId() || notificationTypeEventMappingT.getGroupId() == NotificationSettingGroup.LEADERSHIP.getGroupId()) {
 						flag = false;
 					}
 					break;
 				case BDM_SUPERVISOR:
 				case PRACTICE_HEAD:
+				case DELIVERY_CENTRE_HEAD:
+				case DELIVERY_CLUSTER_HEAD:	
 				  if(notificationTypeEventMappingT.getGroupId() == NotificationSettingGroup.LEADERSHIP.getGroupId()) {
 					  flag = false;
 				  }
