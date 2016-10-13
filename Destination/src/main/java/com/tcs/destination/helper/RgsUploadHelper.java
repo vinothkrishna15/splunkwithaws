@@ -7,6 +7,10 @@
  */
 package com.tcs.destination.helper;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +20,7 @@ import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.data.repository.DeliveryRequirementRepository;
 import com.tcs.destination.data.repository.RgsRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.StringUtils;
 
 /**
@@ -38,17 +43,9 @@ public class RgsUploadHelper {
 	@Autowired
 	private DeliveryRequirementRepository requirementRepository;
 	
-	private static final int RGS_ID_COL_INDEX = 1;
-	private static final int REQ_ID_COL_INDEX = 2;
-	private static final int CUSTOMER_COL_INDEX = 9;
-	private static final int BRANCH_COL_INDEX = 10;
-	private static final int LOCATION_COL_INDEX = 7;
-	private static final int COMPETENCY_COL_INDEX = 4;
-	private static final int SUB_COMP_COL_INDEX = 5;
-	private static final int EXPERIENCE_COL_INDEX = 6;
-	private static final int ROLE_COL_INDEX = 3;
-	private static final int STATUS_COL_INDEX = 8;
-	private static final int IOU_COL_INDEX = 11;
+	private static final DateFormat dateFormat = new SimpleDateFormat(
+			"MM/dd/yy");
+	
 
 	/**
 	 * @param data
@@ -66,7 +63,7 @@ public class RgsUploadHelper {
 			StringBuffer errorMsg = new StringBuffer("");
 			
 			
-			String rgsId = data[RGS_ID_COL_INDEX];
+			String rgsId = data[Constants.RGS_ID_COL_INDEX];
 			if(StringUtils.isEmpty(rgsId)){
 				error.setRowNumber(rowNumber);
 				errorMsg.append("RGS Id Is Mandatory; ");
@@ -76,10 +73,9 @@ public class RgsUploadHelper {
 					isRgsIdExists = true;
 				} 
 					rgsId = rgsId.trim();
-				
 			}
 			
-			String requirementId = data[REQ_ID_COL_INDEX];
+			String requirementId = data[Constants.REQ_ID_COL_INDEX];
 			if(StringUtils.isEmpty(requirementId)){
 				error.setRowNumber(rowNumber);
 				errorMsg.append("Requirement Id Is Mandatory; ");
@@ -88,19 +84,19 @@ public class RgsUploadHelper {
 				requirementId = requirementId.trim();
 			}
 			
-			String customerName = data[CUSTOMER_COL_INDEX];
+			String customerName = data[Constants.CUSTOMER_COL_INDEX];
 			
 			if(!StringUtils.isEmpty(customerName)){
 				customerName = customerName.trim();
 			}
 			
-			String branchName = data[BRANCH_COL_INDEX];
+			String branchName = data[Constants.BRANCH_COL_INDEX];
 			
 			if(!StringUtils.isEmpty(branchName)){
 				branchName = branchName.trim();
 			}
 			
-			String location = data[LOCATION_COL_INDEX];
+			String location = data[Constants.LOCATION_COL_INDEX];
 			
 			if(StringUtils.isEmpty(location)){
 				error.setRowNumber(rowNumber);
@@ -109,19 +105,19 @@ public class RgsUploadHelper {
 				location = location.trim();
 			}
 			
-			String competencyArea = data[COMPETENCY_COL_INDEX];
+			String competencyArea = data[Constants.COMPETENCY_COL_INDEX];
 			
 			if(!StringUtils.isEmpty(competencyArea)){
 				competencyArea = competencyArea.trim();
 			}
 			
-			String subCompetencyArea = data[SUB_COMP_COL_INDEX];
+			String subCompetencyArea = data[Constants.SUB_COMP_COL_INDEX];
 			
 			if(!StringUtils.isEmpty(subCompetencyArea)){
 				subCompetencyArea = subCompetencyArea.trim();
 			}
 			
-			String experience = data[EXPERIENCE_COL_INDEX];
+			String experience = data[Constants.EXPERIENCE_COL_INDEX];
 			
 			if(StringUtils.isEmpty(experience)){
 				error.setRowNumber(rowNumber);
@@ -130,7 +126,7 @@ public class RgsUploadHelper {
 				experience = experience.trim();
 			}
 			
-			String role = data[ROLE_COL_INDEX];
+			String role = data[Constants.ROLE_COL_INDEX];
 			
 			if(StringUtils.isEmpty(role)){
 				error.setRowNumber(rowNumber);
@@ -139,28 +135,65 @@ public class RgsUploadHelper {
 				role = role.trim();
 			}
 			
-			String status = data[STATUS_COL_INDEX];
-			
+			String status = data[Constants.STATUS_COL_INDEX];
 			if(StringUtils.isEmpty(status)){
 				error.setRowNumber(rowNumber);
 				errorMsg.append("Status Is Mandatory; ");
-			}else{
-				DeliveryRequirementT deliveryRequirementDB = requirementRepository.findOne(requirementId);
-				status = status.trim();
-				if(deliveryRequirementDB!=null){
-				String statusDb = deliveryRequirementDB.getStatus(); 
-				if(status.equalsIgnoreCase(statusDb)){
-					error.setRowNumber(rowNumber);
-					errorMsg.append("Given Status already exists for the Requirement Id; ");
-				}
-				}
 			}
 			
-			String iouName = data[IOU_COL_INDEX];
+			String iouName = data[Constants.IOU_COL_INDEX];
 			if(!StringUtils.isEmpty(iouName)){
 				iouName = iouName.trim();
 			}
 			
+			String employeeId = data[Constants.EMP_ID_COL_INDEX];
+			if(!StringUtils.isEmpty(employeeId)){
+				employeeId = employeeId.trim();
+			}
+			
+			String employeeName = data[Constants.EMP_NAME_COL_INDEX];
+			if(!StringUtils.isEmpty(employeeName)){
+				employeeName = employeeName.trim();
+			}
+			
+			Date fulfillmentDate = null;
+			String requirementFulfillmentDate = data[Constants.FULFILL_DATE_COL_INDEX];
+			if (!StringUtils.isEmpty(requirementFulfillmentDate)) {
+				try{
+					fulfillmentDate = dateFormat.parse(requirementFulfillmentDate);
+				}catch (Exception e){
+					error.setRowNumber(rowNumber);
+					errorMsg.append(" Invalid Fulfillment date Format ");
+				}
+			}
+			
+			Date reqStartDate = null;
+			String requirementStartDate = data[Constants.REQ_START_DATE_COL_INDEX];
+			if (!StringUtils.isEmpty(requirementStartDate)) {
+				try{
+					reqStartDate = dateFormat.parse(requirementStartDate);
+				}catch (Exception e){
+					error.setRowNumber(rowNumber);
+					errorMsg.append(" Invalid Requirement Start date Format ");
+				}
+			} else {
+				error.setRowNumber(rowNumber);
+				errorMsg.append("requirementStartDate Is Mandatory; ");
+			}
+			
+			Date reqEndDate = null;
+			String requirementEndDate = data[Constants.REQ_END_DATE_COL_INDEX];
+			if (!StringUtils.isEmpty(requirementEndDate)) {
+				try{
+					reqEndDate = dateFormat.parse(requirementEndDate);
+				}catch (Exception e){
+					error.setRowNumber(rowNumber);
+					errorMsg.append(" Invalid Requirement End date Format ");
+				}
+			} else {
+				error.setRowNumber(rowNumber);
+				errorMsg.append("requirementEndDate Is Mandatory; ");
+			}
 			
 			if(StringUtils.isEmpty(errorMsg.toString())){
 				rgst.setDeliveryRgsId(rgsId);
@@ -175,6 +208,11 @@ public class RgsUploadHelper {
 				deliveryRequirementT.setExperience(experience);
 				deliveryRequirementT.setRole(role);
 				deliveryRequirementT.setStatus(status);
+				deliveryRequirementT.setEmployeeId(employeeId);
+				deliveryRequirementT.setEmployeeName(employeeName);
+				deliveryRequirementT.setFulfillmentDate(fulfillmentDate);
+				deliveryRequirementT.setRequirementStartDate(reqStartDate);
+				deliveryRequirementT.setRequirementEndDate(reqEndDate);
 				deliveryRequirementT.setCreatedBy(userId);
 				deliveryRequirementT.setModifiedBy(userId);
 			} else {

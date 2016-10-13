@@ -167,7 +167,7 @@ public class Constants {
 	public static final String PRODUCT_MASTER_REF_SHEET = "Product Master(Ref)";
 	public static final String XLS = ".xls";
 	public static final String PRODUCT_TEMPLATE_LOCATION_PROPERTY_NAME = "productSheetTemplate";
-	
+	public static final String RGS_TEMPLATE_LOCATION_PROPERTY_NAME = "rgsDetailsSheetTemplate";
 	
 	public static final String PARTNER_MASTER_UPLOAD_SUBJECT = "Partner upload request processed.";
 	public static final String PARTNER_MASTER_DOWNLOAD_SUBJECT = "Partner download request processed.";
@@ -175,7 +175,8 @@ public class Constants {
     public static final String PRODUCT_CONTACT_TEMPLATE_LOCATION_PROPERTY_NAME = "productContactSheetTemplate";
 	
     public static final String RGS_UPLOAD_SUBJECT  = "RGS upload request processed.";
-	
+	public static final String RGS_DETAILS_SHEET_NAME = "RGS_Details";
+
 	public static final String PARTNER_TEMPLATE_LOCATION_PROPERTY_NAME = "partnerSheetTemplate";
 	public static final String PARTNER_CONTACT_TEMPLATE_LOCATION_PROPERTY_NAME = "partnerContactSheetTemplate" ;
 	public static final String PARTNER_TEMPLATE_PARTNER_SHEET_NAME = "Partner Master";
@@ -343,4 +344,23 @@ public class Constants {
 	public static final String DELIVERY_MANAGER = "Delivery Manager";
 	public static final Integer DELIVERY_CENTRE_OPEN = -1;
 
+	
+	//RGS Sheet column index
+	public static final int RGS_ID_COL_INDEX = 1;
+	public static final int REQ_ID_COL_INDEX = 2;
+	public static final int CUSTOMER_COL_INDEX = 9;
+	public static final int BRANCH_COL_INDEX = 10;
+	public static final int LOCATION_COL_INDEX = 7;
+	public static final int COMPETENCY_COL_INDEX = 4;
+	public static final int SUB_COMP_COL_INDEX = 5;
+	public static final int EXPERIENCE_COL_INDEX = 6;
+	public static final int ROLE_COL_INDEX = 3;
+	public static final int STATUS_COL_INDEX = 8;
+	public static final int IOU_COL_INDEX = 11;
+	public static final int EMP_ID_COL_INDEX = 13;
+	public static final int EMP_NAME_COL_INDEX = 12;
+	public static final int FULFILL_DATE_COL_INDEX = 14;
+	public static final int REQ_START_DATE_COL_INDEX = 15;
+	public static final int REQ_END_DATE_COL_INDEX = 16;
+	
 }
