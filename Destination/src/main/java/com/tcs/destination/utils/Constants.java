@@ -175,6 +175,7 @@ public class Constants {
     public static final String PRODUCT_CONTACT_TEMPLATE_LOCATION_PROPERTY_NAME = "productContactSheetTemplate";
 	
     public static final String RGS_UPLOAD_SUBJECT  = "RGS upload request processed.";
+    public static final String RGS_DOWNLOAD_SUBJECT = "RGS Download Request Processed";
 	public static final String RGS_DETAILS_SHEET_NAME = "RGS_Details";
 
 	public static final String PARTNER_TEMPLATE_LOCATION_PROPERTY_NAME = "partnerSheetTemplate";
@@ -362,5 +363,8 @@ public class Constants {
 	public static final int FULFILL_DATE_COL_INDEX = 14;
 	public static final int REQ_START_DATE_COL_INDEX = 15;
 	public static final int REQ_END_DATE_COL_INDEX = 16;
+	
+	//Date Format
+	public static final String DATE_FORMAT = "MM/dd/yyyy";
 	
 }

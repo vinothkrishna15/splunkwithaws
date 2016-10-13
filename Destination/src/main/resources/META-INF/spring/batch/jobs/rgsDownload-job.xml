@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:batch="http://www.springframework.org/schema/batch"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-3.0.xsd
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+
+	<batch:job id="rgsDownload">
+	<!-- Request Checking -->
+		<batch:step id="rgsDownloadPreprocess" next="rgsDownloadDecider">
+			<batch:tasklet>
+				<ref bean="rgsDownloadPreprocessor" />
+			</batch:tasklet>
+		</batch:step>
+	<!-- Reading and writing the data -->	
+		<batch:step id="rgsDwldProcessing" next="rgsDownloadPreprocess">
+			<batch:tasklet>
+				<batch:chunk reader="rgsDownloadReader" writer="rgsSheetWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+    <!-- Decision Making -->
+		<batch:decision id="rgsDownloadDecider" decider="rgsDownloadFlowdecider">
+			<batch:next on="PREPROCESS" to="rgsDownloadPreprocess" />
+			<batch:next on="RGS_DWLD_PROCESSING" to="rgsDwldProcessing" />
+			<batch:end on="END" />
+		</batch:decision>
+	</batch:job>
+
+	<!-- Preprocessor -->
+	<bean id="rgsDownloadPreprocessor" class="com.tcs.destination.tasklet.RgsDownloadPreprocessor"
+		scope="step"></bean>
+
+	<!-- Reader -->
+	<bean id="rgsDownloadReader" class="com.tcs.destination.reader.NativeQueryObjectReader"
+		scope="step">
+		<property name="repository" ref="deliveryRequirementRepository" />
+		<property name="methodName" value="findAll" />
+	</bean>
+
+	<!-- Writer -->
+	<bean id="rgsSheetWriter" class="com.tcs.destination.writer.RgsDwldWriter"
+		scope="step">
+		<property name="template" value="${rgsDetailsSheetTemplate}" />
+		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository" />
+		<property name="dataProcessingService" ref="dataProcessingService" />
+		<property name="fileServerPath" value="${fileserver.path}" />
+	</bean>
+	<!-- Decider -->
+	<bean id="rgsDownloadFlowdecider" class="com.tcs.destination.decider.RgsDecider" />
+
+	<!-- scheduler -->
+	<bean id="rgsDownloadScheduler" class="com.tcs.destination.scheduler.JobScheduler">
+		<property name="job" ref="rgsDownload" />
+	</bean>
+
+	<task:scheduled-tasks>
+		<task:scheduled ref="rgsDownloadScheduler" method="run"
+			cron="${rgs.download.job.cron}" />
+	</task:scheduled-tasks>
+
+</beans>	
+	

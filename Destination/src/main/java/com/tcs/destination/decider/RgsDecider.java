@@ -29,7 +29,10 @@ public class RgsDecider implements JobExecutionDecider {
 			status = new FlowExecutionStatus(JobStep.RGS_PROCESSING.name());
         } else if (jobExecution.getExecutionContext().get(NEXT_STEP).equals(JobStep.RGS_DATA_PROCESSING)) {
         	status = new FlowExecutionStatus(JobStep.RGS_DATA_PROCESSING.name());
-        } else if (jobExecution.getExecutionContext().get(NEXT_STEP).equals(JobStep.PREPROCESS)) {
+        } else if (jobExecution.getExecutionContext().get(NEXT_STEP).equals(JobStep.RGS_DWLD_PROCESSING)) {
+        	status = new FlowExecutionStatus(JobStep.RGS_DWLD_PROCESSING.name());
+        }
+        else if (jobExecution.getExecutionContext().get(NEXT_STEP).equals(JobStep.PREPROCESS)) {
         	status = new FlowExecutionStatus(JobStep.PREPROCESS.name());
         } 
 		

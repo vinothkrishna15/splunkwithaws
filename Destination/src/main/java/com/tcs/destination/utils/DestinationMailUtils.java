@@ -496,7 +496,8 @@ public class DestinationMailUtils {
 			attachmentFileName = request.getErrorFileName();
 		} else if ((requestType > 9 && requestType < 19) || requestType == RequestType.PARTNER_MASTER_DOWNLOAD.getType()
 				|| requestType == RequestType.PRODUCT_DOWNLOAD.getType() ||
-				requestType == RequestType.PRODUCT_CONTACT_DOWNLOAD.getType()) { // download
+				requestType == RequestType.PRODUCT_CONTACT_DOWNLOAD.getType() ||
+				requestType == RequestType.RGS_DOWNLOAD.getType()) { // download
 			template = downloadTemplateLoc;
 			attachmentFilePath = request.getFilePath() + request.getFileName();
 			attachmentFileName = request.getFileName();

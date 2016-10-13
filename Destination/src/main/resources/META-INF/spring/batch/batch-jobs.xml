@@ -58,5 +58,7 @@
     <import resource="/jobs/rgsUpload-job.xml"/>
     <import resource="/jobs/deliveryEmailNotification-job.xml"/>
     
+    <import resource="/jobs/rgsDownload-job.xml"/>
+    
 </beans>
 	

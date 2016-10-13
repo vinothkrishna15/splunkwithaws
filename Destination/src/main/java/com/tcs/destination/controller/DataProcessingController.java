@@ -136,7 +136,8 @@ public class DataProcessingController {
 		boolean isDownloadRequest = false;
 		 if ((type > 9 && type < 19) || type == RequestType.PARTNER_MASTER_DOWNLOAD.getType()
 					|| type == RequestType.PRODUCT_DOWNLOAD.getType() ||
-							type == RequestType.PRODUCT_CONTACT_DOWNLOAD.getType()) { 
+							type == RequestType.PRODUCT_CONTACT_DOWNLOAD.getType() ||
+							 type == RequestType.RGS_DOWNLOAD.getType()) { 
 			isDownloadRequest = true;
 		}
 		return isDownloadRequest;

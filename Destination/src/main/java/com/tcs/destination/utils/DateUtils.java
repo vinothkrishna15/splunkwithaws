@@ -14,6 +14,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
@@ -921,5 +924,19 @@ public class DateUtils {
 	public static Date getPreviousDate() {
 		return new LocalDate().minusDays(1).toDate();
 		}
+	
+	/**
+	 * Gets the cell style for the specified date format
+	 * @param sheet
+	 * @param format
+	 * @return
+	 */
+	public static CellStyle getCellStyleDate(Sheet sheet, String dateFormat) {
+		CellStyle cellStyleDateFormat = sheet.getWorkbook().createCellStyle();
+		CreationHelper createHelper = sheet.getWorkbook().getCreationHelper();
+		cellStyleDateFormat.setDataFormat(createHelper.createDataFormat()
+				.getFormat(dateFormat));
+		return cellStyleDateFormat;
+	}
 	
 }

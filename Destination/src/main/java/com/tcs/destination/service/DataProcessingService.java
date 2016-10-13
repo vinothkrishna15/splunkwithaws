@@ -147,6 +147,9 @@ public class DataProcessingService {
 		case 26:
 			entity = EntityType.RGS.name();
 		break;
+		case 27:
+			entity = EntityType.RGS.name();
+			break;
 		}
 		return entity;
 	}
