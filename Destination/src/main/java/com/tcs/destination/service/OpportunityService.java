@@ -40,6 +40,7 @@ import com.tcs.destination.bean.AuditOpportunityDeliveryCentreT;
 import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
 import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
+import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryMasterT;
 import com.tcs.destination.bean.DeliveryOwnershipT;
@@ -322,8 +323,8 @@ public class OpportunityService {
 			UserT user, int page, int count) throws Exception {
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		String userGroup = user.getUserGroup();
-		if (userGroup.equals(UserGroup.DELIVERY_CENTRE_HEAD.getValue())
-				|| userGroup.equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue())
+		if (userGroup.equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue())
+				|| userGroup.equals(UserGroup.DELIVERY_CENTRE_HEAD.getValue())
 				|| userGroup.equals(UserGroup.DELIVERY_MANAGER.getValue())) {
 			paginatedResponse = findByOpportunityNameAndDelivaryFlag(nameWith,
 					customerId, currencies, isAjax, user, page, count);
@@ -470,7 +471,7 @@ public class OpportunityService {
 	}
 
 	/**
-	 * To fetch all the delivery centres
+	 * To fetch all the delivery centres except open
 	 * 
 	 * @return
 	 */
@@ -478,8 +479,9 @@ public class OpportunityService {
 	public List<DeliveryCentreT> fetchDeliveryCentre() {
 		logger.debug("Inside fetchDeliveryCentre() service");
 		List<DeliveryCentreT> deliveryCentre = new ArrayList<DeliveryCentreT>();
-		deliveryCentre = (List<DeliveryCentreT>) deliveryCentreRepository
-				.findAll();
+		// Retrieving all delivery centres except open ->delivery centre id -1
+		deliveryCentre = deliveryCentreRepository
+				.findByDeliveryCentreIdGreaterThanEqual(Constants.CONSTANT_ZERO);
 		return deliveryCentre;
 	}
 
@@ -1014,9 +1016,10 @@ public class OpportunityService {
 					.getUserId();
 			UserT user = userRepository.findByUserId(userId);
 			String userGroup = user.getUserGroup();
-			if ((userGroup.equals(UserGroup.DELIVERY_CENTRE_HEAD.toString()))
-					|| (userGroup.equals(UserGroup.DELIVERY_CENTRE_HEAD
-							.toString()))) {
+			UserGroup userGroupE = UserGroup.getUserGroup(userGroup);
+			if (userGroupE == UserGroup.DELIVERY_CENTRE_HEAD
+					|| userGroupE == UserGroup.DELIVERY_CLUSTER_HEAD
+					|| userGroupE == UserGroup.DELIVERY_MANAGER) {
 				deliveryTeamFlag = true;
 			}
 			opportunity.setDeliveryTeamFlag(deliveryTeamFlag);
@@ -1081,7 +1084,10 @@ public class OpportunityService {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"BFM file name should not be empty!");
 			}
-			workflowBfmt.setBfmFileName(opportunity.getBfmFileName());
+			
+			String fileName = getFormattedBFMFileName(opportunity);
+			workflowBfmt.setBfmFileName(fileName);
+			
 			workflowBfmt.setDealFinancialFile(opportunity
 					.getDealFinancialFile());
 			workflowBfmt
@@ -1102,6 +1108,18 @@ public class OpportunityService {
 			status.setStatus(Status.SUCCESS, opportunity.getOpportunityId());	
 		}
 	}
+
+
+	/**
+	 * This method returns the formatted file name for BFM for a given opportunity
+	 * @param opportunity
+	 * @return
+	 */
+	private String getFormattedBFMFileName(OpportunityT opportunity) {
+		CustomerMasterT customerMaster = customerRepository.findOne(opportunity.getCustomerId());
+		return opportunity.getOpportunityId() + "_" + customerMaster.getCustomerName() + "." + DestinationUtils.getExtension(opportunity.getBfmFileName());
+	}
+	
 
 	/**
 	 * This method is used to update Opportunity Timeline History. Sales Stage
@@ -1783,6 +1801,7 @@ public class OpportunityService {
 					.getDeliveryOwnershipId());
 		}
 		baseOpportunityT.setSalesStageCode(opportunity.getSalesStageCode());
+		baseOpportunityT.setDeliveryTeamFlag(opportunity.getDeliveryTeamFlag());
 		opportunity.setOpportunityId(opportunityRepository.save(
 				baseOpportunityT).getOpportunityId());
 		logger.debug("ID " + baseOpportunityT.getOpportunityId());
@@ -1834,6 +1853,7 @@ public class OpportunityService {
 						"Deal closure comments is mandatory for the opportuniy for sales stage codes (11,12 and 13)");
 			}
 		}
+		opportunity.setDeliveryTeamFlag(opportunityBeforeEdit.getDeliveryTeamFlag());
 		// Update database
 		OpportunityT afterOpp = saveOpportunity(opportunity, true, userGroup,
 				opportunityBeforeEdit, oldSalesStageCode);
@@ -2052,9 +2072,6 @@ public class OpportunityService {
 						.setEnableEditAccess(isEditAccessRequiredForOpportunity(
 								opportunityT, userGroup, userId, false));
 				checkAccessControl(opportunityT, previledgedOppIdList);
-				checkDeliveryTeamAccessControl(opportunityT,
-						previledgedOppIdList);
-
 			}
 
 		} catch (Exception e) {
@@ -2101,26 +2118,6 @@ public class OpportunityService {
 
 	}
 
-	private void checkDeliveryTeamAccessControl(OpportunityT opportunityT,
-			List<String> previledgedOppIdList) throws Exception {
-
-		// previledgedOppIdList is null only while it is a single opportunity.
-		if (previledgedOppIdList != null) {
-			if (!previledgedOppIdList.contains(opportunityT.getOpportunityId())) {
-				preventSensitiveInfo(opportunityT);
-			}
-		} else {
-			List<String> opportunityIdList = new ArrayList<String>();
-			opportunityIdList.add(opportunityT.getOpportunityId());
-			previledgedOppIdList = opportunityDao
-					.getPriviledgedOpportunityId(opportunityIdList);
-			if ((previledgedOppIdList == null || previledgedOppIdList.size() == 0)
-					&& (!opportunityT.isEnableEditAccess())) {
-
-				preventSensitiveInfo(opportunityT);
-			}
-		}
-	}
 
 	public void preventSensitiveInfo(List<OpportunityT> opportunityTs) {
 		for (OpportunityT opportunityT : opportunityTs) {
@@ -2576,7 +2573,7 @@ public class OpportunityService {
 				|| userGroup.equals(UserGroup.DELIVERY_MANAGER.getValue())) {
 			List<String> userIds = userRepository.getAllSubordinatesIdBySupervisorId(user.getUserId());
 			userIds.add(user.getUserId());
-			List<OpportunityT> deliveryOppList = validateAndGetDeliveryOpportunities(opportunity, userId);
+			List<OpportunityT> deliveryOppList = validateAndGetDeliveryOpportunities(opportunity, userIds);
 			opportunityList.addAll(deliveryOppList);
 		} else {
 			opportunityList.addAll(opportunity);
@@ -2595,7 +2592,7 @@ public class OpportunityService {
 					opportunityList.size());
 			int toIndex = PaginationUtils.getEndIndex(page, count,
 					opportunityList.size()) + 1;
-			opportunity = opportunity.subList(fromIndex, toIndex);
+			opportunityList = opportunityList.subList(fromIndex, toIndex);
 			opportunityResponse.setOpportunityTs(opportunityList);
 			logger.debug("OpportunityT  after pagination size is "
 					+ opportunityList.size());

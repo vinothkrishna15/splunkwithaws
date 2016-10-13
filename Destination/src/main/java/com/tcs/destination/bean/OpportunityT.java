@@ -1,6 +1,7 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
@@ -86,7 +87,7 @@ public class OpportunityT implements Serializable, Cloneable {
 	private String documentsAttached;
 
 	@Column(name = "engagement_duration")
-	private String engagementDuration;
+	private BigDecimal engagementDuration;
 
 	@Temporal(TemporalType.DATE)
 	@Column(name = "engagement_start_date")
@@ -142,9 +143,6 @@ public class OpportunityT implements Serializable, Cloneable {
 	
 	@Column(name = "delivery_ownership_id")
 	private Integer deliveryOwnershipId;
-	
-	@Column(name="delivery_type")
-	private String deliveryType;
 	
 	@Column(name="isu_own_reason")
 	private String isuOwnReason; 
@@ -228,11 +226,6 @@ public class OpportunityT implements Serializable, Cloneable {
 	@ManyToOne
 	@JoinColumn(name = "opportunity_owner", insertable = false, updatable = false)
 	private UserT primaryOwnerUser;
-	
-	// bi-directional many-to-one association to DeliveryTypeMappingT
-	@ManyToOne
-	@JoinColumn(name = "delivery_type", insertable = false, updatable = false)
-	private DeliveryTypeMappingT deliveryTypeMappingT;
 
 	// bi-directional many-to-one association to
 	// OpportunityTcsAccountContactLinkT
@@ -463,11 +456,11 @@ public class OpportunityT implements Serializable, Cloneable {
 		this.documentsAttached = documentsAttached;
 	}
 
-	public String getEngagementDuration() {
+	public BigDecimal getEngagementDuration() {
 		return this.engagementDuration;
 	}
 
-	public void setEngagementDuration(String engagementDuration) {
+	public void setEngagementDuration(BigDecimal engagementDuration) {
 		this.engagementDuration = engagementDuration;
 	}
 
@@ -1313,25 +1306,9 @@ public class OpportunityT implements Serializable, Cloneable {
 		this.deliveryTeamFlag = deliveryTeamFlag;
 	}
 
-	public DeliveryTypeMappingT getDeliveryTypeMappingT() {
-		return deliveryTypeMappingT;
-	}
-
-	public void setDeliveryTypeMappingT(DeliveryTypeMappingT deliveryTypeMappingT) {
-		this.deliveryTypeMappingT = deliveryTypeMappingT;
-	}
-
 	public void setOpportunityDeliveryCentreMappingTs(
 			List<OpportunityDeliveryCentreMappingT> opportunityDeliveryCentreMappingTs) {
 		this.opportunityDeliveryCentreMappingTs = opportunityDeliveryCentreMappingTs;
-	}
-
-	public String getDeliveryType() {
-		return deliveryType;
-	}
-
-	public void setDeliveryType(String deliveryType) {
-		this.deliveryType = deliveryType;
 	}
 
 	public List<DeliveryMasterT> getDeliveryMasterTs() {

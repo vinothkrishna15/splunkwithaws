@@ -2466,7 +2466,7 @@ public class NotificationBatchHelper {
 
 	private boolean compareDateValueForUpdate(Date oldValue, Date newValue) {
 		boolean flag = false;
-		if (oldValue != null && oldValue != newValue) {
+		if(oldValue!=null && oldValue.compareTo(newValue)!=0) {
 			flag = true;
 		}
 		return flag;

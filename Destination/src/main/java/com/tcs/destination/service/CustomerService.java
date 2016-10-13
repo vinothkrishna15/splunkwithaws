@@ -24,11 +24,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 import com.tcs.destination.bean.BeaconCustomerMappingT;
+import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.IouBeaconMappingT;
 import com.tcs.destination.bean.IouCustomerMappingT;
+import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.QueryBufferDTO;
@@ -39,6 +41,7 @@ import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BeaconCustomerMappingRepository;
 import com.tcs.destination.data.repository.BeaconRepository;
+import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.CustomerDao;
 import com.tcs.destination.data.repository.CustomerIOUMappingRepository;
@@ -136,9 +139,13 @@ public class CustomerService {
 	Map<String, IouCustomerMappingT> mapOfIouCustomerMappingT = null;
 	Map<String, IouBeaconMappingT> mapOfIouBeaconMappingT = null;
 
+	@Autowired
+	private ConnectRepository connectRepository;
 
-	
-	
+	@Autowired
+	private ConnectService connectService;
+
+
 	/**
 	 * This method is used to fetch customer details using customer id
 	 * @param customerId
@@ -149,6 +156,8 @@ public class CustomerService {
 	public CustomerMasterT findById(String customerId, List<String> toCurrency)
 			throws Exception {
 		logger.debug("Inside findById() service");
+		UserT userT= DestinationUtils.getCurrentUserDetails();
+		String userGroup = userT.getUserGroup();
 		CustomerMasterT customerMasterT = customerRepository
 				.findOne(customerId);
 		if (customerMasterT == null) {
@@ -156,7 +165,13 @@ public class CustomerService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Customer not found: " + customerId);
 		}
-		prepareCustomerDetails(customerMasterT, null);
+		if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+				|| userGroup.contains(UserGroup.DELIVERY_CENTRE_HEAD.getValue()) 
+				|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())){
+			prepareDeliveryCustomerDetails(customerMasterT, userT);
+		} else {
+			prepareCustomerDetails(customerMasterT, null);
+		}
 		beaconConverterService.convertOpportunityCurrency(
 				customerMasterT.getOpportunityTs(), toCurrency);
 		return customerMasterT;
@@ -270,7 +285,10 @@ public class CustomerService {
 			case BDM:
 			case BDM_SUPERVISOR:
 			case PRACTICE_HEAD:
-			case PRACTICE_OWNER:	
+			case PRACTICE_OWNER:
+			case DELIVERY_CLUSTER_HEAD:
+			case DELIVERY_CENTRE_HEAD:
+			case DELIVERY_MANAGER:	
 				logger.error("User is not authorized to access this service");
 				throw new DestinationException(HttpStatus.FORBIDDEN,
 						"User is not authorised to access this service");
@@ -440,7 +458,6 @@ public class CustomerService {
 	 */
 	public PaginatedResponse findByNameStarting(String startsWith, int page,
 			int count) throws Exception {
-
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		Pageable pageable = new PageRequest(page, count);
 		logger.debug("Starts With" + startsWith);
@@ -496,27 +513,53 @@ public class CustomerService {
 		}
 	}
 
-	
-	
-
 	private void prepareCustomerDetails(List<CustomerMasterT> customerMasterList)
 			throws Exception {
 		logger.debug("Inside prepareCustomerDetails() method");
-
+		UserT userT= DestinationUtils.getCurrentUserDetails();
+		String userGroup = userT.getUserGroup();
 		if (customerMasterList != null && !customerMasterList.isEmpty()) {
 			ArrayList<String> customerNameList = new ArrayList<String>();
 			for (CustomerMasterT customerMasterT : customerMasterList) {
 				customerNameList.add(customerMasterT.getCustomerName());
 			}
-			customerNameList =  customerDao.getPreviledgedCustomerName(DestinationUtils
-					.getCurrentUserDetails().getUserId(), customerNameList,
-					true);
-
-			for (CustomerMasterT customerMasterT : customerMasterList) {
-				prepareCustomerDetails(customerMasterT, customerNameList);
+			if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+					|| userGroup.contains(UserGroup.DELIVERY_CENTRE_HEAD.getValue()) 
+					|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())){
+				for (CustomerMasterT customerMasterT : customerMasterList) {
+					prepareDeliveryCustomerDetails(customerMasterT, userT);
+				}
+			} else {
+				customerNameList =  customerDao.getPreviledgedCustomerName(userT.getUserId(), 
+						customerNameList, true);
+				for (CustomerMasterT customerMasterT : customerMasterList) {
+					prepareCustomerDetails(customerMasterT, customerNameList);
+				}
 			}
 		}
+	}
 
+	/**
+	 * This method is used to prepare delivery customer for his and his subordinates
+	 * 
+	 * @param customerMasterT
+	 * @param userT
+	 */
+	public void prepareDeliveryCustomerDetails(CustomerMasterT customerMasterT, UserT userT) {
+		removeCyclicForLinkedContactTs(customerMasterT);
+		List<String> userIds = userRepository.getAllSubordinatesIdBySupervisorId(userT.getUserId());
+		userIds.add(userT.getUserId());
+		for (ContactCustomerLinkT contactCustomerLinkT : customerMasterT.getContactCustomerLinkTs()) {
+			if(!userIds.contains(contactCustomerLinkT.getContactT().getCreatedByUser().getUserId())){
+				contactService.preventSensitiveInfoForDelivery(contactCustomerLinkT.getContactT());
+			}
+		}
+		List<ConnectT> connectTs = connectRepository.getConnectByOwnersAndCustomer(userIds, customerMasterT.getCustomerId());
+		customerMasterT.setConnectTs(connectTs);
+		
+		List<OpportunityT> opportunityts = opportunityRepository.findAllDeliveryOpportunitiesByOwnersAndCustomer(customerMasterT.getCustomerId(), userIds);
+		
+		customerMasterT.setOpportunityTs(opportunityts); 
 	}
 
 	private void prepareCustomerDetails(CustomerMasterT customerMasterT,
@@ -548,17 +591,17 @@ public class CustomerService {
 	/**
 	 * This method is used to hide the sensitive information of customer contact
 	 * @param customerMasterT
+	 * @param userGroup 
 	 */
 	private void hideSensitiveInfo(CustomerMasterT customerMasterT) {
 		logger.debug("Inside hideSensitiveInfo() method");
-
 		opportunityService.preventSensitiveInfo(customerMasterT
 				.getOpportunityTs());
-		for (ContactCustomerLinkT contactCustomerLinkT : customerMasterT
-				.getContactCustomerLinkTs())
-			contactService.preventSensitiveInfo(contactCustomerLinkT
-					.getContactT());
-
+			for (ContactCustomerLinkT contactCustomerLinkT : customerMasterT
+					.getContactCustomerLinkTs()) {
+				contactService.preventSensitiveInfo(contactCustomerLinkT
+						.getContactT());
+			}
 	}
 
 	
@@ -797,6 +840,8 @@ public class CustomerService {
 	public PaginatedResponse search(String groupCustomerNameWith,
 			String nameWith, List<String> geography, List<String> displayIOU,
 			boolean inactive, int page, int count) throws DestinationException {
+		UserT userT= DestinationUtils.getCurrentUserDetails();
+		String userGroup = userT.getUserGroup();
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		if (geography.isEmpty())
 			geography.add("");
@@ -812,6 +857,16 @@ public class CustomerService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Customer available");
 		}
+		if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
+				|| userGroup.contains(UserGroup.DELIVERY_CENTRE_HEAD.getValue()) 
+				|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())) {
+			
+			for(CustomerMasterT customer : customerMasterTs) {
+				prepareDeliveryCustomerDetails(customer, userT);
+			}
+			
+		}
+		
 
 		paginatedResponse.setTotalCount(customerMasterTs.size());
 

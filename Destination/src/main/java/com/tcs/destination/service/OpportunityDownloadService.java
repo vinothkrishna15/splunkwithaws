@@ -378,7 +378,7 @@ public class OpportunityDownloadService {
 			//ENGAGEMENT DURATION
 			if(opp.getEngagementDuration()!=null) {
 				Cell cellEngDuration = row.createCell(37);
-				cellEngDuration.setCellValue(opp.getEngagementDuration());
+				cellEngDuration.setCellValue(opp.getEngagementDuration().toString());
 			}
 
 			//ENGAGEMENT START DATE

@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 
 
@@ -61,6 +62,18 @@ public class DeliveryRequirementT implements Serializable {
 	private String role;
 
 	private String status;
+	
+	@Temporal(TemporalType.DATE)
+	@Column(name = "fulfillment_date")
+	private Date fulfillmentDate;
+	
+	@Temporal(TemporalType.DATE)
+	@Column(name = "requirement_start_date")
+	private Date requirementStartDate;
+	
+	@Temporal(TemporalType.DATE)
+	@Column(name = "requirement_end_date")
+	private Date requirementEndDate;
 
 	@Column(name="sub_competency_area")
 	private String subCompetencyArea;
@@ -85,6 +98,9 @@ public class DeliveryRequirementT implements Serializable {
 
 	@Column(name="branch")
 	private String branch;
+	
+	@Column(name="iou_name")
+	private String iouName;
 	
 	public DeliveryRequirementT() {
 	}
@@ -239,6 +255,38 @@ public class DeliveryRequirementT implements Serializable {
 
 	public void setBranch(String branch) {
 		this.branch = branch;
+	}
+
+	public String getIouName() {
+		return iouName;
+	}
+
+	public void setIouName(String iouName) {
+		this.iouName = iouName;
+	}
+
+	public Date getFulfillmentDate() {
+		return fulfillmentDate;
+	}
+
+	public void setFulfillmentDate(Date fulfillmentDate) {
+		this.fulfillmentDate = fulfillmentDate;
+	}
+
+	public Date getRequirementStartDate() {
+		return requirementStartDate;
+	}
+
+	public void setRequirementStartDate(Date requirementStartDate) {
+		this.requirementStartDate = requirementStartDate;
+	}
+
+	public Date getRequirementEndDate() {
+		return requirementEndDate;
+	}
+
+	public void setRequirementEndDate(Date requirementEndDate) {
+		this.requirementEndDate = requirementEndDate;
 	}
 	
 

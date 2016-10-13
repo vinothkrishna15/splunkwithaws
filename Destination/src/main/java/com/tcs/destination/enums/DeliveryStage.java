@@ -6,8 +6,8 @@ public enum DeliveryStage {
 	ACCEPTED(1,"Accepted"), 
 	ASSIGNED(2,"Assigned"), 
 	PLANNED(3,"Planned"), 
-	LIVE(4,"Live"),
-	OPEN(-1, "Open");
+	FULFILLED(4, "Fulfilled"),
+	LIVE(5,"Live");
 	
 	private final Integer stageCode;
 	private final String stageName;

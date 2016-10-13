@@ -629,7 +629,8 @@ public class WorkflowController {
 			bfmStream = new InputStreamResource(new ByteArrayInputStream(bfmT.getDealFinancialFile()));
 			
 			respHeaders = new HttpHeaders();
-			String fileName = bfmT.getOpportunityId() + "_" + bfmT.getOpportunityT().getCustomerMasterT().getCustomerName() + "." + DestinationUtils.getExtension(bfmT.getBfmFileName());
+			//String fileName = bfmT.getOpportunityId() + "_" + bfmT.getOpportunityT().getCustomerMasterT().getCustomerName() + "." + DestinationUtils.getExtension(bfmT.getBfmFileName());
+			String fileName = bfmT.getBfmFileName();
 			respHeaders.add("reportName", fileName);
 			respHeaders.setContentDispositionFormData("attachment", fileName);
 			respHeaders.setContentType(MediaType
@@ -643,6 +644,39 @@ public class WorkflowController {
 			logger.error("INTERNAL_SERVER_ERROR : ", e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in downloading the BFM file");
+		}
+	}
+	
+	/**
+	 * Service method used to download the template for deal financial file
+	 * @param id - request id
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/bfm/templatedownload", method = RequestMethod.GET)
+	public ResponseEntity<InputStreamResource> downloadBFMFTemplateile()
+			throws DestinationException {
+		logger.info("Inside WorkflowController: Start of downloadBFMFTemplateile download");
+		HttpHeaders respHeaders = null;
+		InputStreamResource bfmStream = null;
+		try {
+			bfmStream =  workflowService.downloadBfmTemplate();
+			
+			respHeaders = new HttpHeaders();
+			String fileName = "Deal_Financials_Template_FY17_eff_3rd_Aug_2016_v2.xlsx";
+			respHeaders.add("reportName", fileName);
+			respHeaders.setContentDispositionFormData("attachment", fileName);
+			respHeaders.setContentType(MediaType
+					.parseMediaType("application/octet-stream"));
+			logger.info("Inside WorkflowController: BFM Template Downloaded Successfully ");
+			return new ResponseEntity<InputStreamResource>(
+					bfmStream, respHeaders, HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR : ", e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in downloading the BFM Tempalte file");
 		}
 	}
 	

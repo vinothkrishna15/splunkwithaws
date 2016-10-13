@@ -1,19 +1,37 @@
 <html>
 	<body>
-		Dear User,
+		<p>Dear User,</p>
 		<p>
-     
-             This is to notify that the delivery for the following engagement is marked live by ${deliveryManager}<br/><br/>
-             
-             Opportunity Id        : <b>${opportunityId}</b><br/>
-             Engagement Id         : <b>${engagementId}</b><br/>
-             Customer Name         : <b>${customerName}</b><br/>
-             Opportunity Name      : <b>${opportunityName}</b><br/>
-             Delivery Ownership    : <b>${deliveryOwnership}</b><br/>
-             Delivery Centre       : <b>${deliveryCenter}</b><br/>
-             WON                   : <b>${won}</b><br/>
-             Actual Start Date     : <b>${actualStartDate}</b><br/><br/>
-        </p>		
+             This is to notify that the delivery for the following engagement is marked live by ${deliveryManager}
+        </p>    
+        <p>
+		  <table>
+		  	<tr>
+		  		<td><b>Opportunity Id</b></td><td>:</td><td>${opportunityId}</td> 
+		  	</tr>
+		  	<tr>
+		  		<td><b>Engagement Id</b></td> <td>:</td><td>${engagementId}</td> 
+		  	</tr>
+		  	<tr>
+		  		<td><b>Customer Name</b></td><td>:</td><td>${customerName}</td> 
+		  	</tr>
+		  	<tr>
+		  		<td><b>Opportunity Name</b></td><td>:</td><td>${opportunityName}</td> 
+		  	</tr>
+		  	<tr>
+		  		<td><b>Delivery Ownership</b></td><td>:</td><td>${deliveryOwnership}</td> 
+		  	</tr>
+		  	<tr>
+		  		<td><b>Delivery Centre</b></td><td>:</td><td>${deliveryCenter}</td> 
+		  	</tr>
+		  	<tr>
+		  		<td><b>WON</b></td><td>:</td><td>${won}</td> 
+		  	</tr>
+		  	<tr>
+		  		<td><b>Actual Start Date</b></td><td>:</td><td>${actualStartDate}</td> 
+		  	</tr>
+		  </table>
+		</p>	
 		<p>
 		Regards,<br>
 		Team DESTiNATION

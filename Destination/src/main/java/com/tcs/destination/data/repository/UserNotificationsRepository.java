@@ -17,15 +17,17 @@ public interface UserNotificationsRepository extends
 		CrudRepository<UserNotificationsT, String> {
 
 
-	@Query(value="select distinct(UNT.*) from user_notifications_t UNT JOIN user_notification_settings_t UNST on UNT.recipient=UNST.user_id "
-			+ "where UNT.recipient=(:userId) and  UNT.updated_datetime between (:from) and (:to) "
-			+ "and UNST.mode_id=1 and UNST.isactive='Y' order by UNT.updated_datetime desc", nativeQuery=true)
+	@Query(value="select distinct(UNT.*) from user_notifications_t UNT JOIN user_subscriptions UNST on UNT.recipient=UNST.user_id join "
+			+"notification_type_event_mapping_t NTEMT on NTEMT.notification_type_event_mapping_id = UNST.notification_type_event_mapping_id "
+			+"where UNT.recipient=(:userId) and UNT.updated_datetime between (:from) and (:to) and "
+			+"NTEMT.mode_id=1 and UNST.isactive='Y' order by UNT.updated_datetime desc", nativeQuery=true)
 	List<UserNotificationsT> getOptedPortalNotifications(@Param("userId") String userId,
 			@Param("from") Timestamp from, @Param("to") Timestamp to);
 	
-	@Query(value="select distinct(UNT.*) from user_notifications_t UNT JOIN user_notification_settings_t UNST on UNT.recipient=UNST.user_id "
-			+ "where UNT.recipient=(:userId) and  UNT.updated_datetime between (:from) and (:to) "
-			+ "and UNST.mode_id=1 and UNST.isactive='Y' and UNT.read=(:read) order by UNT.updated_datetime desc", nativeQuery=true)
+	@Query(value="select distinct(UNT.*) from user_notifications_t UNT JOIN user_subscriptions UNST on UNT.recipient=UNST.user_id join "
+			+"notification_type_event_mapping_t NTEMT on NTEMT.notification_type_event_mapping_id = UNST.notification_type_event_mapping_id "
+			+"where UNT.recipient=(:userId) and UNT.updated_datetime between (:from) and (:to) and "
+			+"NTEMT.mode_id=1 and UNST.isactive='Y' and UNT.read=(:read) order by UNT.updated_datetime desc", nativeQuery=true)
 	List<UserNotificationsT> getOptedPortalNotificationsWithRead(@Param("userId") String userId,
 			@Param("from") Timestamp from, @Param("to") Timestamp to,@Param("read") String read);
 	

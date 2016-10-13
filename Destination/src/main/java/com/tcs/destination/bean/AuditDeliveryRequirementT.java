@@ -81,6 +81,9 @@ public class AuditDeliveryRequirementT implements Serializable {
 	public Boolean getNotified() {
 		return this.notified;
 	}
+	
+	@Column(name="iou_name")
+	private String iouName;
 
 	public void setNotified(Boolean notified) {
 		this.notified = notified;
@@ -231,6 +234,14 @@ public class AuditDeliveryRequirementT implements Serializable {
 
 	public void setNewStatus(String newStatus) {
 		this.newStatus = newStatus;
+	}
+
+	public String getIouName() {
+		return iouName;
+	}
+
+	public void setIouName(String iouName) {
+		this.iouName = iouName;
 	}
 
 }

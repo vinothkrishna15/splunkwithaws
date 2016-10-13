@@ -1,38 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.3.0.final using JasperReports Library version 6.3.0  -->
-<!-- 2016-09-26T21:21:57 -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Blank_A4_cust_connects" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="20" isSummaryNewPage="true" uuid="51d98947-709a-4335-8f52-9881218517e0">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
-	<property name="com.jaspersoft.studio.unit." value="pixel"/>
-	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
-	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
-	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
-	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
-	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
-	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
-	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
-	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
-	<parameter name="totalConnectsP" class="java.lang.Integer"/>
-	<parameter name="custConnectsP" class="java.lang.Integer"/>
+<!-- 2016-10-07T18:05:31 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Blank_A4_sub2" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="20" isSummaryNewPage="true" uuid="a7bebcdc-b11a-42f7-b4b9-45a7774c811a">
+	<parameter name="dealsLossP" class="java.lang.Integer"/>
 	<queryString>
 		<![CDATA[]]>
 	</queryString>
-	<field name="bdContact" class="java.lang.String"/>
-	<field name="connectDate" class="java.lang.String"/>
+	<field name="opportunityId" class="java.lang.String"/>
+	<field name="crmId" class="java.lang.String"/>
 	<field name="customerName" class="java.lang.String"/>
-	<field name="connectName" class="java.lang.String"/>
+	<field name="opportunityName" class="java.lang.String"/>
 	<field name="subSp" class="java.lang.String"/>
-	<field name="iou" class="java.lang.String"/>
-	<field name="customerContact" class="java.lang.String"/>
-	<field name="customerContactRole" class="java.lang.String"/>
-	<field name="connectCategory" class="java.lang.String"/>
-	<field name="type" class="java.lang.Integer"/>
-	<field name="partnerName" class="java.lang.String"/>
-	<field name="partnerContact" class="java.lang.String"/>
-	<field name="partnerContactRole" class="java.lang.String"/>
-	<variable name="custConnectReturnValueSub" class="java.lang.Integer" resetType="None">
-		<variableExpression><![CDATA[$V{PAGE_NUMBER}]]></variableExpression>
-	</variable>
+	<field name="dealValue" class="java.lang.String"/>
+	<field name="lossFactors" class="java.lang.String"/>
+	<field name="competitors" class="java.lang.String"/>
+	<field name="owner" class="java.lang.String"/>
+	<field name="opportunityDescription" class="java.lang.String"/>
 	<background>
 		<band splitType="Stretch"/>
 	</background>
@@ -49,7 +32,7 @@
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="Myriad Pro" size="12" isBold="true"/>
 				</textElement>
-				<textFieldExpression><![CDATA["Total Connects -"+$P{totalConnectsP}]]></textFieldExpression>
+				<textFieldExpression><![CDATA["Total Loss(s) Reported - "+$P{dealsLossP}]]></textFieldExpression>
 			</textField>
 			<image scaleImage="FillFrame">
 				<reportElement x="0" y="0" width="595" height="66" uuid="4a8d9ef8-e76b-4cdb-8e60-23bea2e1578b">
@@ -58,12 +41,12 @@
 					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 				</reportElement>
-				<imageExpression><![CDATA["src/main/resources/report/image/header.png"]]></imageExpression>
+				<imageExpression><![CDATA["report/image/header.png"]]></imageExpression>
 			</image>
 		</band>
 	</pageHeader>
 	<detail>
-		<band height="274" splitType="Immediate">
+		<band height="298" splitType="Immediate">
 			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 			<frame>
 				<reportElement positionType="Float" mode="Opaque" x="0" y="23" width="580" height="24" forecolor="#000000" backcolor="#FFFFFF" uuid="73ed9249-032b-4a7d-91f4-d75cbc532900">
@@ -73,13 +56,13 @@
 					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
 				</reportElement>
 				<textField>
-					<reportElement stretchType="RelativeToTallestObject" x="30" y="0" width="15" height="24" forecolor="#393939" uuid="1d13a0f5-64d5-44a5-9aae-b45ad2368fc3">
+					<reportElement stretchType="RelativeToTallestObject" x="26" y="0" width="17" height="24" forecolor="#393939" uuid="1d13a0f5-64d5-44a5-9aae-b45ad2368fc3">
 						<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
 						<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 					</reportElement>
-					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+					<textElement textAlignment="Right">
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$V{REPORT_COUNT}+"."]]></textFieldExpression>
 				</textField>
@@ -91,9 +74,9 @@
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
-					<text><![CDATA[BD Contact]]></text>
+					<text><![CDATA[Opportunity Id]]></text>
 				</staticText>
 				<staticText>
 					<reportElement x="250" y="0" width="20" height="24" forecolor="#393939" uuid="fa0ff395-5a6d-466e-a397-f9d018f81269">
@@ -114,10 +97,10 @@
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
-					<textElement>
+					<textElement markup="html">
 						<font fontName="Myriad Pro" size="10.5"/>
 					</textElement>
-					<textFieldExpression><![CDATA[$F{bdContact}]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$F{opportunityId}+"<br>"]]></textFieldExpression>
 				</textField>
 			</frame>
 			<frame>
@@ -134,10 +117,10 @@
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
-					<textElement>
+					<textElement markup="html">
 						<font fontName="Myriad Pro" size="10.5"/>
 					</textElement>
-					<textFieldExpression><![CDATA[$F{connectDate}]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$F{crmId}+"<br>"]]></textFieldExpression>
 				</textField>
 				<staticText>
 					<reportElement x="250" y="0" width="20" height="24" forecolor="#393939" uuid="d1874386-f965-453e-ba85-bf20bdf3fd4c">
@@ -159,9 +142,9 @@
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
-					<text><![CDATA[Connect Date]]></text>
+					<text><![CDATA[CRM ID]]></text>
 				</staticText>
 			</frame>
 			<frame>
@@ -178,10 +161,10 @@
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
-					<textElement>
+					<textElement markup="html">
 						<font fontName="Myriad Pro" size="10.5"/>
 					</textElement>
-					<textFieldExpression><![CDATA[($F{type} == 0 ? $F{customerName} : $F{partnerName})]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$F{customerName}+"<br>"]]></textFieldExpression>
 				</textField>
 				<staticText>
 					<reportElement x="250" y="0" width="20" height="24" forecolor="#393939" uuid="d119a227-199d-4134-8866-927cb3b5014f">
@@ -195,13 +178,18 @@
 					</textElement>
 					<text><![CDATA[:]]></text>
 				</staticText>
-				<textField>
-					<reportElement positionType="Float" x="45" y="0" width="195" height="24" forecolor="#393939" uuid="8b926958-9742-482d-8083-896e49385c79"/>
+				<staticText>
+					<reportElement x="45" y="0" width="195" height="24" forecolor="#393939" uuid="98ae1ba3-2f8c-4a34-892e-926e5080b158">
+						<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					</reportElement>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
-					<textFieldExpression><![CDATA[($F{type} == 0 ? "Customer" : "Partner")+" Name"]]></textFieldExpression>
-				</textField>
+					<text><![CDATA[Customer Name]]></text>
+				</staticText>
 			</frame>
 			<frame>
 				<reportElement positionType="Float" mode="Opaque" x="0" y="95" width="580" height="24" forecolor="#000000" backcolor="#FFFFFF" uuid="02d65e1e-2fc9-42ed-afbd-2dbb2c9a8c05">
@@ -217,10 +205,10 @@
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
-					<textElement>
+					<textElement markup="html">
 						<font fontName="Myriad Pro" size="10.5"/>
 					</textElement>
-					<textFieldExpression><![CDATA[$F{connectName}]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$F{opportunityName}+"<br>"]]></textFieldExpression>
 				</textField>
 				<staticText>
 					<reportElement x="250" y="0" width="20" height="24" forecolor="#393939" uuid="e7d8a08c-cd9c-48f8-9e4d-89dd57a688e6">
@@ -242,9 +230,9 @@
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
-					<text><![CDATA[Connect Name]]></text>
+					<text><![CDATA[Opportunity Name]]></text>
 				</staticText>
 			</frame>
 			<frame>
@@ -261,10 +249,10 @@
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
-					<textElement>
+					<textElement markup="html">
 						<font fontName="Myriad Pro" size="10.5"/>
 					</textElement>
-					<textFieldExpression><![CDATA[$F{subSp}]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$F{opportunityDescription}+"<br>"]]></textFieldExpression>
 				</textField>
 				<staticText>
 					<reportElement x="250" y="0" width="20" height="24" forecolor="#393939" uuid="8dc1d081-7a47-4a1a-84b3-cba89b74d4bd">
@@ -286,18 +274,17 @@
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
-					<text><![CDATA[Service Line]]></text>
+					<text><![CDATA[Opportunity Description]]></text>
 				</staticText>
 			</frame>
 			<frame>
-				<reportElement positionType="Float" mode="Opaque" x="0" y="143" width="580" height="24" isRemoveLineWhenBlank="true" forecolor="#000000" backcolor="#FFFFFF" uuid="eba7a76d-7b03-40dd-b7e0-6a3b50f7bd0c">
+				<reportElement positionType="Float" mode="Opaque" x="0" y="143" width="580" height="24" forecolor="#000000" backcolor="#FFFFFF" uuid="eba7a76d-7b03-40dd-b7e0-6a3b50f7bd0c">
 					<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.FreeLayout"/>
 					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
-					<printWhenExpression><![CDATA[$F{iou} != null]]></printWhenExpression>
 				</reportElement>
 				<textField isStretchWithOverflow="true">
 					<reportElement x="270" y="0" width="285" height="12" forecolor="#000000" uuid="485b1522-9b61-4c36-b06c-63c95b3672b6">
@@ -306,10 +293,10 @@
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
-					<textElement>
+					<textElement markup="html">
 						<font fontName="Myriad Pro" size="10.5"/>
 					</textElement>
-					<textFieldExpression><![CDATA[$F{iou}]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$F{subSp}+"<br>"]]></textFieldExpression>
 				</textField>
 				<staticText>
 					<reportElement x="250" y="0" width="20" height="24" forecolor="#393939" uuid="79c5dab7-5f0a-41f6-ad18-35250c94b072">
@@ -331,9 +318,9 @@
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
-					<text><![CDATA[IOU]]></text>
+					<text><![CDATA[Service Line]]></text>
 				</staticText>
 			</frame>
 			<frame>
@@ -350,10 +337,10 @@
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
-					<textElement>
+					<textElement markup="html">
 						<font fontName="Myriad Pro" size="10.5"/>
 					</textElement>
-					<textFieldExpression><![CDATA[($F{type} == 0 ? $F{customerContact} : $F{partnerContact})]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$F{dealValue}+"<br>"]]></textFieldExpression>
 				</textField>
 				<staticText>
 					<reportElement x="250" y="0" width="20" height="24" forecolor="#393939" uuid="7fb9ec9c-4fee-4ba8-95ec-c09d0ddcac30">
@@ -367,13 +354,18 @@
 					</textElement>
 					<text><![CDATA[:]]></text>
 				</staticText>
-				<textField>
-					<reportElement x="45" y="0" width="195" height="24" forecolor="#393939" uuid="950f7b54-e4db-4225-b067-adfbb5753309"/>
+				<staticText>
+					<reportElement x="45" y="0" width="195" height="24" forecolor="#393939" uuid="4c54cda4-b1ee-4fed-b4a3-ddaed1eb7d62">
+						<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					</reportElement>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
-					<textFieldExpression><![CDATA[($F{type} == 0 ? "Customer" : "Partner") + " Contact"]]></textFieldExpression>
-				</textField>
+					<text><![CDATA[Deal Value]]></text>
+				</staticText>
 			</frame>
 			<frame>
 				<reportElement positionType="Float" mode="Opaque" x="0" y="191" width="580" height="24" forecolor="#000000" backcolor="#FFFFFF" uuid="9a48f5fe-a9c6-4512-8417-a665838911e3">
@@ -389,10 +381,10 @@
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
-					<textElement>
+					<textElement markup="html">
 						<font fontName="Myriad Pro" size="10.5"/>
 					</textElement>
-					<textFieldExpression><![CDATA[($F{type} == 0 ? $F{customerContactRole} : $F{partnerContactRole})]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$F{lossFactors}+"<br>"]]></textFieldExpression>
 				</textField>
 				<staticText>
 					<reportElement x="250" y="0" width="20" height="24" forecolor="#393939" uuid="04b74b12-5ea1-40c4-954c-e61af5e76d9e">
@@ -406,13 +398,18 @@
 					</textElement>
 					<text><![CDATA[:]]></text>
 				</staticText>
-				<textField>
-					<reportElement x="45" y="0" width="195" height="24" forecolor="#393939" uuid="255b5dd6-e595-4877-b44e-b97d195114c5"/>
+				<staticText>
+					<reportElement x="45" y="0" width="195" height="24" forecolor="#393939" uuid="2014abf1-892d-466a-9622-10a033be3b6c">
+						<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					</reportElement>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
-					<textFieldExpression><![CDATA[($F{type} == 0 ? "Customer" : "Partner") + " Contact Role"]]></textFieldExpression>
-				</textField>
+					<text><![CDATA[Loss Reasons]]></text>
+				</staticText>
 			</frame>
 			<frame>
 				<reportElement positionType="Float" mode="Opaque" x="0" y="215" width="580" height="24" forecolor="#000000" backcolor="#FFFFFF" uuid="ce372de4-e59a-4914-a464-5062a6d1455a">
@@ -428,10 +425,10 @@
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
-					<textElement>
+					<textElement markup="html">
 						<font fontName="Myriad Pro" size="10.5"/>
 					</textElement>
-					<textFieldExpression><![CDATA[$F{connectCategory}]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$F{competitors}+"<br>"]]></textFieldExpression>
 				</textField>
 				<staticText>
 					<reportElement x="250" y="0" width="20" height="24" forecolor="#393939" uuid="dd9ab064-5ccf-4804-9312-0bb78d2d84f4">
@@ -453,33 +450,55 @@
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
 					<textElement>
-						<font fontName="Myriad Pro" size="10.5"/>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
 					</textElement>
-					<text><![CDATA[Connect Category]]></text>
+					<text><![CDATA[Competitor(s)]]></text>
 				</staticText>
 			</frame>
-			<textField>
-				<reportElement x="30" y="0" width="160" height="12" uuid="43b80b69-f712-4391-ba7b-8571fe2c20ea">
+			<frame>
+				<reportElement positionType="Float" mode="Opaque" x="0" y="239" width="580" height="24" forecolor="#000000" backcolor="#FFFFFF" uuid="44c4a927-e11c-4552-9181-8febd0de29fe">
+					<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.FreeLayout"/>
 					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
-					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
-					<printWhenExpression><![CDATA[$V{REPORT_COUNT}==1]]></printWhenExpression>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
 				</reportElement>
-				<textElement>
-					<font fontName="Myriad Pro" size="12" isBold="true"/>
-				</textElement>
-				<textFieldExpression><![CDATA["Customer Connects"]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement x="30" y="0" width="160" height="12" uuid="dba0ed27-0536-48ae-947d-038787c441be">
-					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
-					<printWhenExpression><![CDATA[$V{REPORT_COUNT}==$P{custConnectsP}]]></printWhenExpression>
-				</reportElement>
-				<textElement>
-					<font fontName="Myriad Pro" size="12" isBold="true"/>
-				</textElement>
-				<textFieldExpression><![CDATA["Partner Connects"]]></textFieldExpression>
-			</textField>
+				<textField isStretchWithOverflow="true">
+					<reportElement x="270" y="0" width="285" height="12" forecolor="#000000" uuid="45ea15eb-110f-4cb3-a152-8e296b847257">
+						<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					</reportElement>
+					<textElement markup="html">
+						<font fontName="Myriad Pro" size="10.5"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{owner}+"<br>"]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="250" y="0" width="20" height="24" forecolor="#393939" uuid="a111260e-e6c7-40f5-86f2-f98656d539b0">
+						<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					</reportElement>
+					<textElement>
+						<font size="10.5"/>
+					</textElement>
+					<text><![CDATA[:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="45" y="0" width="195" height="24" forecolor="#393939" uuid="fd7fbf19-c8d1-42c5-8291-20fde32f9703">
+						<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					</reportElement>
+					<textElement>
+						<font fontName="Myriad Pro" size="10.5" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Owner]]></text>
+				</staticText>
+			</frame>
 		</band>
 	</detail>
 </jasperReport>
