@@ -2338,12 +2338,15 @@ public InputStreamResource getConnectDetailedReport(String month,
 			
 			case BDM:
 			case PRACTICE_OWNER:
+			case DELIVERY_MANAGER:
 				userIds.add(userId);
 				connectIdList = getConnectDetailsByUserIds(fromDate,toDate,userIds,iouList,displayGeography,countryList,serviceLinesList,connectCategory);
 				break;
 
 			case BDM_SUPERVISOR:
 			case PRACTICE_HEAD:
+			case DELIVERY_CLUSTER_HEAD:
+			case DELIVERY_CENTRE_HEAD:
 				userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
 				userIds.add(userId);
 				connectIdList = getConnectDetailsByUserIds(fromDate,toDate,userIds,iouList,displayGeography,countryList,serviceLinesList,connectCategory);
@@ -2603,6 +2606,7 @@ public InputStreamResource connectSummaryReport(String month, String quarter, St
 			
 			case BDM:
 			case PRACTICE_OWNER:
+			case DELIVERY_MANAGER:
 				userIds.add(userId);
 				
 				getConnectSummaryDetailsByUserIds(userIds, fromDate, toDate, subSpCustomerConnectCountList, subSpPartnerConnectCountList,geographyCustomerConnectCountList
@@ -2611,6 +2615,8 @@ public InputStreamResource connectSummaryReport(String month, String quarter, St
 			
 			case BDM_SUPERVISOR:
 			case PRACTICE_HEAD:
+			case DELIVERY_CENTRE_HEAD:
+			case DELIVERY_CLUSTER_HEAD:
 				userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
 				userIds.add(userId);
 				
@@ -2955,6 +2961,7 @@ public InputStreamResource getConnectDetailedAndSummaryReports(String month, Str
 			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 			case BDM:
 			case PRACTICE_OWNER:
+			case DELIVERY_MANAGER:
 				userIds.add(userId);
 				
 				connectIdList = getConnectDetailsByUserIds(fromDate,toDate,userIds,iouList,displayGeography,countryList,serviceLinesList,connectCategory);
@@ -2964,6 +2971,8 @@ public InputStreamResource getConnectDetailedAndSummaryReports(String month, Str
 				break;
 			case BDM_SUPERVISOR:
 			case PRACTICE_HEAD:
+			case DELIVERY_CENTRE_HEAD:
+			case DELIVERY_CLUSTER_HEAD:
 				userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
 				userIds.add(userId);
 				

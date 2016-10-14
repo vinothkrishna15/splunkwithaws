@@ -198,6 +198,8 @@ public class BDMDetailedReportService {
 			    throw new DestinationException(HttpStatus.UNAUTHORIZED, " User is not authorised to access this service ");
 			case BDM_SUPERVISOR:
 			case PRACTICE_HEAD:
+			case DELIVERY_CENTRE_HEAD:
+			case DELIVERY_CLUSTER_HEAD:
 				 if(users.isEmpty()){
 				    	logger.error("Given BDM is not his Subordinate");
 				    	throw new DestinationException(HttpStatus.NOT_FOUND, "Given BDM is not his Subordinate");
