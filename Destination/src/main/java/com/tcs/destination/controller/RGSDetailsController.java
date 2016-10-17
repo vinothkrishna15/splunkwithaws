@@ -59,7 +59,7 @@ public class RGSDetailsController {
 					.getProperty("environment.name");
 			String repName = environmentName
 					+ "_RGSDownload_" + todaysDate_formatted
-					+ ".xlsm";
+					+ ".xlsx";  
 			respHeaders.add("reportName", repName);
 			respHeaders.setContentDispositionFormData("attachment", repName);
 			logger.info("Inside RGSDetailsController: End of /rgs/download GET");
