@@ -133,6 +133,7 @@ public class Constants {
 	public static final String OPPORTUNITY_UPLOAD_NOTIFY_SUBJECT = "Opportunity upload request submitted.";
 	public static final String ACTUAL_REVENUE_UPLOAD_NOTIFY_SUBJECT = "Actual revenue upload request submitted.";
 	public static final String CUSTOMER_CONTACT_UPLOAD_NOTIFY_SUBJECT = "Customer contact upload request submitted.";
+	public static final String RGS_UPLOAD_NOTIFY_SUBJECT = "RGS upload request submitted";
 	public static final String PARTNER_UPLOAD_NOTIFY_SUBJECT = "Partner upload request submitted.";
 	public static final String PARTNER_CONTACT_UPLOAD_NOTIFY_SUBJECT = "Partner contact upload request submitted.";
 	public static final String BEACON_UPLOAD_NOTIFY_SUBJECT = "Beacon upload request submitted.";

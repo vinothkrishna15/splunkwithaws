@@ -487,7 +487,8 @@ public class DestinationMailUtils {
 
 		if ((requestType > 0 && requestType < 10) || requestType == RequestType.PARTNER_MASTER_UPLOAD.getType()
 				|| requestType == RequestType.PRODUCT_UPLOAD.getType() ||
-				requestType == RequestType.PRODUCT_CONTACT_UPLOAD.getType()) { // upload
+				requestType == RequestType.PRODUCT_CONTACT_UPLOAD.getType() ||
+				requestType == RequestType.RGS_UPLOAD.getType()) { // upload
 			template = uploadTemplateLoc;
 			requestId = request.getProcessRequestId().toString();
 			uploadedFileName = request.getFileName();
@@ -547,7 +548,7 @@ public class DestinationMailUtils {
 
 		message.setRecipients(recipientMailIds);
 
-		StringBuffer subject = new StringBuffer(environmentName)
+		StringBuffer subject = new StringBuffer(mailSubjectAppendEnvName)
 				.append(" Admin: ");
 
 		String userName = user.getUserName();
@@ -765,7 +766,7 @@ public class DestinationMailUtils {
 		String operation = null;
 		String reason = "";
 		String dateStr = formatDate(date);
-		StringBuffer subject = new StringBuffer(environmentName);
+		StringBuffer subject = new StringBuffer(mailSubjectAppendEnvName);
 		logger.info("sendWorkflowPendingMail :: RequestId" + requestId);
 		WorkflowRequestT workflowRequestT = workflowRequestRepository
 				.findOne(requestId);
@@ -1346,7 +1347,7 @@ public class DestinationMailUtils {
 	 * @return
 	 */
 	private String formatSubject(String subject) {
-		String sub = new StringBuffer(environmentName).append(" ")
+		String sub = new StringBuffer(mailSubjectAppendEnvName).append(" ")
 				.append(subject).toString();
 		return sub;
 	}
@@ -1391,223 +1392,6 @@ public class DestinationMailUtils {
 		destMailSender.send(message);
 
 	}
-
-	
-//	 /**
-//		 * This method is used to send the email notification to group of users on 
-//		 * opportunity won or lost 
-//		 * @param entityId
-//		 */
-//		 public void sendOpportunityWonLostNotification(String entityId) throws Exception {
-//			 logger.info("Inside sendOpportunityWonLostNotification method");
-//			 OpportunityT opportunity = opportunityRepository.findOne(entityId);
-//			 List<String> recepientIds = new ArrayList<String>();
-//			 String templateLoc = null;
-//			 StringBuffer subject = new StringBuffer(mailSubjectAppendEnvName);
-//			 if (opportunity != null) {
-//				 String opportunityName = opportunity.getOpportunityName();
-//				 logger.info("OpportunityId :" + entityId + ", Opportunity Name : "
-//						 + opportunityName);
-//				 String customerName = opportunity.getCustomerMasterT()
-//						 .getCustomerName();
-//				 String opportunityOwner = userRepository
-//						 .findUserNameByUserId(opportunity.getOpportunityOwner());
-//				 String dealValueUSDInNumberScale = "";
-//				 Integer digitalBidValue = opportunity.getDigitalDealValue();
-//				 logger.info("digital Bid Value : "+digitalBidValue);
-//				 if(digitalBidValue!=null) {
-//					 String currencyType = opportunity.getDealCurrency();
-//					 //Converting deal value to USD
-//					 BigDecimal digitalBidValueUSD = opportunityDownloadService.convertCurrencyToUSD(currencyType, digitalBidValue);
-//					 logger.info("digitalBidValueUSD : "+digitalBidValueUSD);
-//					 //Converting the USD value in number scale
-//					 dealValueUSDInNumberScale = NumericUtil.toUSDinNumberScale(digitalBidValueUSD);
-//					 logger.info("dealValueUSDInNumberScale : "+dealValueUSDInNumberScale);
-//				 }
-//				 
-//				 DateFormat df = new SimpleDateFormat("dd-MMM-yyyy");
-//				 Date dealClosureDate = opportunity.getDealClosureDate();
-//				 String dealClosureDateStr = df.format(dealClosureDate);
-//				 String opportunityDescription = StringUtils.isNotEmpty(opportunity
-//						 .getOpportunityDescription()) ? opportunity
-//								 .getOpportunityDescription() : Constants.NOT_AVAILABLE;
-//				 List<String> winLossFactors = new ArrayList<String>();
-//				 List<String> opportunitySalesSupportOwners = new ArrayList<String>();
-//				 List<String> opportunitySubSps = new ArrayList<String>();
-//				 List<String> opportunityCompetitors = new ArrayList<String>();
-//				 List<String> opportunityIncumbentCompetitors = new ArrayList<String>();
-//				 List<String> customerContact = new ArrayList<String>();
-//				 String competitorNames = Constants.NOT_AVAILABLE;
-//				 String incumbentCompetitorNames = Constants.NOT_AVAILABLE;
-//	             String customerContacts = Constants.NOT_AVAILABLE;
-//				 String salesSupportOwners = "";
-//				 String factorsForWinLoss = "";
-//				 String subSpsStr = "";
-//				 String withSupportFrom = "";
-//				 String displaySubSp = null;
-//				 //getting subsps
-//				 for(OpportunitySubSpLinkT opportunitySubSpLinkT : opportunity.getOpportunitySubSpLinkTs()) {
-//					 displaySubSp = subSpRepository.findOne(opportunitySubSpLinkT.getSubSp()).getDisplaySubSp();
-//					 opportunitySubSps.add(displaySubSp);
-//				 }
-//				 String primaryDisplaySubSp = opportunitySubSpLinkTRepository.findPrimaryDisplaySubSpByOpportunityId(entityId);
-//				 if(StringUtils.isNotEmpty(primaryDisplaySubSp)) {
-//					 subSpsStr = primaryDisplaySubSp;
-//				 }
-//				 //getting sales support owners
-//				 for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity
-//						 .getOpportunitySalesSupportLinkTs()) {
-//
-//					 if(!opportunitySalesSupportLinkT.getSalesSupportOwner().contains("pmo")) {
-//						 opportunitySalesSupportOwners.add(userRepository
-//								 .findUserNameByUserId(opportunitySalesSupportLinkT
-//										 .getSalesSupportOwner()));
-//					 }
-//
-//				 }
-//				 if (CollectionUtils.isNotEmpty(opportunitySalesSupportOwners)) {
-//					 withSupportFrom = Constants.WITH_SUPPORT_FROM;
-//					 salesSupportOwners = splitStringByComma(opportunitySalesSupportOwners);
-//					 logger.info("sales support owners : "+salesSupportOwners);
-//				 }
-//				 
-//					// Getting Opportunity Competitors
-//					if (CollectionUtils.isNotEmpty(opportunity
-//							.getOpportunityCompetitorLinkTs())) {
-//						for (OpportunityCompetitorLinkT opportunityCompetitorLinkT : opportunity
-//								.getOpportunityCompetitorLinkTs()) {
-//							if (opportunityCompetitorLinkT.getIncumbentFlag().equals(
-//									Constants.Y)) {
-//								opportunityIncumbentCompetitors
-//										.add(opportunityCompetitorLinkT
-//												.getCompetitorName());
-//							} else {
-//								opportunityCompetitors.add(opportunityCompetitorLinkT
-//										.getCompetitorName());
-//							}
-//							
-//						}
-//					}
-//					
-//					if (CollectionUtils.isNotEmpty(opportunityCompetitors)) {
-//						competitorNames = splitStringByComma(opportunityCompetitors);
-//					}
-//
-//					if (CollectionUtils.isNotEmpty(opportunityIncumbentCompetitors)) {
-//						incumbentCompetitorNames = splitStringByComma(opportunityIncumbentCompetitors);
-//					}
-//
-//	             //getting opportunity customer contacts
-//						customerContact = contactRepository.findCustomerContactNamesByOpportinityId(entityId);
-//						
-//					if(CollectionUtils.isNotEmpty(customerContact)) {
-//						customerContacts = StringUtils.join(customerContact, ", ");
-//					}
-//					//crm id
-//				 recepientIds.add(opportunityWonLostGroupMailId);
-//				 if (opportunity.getSalesStageCode() == 9) {
-//						logger.info("opportunity Won");
-//						subject.append("DESTiNATION:").append(" ").append(subSpsStr)
-//								.append(" ").append("Deal Won for").append(" ")
-//								.append(customerName);
-//						logger.info("Subject for opportunity won : {}", subject);
-//						templateLoc = opportunityWonTemplateLoc;
-//						// Getting Win Loss Factors
-//						for (OpportunityWinLossFactorsT opportunityWinLossFactorsT : opportunity
-//								.getOpportunityWinLossFactorsTs()) {
-//							// if the win/Loss factor is Win-Other,adding the win loss
-//							// others description to the factors
-//							if (opportunityWinLossFactorsT.getWinLossFactor().equals(
-//									Constants.WIN_OTHER)) {
-//								if (StringUtils.isNotEmpty(opportunityWinLossFactorsT
-//										.getWinLossOthersDescription())) {
-//									winLossFactors.add(opportunityWinLossFactorsT
-//											.getWinLossOthersDescription());
-//								}
-//							} else {
-//								winLossFactors.add(opportunityWinLossFactorsT
-//										.getWinLossFactor());
-//							}
-//						}
-//
-//					}
-//					// If the Opportunity is lost, framing the subject ang getting the
-//					// template loc and loss factors
-//					if (opportunity.getSalesStageCode() == 10) {
-//						logger.info("OpportunityLost");
-//						subject.append("DESTiNATION:").append(" ").append(subSpsStr)
-//								.append(" ").append("Deal Lost for").append(" ")
-//								.append(customerName);
-//						logger.info("Subject for opportunity lost :" + subject);
-//						templateLoc = opportunityLostTemplateLoc;
-//
-//						for (OpportunityWinLossFactorsT opportunityWinLossFactorsT : opportunity
-//								.getOpportunityWinLossFactorsTs()) {
-//							// if the win/Loss factor is Loss-Other,adding the win loss
-//							// others description to the factors
-//							if (opportunityWinLossFactorsT.getWinLossFactor().equals(
-//									Constants.LOSS_OTHER)) {
-//								if (StringUtils.isNotEmpty(opportunityWinLossFactorsT
-//										.getWinLossOthersDescription())) {
-//									winLossFactors.add(opportunityWinLossFactorsT
-//											.getWinLossOthersDescription());
-//								}
-//							} else {
-//								winLossFactors.add(opportunityWinLossFactorsT
-//										.getWinLossFactor());
-//							}
-//>>>>>>> master
-//						}
-//					} else {
-//						winLossFactors.add(opportunityWinLossFactorsT
-//								.getWinLossFactor());
-//					}
-//<<<<<<< HEAD
-//			
-//=======
-//
-//					if (CollectionUtils.isNotEmpty(winLossFactors)) {
-//						factorsForWinLoss = StringUtils.join(winLossFactors, ", ");
-//						logger.info("factors for win/loss : " + factorsForWinLoss);
-//					}
-//				 if(templateLoc!=null) {
-//					 DestinationMailMessage message = new DestinationMailMessage();
-//					 message.setRecipients(Lists.newArrayList(opportunityWonLostGroupMailId));
-//					 logger.info("To email address : "+opportunityWonLostGroupMailId);
-//					 message.setSubject(subject.toString());
-//					 Map<String, Object> map = new HashMap<String, Object>();
-//					 map.put("opportunityName", opportunityName);
-//					 map.put("customerName", customerName);
-//					 map.put("factorsForWinLoss", factorsForWinLoss);
-//					 map.put("opportunityOwner", opportunityOwner);
-//					 map.put("salesSupportOwners", salesSupportOwners);
-//					 map.put("digitalBidValue", dealValueUSDInNumberScale);
-//					 map.put("opportunityDescription", opportunityDescription);
-//					 map.put("withSupportFrom", withSupportFrom);
-//					 map.put("dealClosureDate", dealClosureDateStr);
-//					 map.put("competitorNames", competitorNames);
-//					 map.put("incumbentCompetitorNames",
-//								incumbentCompetitorNames);
-//					 map.put("clientContact", customerContacts);
-//					 map.put("crmId", 
-//							 StringUtils.isNotEmpty(opportunity.getCrmId()) ? 
-//									 opportunity.getCrmId() : Constants.NOT_AVAILABLE);	
-//
-//					 String text = mergeTmplWithData(map, templateLoc);
-//					 logger.info("framed text for mail :" + text);
-//					 message.setMessage(text);
-//					 logger.info("before sending mail");
-//					 destMailSender.send(message);
-//					 logger.info("Mail Sent for opportunity win/loss, Opportunity Id : "+entityId);
-//				 }
-//
-//			 } else {
-//				 throw new DestinationException("Opportunity not found : "+entityId);
-//			 }
-//
-//
-//		 }
-
 	
 	/**
 	 * This method is used to send the email notification to group of users for
