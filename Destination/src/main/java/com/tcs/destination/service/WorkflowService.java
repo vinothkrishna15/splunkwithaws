@@ -1600,24 +1600,22 @@ public class WorkflowService {
 				.findByEntityTypeIdOrderByStepAsc(entityTypeId);
 		int templateStep = 0;
 		for (WorkflowProcessTemplate wfpt : workflowTemplates) {
-			if (templateStep ==0 ) {
-				if (wfpt.getUserGroup() != null || wfpt.getUserRole() != null
-						|| wfpt.getUserId() != null) {
-					if (!StringUtils.isEmpty(wfpt.getUserGroup())) {
-						if (wfpt.getUserGroup().contains(userGroup)) {
-							// if (wfpt.getUserGroup().contains(userGroup)) {
-							templateStep = wfpt.getStep();
-						}
+			if (wfpt.getUserGroup() != null || wfpt.getUserRole() != null
+					|| wfpt.getUserId() != null) {
+				if (!StringUtils.isEmpty(wfpt.getUserGroup())) {
+					if (wfpt.getUserGroup().contains(userGroup)) {
+						// if (wfpt.getUserGroup().contains(userGroup)) {
+						templateStep = wfpt.getStep();
 					}
-					if (!StringUtils.isEmpty(wfpt.getUserRole())) {
-						if (wfpt.getUserRole().contains(userRole)) {
-							templateStep = wfpt.getStep();
-						}
+				}
+				if (!StringUtils.isEmpty(wfpt.getUserRole())) {
+					if (wfpt.getUserRole().contains(userRole)) {
+						templateStep = wfpt.getStep();
 					}
-					if (!StringUtils.isEmpty(wfpt.getUserId())) {
-						if (wfpt.getUserId().contains(userId)) {
-							templateStep = wfpt.getStep();
-						}
+				}
+				if (!StringUtils.isEmpty(wfpt.getUserId())) {
+					if (wfpt.getUserId().contains(userId)) {
+						templateStep = wfpt.getStep();
 					}
 				}
 			}

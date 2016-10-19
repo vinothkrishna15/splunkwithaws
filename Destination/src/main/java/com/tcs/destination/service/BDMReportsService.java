@@ -250,6 +250,8 @@ public class BDMReportsService {
 			break;
 		case BDM_SUPERVISOR:
 		case PRACTICE_HEAD:
+		case DELIVERY_CENTRE_HEAD:
+		case DELIVERY_CLUSTER_HEAD:
 			ExcelUtils.writeUserFilterConditions(spreadsheet, user, "NA");
 			break;
 		default :
@@ -332,6 +334,8 @@ public class BDMReportsService {
 				    throw new DestinationException(HttpStatus.UNAUTHORIZED, " User is not authorised to access this service ");
 				case BDM_SUPERVISOR:
 				case PRACTICE_HEAD:
+				case DELIVERY_CENTRE_HEAD:
+				case DELIVERY_CLUSTER_HEAD:
 					 if(userIds.isEmpty()){
 				    	logger.error("Given BDM is not his Subordinate");
 				    	throw new DestinationException(HttpStatus.NOT_FOUND, "Given BDM is not his Subordinate");
@@ -419,6 +423,8 @@ public class BDMReportsService {
 				case PRACTICE_HEAD:
 				case GEO_HEADS:
 				case IOU_HEADS:
+				case DELIVERY_CENTRE_HEAD:
+				case DELIVERY_CLUSTER_HEAD:
 					List<String> userIds = null;
 					userIds = userRepository.getAllSubordinatesIdBySupervisorId(bdm);
 					subOrdinatesList.addAll(userIds);

@@ -23,7 +23,6 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -475,7 +474,7 @@ public class OpportunityService {
 	 * 
 	 * @return
 	 */
-	@Cacheable("deliveryCentre")
+//	@Cacheable("deliveryCentre")
 	public List<DeliveryCentreT> fetchDeliveryCentre() {
 		logger.debug("Inside fetchDeliveryCentre() service");
 		List<DeliveryCentreT> deliveryCentre = new ArrayList<DeliveryCentreT>();
@@ -490,7 +489,7 @@ public class OpportunityService {
 	 * 
 	 * @return
 	 */
-	@Cacheable("deliveryOwnershipDetails")
+//	@Cacheable("deliveryOwnershipDetails")
 	public List<DeliveryOwnershipT> fetchDeliveryOwnershipDetails() {
 		logger.debug("Inside fetchDeliveryOwnershipDetails() service");
 		List<DeliveryOwnershipT> deliveryOwnership = new ArrayList<DeliveryOwnershipT>();
@@ -521,7 +520,7 @@ public class OpportunityService {
 		List<OpportunityT> opportunitiesList = new ArrayList<OpportunityT>();
 
 		Set<OpportunityT> opportunitiesSet = new HashSet<OpportunityT>();
-
+		UserT user = DestinationUtils.getCurrentUserDetails();
 		if (smartSearchType != null) {
 
 			switch (smartSearchType) {
@@ -529,36 +528,36 @@ public class OpportunityService {
 				opportunitiesSet
 						.addAll(getOpportunitiesByOpportunityIdAndCustomerIdAndReceivedDate(
 								term, customerId,
-								new Timestamp(fromDate.getTime())));
+								new Timestamp(fromDate.getTime()), user));
 				opportunitiesSet
 						.addAll(getOpportunitiesByNameAndCustomerIdAndReceivedDate(
 								term, customerId,
-								new Timestamp(fromDate.getTime())));
+								new Timestamp(fromDate.getTime()), user));
 				opportunitiesSet
 						.addAll(getOpportunitiesByOwnerAndCustomerIdAndReceivedDate(
 								term, customerId,
-								new Timestamp(fromDate.getTime())));
+								new Timestamp(fromDate.getTime()), user));
 				opportunitiesSet
 						.addAll(getOpportunitiesBySubSpsAndCustomerIdAndReceivedDate(
 								term, customerId,
-								new Timestamp(fromDate.getTime())));
+								new Timestamp(fromDate.getTime()), user));
 				opportunitiesList.addAll(opportunitiesSet);
 				break;
 			case ID:
 				opportunitiesList = getOpportunitiesByOpportunityIdAndCustomerIdAndReceivedDate(
-						term, customerId, new Timestamp(fromDate.getTime()));
+						term, customerId, new Timestamp(fromDate.getTime()), user);
 				break;
 			case NAME:
 				opportunitiesList = getOpportunitiesByNameAndCustomerIdAndReceivedDate(
-						term, customerId, new Timestamp(fromDate.getTime()));
+						term, customerId, new Timestamp(fromDate.getTime()), user);
 				break;
 			case PRIMARY_OWNER:
 				opportunitiesList = getOpportunitiesByOwnerAndCustomerIdAndReceivedDate(
-						term, customerId, new Timestamp(fromDate.getTime()));
+						term, customerId, new Timestamp(fromDate.getTime()), user);
 				break;
 			case SUBSP:
 				opportunitiesList = getOpportunitiesBySubSpsAndCustomerIdAndReceivedDate(
-						term, customerId, new Timestamp(fromDate.getTime()));
+						term, customerId, new Timestamp(fromDate.getTime()), user);
 				break;
 			default:
 				break;
@@ -597,15 +596,18 @@ public class OpportunityService {
 	 * 
 	 * @param term
 	 * @param customerId
+	 * @param user 
 	 * @param timestamp
 	 * @return
 	 */
 	private List<OpportunityT> getOpportunitiesByOpportunityIdAndCustomerIdAndReceivedDate(
-			String term, String customerId, Timestamp fromTimestamp) {
-		List<OpportunityT> opportunitiesList = opportunityRepository
-				.findByCustomerIdAndOpportunityRequestReceiveDateAfterAndOpportunityIdLike(
-						customerId, fromTimestamp, "%" + term.toUpperCase()
-								+ "%");
+			String term, String customerId, Timestamp fromTimestamp, UserT user) {
+		List<OpportunityT> opportunitiesList = null;
+		
+			opportunitiesList = opportunityRepository
+					.findByCustomerIdAndOpportunityRequestReceiveDateAfterAndOpportunityIdLike(
+							customerId, fromTimestamp, "%" + term.toUpperCase()
+									+ "%");
 		return opportunitiesList;
 	}
 
@@ -615,11 +617,12 @@ public class OpportunityService {
 	 * 
 	 * @param term
 	 * @param customerId
+	 * @param user 
 	 * @param timestamp
 	 * @return
 	 */
 	private List<OpportunityT> getOpportunitiesByNameAndCustomerIdAndReceivedDate(
-			String term, String customerId, Timestamp fromTimestamp) {
+			String term, String customerId, Timestamp fromTimestamp, UserT user) {
 		List<OpportunityT> opportunitiesList = opportunityRepository
 				.findByCustomerIdAndOpportunityRequestReceiveDateAfterAndOpportunityNameLike(
 						customerId, fromTimestamp, "%" + term.toUpperCase()
@@ -633,11 +636,12 @@ public class OpportunityService {
 	 * 
 	 * @param term
 	 * @param customerId
+	 * @param user 
 	 * @param timestamp
 	 * @return
 	 */
 	private List<OpportunityT> getOpportunitiesByOwnerAndCustomerIdAndReceivedDate(
-			String term, String customerId, Timestamp fromTimestamp) {
+			String term, String customerId, Timestamp fromTimestamp, UserT user) {
 		List<OpportunityT> opportunitiesList = opportunityRepository
 				.findByCustomerIdAndOpportunityRequestReceiveDateAfterAndOpportunityOwnerLike(
 						customerId, fromTimestamp, "%" + term.toUpperCase()
@@ -651,11 +655,12 @@ public class OpportunityService {
 	 * 
 	 * @param term
 	 * @param customerId
+	 * @param user 
 	 * @param timestamp
 	 * @return
 	 */
 	private List<OpportunityT> getOpportunitiesBySubSpsAndCustomerIdAndReceivedDate(
-			String term, String customerId, Timestamp fromTimestamp) {
+			String term, String customerId, Timestamp fromTimestamp, UserT user) {
 		List<OpportunityT> opportunitiesList = opportunityRepository
 				.findByCustomerIdAndOpportunityRequestReceiveDateAfterAndSubSpLike(
 						customerId, fromTimestamp, "%" + term.toUpperCase()
@@ -2611,9 +2616,9 @@ public class OpportunityService {
 			List<OpportunityT> opportunities, List<String> userIds) {
 		List<OpportunityT> deliveryOppList = new ArrayList<OpportunityT>();
 		//TODO Refactor the logic
-		List<OpportunityT> deliveryOpportunities = opportunityRepository.findDeliveryOpportunityIdsByDeliveryFlagAndOwner(userIds);
+		List<String> deliveryOpportunities = opportunityRepository.findDeliveryOpportunityIdsByDeliveryFlagAndOwner(userIds);
 		for(OpportunityT opportunityT:opportunities){
-			if(deliveryOpportunities.contains(opportunityT)){
+			if(deliveryOpportunities.contains(opportunityT.getOpportunityId())){
 				deliveryOppList.add(opportunityT);
 			}
 		}
