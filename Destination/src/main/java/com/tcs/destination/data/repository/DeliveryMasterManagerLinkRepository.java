@@ -12,4 +12,6 @@ public interface DeliveryMasterManagerLinkRepository extends PagingAndSortingRep
 	
 	List<DeliveryMasterManagerLinkT> findByDeliveryManagerId(String managerId);
 	
+	List<DeliveryMasterManagerLinkT> findByDeliveryMasterId(String engagementId);
+	
 }

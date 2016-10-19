@@ -87,4 +87,7 @@ public interface DeliveryMasterRepository extends JpaRepository<DeliveryMasterT,
 			+ " where UPPER(delivery_centre) like UPPER(:term)) ORDER BY modified_datetime DESC LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery=true) 
 	List<DeliveryMasterT> searchForSIDetailsByCentres(@Param("term") String term,
 			@Param("getAll") boolean getAll, @Param("stage") int stage);
+	
+	@Query(value="select * from delivery_master_t where actual_start_date < current_date and delivery_stage = 4",nativeQuery = true)
+	List<DeliveryMasterT> findEngagementsPastActualStartDate();
 }

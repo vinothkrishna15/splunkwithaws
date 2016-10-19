@@ -63,6 +63,7 @@ import com.tcs.destination.data.repository.BidDetailsTRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.DeliveryCentreRepository;
+import com.tcs.destination.data.repository.DeliveryMasterManagerLinkRepository;
 import com.tcs.destination.data.repository.DeliveryMasterRepository;
 import com.tcs.destination.data.repository.DocumentsTRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
@@ -364,6 +365,9 @@ public class DestinationMailUtils {
 
 	@Autowired
 	private DestinationMailSender destMailSender;
+	
+	@Autowired
+	DeliveryMasterManagerLinkRepository deliveryMasterManagerLinkRepository;
 
 	@Value("${userDetailsApprovalSubject}")
 	private String userDetailsApprovalSubject;
@@ -3675,7 +3679,12 @@ public class DestinationMailUtils {
 		case DELIVERY:
 			DeliveryMasterT deliveryMaster = deliveryMasterRepository
 					.findOne(entityId);
+			 
+			 
 			if (deliveryMaster != null) {
+				List<DeliveryMasterManagerLinkT> deliveryMasterManagerLinkTs = deliveryMasterManagerLinkRepository.findByDeliveryMasterId(deliveryMaster.getDeliveryMasterId());
+				deliveryMaster.setDeliveryMasterManagerLinkTs(deliveryMasterManagerLinkTs);
+				 
 				DeliveryCentreT deliveryCentreT = deliveryMaster
 						.getDeliveryCentreT();
 				DeliveryClusterT deliveryClusterT = deliveryCentreT
