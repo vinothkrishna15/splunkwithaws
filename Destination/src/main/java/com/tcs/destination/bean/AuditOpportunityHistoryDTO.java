@@ -11,6 +11,7 @@ public class AuditOpportunityHistoryDTO implements Serializable, Comparable<Audi
 	private int salesStageCode;
 	private Date startDate;
 	private List<AuditHistoryDTO> histories;
+	private String userName;
 	
 	public int getSalesStageCode() {
 		return salesStageCode;
@@ -29,6 +30,12 @@ public class AuditOpportunityHistoryDTO implements Serializable, Comparable<Audi
 	}
 	public void setHistories(List<AuditHistoryDTO> histories) {
 		this.histories = histories;
+	}
+	public String getUserName() {
+		return userName;
+	}
+	public void setUserName(String userName) {
+		this.userName = userName;
 	}
 	@Override
 	public int compareTo(AuditOpportunityHistoryDTO o) {

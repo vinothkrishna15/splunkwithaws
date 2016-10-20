@@ -11,6 +11,7 @@ public class AuditEngagementHistoryDTO implements Serializable, Comparable<Audit
 	private int engagementStage;
 	private Date startDate;
 	private List<AuditHistoryDTO> histories;
+	private String userName;
 	
 	public int getEngagementStage() {
 		return engagementStage;
@@ -30,6 +31,13 @@ public class AuditEngagementHistoryDTO implements Serializable, Comparable<Audit
 	public void setHistories(List<AuditHistoryDTO> histories) {
 		this.histories = histories;
 	}
+	public String getUserName() {
+		return userName;
+	}
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+	
 	@Override
 	public int compareTo(AuditEngagementHistoryDTO o) {
 		return this.startDate.after(o.getStartDate()) ? 1 : (this.startDate.before(o.getStartDate()) ? -1 : 0);
