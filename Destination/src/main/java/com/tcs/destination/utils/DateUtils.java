@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 
+import com.google.common.collect.Maps;
 import com.tcs.destination.exception.DestinationException;
 
 /**
@@ -102,6 +103,10 @@ public class DateUtils {
 
 	
 	private static final Map<String, Integer> monthMap = new HashMap<String, Integer>();
+
+	public static final String WEEK_END_DATE = "WEEK_END_DATE";
+	public static final String WEEK_START_DATE = "WEEK_START_DATE";
+	
 	static {
 		monthMap.put("JAN", Calendar.JANUARY);
 		monthMap.put("FEB", Calendar.FEBRUARY);
@@ -812,10 +817,6 @@ public class DateUtils {
 		return null;
 	}
 	
-	public static void main(String[] args) {
-		format(null, ACTUAL_FORMAT);
-	}
-	
 	/**
 	 * parse the date from the dateStr with the given format
 	 * @param dateStr
@@ -939,4 +940,48 @@ public class DateUtils {
 		return cellStyleDateFormat;
 	}
 	
+	/**
+	 * returns number of weeks of the given month
+	 * @param date
+	 * @return
+	 */
+	public static int getNumberOfWeeksInMonth(Date date) {
+		Calendar c = Calendar.getInstance();
+		LocalDate ld = new LocalDate(date.getTime());
+	    c.set(Calendar.YEAR, ld.getYear());
+	    c.set(Calendar.MONTH, ld.getMonthOfYear()-1);
+	    c.set(Calendar.DAY_OF_MONTH, 1);
+		return c.getActualMaximum(Calendar.WEEK_OF_MONTH);
+	}
+	
+	/**
+	 * returns week start date and end date, the date calculation based on calendar dates.
+	 * @param date - first date of month
+	 * @param weekOfMonth - number of week in that month
+	 * @return
+	 */
+	public static Map<String, Date> getWeekDates(Date date, int weekOfMonth) {
+		Map<String, Date> dateMap = Maps.newHashMap();
+		
+		 // set the date
+	    Calendar cal = Calendar.getInstance();
+	    cal.setTime(date);
+	    cal.set(Calendar.DAY_OF_MONTH, 1);
+
+	    // "calculate" the start date of the week
+	    Calendar first = (Calendar) cal.clone();
+	    first.add(Calendar.WEEK_OF_YEAR, weekOfMonth-1);
+	    first.add(Calendar.DAY_OF_WEEK, 
+	              first.getFirstDayOfWeek() - first.get(Calendar.DAY_OF_WEEK));
+
+	    // and add six days to the end date
+	    Calendar last = (Calendar) first.clone();
+	    last.add(Calendar.DAY_OF_YEAR, 6);
+	    
+	    dateMap.put(WEEK_START_DATE, first.getTime());
+	    dateMap.put(WEEK_END_DATE, last.getTime());
+	   
+		return dateMap;
+	}
+
 }
