@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.AsyncJobRequest;
+import com.tcs.destination.bean.DeliveryMasterDTO;
 import com.tcs.destination.bean.DeliveryMasterT;
 import com.tcs.destination.bean.DeliveryRgsT;
 import com.tcs.destination.bean.OpportunityT;
@@ -51,7 +52,7 @@ public class DeliveryMasterController {
 
 	@Autowired
 	DeliveryMasterService deliveryMasterService;
-	
+
 	@Autowired
 	private JobLauncherController jobLauncherController;
 
@@ -146,13 +147,13 @@ public class DeliveryMasterController {
 		try {
 			List<AsyncJobRequest> asyncJobRequests = deliveryMasterService.updateDelivery(deliveryMaster);
 			for(AsyncJobRequest asyncJobRequest : asyncJobRequests) {
-			if (asyncJobRequest.getOn().equals(Switch.ON)) {
-			jobLauncherController.asyncJobLaunch(asyncJobRequest.getJobName(), asyncJobRequest.getEntityType().name(), asyncJobRequest.getEntityId(), asyncJobRequest.getDealValue(), asyncJobRequest.getDeliveryCentreId());
+				if (asyncJobRequest.getOn().equals(Switch.ON)) {
+					jobLauncherController.asyncJobLaunch(asyncJobRequest.getJobName(), asyncJobRequest.getEntityType().name(), asyncJobRequest.getEntityId(), asyncJobRequest.getDealValue(), asyncJobRequest.getDeliveryCentreId());
 				}
 			}
 
-				status.setStatus(Status.SUCCESS, deliveryMaster.getDeliveryMasterId());
-				//jobLauncherController.asyncJobLaunchForNotification(JobName.notification, EntityType.CONNECT, connect.getConnectId(),OperationType.CONNECT_EDIT,connect.getModifiedBy());
+			status.setStatus(Status.SUCCESS, deliveryMaster.getDeliveryMasterId());
+			//jobLauncherController.asyncJobLaunchForNotification(JobName.notification, EntityType.CONNECT, connect.getConnectId(),OperationType.CONNECT_EDIT,connect.getModifiedBy());
 			logger.info("Inside DeliveryMasterController: End of Edit delivery master");
 
 			return new ResponseEntity<String>(
@@ -167,7 +168,7 @@ public class DeliveryMasterController {
 		}
 
 	}
-	
+
 	/**
 	 * This method retrieves the delivery RGS Id list for an Input RGS Id pattern
 	 * @param idLike
@@ -179,7 +180,7 @@ public class DeliveryMasterController {
 	public @ResponseBody List<String> searchByDeliveryRgsId(
 			@RequestParam(value = "idLike", defaultValue = "") String idLike,
 			@RequestParam(value = "limitNum", defaultValue = "20") int limitNum)
-			throws DestinationException {
+					throws DestinationException {
 
 		logger.info("Inside DeliveryMasterController: Start of search by Delivery Rgs Id pattern: "+idLike+" with limit num:"+limitNum);
 		List<String> response = null;
@@ -196,7 +197,7 @@ public class DeliveryMasterController {
 		logger.info("Inside DeliveryMasterController: End of search by Delivery Rgs Id pattern");
 		return response;
 	}
-	
+
 
 	/**
 	 * Service to fetch the delivery master t related information based on search type and the search keyword 
@@ -273,4 +274,35 @@ public class DeliveryMasterController {
 		return response;
 	}
 
+	/**
+	 * This method retrieves the engagements details for dash board
+	 * based on status, geography and subsp
+	 * @param stage
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/dashboard", method = RequestMethod.GET)
+	public @ResponseBody String findEngagementsForDashboard(@RequestParam(value = "stage", defaultValue = "-1") Integer stage,
+			@RequestParam(value = "viewBy", defaultValue = "status") String viewBy,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view ) throws DestinationException {
+		logger.info("Inside DeliveryMasterController: Start of delivery/dashboard GET");
+		String response = null;
+		DeliveryMasterDTO deliveryMasterT = null;
+		try {
+			deliveryMasterT = deliveryMasterService.findEngagements(stage, viewBy);
+			if (deliveryMasterT == null) {
+				throw new DestinationException(HttpStatus.NOT_FOUND, "Delivery Engagements not found for this User's Dashboard");
+			}
+			logger.info("Inside DeliveryMasterController: End of delivery/dashboard GET");
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields, view, deliveryMasterT);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, "Backend error in delivering the deliveryDashboard details");
+		}
+		logger.info("Inside DeliveryMasterController: End of delivery/dashboard GET");
+		return response;
+	}
 }

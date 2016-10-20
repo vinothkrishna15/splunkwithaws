@@ -29,11 +29,13 @@ import com.google.common.collect.Sets;
 import com.tcs.destination.bean.AsyncJobRequest;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryClusterT;
+import com.tcs.destination.bean.DeliveryMasterDTO;
 import com.tcs.destination.bean.DeliveryMasterManagerLinkT;
 import com.tcs.destination.bean.DeliveryMasterT;
 import com.tcs.destination.bean.DeliveryRequirementT;
 import com.tcs.destination.bean.DeliveryResourcesT;
 import com.tcs.destination.bean.DeliveryRgsT;
+import com.tcs.destination.bean.EngagementDashboardDTO;
 import com.tcs.destination.bean.OpportunityDeliveryCentreMappingT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PageDTO;
@@ -70,38 +72,38 @@ public class DeliveryMasterService {
 	private static final Logger logger = LoggerFactory.getLogger(DeliveryMasterService.class);
 
 	private static final int numDeliveryStages = 6;
-	
+
 	@Autowired
 	DeliveryMasterRepository deliveryMasterRepository;
-	
+
 	@Autowired
 	DeliveryMasterPagingRepository deliveryMasterPagingRepository;
-	
+
 	@Autowired
 	DeliveryCentreRepository deliveryCentreRepository;
-	
+
 	@Autowired
 	DeliveryClusterRepository deliveryClusterRepository;
-	
+
 	@Autowired
 	DeliveryResourcesRepository deliveryResourcesRepository;
-	
+
 	@Autowired
 	UserRepository userRepository;
-	
+
 	@Autowired
 	DeliveryMasterManagerLinkRepository deliveryMasterManagerLinkRepository;
-	
+
 	@Autowired
 	DeliveryRequirementRepository deliveryRequirementRepository;
-	
+
 	@Autowired
 	DeliveryRgsTRepository deliveryRgsTRepository;
-	
+
 	@Autowired
 	OpportunityService opportunityService;
-	
-	
+
+
 	private static final Map<String,String>ATTRIBUTE_MAP;
 	static {
 		Map<String, String> attributeMap = new HashMap<String, String>();
@@ -118,7 +120,7 @@ public class DeliveryMasterService {
 		attributeMap.put("modifiedDatetime","modifiedDatetime");
 		ATTRIBUTE_MAP = Collections.unmodifiableMap(attributeMap);
 	}
-	
+
 	/**
 	 * method to retrieve List of engagements
 	 * @param stage
@@ -139,30 +141,30 @@ public class DeliveryMasterService {
 		String loginUserGroup = loginUser.getUserGroup();
 
 		List<Integer> stages = new ArrayList<Integer>();
-		
+
 		Page<DeliveryMasterT> deliveryMasterTs = null;
 		Sort sort = null;
 		Pageable pageable = null;
 		switch (UserGroup.valueOf(UserGroup.getName(loginUserGroup))) {
 		case DELIVERY_CENTRE_HEAD:
-			
+
 			if (stage == -1) {
 				for (int i = 1; i < numDeliveryStages; i++)
 					stages.add(i);
 			} else {
 				stages.add(stage);
 			}
-			
+
 			DeliveryCentreT deliveryCentreT = deliveryCentreRepository
 					.findByDeliveryCentreHead(loginUser.getUserId());
 			if (deliveryCentreT != null) {
 				Integer deliveryCentreId = deliveryCentreT
 						.getDeliveryCentreId();
-				
+
 				List<Integer> deliveryCentreIds = new ArrayList<Integer>();
 				deliveryCentreIds.add(deliveryCentreId);
 				deliveryCentreIds.add(-1);
-				
+
 				orderBy = ATTRIBUTE_MAP.get(orderBy);
 				sort = getSortFromOrder(order,orderBy);
 				pageable = new PageRequest(page, count, sort);
@@ -180,53 +182,53 @@ public class DeliveryMasterService {
 			} else {
 				stages.add(stage);
 			}
-			
+
 			List<DeliveryCentreT> deliveryCentresSI = (List<DeliveryCentreT>) deliveryCentreRepository.findAll();
-			 if(!CollectionUtils.isEmpty(deliveryCentresSI)){
-					List<Integer> deliveryCentreIds = new ArrayList<Integer>();
-					for (DeliveryCentreT deliveryCentre : deliveryCentresSI) {
-						deliveryCentreIds.add(deliveryCentre.getDeliveryCentreId());
-					}
-					orderBy = ATTRIBUTE_MAP.get(orderBy);
-					sort = getSortFromOrder(order,orderBy);
-					pageable = new PageRequest(page, count, sort);
-					deliveryMasterTs = deliveryMasterPagingRepository
-								.findByDeliveryCentreIdInAndDeliveryStageIn(
-										deliveryCentreIds, stages, pageable);
-						
-					
-			 }
-			 
-			 break;
+			if(!CollectionUtils.isEmpty(deliveryCentresSI)){
+				List<Integer> deliveryCentreIds = new ArrayList<Integer>();
+				for (DeliveryCentreT deliveryCentre : deliveryCentresSI) {
+					deliveryCentreIds.add(deliveryCentre.getDeliveryCentreId());
+				}
+				orderBy = ATTRIBUTE_MAP.get(orderBy);
+				sort = getSortFromOrder(order,orderBy);
+				pageable = new PageRequest(page, count, sort);
+				deliveryMasterTs = deliveryMasterPagingRepository
+						.findByDeliveryCentreIdInAndDeliveryStageIn(
+								deliveryCentreIds, stages, pageable);
+
+
+			}
+
+			break;
 		case DELIVERY_CLUSTER_HEAD:
-			
+
 			if (stage == -1) {
 				for (int i = 0; i < numDeliveryStages; i++)
 					stages.add(i);
 			} else {
 				stages.add(stage);
 			}
-			
+
 			DeliveryClusterT deliveryClusterT = deliveryClusterRepository
 					.findByDeliveryClusterHead(loginUser.getUserId());
 			if(deliveryClusterT!=null){
-			List<DeliveryCentreT> deliveryCentres = deliveryCentreRepository
-					.findByDeliveryClusterId(deliveryClusterT
-							.getDeliveryClusterId());
-            if(!CollectionUtils.isEmpty(deliveryCentres)){
-			List<Integer> deliveryCentreIds = new ArrayList<Integer>();
-			for (DeliveryCentreT deliveryCentre : deliveryCentres) {
-				deliveryCentreIds.add(deliveryCentre.getDeliveryCentreId());
-			}
-			deliveryCentreIds.add(-1);
-			
-			orderBy = ATTRIBUTE_MAP.get(orderBy);
-			sort = getSortFromOrder(order,orderBy);
-			pageable = new PageRequest(page, count, sort);
-			deliveryMasterTs = deliveryMasterPagingRepository
-					.findByDeliveryCentreIdInAndDeliveryStageIn(
-							deliveryCentreIds, stages, pageable);
-            }
+				List<DeliveryCentreT> deliveryCentres = deliveryCentreRepository
+						.findByDeliveryClusterId(deliveryClusterT
+								.getDeliveryClusterId());
+				if(!CollectionUtils.isEmpty(deliveryCentres)){
+					List<Integer> deliveryCentreIds = new ArrayList<Integer>();
+					for (DeliveryCentreT deliveryCentre : deliveryCentres) {
+						deliveryCentreIds.add(deliveryCentre.getDeliveryCentreId());
+					}
+					deliveryCentreIds.add(-1);
+
+					orderBy = ATTRIBUTE_MAP.get(orderBy);
+					sort = getSortFromOrder(order,orderBy);
+					pageable = new PageRequest(page, count, sort);
+					deliveryMasterTs = deliveryMasterPagingRepository
+							.findByDeliveryCentreIdInAndDeliveryStageIn(
+									deliveryCentreIds, stages, pageable);
+				}
 			}
 			break;
 		case DELIVERY_MANAGER:
@@ -242,17 +244,17 @@ public class DeliveryMasterService {
 			String managerId = loginUser.getUserId();
 			List<DeliveryMasterManagerLinkT> deliveryMasterManagerList = deliveryMasterManagerLinkRepository.findByDeliveryManagerId(managerId);
 			if(CollectionUtils.isEmpty(deliveryMasterManagerList)){
-			logger.error("NOT_FOUND: Delivery Master details not found");
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-			"Delivery Master details not found");
+				logger.error("NOT_FOUND: Delivery Master details not found");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"Delivery Master details not found");
 			} else {
-			List<String> deliveryMasterIds = new ArrayList<String>();
-			for(DeliveryMasterManagerLinkT deliveryMasterManagerLinkT:deliveryMasterManagerList){
-			deliveryMasterIds.add(deliveryMasterManagerLinkT.getDeliveryMasterId());
-			}
-			deliveryMasterTs = deliveryMasterPagingRepository
-			.findByDeliveryMasterIdInAndDeliveryStageIn(
-			deliveryMasterIds, stages, pageable);
+				List<String> deliveryMasterIds = new ArrayList<String>();
+				for(DeliveryMasterManagerLinkT deliveryMasterManagerLinkT:deliveryMasterManagerList){
+					deliveryMasterIds.add(deliveryMasterManagerLinkT.getDeliveryMasterId());
+				}
+				deliveryMasterTs = deliveryMasterPagingRepository
+						.findByDeliveryMasterIdInAndDeliveryStageIn(
+								deliveryMasterIds, stages, pageable);
 			}
 			break;
 		default:
@@ -270,8 +272,8 @@ public class DeliveryMasterService {
 		}
 		return deliveryMasterDTO;
 	}
-	
-	
+
+
 	/**
 	 * returns the sort object for given order by column and the order direction
 	 * @param order
@@ -319,7 +321,7 @@ public class DeliveryMasterService {
 			removeCyclicData(deliveryMasterT);
 		}
 	}
-	
+
 	/**
 	 * This method removes the DeliveryMasterT cyclic data 
 	 * 
@@ -333,9 +335,9 @@ public class DeliveryMasterService {
 			}
 		}
 		List<DeliveryResourcesT> deliveryResourcesTs = deliveryMaster.getDeliveryResourcesTs();
-	    if(CollectionUtils.isNotEmpty(deliveryResourcesTs)){
-	    	for(DeliveryResourcesT deliveryResourcesT:deliveryResourcesTs){
-	    		DeliveryRgsT deliveryRgsT = deliveryResourcesT.getDeliveryRgsT();
+		if(CollectionUtils.isNotEmpty(deliveryResourcesTs)){
+			for(DeliveryResourcesT deliveryResourcesT:deliveryResourcesTs){
+				DeliveryRgsT deliveryRgsT = deliveryResourcesT.getDeliveryRgsT();
 				if (deliveryRgsT != null) {
 					List<DeliveryRequirementT> deliveryRequirementTs = deliveryRgsT
 							.getDeliveryRequirementTs();
@@ -345,8 +347,8 @@ public class DeliveryMasterService {
 						}
 					}
 				}
-	    	}
-	    }
+			}
+		}
 	}
 
 
@@ -393,7 +395,7 @@ public class DeliveryMasterService {
 			if ((deliveryAfterEdit.getDeliveryStage() != oldDeliveryStage && deliveryAfterEdit
 					.getDeliveryStage() != DeliveryStage.PLANNED.getStageCode())
 					|| (deliveryAfterEdit.getDeliveryCentreId() != oldDeliveryCentreId && deliveryAfterEdit
-							.getDeliveryCentreId() == Constants.DELIVERY_CENTRE_OPEN)) {
+					.getDeliveryCentreId() == Constants.DELIVERY_CENTRE_OPEN)) {
 				asyncJobRequests.add(opportunityService
 						.constructAsyncJobRequest(
 								deliveryAfterEdit.getDeliveryMasterId(),
@@ -408,7 +410,7 @@ public class DeliveryMasterService {
 		return asyncJobRequests;
 
 	}
-	
+
 	@Transactional
 	public DeliveryMasterT editDelivery(DeliveryMasterT deliveryMasterT,DeliveryMasterT deliveryBeforeEdit, String loginUserId)
 			throws Exception {
@@ -426,29 +428,29 @@ public class DeliveryMasterService {
 				}
 				deliveryResourcesRepository.save(deliveryResourcesTs);
 			}
-			
+
 			if (deliveryMasterManagerLinkTs != null) {
 				for(DeliveryMasterManagerLinkT deliveryMasterManagerLinkT : deliveryMasterManagerLinkTs){
 					deliveryMasterManagerLinkT.setModifiedBy(loginUserId);
 				}
 				deliveryMasterManagerLinkRepository.save(deliveryMasterManagerLinkTs);
 			}
-			
+
 			if (deliveryResourcesTs != null) {
 				for(DeliveryResourcesT deliveryResourcesT:deliveryResourcesTs){
 					DeliveryRgsT deliveryRgsT = deliveryResourcesT.getDeliveryRgsT();
 					if(deliveryRgsT!=null){
 						List<DeliveryRequirementT> deliveryRequirementTs = deliveryRgsT.getDeliveryRequirementTs();
-					    if(!CollectionUtils.isEmpty(deliveryRequirementTs)){
-					    	for(DeliveryRequirementT deliveryRequirementT : deliveryRequirementTs){
-					    		deliveryRequirementT.setModifiedBy(loginUserId);
-					    	}
-					    	deliveryRequirementRepository.save(deliveryRequirementTs);
-					    }
+						if(!CollectionUtils.isEmpty(deliveryRequirementTs)){
+							for(DeliveryRequirementT deliveryRequirementT : deliveryRequirementTs){
+								deliveryRequirementT.setModifiedBy(loginUserId);
+							}
+							deliveryRequirementRepository.save(deliveryRequirementTs);
+						}
 					}
 				}
 			}
-			
+
 			return (deliveryMasterRepository.save(deliveryMasterT));
 		} catch (Exception e) {
 			logger.error("Server Error: Backend Error while processing delivery update ");
@@ -459,7 +461,7 @@ public class DeliveryMasterService {
 
 
 	private void validateDeliveryMaster(DeliveryMasterT deliveryMasterT) {
-		
+
 		//validate mandatory fields - deliveryCentreId,deliveryStage
 		Integer deliveryCentreId = deliveryMasterT.getDeliveryCentreId();
 		if(deliveryCentreId == null) {
@@ -467,28 +469,28 @@ public class DeliveryMasterService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"deliveryCentreId is mandatory");
 		}
-		
+
 		Integer deliveryStage = deliveryMasterT.getDeliveryStage();
 		if(deliveryStage == null){
 			logger.error("BAD_REQUEST: deliveryStage is mandatory");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"deliveryStage is mandatory");			
 		}
-		
+
 		String createdBy = deliveryMasterT.getCreatedBy();
 		if(StringUtils.isEmpty(createdBy)){
 			logger.error("BAD_REQUEST: createdBy is mandatory");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"createdBy is mandatory");			
 		}
-		
+
 		Timestamp createdDatetime = deliveryMasterT.getCreatedDatetime();
 		if(createdDatetime == null){
 			logger.error("BAD_REQUEST: createdDatetime is mandatory");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"createdDatetime is mandatory");			
 		}
-		
+
 		List<DeliveryMasterManagerLinkT> deliveryMasterManagerLinkTs = deliveryMasterT.getDeliveryMasterManagerLinkTs();
 		if(!CollectionUtils.isEmpty(deliveryMasterManagerLinkTs)){
 			for(DeliveryMasterManagerLinkT deliveryMasterManagerLinkT:deliveryMasterManagerLinkTs){
@@ -524,24 +526,24 @@ public class DeliveryMasterService {
 								"invalid deliveryMasterId");
 					}
 				}
-				
+
 				String masterManagerCreatedBy = deliveryMasterManagerLinkT.getCreatedBy();
 				if(StringUtils.isEmpty(masterManagerCreatedBy)){
 					logger.error("BAD_REQUEST: createdBy is mandatory in deliveryMasterManagerLinkT");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"createdBy is mandatory in deliveryMasterManagerLinkT");			
 				}
-				
+
 				Timestamp masterManagerCreatedDatetime = deliveryMasterManagerLinkT.getCreatedDatetime();
 				if(masterManagerCreatedDatetime == null){
 					logger.error("BAD_REQUEST: createdDatetime is mandatory in deliveryMasterManagerLinkT");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"createdDatetime is mandatory in deliveryMasterManagerLinkT");			
 				}
-				
+
 			}
 		}
-		
+
 		List<DeliveryResourcesT> deliveryResourcesTs = deliveryMasterT.getDeliveryResourcesTs();
 		if(!CollectionUtils.isEmpty(deliveryResourcesTs)){
 			for(DeliveryResourcesT deliveryResourcesT:deliveryResourcesTs){
@@ -551,14 +553,14 @@ public class DeliveryMasterService {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"createdBy is mandatory in deliveryResourcesT");
 				}
-				
+
 				Timestamp deliveryResourcesCreatedDatetime = deliveryResourcesT.getCreatedDatetime();
 				if(deliveryResourcesCreatedDatetime == null){
 					logger.error("BAD_REQUEST: createdDatetime is mandatory in deliveryResourcesT");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"createdDatetime is mandatory in deliveryResourcesT");			
 				}
-				
+
 				String deliveryMasterId = deliveryResourcesT.getDeliveryMasterId();
 				if(deliveryMasterId==null){
 					logger.error("BAD_REQUEST: deliveryMasterId is mandatory");
@@ -571,102 +573,102 @@ public class DeliveryMasterService {
 								"invalid deliveryMasterId in deliveryResourcesT");
 					}
 				}
-				
+
 				String role = deliveryResourcesT.getRole();
 				if(StringUtils.isEmpty(role)){
 					logger.error("BAD_REQUEST: role is mandatory in deliveryResourcesT");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"role is mandatory in deliveryResourcesT");
 				}
-				
+
 				String skill = deliveryResourcesT.getSkill();
 				if(StringUtils.isEmpty(skill)){
 					logger.error("BAD_REQUEST: skill is mandatory in deliveryResourcesT");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"skill is mandatory in deliveryResourcesT");
 				}
-				
+
 				String requirementFulfillment = deliveryResourcesT.getRequirementFulfillment();
 				if(StringUtils.isEmpty(requirementFulfillment)){
 					logger.error("BAD_REQUEST: requirementFulfillment is mandatory in deliveryResourcesT");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"requirementFulfillment is mandatory in deliveryResourcesT");
 				}
-				
+
 				DeliveryRgsT deliveryRgsT = deliveryResourcesT.getDeliveryRgsT();
 				if(deliveryRgsT!=null){
 					List<DeliveryRequirementT> deliveryRequirementTs = deliveryRgsT.getDeliveryRequirementTs();
-				    if(!CollectionUtils.isEmpty(deliveryRequirementTs)){
-				    	for(DeliveryRequirementT deliveryRequirementT : deliveryRequirementTs){
-				    		//String employeeId = deliveryRequirementT.getEmployeeId();
-				    		//String employeeName = deliveryRequirementT.getEmployeeName();
-				    		String createdBy2 = deliveryRequirementT.getCreatedBy();
-				    		
-				    		if(StringUtils.isEmpty(createdBy2)){
+					if(!CollectionUtils.isEmpty(deliveryRequirementTs)){
+						for(DeliveryRequirementT deliveryRequirementT : deliveryRequirementTs){
+							//String employeeId = deliveryRequirementT.getEmployeeId();
+							//String employeeName = deliveryRequirementT.getEmployeeName();
+							String createdBy2 = deliveryRequirementT.getCreatedBy();
+
+							if(StringUtils.isEmpty(createdBy2)){
 								logger.error("BAD_REQUEST: createdBy is mandatory in deliveryRequirementT");
 								throw new DestinationException(HttpStatus.BAD_REQUEST,
 										"createdBy is mandatory in deliveryRequirementT");
 							}
-							
-							
-							
-				    		Timestamp createdDatetime2 = deliveryRequirementT.getCreatedDatetime();
+
+
+
+							Timestamp createdDatetime2 = deliveryRequirementT.getCreatedDatetime();
 							if(deliveryResourcesCreatedDatetime == null){
 								logger.error("BAD_REQUEST: createdDatetime is mandatory in deliveryRequirementT");
 								throw new DestinationException(HttpStatus.BAD_REQUEST,
 										"createdDatetime is mandatory in deliveryRequirementT");			
 							}
-							
-				    		String experience = deliveryRequirementT.getExperience();
-				    		if(StringUtils.isEmpty(experience)){
+
+							String experience = deliveryRequirementT.getExperience();
+							if(StringUtils.isEmpty(experience)){
 								logger.error("BAD_REQUEST: experience is mandatory in deliveryRequirementT");
 								throw new DestinationException(HttpStatus.BAD_REQUEST,
 										"experience is mandatory in deliveryRequirementT");
 							}
-				    		
-				    		String location = deliveryRequirementT.getLocation();
-				    		if(StringUtils.isEmpty(location)){
+
+							String location = deliveryRequirementT.getLocation();
+							if(StringUtils.isEmpty(location)){
 								logger.error("BAD_REQUEST: location is mandatory in deliveryRequirementT");
 								throw new DestinationException(HttpStatus.BAD_REQUEST,
 										"location is mandatory in deliveryRequirementT");
 							}
-				    		
-				    		String requirementId = deliveryRequirementT.getRequirementId();
-				    		if(StringUtils.isEmpty(requirementId)){
+
+							String requirementId = deliveryRequirementT.getRequirementId();
+							if(StringUtils.isEmpty(requirementId)){
 								logger.error("BAD_REQUEST: requirementId is mandatory in deliveryRequirementT");
 								throw new DestinationException(HttpStatus.BAD_REQUEST,
 										"requirementId is mandatory in deliveryRequirementT");
 							}
-				    		
-				    		String role2 = deliveryRequirementT.getRole();
-				    		if(StringUtils.isEmpty(role2)){
+
+							String role2 = deliveryRequirementT.getRole();
+							if(StringUtils.isEmpty(role2)){
 								logger.error("BAD_REQUEST: role is mandatory in deliveryRequirementT");
 								throw new DestinationException(HttpStatus.BAD_REQUEST,
 										"role is mandatory in deliveryRequirementT");
 							}
-				    		
-      			    		String status = deliveryRequirementT.getStatus();
-				    		if(StringUtils.isEmpty(status)){
+
+							String status = deliveryRequirementT.getStatus();
+							if(StringUtils.isEmpty(status)){
 								logger.error("BAD_REQUEST: status is mandatory in deliveryRequirementT");
 								throw new DestinationException(HttpStatus.BAD_REQUEST,
 										"status is mandatory in deliveryRequirementT");
 							}
-				    	}
-				    }
+						}
+					}
 				}
 			}
 		}
-		
+
 	}
 
 
 	private void populateDeliveryMaster(DeliveryMasterT deliveryMasterT) {
 		String deliveryMasterId = deliveryMasterT.getDeliveryMasterId();
-		
+
 		DeliveryMasterT deliveryFromDB = deliveryMasterRepository.findOne(deliveryMasterId);
-		
+
 		setData(deliveryMasterT,deliveryFromDB);
-		
+
 	}
 
 
@@ -729,11 +731,11 @@ public class DeliveryMasterService {
 				if (new_actualStartDate.after(old_actualStartDate)
 						|| new_actualStartDate.before(old_actualStartDate)) {
 					deliveryMasterDestination
-							.setActualStartDate(new_actualStartDate);
+					.setActualStartDate(new_actualStartDate);
 				}
 			} else {
 				deliveryMasterDestination
-						.setActualStartDate(new_actualStartDate);
+				.setActualStartDate(new_actualStartDate);
 			}
 		}
 
@@ -742,11 +744,11 @@ public class DeliveryMasterService {
 				if (new_expectedEndDate.after(old_expectedEndDate)
 						|| new_expectedEndDate.before(old_expectedEndDate)) {
 					deliveryMasterDestination
-							.setExpectedEndDate(new_expectedEndDate);
+					.setExpectedEndDate(new_expectedEndDate);
 				}
 			} else {
 				deliveryMasterDestination
-						.setExpectedEndDate(new_expectedEndDate);
+				.setExpectedEndDate(new_expectedEndDate);
 			}
 		}
 
@@ -754,18 +756,18 @@ public class DeliveryMasterService {
 			if (old_scheduledStartDate != null) {
 				if (new_scheduledStartDate.after(old_scheduledStartDate)
 						|| new_scheduledStartDate
-								.before(old_scheduledStartDate)) {
+						.before(old_scheduledStartDate)) {
 					deliveryMasterDestination
-							.setScheduledStartDate(new_scheduledStartDate);
+					.setScheduledStartDate(new_scheduledStartDate);
 				}
 			} else {
 				deliveryMasterDestination
-						.setScheduledStartDate(new_scheduledStartDate);
+				.setScheduledStartDate(new_scheduledStartDate);
 			}
 		}
 
 	}
-	
+
 	/**
 	 * This method is used to save the delivery master details for each delivery centre 
 	 * 
@@ -803,13 +805,12 @@ public class DeliveryMasterService {
 	 * @param nameWith
 	 * @return
 	 */
-	public Set<UserT> findDeliveryCentreUserList(List<Integer> deliveryCentres,
-			String nameWith) {
+	public Set<UserT> findDeliveryCentreUserList(List<Integer> deliveryCentres,String nameWith) {
 		Set<UserT> usersForDeliveryCentre = new HashSet<UserT>();
 
 		List<DeliveryCentreT> deliveryCentresList = deliveryCentreRepository
 				.findByDeliveryCentreIdIn(deliveryCentres);
-		
+
 		String supervisorId = null;
 		for (DeliveryCentreT deliveryCentre : deliveryCentresList) {
 			if (deliveryCentre != null) {
@@ -909,25 +910,25 @@ public class DeliveryMasterService {
 	private List<DeliveryMasterT> getDeliveryMasterByDeliveryCentres(
 			String term, boolean getAll, UserT user, int stage) {
 		logger.info("Inside getDeliveryMasterById() Method");
-		
+
 		List<DeliveryMasterT> records = null;
 		String userGroup = user.getUserGroup();
 		if (userGroup.equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue())) {
-			
+
 			records = deliveryMasterRepository.searchDeliveryClusterDetailsByDeliveryCentres("%" + term + "%", getAll, user.getUserId(), stage);
-		
+
 		} else if(userGroup.equals(UserGroup.DELIVERY_CENTRE_HEAD.getValue())){
-			
+
 			records = deliveryMasterRepository.searchDeliveryCentreDetailsByDeliveryCentres("%" + term + "%", getAll, user.getUserId(), stage);
-		
+
 		} else if(userGroup.equals(UserGroup.DELIVERY_MANAGER.getValue())){
-			
+
 			records = deliveryMasterRepository.searchDeliveryManagerDetailsByDeliveryCentres("%" + term + "%", getAll, user.getUserId(), stage);
 
 		} else if(userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
-			
+
 			records = deliveryMasterRepository.searchForSIDetailsByCentres("%" + term + "%", getAll, stage);
-					
+
 		} else {
 			logger.info("HttpStatus.UNAUTHORIZED, Access Denied");
 			throw new DestinationException(HttpStatus.UNAUTHORIZED, "Access Denied");
@@ -950,19 +951,19 @@ public class DeliveryMasterService {
 		List<DeliveryMasterT> records = null;
 		String userGroup = user.getUserGroup();
 		if (userGroup.equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue())) {
-			
+
 			records = deliveryMasterRepository.searchDeliveryClusterDetailsByCustomerName("%" + term + "%", getAll, user.getUserId(), stage);
-		
+
 		} else if(userGroup.equals(UserGroup.DELIVERY_CENTRE_HEAD.getValue())){
-			
+
 			records = deliveryMasterRepository.searchDeliveryCentreDetailsByCustomerName("%" + term + "%", getAll, user.getUserId(), stage);
-		
+
 		} else if(userGroup.equals(UserGroup.DELIVERY_MANAGER.getValue())){
-			
+
 			records = deliveryMasterRepository.searchDeliveryManagerDetailsByCustomerName("%" + term + "%", getAll, user.getUserId(), stage);
 
 		} else if(userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
-			
+
 			records = deliveryMasterRepository.searchForSIDetailsByCustomerName("%" + term + "%", getAll, stage);
 
 		} else {
@@ -987,19 +988,19 @@ public class DeliveryMasterService {
 		List<DeliveryMasterT> records = null;
 		String userGroup = user.getUserGroup();
 		if (userGroup.equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue())) {
-			
+
 			records = deliveryMasterRepository.searchDeliveryClusterDetailsById("%" + term + "%", getAll, user.getUserId(), stage);
-		
+
 		} else if(userGroup.equals(UserGroup.DELIVERY_CENTRE_HEAD.getValue())){
-			
+
 			records = deliveryMasterRepository.searchDeliveryCentreDetailsById("%" + term + "%", getAll, user.getUserId(), stage);
-		
+
 		} else if(userGroup.equals(UserGroup.DELIVERY_MANAGER.getValue())){
-			
+
 			records = deliveryMasterRepository.searchDeliveryManagerDetailsById("%" + term + "%", getAll, user.getUserId(), stage);
 
 		} else if(userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
-			
+
 			records = deliveryMasterRepository.searchForSIDetailsById("%" + term + "%", getAll, stage);
 
 		} else {
@@ -1009,5 +1010,166 @@ public class DeliveryMasterService {
 		return records;
 	}
 
+
+	/**
+	 * This method is used to fetch the delivery engagements for dash board based on the parameter viewBy
+	 * @param stage
+	 * @param viewBy
+	 */
+	public DeliveryMasterDTO findEngagements(Integer stage, String viewBy) {
+		logger.debug("Starting findEngagements deliveryMasterService");
+		DeliveryMasterDTO deliveryDashboardDTO = null;
+		UserT loginUser = DestinationUtils.getCurrentUserDetails();
+		String loginUserGroup = loginUser.getUserGroup();
+		List<Integer> deliveryCentreIds = null;
+		List<Integer> stages = new ArrayList<Integer>();
+		List<String> deliveryMasterIds = new ArrayList<String>();
+
+		switch (UserGroup.valueOf(UserGroup.getName(loginUserGroup))) {
+		case DELIVERY_CENTRE_HEAD:
+			if (stage == -1) {
+				for (int i = 1; i < numDeliveryStages; i++)
+					stages.add(i);
+			} else {
+				stages.add(stage);
+			}
+
+			DeliveryCentreT deliveryCentreT = deliveryCentreRepository
+					.findByDeliveryCentreHead(loginUser.getUserId());
+			if (deliveryCentreT != null) {
+				deliveryCentreIds = new ArrayList<Integer>();
+				deliveryCentreIds.add(deliveryCentreT
+						.getDeliveryCentreId());
+				deliveryCentreIds.add(-1);
+			}
+			deliveryDashboardDTO = retrieveEngagementsBasedOnViewBy(viewBy, deliveryCentreIds, stages, deliveryMasterIds);
+			break;
+		case STRATEGIC_INITIATIVES:
+			if (stage == -1) {
+				for (int i = 0; i < numDeliveryStages; i++)
+					stages.add(i);
+			} else {
+				stages.add(stage);
+			}
+
+			List<DeliveryCentreT> deliveryCentresSI = (List<DeliveryCentreT>) deliveryCentreRepository.findAll();
+			if(!CollectionUtils.isEmpty(deliveryCentresSI)){
+				deliveryCentreIds = new ArrayList<Integer>();
+				for (DeliveryCentreT deliveryCentre : deliveryCentresSI) {
+					deliveryCentreIds.add(deliveryCentre.getDeliveryCentreId());
+				}
+			}
+			deliveryDashboardDTO = retrieveEngagementsBasedOnViewBy(viewBy, deliveryCentreIds, stages, deliveryMasterIds);
+			break;
+		case DELIVERY_CLUSTER_HEAD:
+
+			if (stage == -1) {
+				for (int i = 0; i < numDeliveryStages; i++)
+					stages.add(i);
+			} else {
+				stages.add(stage);
+			}
+
+			DeliveryClusterT deliveryClusterT = deliveryClusterRepository
+					.findByDeliveryClusterHead(loginUser.getUserId());
+			if(deliveryClusterT!=null){
+				List<DeliveryCentreT> deliveryCentres = deliveryCentreRepository
+						.findByDeliveryClusterId(deliveryClusterT
+								.getDeliveryClusterId());
+				if(!CollectionUtils.isEmpty(deliveryCentres)){
+					deliveryCentreIds = new ArrayList<Integer>();
+					for (DeliveryCentreT deliveryCentre : deliveryCentres) {
+						deliveryCentreIds.add(deliveryCentre.getDeliveryCentreId());
+					}
+					deliveryCentreIds.add(-1);
+				}
+			}
+			deliveryDashboardDTO = retrieveEngagementsBasedOnViewBy(viewBy, deliveryCentreIds, stages, deliveryMasterIds);
+			break;
+		case DELIVERY_MANAGER:
+			if (stage == -1) {
+				for (int i = 2; i < numDeliveryStages; i++)
+					stages.add(i);
+			} else {
+				stages.add(stage);
+			}
+			String managerId = loginUser.getUserId();
+			List<DeliveryMasterManagerLinkT> deliveryMasterManagerList = deliveryMasterManagerLinkRepository.findByDeliveryManagerId(managerId);
+			if(CollectionUtils.isEmpty(deliveryMasterManagerList)){
+				logger.error("NOT_FOUND: Delivery Master details not found");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"Delivery Master details not found");
+			} else {
+				for(DeliveryMasterManagerLinkT deliveryMasterManagerLinkT:deliveryMasterManagerList){
+					deliveryMasterIds.add(deliveryMasterManagerLinkT.getDeliveryMasterId());
+				}
+			}
+			deliveryDashboardDTO = retrieveEngagementsBasedOnViewBy(viewBy, deliveryCentreIds, stages, deliveryMasterIds);
+			break;
+		default:
+			break;
+		}
+		if (deliveryDashboardDTO != null) {
+
+		} else {
+			logger.error("NOT_FOUND: Delivery Master Details not found:");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Delivery Master not found: ");
+		}
+		return deliveryDashboardDTO;
+	}
+
+	/**
+	 * This method retrieves the engagements for dash board based on delivery stage, geography, subsp
+	 * @param viewBy
+	 * @param deliveryCentreIds
+	 * @param stages
+	 * @return
+	 */
+	private DeliveryMasterDTO retrieveEngagementsBasedOnViewBy(String viewBy,
+			List<Integer> deliveryCentreIds, List<Integer> stages, List<String> deliveryMasterIds) {
+		List<Object[]> deliveryMasterTs = null;
+		DeliveryMasterDTO deliveryDashboardDTO = null;
+		EngagementDashboardDTO engagementDashboardDTO = null;
+
+		switch (viewBy) {
+		case Constants.ENGAGEMENT_BY_GEOGRAPHY:
+			if (deliveryMasterIds.size() > 0) {
+				deliveryMasterTs = deliveryMasterRepository.findEngagementByGeographyForDM(deliveryMasterIds,stages);
+			} else {
+				deliveryMasterTs = deliveryMasterRepository.findEngagementByGeography(deliveryCentreIds,stages);
+			}
+			break;
+		case Constants.ENGAGEMENT_BY_SUBSP :
+			if (deliveryMasterIds.size() > 0) {
+				deliveryMasterTs = deliveryMasterRepository.findEngagementBySubspForDM(deliveryMasterIds,stages);
+
+			} else {
+				deliveryMasterTs = deliveryMasterRepository.findEngagementBySubsp(deliveryCentreIds,stages);
+			}
+			break;
+		case Constants.ENGAGEMENT_BY_STATUS:
+		default:
+			if (deliveryMasterIds.size() > 0) {
+				deliveryMasterTs = deliveryMasterRepository.findEngagementByDeliveryStageForDM(deliveryMasterIds,stages);
+			} else {
+				deliveryMasterTs = deliveryMasterRepository.findEngagementByDeliveryStage(deliveryCentreIds,stages);
+			}
+			break;
+		}
+		if (deliveryMasterTs.size() > 0) {
+			deliveryDashboardDTO = new DeliveryMasterDTO();
+			List<EngagementDashboardDTO> engagementList = new ArrayList<EngagementDashboardDTO>();
+			deliveryDashboardDTO.setViewEngagementBy(viewBy);
+			for (Object[] deliveryMaster : deliveryMasterTs) {
+				engagementDashboardDTO = new EngagementDashboardDTO();
+				engagementDashboardDTO.setEngagementGroupedBy(deliveryMaster[0].toString());
+				engagementDashboardDTO.setEngagementCount(deliveryMaster[1].toString());
+				engagementList.add(engagementDashboardDTO);
+			}
+			deliveryDashboardDTO.setEngagementList(engagementList);
+		}
+		return deliveryDashboardDTO;
+	}
 }
 
