@@ -103,6 +103,7 @@ public class AuditDetailService {
 	private static final String KEY_FROM_DATE = "FROM_DATE";
 	private static final String KEY_SALES_CODE = "SALES_CODE";
 	private static final String KEY_NEXT_SALES_CODE = "NEXT_SALES_CODE";
+	private static final String KEY_USER_ID = "KEY_USER_ID";
 	
 	private static final String SPAN_START_TAG ="<span class=\"span-closed-won\">";
 	private static final String SPAN_END_TAG ="</span>";
@@ -273,14 +274,14 @@ public class AuditDetailService {
 				Date fromDate = truncateSeconds(previousHistory.getUpdatedDatetime());
 
 				Map<String, Object> map = createMapWith(fromDate,
-						previousHistory.getSalesStageCode(), toDate, timeLineHistory.getSalesStageCode());
+						previousHistory.getSalesStageCode(), toDate, timeLineHistory.getSalesStageCode(), previousHistory.getUserUpdated());
 				salesCodeSequenceMap.add(map);
 
 				previousHistory = timeLineHistory;
 			}
 			//add current sales stage code also 
 			Date fromDate = truncateSeconds(previousHistory.getUpdatedDatetime());
-			salesCodeSequenceMap.add(createMapWith(fromDate, previousHistory.getSalesStageCode(), null, null));
+			salesCodeSequenceMap.add(createMapWith(fromDate, previousHistory.getSalesStageCode(), null, null, previousHistory.getUserUpdated()));
 		}
 		return salesCodeSequenceMap;
 	}
@@ -303,13 +304,13 @@ public class AuditDetailService {
 			Date toDate = truncateSeconds(deliveryStage.getCreatedModifiedDatetime());
 			Date fromDate = truncateSeconds(previousStage.getCreatedModifiedDatetime());
 			Map<String, Object> map = createMapWith(fromDate,
-					previousStage.getNewDeliveryStage(), toDate, deliveryStage.getNewDeliveryStage());
+					previousStage.getNewDeliveryStage(), toDate, deliveryStage.getNewDeliveryStage(), previousStage.getCreatedModifiedBy());
 			deliverySequenceMap.add(map);
 			previousStage = deliveryStage;
 		}
 		//add current sales stage code also 
 		Date fromDate = truncateSeconds(previousStage.getCreatedModifiedDatetime());
-		deliverySequenceMap.add(createMapWith(fromDate, previousStage.getNewDeliveryStage(), null, null));
+		deliverySequenceMap.add(createMapWith(fromDate, previousStage.getNewDeliveryStage(), null, null, previousStage.getCreatedModifiedBy()));
 		
 		logger.info("########################## Sequence map ################################");
 		logger.info("{}", deliverySequenceMap);
@@ -324,15 +325,17 @@ public class AuditDetailService {
 	 * @param oldSalesCode
 	 * @param modifiedDate
 	 * @param salesCode
+	 * @param string 
 	 * @return
 	 */
 	private Map<String, Object> createMapWith(Date lastSalesChangeDate,
-			Integer oldSalesCode, Date modifiedDate, Integer salesCode) {
+			Integer oldSalesCode, Date modifiedDate, Integer salesCode, String userId) {
 		Map<String, Object> map = Maps.newHashMap();
 		map.put(KEY_NEXT_SALES_CODE, salesCode);
 		map.put(KEY_SALES_CODE, oldSalesCode);
 		map.put(KEY_FROM_DATE, lastSalesChangeDate);
 		map.put(KEY_TO_DATE, modifiedDate);
+		map.put(KEY_USER_ID, userId);
 		return map;
 	}
 
@@ -351,7 +354,10 @@ public class AuditDetailService {
 		int salesCode = getStageCode(mapEntry.getKey());
 		//startDate
 		Date startDate = getDate(mapEntry.getKey());
-
+		//TODO get and set name here
+		String userName = getUserName(mapEntry.getKey());
+		dto.setUserName(userName);
+		
 		dto.setSalesStageCode(salesCode);
 		dto.setStartDate(startDate);
 		List<AuditHistoryDTO> auditHistories;
@@ -374,6 +380,9 @@ public class AuditDetailService {
 		//startDate
 		Date startDate = getDate(mapEntry.getKey());
 
+		//TODO get and set name here
+		String userName = getUserName(mapEntry.getKey());
+		dto.setUserName(userName);
 		dto.setEngagementStage(engStageCode);
 		dto.setStartDate(startDate);
 		List<AuditHistoryDTO> auditHistories;
@@ -440,12 +449,14 @@ public class AuditDetailService {
 			Date date = entry.getDate();
 			//generate key in the format "currentSalesCode-NextSalesCode-Date"
 			String key = generateKey(date, salesCodeSequenceMap);
-			if (!groupedEntriesMap.containsKey(key)) {
-			    List<AuditEntryDTO> list = Lists.newArrayList();
-			    list.add(entry);
-			    groupedEntriesMap.put(key, list);
-			} else {
-				groupedEntriesMap.get(key).add(entry);
+			if(StringUtils.isNotEmpty(key)) {
+				if (!groupedEntriesMap.containsKey(key)) {
+					List<AuditEntryDTO> list = Lists.newArrayList();
+					list.add(entry);
+					groupedEntriesMap.put(key, list);
+				} else {
+					groupedEntriesMap.get(key).add(entry);
+				}
 			}
 		}
 		return groupedEntriesMap;
@@ -494,6 +505,8 @@ public class AuditDetailService {
 		sb.append("-");
 		String dateStr = DateUtils.format((Date) map.get(KEY_FROM_DATE), DateUtils.AUDIT_HISTORY_FORMAT);//remove time from date
 		sb.append(dateStr);
+		sb.append("-");
+		sb.append(map.get(KEY_USER_ID));
 		return sb.toString();
 	}
 
@@ -506,6 +519,17 @@ public class AuditDetailService {
 		//spilit date from the format "currentSalesCode-NextSalesCode-Date"
 		String dateStr = key.split("-")[2];
 		return DateUtils.parse(dateStr, DateUtils.AUDIT_HISTORY_FORMAT);
+	}
+	
+	/**
+	 * returns the user name by splitting the key 
+	 * @param key
+	 * @return
+	 */
+	private String getUserName(String key) {
+		//spilit date from the format "currentSalesCode-NextSalesCode-Date"
+		String userId = key.split("-")[3];
+		return userRepository.findUserNameByUserId(userId);
 	}
 
 	/**
