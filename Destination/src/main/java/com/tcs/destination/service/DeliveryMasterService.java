@@ -129,9 +129,9 @@ public class DeliveryMasterService {
 	 * @return
 	 * @throws Exception
 	 */
-	public PageDTO findEngagements(Integer stage,String orderBy,String order,
+	public PageDTO<DeliveryMasterT> findEngagements(Integer stage,String orderBy,String order,
 			int page, int count) throws Exception {
-		PageDTO deliveryMasterDTO = null;
+		PageDTO<DeliveryMasterT> deliveryMasterDTO = null;
 
 		logger.debug("Starting findEngagements deliveryMasterService");
 
@@ -258,7 +258,7 @@ public class DeliveryMasterService {
 		default:
 			break;
 		}
-		deliveryMasterDTO = new PageDTO();
+		deliveryMasterDTO = new PageDTO<DeliveryMasterT>();
 		if (deliveryMasterTs != null) {
 			deliveryMasterDTO.setContent(deliveryMasterTs.getContent());
 			deliveryMasterDTO.setTotalCount(new Long(deliveryMasterTs
@@ -608,9 +608,6 @@ public class DeliveryMasterService {
 										"createdBy is mandatory in deliveryRequirementT");
 							}
 							
-							
-							
-				    		Timestamp createdDatetime2 = deliveryRequirementT.getCreatedDatetime();
 							if(deliveryResourcesCreatedDatetime == null){
 								logger.error("BAD_REQUEST: createdDatetime is mandatory in deliveryRequirementT");
 								throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -797,9 +794,9 @@ public class DeliveryMasterService {
 	}
 
 	/**
-	 * Service to retrieve all the delivery managers under a delivery center
+	 * Service to retrieve all the delivery managers under provided delivery centers
 	 * 
-	 * @param deliveryCentreId
+	 * @param deliveryCentres
 	 * @param nameWith
 	 * @return
 	 */
@@ -809,29 +806,28 @@ public class DeliveryMasterService {
 
 		List<DeliveryCentreT> deliveryCentresList = deliveryCentreRepository
 				.findByDeliveryCentreIdIn(deliveryCentres);
-		
-		String supervisorId = null;
-		for (DeliveryCentreT deliveryCentre : deliveryCentresList) {
-			if (deliveryCentre != null) {
+
+		if (CollectionUtils.isNotEmpty(deliveryCentresList)) {
+			List<String> deliveryHeads = Lists.newArrayList();
+			for (DeliveryCentreT deliveryCentre : deliveryCentresList) {
 				String deliveryCentreHead = deliveryCentre.getDeliveryCentreHead();
 				// get all delivery managers for a delivery centre head
 				if (StringUtils.isNotEmpty(deliveryCentreHead)) {
-					supervisorId = deliveryCentreHead;
+					deliveryHeads.add(deliveryCentreHead);
 				} else {
-					supervisorId = deliveryCentre.getDeliveryClusterT()
-							.getDeliveryClusterHead();
+					deliveryHeads.add(deliveryCentre.getDeliveryClusterT()
+							.getDeliveryClusterHead());
 				}
-				// retrieve users under this delivery centre head whose user group
-				// is delivery manager
-				usersForDeliveryCentre.addAll(userRepository
-						.findBySupervisorUserIdAndUserGroupAndUserNameIgnoreCaseContaining(
-								supervisorId, Constants.DELIVERY_MANAGER, nameWith));
-
-			} 
-			else {
-				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"The given Delivery Centre not found");
 			}
+			// retrieve users under this delivery centre head whose user group
+			// is delivery manager
+			usersForDeliveryCentre = userRepository
+					.findBySupervisorUserIdInAndUserGroupAndUserNameIgnoreCaseContaining(
+							deliveryHeads, Constants.DELIVERY_MANAGER, nameWith);
+		}
+		else {
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"The given Delivery Centre not found");
 		}
 		return usersForDeliveryCentre;
 	}
