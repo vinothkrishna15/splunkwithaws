@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.ConnectT;
+import com.tcs.destination.bean.DeliveryFulfillment;
 import com.tcs.destination.bean.LeadershipConnectsDTO;
 import com.tcs.destination.bean.LeadershipOpportunitiesDTO;
 import com.tcs.destination.bean.LeadershipOverallWinsDTO;
@@ -23,6 +24,7 @@ import com.tcs.destination.bean.PerformaceChartBean;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.DashBoardService;
+import com.tcs.destination.service.DeliveryMasterService;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 import com.tcs.destination.utils.StringUtils;
@@ -41,6 +43,9 @@ public class DashboardController {
 
 	@Autowired
 	DashBoardService dashboardService;
+	
+	@Autowired
+	DeliveryMasterService deliveryMasterService;
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(DashboardController.class);
@@ -308,4 +313,37 @@ public class DashboardController {
 	}
 
 
+	/**
+	 * Returns fulfillment and open requirements count to be displayed for
+	 * Delivery fulfillment graph in Dashboard of delivery team
+	 * 
+	 * @param monthStartDate
+	 * @param subSp
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/delivery/fulfillment", method = RequestMethod.GET)
+	public @ResponseBody String findDeliveryFulfillment(
+			@RequestParam(value = "monthStartDate") @DateTimeFormat(pattern = "ddMMyyyy") Date monthStartDate,
+			@RequestParam(value = "subSp", defaultValue = "") String subSp,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Start of Retrieving delivery fulfillment");
+		try {
+			List<DeliveryFulfillment> deliveryFulfillment = deliveryMasterService
+					.getDeliveryFulfillmentGraph(monthStartDate, subSp);
+			logger.info("End of Retrieving delivery fulfillment");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, deliveryFulfillment);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend Error while retrieving Delivery fulfillment");
+		}
+	}
 }

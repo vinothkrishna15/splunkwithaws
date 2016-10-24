@@ -29,6 +29,7 @@ import com.google.common.collect.Sets;
 import com.tcs.destination.bean.AsyncJobRequest;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryClusterT;
+import com.tcs.destination.bean.DeliveryFulfillment;
 import com.tcs.destination.bean.DeliveryMasterDTO;
 import com.tcs.destination.bean.DeliveryMasterManagerLinkT;
 import com.tcs.destination.bean.DeliveryMasterT;
@@ -57,6 +58,7 @@ import com.tcs.destination.enums.SmartSearchType;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
 
@@ -1170,6 +1172,69 @@ public class DeliveryMasterService {
 			deliveryDashboardDTO.setEngagementList(engagementList);
 		}
 		return deliveryDashboardDTO;
+	}
+
+
+	/**
+	 * Returns the delivery fulfilled and open count
+	 * @param monthStartDate
+	 * @param subSp
+	 * @return
+	 */
+	public List<DeliveryFulfillment> getDeliveryFulfillmentGraph(
+			Date monthStartDate, String subSp) {
+		logger.info("Inside getDeliveryFulfillmentGraph method");
+		Date currentDate = new Date();
+		List<DeliveryFulfillment> deliveryFulfillment = Lists.newArrayList();
+		//getting no of weeks in a month
+		Integer noOfWeeksInMonth = DateUtils
+				.getNumberOfWeeksInMonth(monthStartDate);
+		for (int weekNumber = 1; weekNumber <= noOfWeeksInMonth; weekNumber++) {
+			//getting week start date and end date for each week
+			Map<String, Date> weekDateMap = DateUtils.getWeekDates(
+					monthStartDate, weekNumber);
+			Date weekStartDate = weekDateMap.get(DateUtils.WEEK_START_DATE);
+			Date weekEndDate = weekDateMap.get(DateUtils.WEEK_END_DATE);
+			if (weekEndDate.before(currentDate)) {
+				// gets only fulfilled requirement
+				List<DeliveryRequirementT> fulfilledRequirement = deliveryRequirementRepository
+						.getFulfilledRequirement(subSp, weekStartDate,
+								weekEndDate);
+				deliveryFulfillment.add(constructDeliveryFulfillment(
+						fulfilledRequirement.size(), 0, weekNumber, false));
+
+			} else if (weekStartDate.after(currentDate)) {
+				// gets only open requirement
+				List<DeliveryRequirementT> openRequirement = deliveryRequirementRepository
+						.getOpenRequirement(subSp, weekStartDate, weekEndDate);
+				deliveryFulfillment.add(constructDeliveryFulfillment(0,
+						openRequirement.size(), weekNumber, false));
+
+			} else {
+				//gets both the fulfilled and open requirement if the current date falls within the week start date
+				//and week end date
+				List<DeliveryRequirementT> fulfilledRequirement = deliveryRequirementRepository
+						.getFulfilledRequirement(subSp, weekStartDate,
+								weekEndDate);
+				List<DeliveryRequirementT> openRequirement = deliveryRequirementRepository
+						.getOpenRequirement(subSp, weekStartDate, weekEndDate);
+				deliveryFulfillment.add(constructDeliveryFulfillment(
+						fulfilledRequirement.size(), openRequirement.size(),
+						weekNumber, true));
+			}
+		}
+		return deliveryFulfillment;
+	}
+
+
+	private DeliveryFulfillment constructDeliveryFulfillment(int fullfilledCount,
+			int openCount, int weekNumber, boolean isCurrentWeek) {
+		DeliveryFulfillment deliveryFulfillment = new DeliveryFulfillment();
+		deliveryFulfillment.setCurrentWeek(isCurrentWeek);
+		deliveryFulfillment.setFulfilledCount(fullfilledCount);
+		deliveryFulfillment.setOpenCount(openCount);
+		deliveryFulfillment.setWeekNumber(weekNumber);
+		return deliveryFulfillment;
 	}
 }
 
