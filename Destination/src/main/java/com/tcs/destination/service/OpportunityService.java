@@ -1110,7 +1110,7 @@ public class OpportunityService {
 						createdOpportunity, status);
 			}
 		}else{
-			status.setStatus(Status.SUCCESS, opportunity.getOpportunityId());	
+			status.setStatus(Status.SUCCESS, "Opportunity "+opportunity.getOpportunityId()+" saved successfully");	
 		}
 	}
 
