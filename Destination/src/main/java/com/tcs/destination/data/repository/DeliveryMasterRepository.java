@@ -87,6 +87,6 @@ public interface DeliveryMasterRepository extends JpaRepository<DeliveryMasterT,
 	
 	List<DeliveryMasterT> findByOpportunityId(String opportunityId);
 
-	@Query(value="select * from delivery_master_t where actual_start_date < current_date and delivery_stage = 4",nativeQuery = true)
+	@Query(value="select * from delivery_master_t where actual_start_date <= current_date and delivery_stage = 4",nativeQuery = true)
 	List<DeliveryMasterT> findEngagementsPastActualStartDate();
 }
