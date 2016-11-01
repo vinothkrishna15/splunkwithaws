@@ -6,6 +6,8 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -144,6 +146,10 @@ public class OpportunityDownloadHelper {
 	public int populateOpportunitySheet(Sheet opportunitySheet,
 			List<? extends OpportunityT> items, int rowCount) throws Exception {
 
+		CellStyle cellStyleDateFormat = opportunitySheet.getWorkbook().createCellStyle(); 
+		CreationHelper createHelper = opportunitySheet.getWorkbook().getCreationHelper();
+		cellStyleDateFormat.setDataFormat(createHelper.createDataFormat().getFormat("mm/dd/yyyy"));
+		
 		for (OpportunityT opportunity : items) {
 			Row row = opportunitySheet.createRow(rowCount);
 
@@ -183,9 +189,9 @@ public class OpportunityDownloadHelper {
 
 			// Request Receive Date
 			Cell cellOppReqReceiveDate = row.createCell(11);
-			cellOppReqReceiveDate.setCellValue(getFormattedDate(opportunity
-					.getOpportunityRequestReceiveDate().toString(),
-					actualFormat, desiredFormat));
+			cellOppReqReceiveDate.setCellValue(opportunity
+					.getOpportunityRequestReceiveDate());
+			cellOppReqReceiveDate.setCellStyle(cellStyleDateFormat);
 
 			// New Logo
 			if (opportunity.getNewLogo() != null) {
@@ -278,24 +284,25 @@ public class OpportunityDownloadHelper {
 			// DEAL CLOSURE DATE
 			if (opportunity.getDealClosureDate() != null) {
 				Cell cellClosureDate = row.createCell(36);
-				cellClosureDate.setCellValue(getFormattedDate(opportunity
-						.getDealClosureDate().toString(), actualFormat,
-						desiredFormat));
+				cellClosureDate.setCellValue(opportunity
+						.getDealClosureDate());
+				cellClosureDate.setCellStyle(cellStyleDateFormat);
+
 			}
 
 			// ENGAGEMENT DURATION
 			if (opportunity.getEngagementDuration() != null) {
 				Cell cellEngDuration = row.createCell(37);
 				cellEngDuration.setCellValue(opportunity
-						.getEngagementDuration().toString());
+						.getEngagementDuration());
 			}
 
 			// ENGAGEMENT START DATE
 			if (opportunity.getEngagementStartDate() != null) {
 				Cell cellEngStartDate = row.createCell(38);
-				cellEngStartDate.setCellValue(getFormattedDate(opportunity
-						.getEngagementStartDate().toString(), actualFormat,
-						desiredFormat));
+				cellEngStartDate.setCellValue(opportunity
+						.getEngagementStartDate());
+				cellEngStartDate.setCellStyle(cellStyleDateFormat);
 			}
 
 			// COMMENTS FOR WIN LOSS
@@ -414,26 +421,30 @@ public class OpportunityDownloadHelper {
 
 				// Req Receive Date
 				Cell cellBidReqReceiveDate = row.createCell(29);
-				cellBidReqReceiveDate.setCellValue(getFormattedDate(bidDetails.getBidRequestReceiveDate().toString(),
-						actualFormat, desiredFormat));
+				cellBidReqReceiveDate.setCellValue(bidDetails.getBidRequestReceiveDate());
+				cellBidReqReceiveDate.setCellStyle(cellStyleDateFormat);
+
 
 				// Target Date
 				Cell cellTargetDate = row.createCell(30);
-				cellTargetDate.setCellValue(getFormattedDate(bidDetails.getTargetBidSubmissionDate().toString(), actualFormat,
-						desiredFormat));
+				cellTargetDate.setCellValue(bidDetails.getTargetBidSubmissionDate());
+				cellTargetDate.setCellStyle(cellStyleDateFormat);
+
 
 				// Actual Date
 				if (bidDetails.getActualBidSubmissionDate() != null) {
 					Cell cellActualDate = row.createCell(31);
-					cellActualDate.setCellValue(getFormattedDate(bidDetails.getActualBidSubmissionDate().toString(),
-							actualFormat, desiredFormat));
+					cellActualDate.setCellValue(bidDetails.getActualBidSubmissionDate());
+					cellActualDate.setCellStyle(cellStyleDateFormat);
+
 				}
 
 				// Expected Date
 				if (bidDetails.getExpectedDateOfOutcome() != null) {
 					Cell cellExpDate = row.createCell(32);
-					cellExpDate.setCellValue(getFormattedDate(bidDetails.getExpectedDateOfOutcome().toString(),
-							actualFormat, desiredFormat));
+					cellExpDate.setCellValue(bidDetails.getExpectedDateOfOutcome());
+					cellExpDate.setCellStyle(cellStyleDateFormat);
+
 				}
 
 				// Win probability
@@ -460,7 +471,9 @@ public class OpportunityDownloadHelper {
 
 			//Created Date
 			Cell cellCreatedDate = row.createCell(42);
-			cellCreatedDate.setCellValue(getFormattedDate(opportunity.getCreatedDatetime().toString(),actualFormat, desiredFormat));
+			cellCreatedDate.setCellValue(opportunity.getCreatedDatetime());
+			cellCreatedDate.setCellStyle(cellStyleDateFormat);
+
 
 			//Created By
 			Cell cellCreatedBy = row.createCell(43);
@@ -468,7 +481,9 @@ public class OpportunityDownloadHelper {
 
 			//Modified Date
 			Cell cellModifiedDate = row.createCell(44);
-			cellModifiedDate.setCellValue(getFormattedDate(opportunity.getModifiedDatetime().toString(),actualFormat, desiredFormat));
+			cellModifiedDate.setCellValue(opportunity.getModifiedDatetime());
+			cellModifiedDate.setCellStyle(cellStyleDateFormat);
+
 
 			//Modified By
 			Cell cellModifiedBy = row.createCell(45);
