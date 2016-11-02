@@ -293,8 +293,9 @@ public class OpportunityDownloadHelper {
 			// ENGAGEMENT DURATION
 			if (opportunity.getEngagementDuration() != null) {
 				Cell cellEngDuration = row.createCell(37);
-				cellEngDuration.setCellValue(opportunity
-						.getEngagementDuration());
+				int engDuration = opportunity
+						.getEngagementDuration().intValueExact();
+				cellEngDuration.setCellValue(String.valueOf(engDuration));
 			}
 
 			// ENGAGEMENT START DATE
