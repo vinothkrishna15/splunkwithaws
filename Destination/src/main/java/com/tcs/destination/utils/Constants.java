@@ -370,4 +370,7 @@ public class Constants {
 	//Date Format
 	public static final String DATE_FORMAT = "MM/dd/yyyy";
 	
+	public static final String PERIOD = "Period";
+	public static final String EMPTY_STRING = "";
+	
 }

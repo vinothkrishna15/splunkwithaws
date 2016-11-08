@@ -218,5 +218,32 @@ public class ReportConstants {
 	public static final String ENGAGEMENTDURATION = "engagementDuration";
 	public static final String DIGITALFLAG = "digitalFlag";
 	public static final String STRATEGICDEAL = "strategicDeal";
+	
+	//Delivery Report
+		public static final String FIELD_DELIVERY_GROUP_CUSTOMER_NAME = "groupCustomerName";
+		public static final String FIELD_DELIVERY_GEOGRAPHY = "geography";
+//		public static final String FIELD_DELIVERY_PRIMARY_SUBSP = "primarySubSp";
+		public static final String FIELD_DELIVERY_CRM_ID = "crmId";
+		public static final String FIELD_DELIVERY_IOU = "iou";
+		public static final String FIELD_DELIVERY_PRIMARY_SUB_SP = "primarySubSp";
+		public static final String FIELD_DELIVERY_SECONDARY_SUB_SP = "secondarySubSp";
+		public static final String FIELD_DELIVERY_OFFERING = "offering";
+		public static final String FIELD_DELIVERY_TCS_CONTACT = "tcsAccountContact";
+		public static final String FIELD_DELIVERY_CUSTOMER_CONTACT = "custContactName";
+		public static final String FIELD_DELIVERY_NEW_LOGO = "newLogo";
+		public static final String FIELD_DELIVERY_PARTNERSHIP_INVOLVED = "partnershipsInvolved";
+		public static final String FIELD_DELIVERY_DEAL_TYPE = "dealType";
+		public static final String FIELD_DELIVERY_ENGAGEMENT_START_DATE = "engagementStartDate";
+		public static final String FIELD_DELIVERY_ENGAGEMENT_DURATION = "engagementDuration";
+		public static final String FIELD_DELIVERY_DIGITAL_REIMAGINATION = "digitalFlag";
+		public static final String FIELD_DELIVERY_STRATEGIC_DEAL = "strategicDeal";
+		public static final String FIELD_DELIVERY_INTIMATED_ON = "intimatedOn";
+		public static final String FIELD_DELIVERY_ACCEPTED_ON = "acceptedOn";
+		public static final String FIELD_DELIVERY_ASSIGNED_ON = "assignedOn";
+		public static final String FIELD_DELIVERY_PLANNED_ON = "plannedOn";
+		public static final String FIELD_DELIVERY_LIVE_ON = "liveOn";
+		
+		public static final String DELIVERY_DELOPPWHEREUSERPRIMARYORSALESOWNER = "Delivery engagement where Delivery Manager is tagged as Primary Or Sales Support Owner is downloaded";
+		public static final String DELIVERY_OPPWHEREDELVTEAMPRIMARYORSALESOWNER = "Delivery engagement where Delvery Team and his/her subordinates are tagged as Primary Or Sales Support Owner is downloaded";
 
 }

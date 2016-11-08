@@ -2,6 +2,7 @@ package com.tcs.destination.data.repository;
 
 import java.util.List;
 
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
@@ -13,5 +14,9 @@ public interface DeliveryMasterManagerLinkRepository extends PagingAndSortingRep
 	List<DeliveryMasterManagerLinkT> findByDeliveryManagerId(String managerId);
 	
 	List<DeliveryMasterManagerLinkT> findByDeliveryMasterId(String engagementId);
+	
+	@Query(value="select user_name from user_t where user_id in (select distinct(delivery_manager_id) from  delivery_master_manager_link_t  "
+			+ " where delivery_master_id =?1)",nativeQuery=true)
+	List<String> getDeliveryManagersByEngagementId(String deliveryMasterId);
 	
 }

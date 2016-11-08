@@ -66,6 +66,17 @@ public class FieldsMap {
 		fieldsMap.put("engagementDuration", "Engagement Duration");
 		fieldsMap.put("digitalFlag", "Digital Reimagination");
 		fieldsMap.put("strategicDeal", "Strategic Deal");
+		
+		//Delivery
+		fieldsMap.put("groupCustomerName", "Group Customer Name");
+		fieldsMap.put("primarySubSp", "Display Primary Service Line");
+		fieldsMap.put("secondarySubSp", "Display Secondary Service Line");
+		fieldsMap.put("engagementStartDate", "Engagement Start Date");
+		fieldsMap.put("intimatedOn", "Intimated On");
+		fieldsMap.put("acceptedOn", "Accepted On");
+		fieldsMap.put("assignedOn", "Assigned On");
+		fieldsMap.put("plannedOn", "Planned On");
+		fieldsMap.put("liveOn", "Live On");
 	}
 	
 	static {

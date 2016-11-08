@@ -30,6 +30,7 @@ import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.CurrencyValue;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.CustomerRevenueValues;
+import com.tcs.destination.bean.DeliveryMasterT;
 import com.tcs.destination.bean.GroupCustomerGeoIouResponse;
 import com.tcs.destination.bean.ReportSummaryOpportunity;
 import com.tcs.destination.bean.TargetVsActualDetailed;
@@ -41,6 +42,7 @@ import com.tcs.destination.data.repository.BeaconDataTRepository;
 import com.tcs.destination.data.repository.BidDetailsTRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
+import com.tcs.destination.data.repository.DeliveryMasterRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.ProjectedRevenuesDataTRepository;
@@ -121,6 +123,12 @@ public class ReportsService {
 	
 	@Autowired
 	OpportunityRepository opportunityRepository;
+	
+	@Autowired
+	private DeliveryMasterRepository deliveryMasterRepository;
+
+	@Autowired
+	private BuildDeliveryReport buildDeliveryReport;
 
 private static final String CONNECT_REPORT_QUERY_PREFIX = "select distinct CON.connect_id ";
 
@@ -3701,5 +3709,95 @@ private String getBidDetailedQueryString(String userId, Date startDate, Date end
 					targetList.addAll(geographyRepository.findByDisplayGeography(itemList));
 				}
 			}
+		
+		/**
+		 * Retrieves Delivery Engagement Report
+		 * @param country
+		 * @param serviceline
+		 * @param iou
+		 * @param deliveryStage
+		 * @param deliveryCentre
+		 * @param user
+		 * @param fields
+		 * @return
+		 * @throws IOException
+		 */
+		public InputStreamResource getDeliveryEngagementReport(
+				List<String> geography, List<String> country,
+				List<String> serviceline, List<String> iou,
+				List<Integer> deliveryStage, List<Integer> deliveryCentres,
+			UserT user, List<String> fields) throws Exception {
+		logger.info("Start of getDeliveryEngagementReport() service");
+		SXSSFWorkbook workbook = new SXSSFWorkbook(50);
+
+		List<String> iouList = new ArrayList<String>();
+		List<String> countryList = new ArrayList<String>();
+		List<String> serviceLines = new ArrayList<String>();
+		List<String> geographyList = new ArrayList<String>();
+
+		ExcelUtils.addItemToList(iou, iouList);
+		ExcelUtils.addItemToList(serviceline, serviceLines);
+		ExcelUtils.addItemToList(country, countryList);
+		ExcelUtils.addItemToList(geography, geographyList);
+
+		String userGroup = user.getUserGroup();
+
+		List<DeliveryMasterT> deliveryMasterTs = null;
+
+		switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+		case DELIVERY_MANAGER:
+			logger.debug("Getting Engagements related to Delivery Manager");
+			deliveryMasterTs = deliveryMasterRepository
+					.getDeliveryEngagementByManager(user.getUserId(), iouList,
+							countryList, serviceLines, deliveryStage,
+							deliveryCentres, geographyList);
+			break;
+		case DELIVERY_CLUSTER_HEAD:
+			logger.debug("Getting Engagements related to Delivery Cluster Head");
+			deliveryMasterTs = deliveryMasterRepository
+					.getDeliveryEngagementByCluster(user.getUserId(), iouList,
+							countryList, serviceLines, deliveryStage,
+							deliveryCentres, geographyList);
+			break;
+		case DELIVERY_CENTRE_HEAD:
+			logger.debug("Getting Engagements related to Delivery Centre Head");
+			deliveryMasterTs = deliveryMasterRepository
+					.getDeliveryEngagementByCentre(user.getUserId(), iouList,
+							countryList, serviceLines, deliveryStage,
+							deliveryCentres, geographyList);
+			break;
+		case STRATEGIC_INITIATIVES:
+			logger.debug("Getting Engagements related to Strategic Initiatives");
+			deliveryMasterTs = deliveryMasterRepository
+					.getDeliveryEngagementBySI(iouList, countryList,
+							serviceLines, deliveryStage, deliveryCentres,
+							geographyList);
+			break;
+		default:
+			workbook.close();
+			logger.error("User dont have access to view this report");
+			throw new DestinationException(HttpStatus.FORBIDDEN,
+					"User dont have access to view this report");
+		}
+
+		if (!deliveryMasterTs.isEmpty()) {
+
+			buildDeliveryReport.setDeliveryTitlePage(workbook, iou,
+					serviceline, user, geography, country, deliveryStage,
+					deliveryCentres, ReportConstants.DETAILED);
+
+			buildDeliveryReport.getDeliveryDetailedReport(deliveryMasterTs,
+					fields, workbook);
+
+		} else {
+			workbook.close();
+			logger.error("NOT_FOUND: Report could not be downloaded, as no delivery engagements are available for user selection and privilege combination");
+			throw new DestinationException(
+					HttpStatus.NOT_FOUND,
+					"Report could not be downloaded, as no delivery engagements are available for user selection and privilege combination");
+		}
+
+		return getInputStreamResource(workbook);
+	}
 
 }
