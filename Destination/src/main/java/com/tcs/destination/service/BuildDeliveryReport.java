@@ -655,7 +655,7 @@ public class BuildDeliveryReport {
 				if (deliveryOpportunity.getEngagementDuration() != null) {
 					row.createCell(colValue).setCellValue(
 							deliveryOpportunity.getEngagementDuration()
-									.intValueExact());
+									.intValue());
 				}
 				colValue++;
 			}

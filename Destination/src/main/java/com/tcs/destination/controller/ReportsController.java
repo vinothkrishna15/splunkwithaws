@@ -1078,7 +1078,7 @@ public class ReportsController {
 			} catch (DestinationException e) {
 				throw e;
 			} catch (Exception e) {
-				logger.error(e.getMessage());
+				logger.error(e.getMessage(), e);
 				throw new DestinationException(
 						HttpStatus.INTERNAL_SERVER_ERROR,
 						"Backend error in downloading the Delivery Engagement detailed report");
