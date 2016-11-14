@@ -27,6 +27,7 @@ import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.AuditDeliveryMasterRepository;
 import com.tcs.destination.data.repository.ContactRepository;
+import com.tcs.destination.data.repository.DeliveryCentreRepository;
 import com.tcs.destination.data.repository.DeliveryMasterManagerLinkRepository;
 import com.tcs.destination.data.repository.DeliveryStageMappingRepository;
 import com.tcs.destination.data.repository.OpportunityOfferingLinkTRepository;
@@ -78,6 +79,9 @@ public class BuildDeliveryReport {
 
 	@Autowired
 	private UserRepository userRepository;
+	
+	@Autowired
+	private DeliveryCentreRepository deliveryCentreRepository;
 
 	/**
 	 * Gets the delivery report with all the mandatory fields
@@ -348,10 +352,6 @@ public class BuildDeliveryReport {
 				serviceLines, 10, dataRow);
 
 		row = (SXSSFRow) spreadsheet.createRow(11);
-		row.createCell(4).setCellValue(Constants.PERIOD);
-
-		row.createCell(5).setCellValue(DateUtils.getCurrentFinancialYear());
-		row = (SXSSFRow) spreadsheet.createRow(12);
 		if (deliveryStage.contains(-1)) {
 			completeList = ReportConstants.All;
 		} else {
@@ -360,6 +360,17 @@ public class BuildDeliveryReport {
 			completeList = joinString(deliveryStageDescription, Constants.COMMA);
 		}
 		row.createCell(4).setCellValue("Delivery stage");
+		row.createCell(5).setCellValue(completeList);
+		
+		row = (SXSSFRow) spreadsheet.createRow(12);
+		if (deliveryCentres.contains(-2)) {
+			completeList = ReportConstants.All;
+		} else {
+			List<String> deliveryCentreNames = deliveryCentreRepository
+					.findDeliveryCentreNamesByIds(deliveryCentres);
+			completeList = joinString(deliveryCentreNames, Constants.COMMA);
+		}
+		row.createCell(4).setCellValue("Delivery Centres");
 		row.createCell(5).setCellValue(completeList);
 
 		String userGroup = user.getUserGroup();

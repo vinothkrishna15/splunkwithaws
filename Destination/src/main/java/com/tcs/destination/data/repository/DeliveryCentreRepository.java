@@ -2,7 +2,9 @@ package com.tcs.destination.data.repository;
 
 import java.util.List;
 
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.tcs.destination.bean.DeliveryCentreT;
@@ -26,5 +28,8 @@ public interface DeliveryCentreRepository extends
 	 * @return
 	 */
 	List<DeliveryCentreT> findByDeliveryCentreIdGreaterThanEqual(int deliveryCentreId);
+
+	@Query(value = "select delivery_centre from delivery_centre_t where delivery_centre_id in (:deliveryCentres)",nativeQuery=true)
+	List<String> findDeliveryCentreNamesByIds(@Param("deliveryCentres") List<Integer> deliveryCentres);
 	
 }
