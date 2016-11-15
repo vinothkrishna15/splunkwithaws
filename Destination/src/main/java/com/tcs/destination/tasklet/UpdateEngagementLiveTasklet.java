@@ -73,7 +73,7 @@ public class UpdateEngagementLiveTasklet implements Tasklet, StepExecutionListen
 		if (CollectionUtils.isNotEmpty(deliveryMastersList)) {
 			for (DeliveryMasterT deliveryMasterT : deliveryMastersList) {
                deliveryMasterT.setDeliveryStage(DeliveryStage.LIVE.getStageCode());
-               deliveryMasterT.setModifiedBy("System");
+               //deliveryMasterT.setModifiedBy("System");
                deliveryMasterRepository.save(deliveryMasterT);
 			}
 		}

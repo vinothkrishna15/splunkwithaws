@@ -69,7 +69,7 @@ public class DeliveryMasterController {
 			@RequestParam(value = "count", defaultValue = "30") int count,
 			@RequestParam(value = "order", defaultValue = "DESC") String order,
 			@RequestParam(value = "sortBy", defaultValue = "deliveryMasterId") String sortBy,
-			@RequestParam(value = "stage", defaultValue = "-1") Integer stage,
+			@RequestParam(value = "stage", defaultValue = "-1") List<Integer> stage,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 					throws DestinationException {
@@ -209,7 +209,7 @@ public class DeliveryMasterController {
 			@RequestParam("searchType") String searchType,
 			@RequestParam("term") String term,
 			@RequestParam(value = "getAll", defaultValue = "false") boolean getAll,
-			@RequestParam(value = "stage", defaultValue = "-1") int stage,
+			@RequestParam(value = "stage", defaultValue = "-1") List<Integer> stage,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "page", defaultValue = "0") int page,
 			@RequestParam(value = "count", defaultValue = "30") int count,

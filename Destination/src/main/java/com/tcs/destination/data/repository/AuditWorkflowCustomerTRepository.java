@@ -11,5 +11,6 @@ import com.tcs.destination.bean.AuditWorkflowCustomerT;
 public interface AuditWorkflowCustomerTRepository extends CrudRepository<AuditWorkflowCustomerT, Long>{
 
 	List<AuditWorkflowCustomerT> findByWorkflowCustomerIdAndOperationType(String entityId, Integer opType);
+	List<AuditWorkflowCustomerT> findByWorkflowCustomerId(String entityId);
 
 }

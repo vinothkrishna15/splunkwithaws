@@ -12,5 +12,6 @@ public interface AuditWorkflowPartnerTRepository extends CrudRepository<AuditWor
 
 	List<AuditWorkflowPartnerT> findByWorkflowPartnerIdAndOperationType(
 			String entityId, Integer opType);
+	List<AuditWorkflowPartnerT> findByWorkflowPartnerId(String entityId);
 
 }
