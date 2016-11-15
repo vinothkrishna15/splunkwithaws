@@ -1,0 +1,256 @@
+<auditHistoryEntities>
+	<auditHistoryEntity type="opportunity">
+		<auditHistoryTable repository="auditOpportunityRepository"
+			repoMethod="findByOpportunityId" modifiedByField="NewModifiedBy"
+			modifiedDateField="NewModifiedDatetime" isChildTable="false" operationTypeField="OperationType">
+			<fields>
+				<field name="CrmId" type="NORMAL" label="CRM ID"/>
+				<field name="OpportunityName" type="NORMAL" label="Opportunity Name"/>
+				<field name="OpportunityDescription" type="NORMAL" label="Opportunity Description" />
+				<field name="StrategicDeal" type="NORMAL" label="Strategic Deal" />
+				<field name="DealCurrency" type="NORMAL" label="Deal Currency" />
+				<field name="OverallDealSize" type="NORMAL" label="Overall Deal Size" />
+				<field name="DigitalDealValue" type="NORMAL" label="Digital Deal Value" />
+				<field name="DealClosureDate" type="NORMAL" label="Deal Closure Date" />
+				<field name="DescriptionForWinLoss" type="NORMAL" label="Description For Win Loss" />
+				<field name="EngagementDuration" type="NORMAL" label="Engagement Duration" />
+				<field name="SalesStageCode" type="NORMAL" label="Sales Stage" />
+				<field name="DealType" type="NORMAL" label="Deal Type" />
+				<field name="Country" type="NORMAL" label="Country" />
+				<field name="DigitalFlag" type="NORMAL" label="Digital Flag" />
+				<field name="IsuOwnReason" type="NORMAL" label="Reason for ISU Owns " />
+				<field name="DeliveryOwnershipId" type="OWNERSHIP_ID" label="Delivery Ownership" />
+				<field name="OpportunityOwner" type="USER_ID" label="Opportunity Owner" />
+			</fields>
+		</auditHistoryTable>
+		<auditHistoryTable repository="auditOpportunityCompetitorLinkTRepository"
+			repoMethod="findByOldOpportunityId" modifiedByField="CreatedModifiedBy"
+			modifiedDateField="CreatedModifiedDatetime" isChildTable="true" operationTypeField="OperationType">
+			<fields>
+				<field name="OldCompetitorName" type="NORMAL" label="Competitor"/>
+			</fields>
+		</auditHistoryTable>
+		<!-- <auditHistoryTable repository="auditOpportunityCompetitorLinkTRepository"
+			repoMethod="findByOldOpportunityId" modifiedByField="CreatedModifiedBy"
+			modifiedDateField="CreatedModifiedDatetime" isChildTable="false" operationTypeField="OperationType">
+			<fields>
+				<field name="IncumbentFlag" type="NORMAL" label="Incumbent Flag"/>
+			</fields>
+		</auditHistoryTable> -->
+		<auditHistoryTable repository="auditOpportunityCustomerContactLinkTRepository"
+			repoMethod="findByOldOpportunityId" modifiedByField="CreatedModifiedBy"
+			modifiedDateField="CreatedModifiedDatetime" isChildTable="true" operationTypeField="OperationType">
+			<fields>
+				<field name="OldContactId" type="CONTACT_ID" label="Customer Contact"/>
+			</fields>
+		</auditHistoryTable>
+		<auditHistoryTable repository="auditOpportunityOfferingLinkTRepository"
+			repoMethod="findByOldOpportunityId" modifiedByField="CreatedModifiedBy"
+			modifiedDateField="CreatedModifiedDatetime" isChildTable="true" operationTypeField="OperationType">
+			<fields>
+				<field name="OldOffering" type="NORMAL" label="Offering"/>
+			</fields>
+		</auditHistoryTable>
+		<auditHistoryTable repository="auditOpportunityPartnerLinkTRepository"
+			repoMethod="findByOldOpportunityId" modifiedByField="CreatedModifiedBy"
+			modifiedDateField="CreatedModifiedDatetime" isChildTable="true" operationTypeField="OperationType">
+			<fields>
+				<field name="OldPartnerId" type="PARTNER_ID" label="Partner"/>
+			</fields>
+		</auditHistoryTable>
+		<auditHistoryTable repository="auditOpportunitySalesSupportLinkTRepository"
+			repoMethod="findByOldOpportunityId" modifiedByField="CreatedModifiedBy"
+			modifiedDateField="CreatedModifiedDatetime" isChildTable="true" operationTypeField="OperationType">
+			<fields>
+				<field name="OldSalesSupportOwner" type="USER_ID" label="Sales Support Owner"/>
+			</fields>
+		</auditHistoryTable>
+		<auditHistoryTable repository="auditOpportunitySubSpLinkTRepository"
+			repoMethod="findByOldOpportunityId" modifiedByField="CreatedModifiedBy"
+			modifiedDateField="CreatedModifiedDatetime" isChildTable="true" operationTypeField="OperationType">
+			<fields>
+				<field name="OldSubSp" type="NORMAL" label="Sub SP"/>
+			</fields>
+		</auditHistoryTable>
+		<!-- <auditHistoryTable repository="auditOpportunitySubSpLinkTRepository"
+			repoMethod="findByOldOpportunityId" modifiedByField="CreatedModifiedBy"
+			modifiedDateField="CreatedModifiedDatetime" isChildTable="false" operationTypeField="OperationType">
+			<fields>
+				<field name="SubspPrimary" type="NORMAL" label="Sub SP Primary"/>
+			</fields>
+		</auditHistoryTable> -->
+		<auditHistoryTable repository="auditOpportunityTcsAccountContactLinkTRepository"
+			repoMethod="findByOldOpportunityId" modifiedByField="CreatedModifiedBy"
+			modifiedDateField="CreatedModifiedDatetime" isChildTable="true" operationTypeField="OperationType">
+			<fields>
+				<field name="OldContactId" type="CONTACT_ID" label="TCS Contact"/>
+			</fields>
+		</auditHistoryTable>
+		<auditHistoryTable repository="auditOpportunityWinLossFactorsTRepository"
+			repoMethod="findByOldOpportunityId" modifiedByField="CreatedModifiedBy"
+			modifiedDateField="CreatedModifiedDatetime" isChildTable="true" operationTypeField="OperationType">
+			<fields>
+				<field name="OldWinLossFactor" type="CONTACT_ID" label="Win Loss Factor"/>
+			</fields>
+		</auditHistoryTable>
+		<auditHistoryTable repository="auditBidDetailsTRepository"
+			repoMethod="findByOldOpportunityId" modifiedByField="CreatedModifiedBy"
+			modifiedDateField="CreatedModifiedDatetime" isChildTable="false" operationTypeField="OperationType">
+			<fields>
+				<field name="BidRequestReceiveDate" type="NORMAL" label="Bid Request Receive Date"/>
+				<field name="TargetBidSubmissionDate" type="NORMAL" label="Target Bid Submission Date"/>
+				<field name="ActualBidSubmissionDate" type="NORMAL" label="Actual Bid Submission Date"/>
+				<field name="ExpectedDateOfOutcome" type="NORMAL" label="Expected Date Of Outcome"/>
+				<field name="WinProbability" type="NORMAL" label="Win Probability"/>
+				<field name="CoreAttributesUsedForWinning" type="NORMAL" label="Core Attributes Used For Winning"/>
+				<field name="BidRequestType" type="NORMAL" label="Bid Request Type"/>
+			</fields>
+			
+			<auditHistoryTable repository="auditBidOfficeGroupOwnerLinkTRepository"
+				repoMethod="findByOldBidId" modifiedByField="CreatedModifiedBy"
+				modifiedDateField="CreatedModifiedDatetime" isChildTable="true" operationTypeField="OperationType" idField="BidId">
+				<fields>
+					<field name="NewBidOfficeGroupOwner" type="USER_ID" label="Bid Office Group Owner"/>
+				</fields>
+			</auditHistoryTable>
+		</auditHistoryTable>
+		<auditHistoryTable repository="auditOpportunityDeliveryCenterRepository"
+			repoMethod="findByOldOpportunityId" modifiedByField="CreatedModifiedBy"
+			modifiedDateField="CreatedModifiedDatetime" isChildTable="true" operationTypeField="OperationType">
+			<fields>
+				<field name="DeliveryCentreId" type="DELIVERY_CENTRE" label="Delivery Centre"/>
+			</fields>
+		</auditHistoryTable>
+	</auditHistoryEntity>
+
+<!-- audit configuration for engagements(Delivery Module) -->
+	<auditHistoryEntity type="engagement">
+		<auditHistoryTable repository="auditDeliveryMasterRepository"
+			repoMethod="findByDeliveryMasterId" modifiedByField="CreatedModifiedBy"
+			modifiedDateField="CreatedModifiedDatetime" isChildTable="false" operationTypeField="OperationType">
+			<fields>
+				<field name="EngagementName" type="NORMAL" label="Engagement Name"/>
+				<field name="ScheduledStartDate" type="NORMAL" label="Scheduled Start Date"/>
+				<field name="ActualStartDate" type="NORMAL" label="Actual Start Date"/>
+				<field name="ExpectedEndDate" type="NORMAL" label="Expected End Date"/>
+				<field name="WonNum" type="NORMAL" label="WON"/>
+				<field name="Odc" type="NORMAL" label="Offshore Developement Centre"/>
+				<field name="DeliveryPartnerId" type="NORMAL" label="Delivery Partner Emp ID"/>
+				<field name="DeliveryPartnerName" type="NORMAL" label="Delivery Partner Name"/>
+				<field name="GlId" type="NORMAL" label="GL Emp ID"/>
+				<field name="GlName" type="NORMAL" label="GL Name"/>
+				<field name="PlId" type="NORMAL" label="PL Emp ID"/>
+				<field name="PlName" type="NORMAL" label="PL Name"/>
+				<field name="DeliveryCentreId" type="DELIVERY_CENTRE" label="Delivery Centre"/>
+				<field name="DeliveryStage" type="DELIVERY_STAGE" label="Engagement Stage"/>
+			</fields>
+		</auditHistoryTable>
+		<auditHistoryTable repository="auditDeliveryMasterManagerLinkRepository"
+			repoMethod="findByDeliveryMasterId" modifiedByField="CreatedModifiedBy"
+			modifiedDateField="CreatedModifiedDatetime" isChildTable="true" operationTypeField="OperationType">
+			<fields>
+				<field name="DeliveryManagerId" type="USER_ID" label="Delivery Manager"/>
+			</fields>
+		</auditHistoryTable>
+
+		<auditHistoryTable repository="auditDeliveryResourcesTRepository"
+			repoMethod="findByDeliveryMasterId" modifiedByField="CreatedModifiedBy"
+			modifiedDateField="CreatedModifiedDatetime" isChildTable="false" operationTypeField="OperationType">
+			<fields>
+				<field name="Role" type="NORMAL" label="Role"/>
+				<field name="Skill" type="NORMAL" label="Skill Sets"/>
+				<field name="RequirementFulfillment" type="NORMAL" label="No. of Resources"/>
+				<field name="DeliveryRgsId" type="NORMAL" label="RGS ID"/>
+			</fields>
+			
+			<auditHistoryTable repository="auditDeliveryRequirementTRepository"
+				repoMethod="findByDeliveryRgsId" modifiedByField="CreatedModifiedBy"
+				modifiedDateField="CreatedModifiedDatetime" isChildTable="false" operationTypeField="OperationType" idField="NewDeliveryRgsId">
+				<fields>
+					<field name="EmployeeId" type="NORMAL" label="Employee ID"/>
+					<field name="EmployeeName" type="NORMAL" label="Employee Name"/>
+				</fields>
+			</auditHistoryTable>
+		</auditHistoryTable>
+
+	</auditHistoryEntity>
+
+	<auditHistoryEntity type="workflow_steps">
+		<auditHistoryTable repository="auditWorkflowStepTRepository"
+			repoMethod="findByRequestIdAndStatus" modifiedByField="CreatedModifiedBy"
+			modifiedDateField="CreatedModifiedDatetime" isChildTable="false" operationTypeField="OperationType">
+			<fields>
+				<field name="StepStatus" type="NORMAL" label="Status"/>
+			</fields>
+		</auditHistoryTable>
+		<auditHistoryTable repository="auditWorkflowStepTRepository"
+			repoMethod="findByRequestIdAndStatus" modifiedByField="CreatedModifiedBy"
+			modifiedDateField="CreatedModifiedDatetime" isChildTable="true" operationTypeField="OperationType">
+			<fields>
+				<field name="NewComments" type="NORMAL" label="Comments"/>
+			</fields>
+		</auditHistoryTable>
+	</auditHistoryEntity>
+	<auditHistoryEntity type="workflow_customer">
+		<auditHistoryTable repository="auditWorkflowCustomerTRepository"
+			repoMethod="findByWorkflowCustomerId" modifiedByField="CreatedModifiedBy"
+			modifiedDateField="CreatedModifiedDatetime" isChildTable="false" operationTypeField="OperationType">
+			<fields>
+				<field name="GroupCustomerName" type="NORMAL" label="Group Customer Name"/>
+				<field name="CustomerName" type="NORMAL" label="Customer Name"/>
+				<field name="Website" type="NORMAL" label="Website"/>
+				<field name="Facebook" type="NORMAL" label="Facebook"/>
+				<field name="CorporateHqAddress" type="NORMAL" label="Corporate Headquarters Address"/>
+				<field name="Iou" type="NORMAL" label="IOU"/>
+				<field name="Geography" type="NORMAL" label="Geography"/>
+				<field name="Remarks" type="NORMAL" label="Remarks"/>
+			</fields>
+		</auditHistoryTable>
+	</auditHistoryEntity>
+	<auditHistoryEntity type="workflow_partner">
+		<auditHistoryTable repository="auditWorkflowPartnerTRepository"
+			repoMethod="findByWorkflowPartnerId" modifiedByField="CreatedModifiedBy"
+			modifiedDateField="CreatedModifiedDatetime" isChildTable="false" operationTypeField="OperationType">
+			<fields>
+				<field name="PartnerName" type="NORMAL" label="Partner Name"/>
+				<field name="Website" type="NORMAL" label="Website"/>
+				<field name="Facebook" type="NORMAL" label="Facebook"/>
+				<field name="CorporateHqAddress" type="NORMAL" label="Corporate Headquarters Address"/>
+				<field name="Iou" type="NORMAL" label="IOU"/>
+				<field name="Geography" type="NORMAL" label="Geography"/>
+				<field name="Notes" type="NORMAL" label="Notes"/>
+			</fields>
+		</auditHistoryTable>
+	</auditHistoryEntity>
+	<auditHistoryEntity type="workflow_competitor">
+		<auditHistoryTable repository="auditWorkflowCompetitorTRepository"
+			repoMethod="findByWorkflowCompetitorId" modifiedByField="CreatedModifiedBy"
+			modifiedDateField="CreatedModifiedDatetime" isChildTable="false" operationTypeField="OperationType">
+			<fields>
+				<field name="WorkflowCompetitorName" type="NORMAL" label="Competitor Name"/>
+				<field name="WorkflowCompetitorWebsite" type="NORMAL" label="Website"/>
+				<field name="WorkflowCompetitorNotes" type="NORMAL" label="Notes"/>
+			</fields>
+		</auditHistoryTable>
+	</auditHistoryEntity>
+	
+	<!-- audit configuration for intimated engagements(Delivery Module stage-intimated) -->
+	<auditHistoryEntity type="inti_engagement">
+		<auditHistoryTable repository="auditDeliveryIntimatedRepository"
+			repoMethod="findByDeliveryIntimatedId" modifiedByField="CreatedModifiedBy"
+			modifiedDateField="CreatedModifiedDatetime" isChildTable="false" operationTypeField="OperationType">
+			<fields>
+				<field name="DeliveryStage" type="DELIVERY_STAGE" label="Engagement Stage"/>
+				<field name="RejectComments" type="NORMAL" label="Comments for rejection"/>
+				<field name="RejectReason" type="NORMAL" label="Reason for rejection"/>
+			</fields>
+		</auditHistoryTable>
+		<auditHistoryTable repository="auditDeliveryIntimatedCentreLinkRepository"
+			repoMethod="findByDeliveryIntimatedId" modifiedByField="CreatedModifiedBy"
+			modifiedDateField="CreatedModifiedDatetime" isChildTable="true" operationTypeField="OperationType">
+			<fields>
+				<field name="DeliveryCentreId" type="DELIVERY_CENTRE" label="Delivery Centre"/>
+			</fields>
+		</auditHistoryTable>
+	</auditHistoryEntity>
+</auditHistoryEntities>

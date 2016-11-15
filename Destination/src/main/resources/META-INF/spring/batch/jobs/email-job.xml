@@ -74,7 +74,8 @@
 				<value>#{T(com.tcs.destination.enums.RequestType).PRODUCT_UPLOAD.getType()}</value>
 				<value>#{T(com.tcs.destination.enums.RequestType).PRODUCT_CONTACT_UPLOAD.getType()}</value>
 				<value>#{T(com.tcs.destination.enums.RequestType).PARTNER_MASTER_UPLOAD.getType()}</value>
-				<value>#{T(com.tcs.destination.enums.RequestType).PARTNER_CONTACT_UPLOAD.getType()}</value>            
+				<value>#{T(com.tcs.destination.enums.RequestType).PARTNER_CONTACT_UPLOAD.getType()}</value>
+				<value>#{T(com.tcs.destination.enums.RequestType).RGS_UPLOAD.getType()}</value>            
 	        </list>
 	    </constructor-arg>
 	</bean>
