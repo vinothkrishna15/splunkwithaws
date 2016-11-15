@@ -75,17 +75,15 @@ public class HistoryBuilder implements IHistoryBuilder {
 	
 	@Bean
 	public AuditHistoryEntities getAuditHistoryEntities() {
-		File file = new File("/Users/PocCoe/Desktop/Raz/code/nP1Check/Destination/src/main/resources/history/history-config.xml");
 		JAXBContext jaxbContext;
 		AuditHistoryEntities auditHistoryEntities = null;
 		try {
 			jaxbContext = JAXBContext.newInstance(AuditHistoryEntities.class);
 			Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
 			auditHistoryEntities = (AuditHistoryEntities) jaxbUnmarshaller.
-					unmarshal(file);
-		System.out.println("printedd "+auditHistoryEntities.getAuditHistoryEntity());
+					unmarshal(getClass().getResourceAsStream("/history/history-config.xml"));
 		} catch (JAXBException e) {
-			e.printStackTrace();
+			logger.error("history XML parsing exception", e);
 		}
 		return auditHistoryEntities;
 	}
