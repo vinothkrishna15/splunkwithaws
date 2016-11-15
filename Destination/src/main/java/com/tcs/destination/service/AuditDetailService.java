@@ -1,17 +1,13 @@
 package com.tcs.destination.service;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
@@ -22,70 +18,25 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.tcs.destination.bean.AuditBidDetailsT;
-import com.tcs.destination.bean.AuditBidOfficeGroupOwnerLinkT;
-import com.tcs.destination.bean.AuditDeliveryMasterManagerLinkT;
 import com.tcs.destination.bean.AuditDeliveryMasterT;
-import com.tcs.destination.bean.AuditDeliveryRequirementT;
-import com.tcs.destination.bean.AuditDeliveryResourcesT;
 import com.tcs.destination.bean.AuditEngagementHistoryDTO;
 import com.tcs.destination.bean.AuditEntryDTO;
 import com.tcs.destination.bean.AuditHistoryDTO;
 import com.tcs.destination.bean.AuditHistoryResponseDTO;
-import com.tcs.destination.bean.AuditOpportunityCompetitorLinkT;
-import com.tcs.destination.bean.AuditOpportunityCustomerContactLinkT;
-import com.tcs.destination.bean.AuditOpportunityDeliveryCentreT;
 import com.tcs.destination.bean.AuditOpportunityHistoryDTO;
-import com.tcs.destination.bean.AuditOpportunityOfferingLinkT;
-import com.tcs.destination.bean.AuditOpportunityPartnerLinkT;
-import com.tcs.destination.bean.AuditOpportunitySalesSupportLinkT;
-import com.tcs.destination.bean.AuditOpportunitySubSpLinkT;
-import com.tcs.destination.bean.AuditOpportunityT;
-import com.tcs.destination.bean.AuditOpportunityTcsAccountContactLinkT;
-import com.tcs.destination.bean.AuditOpportunityWinLossFactorsT;
-import com.tcs.destination.bean.AuditWorkflowCompetitorT;
-import com.tcs.destination.bean.AuditWorkflowCustomerT;
-import com.tcs.destination.bean.AuditWorkflowPartnerT;
-import com.tcs.destination.bean.AuditWorkflowStepT;
 import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.OpportunityTimelineHistoryT;
 import com.tcs.destination.bean.WorkflowRequestT;
-import com.tcs.destination.data.repository.AuditBidDetailsTRepository;
-import com.tcs.destination.data.repository.AuditBidOfficeGroupOwnerLinkTRepository;
-import com.tcs.destination.data.repository.AuditDeliveryMasterManagerLinkRepository;
 import com.tcs.destination.data.repository.AuditDeliveryMasterRepository;
-import com.tcs.destination.data.repository.AuditDeliveryRequirementTRepository;
-import com.tcs.destination.data.repository.AuditDeliveryResourcesTRepository;
-import com.tcs.destination.data.repository.AuditOpportunityCompetitorLinkTRepository;
-import com.tcs.destination.data.repository.AuditOpportunityCustomerContactLinkTRepository;
-import com.tcs.destination.data.repository.AuditOpportunityDeliveryCenterRepository;
-import com.tcs.destination.data.repository.AuditOpportunityOfferingLinkTRepository;
-import com.tcs.destination.data.repository.AuditOpportunityPartnerLinkTRepository;
-import com.tcs.destination.data.repository.AuditOpportunityRepository;
-import com.tcs.destination.data.repository.AuditOpportunitySalesSupportLinkTRepository;
-import com.tcs.destination.data.repository.AuditOpportunitySubSpLinkTRepository;
-import com.tcs.destination.data.repository.AuditOpportunityTcsAccountContactLinkTRepository;
-import com.tcs.destination.data.repository.AuditOpportunityWinLossFactorsTRepository;
-import com.tcs.destination.data.repository.AuditWorkflowCompetitorTRepository;
-import com.tcs.destination.data.repository.AuditWorkflowCustomerTRepository;
-import com.tcs.destination.data.repository.AuditWorkflowPartnerTRepository;
-import com.tcs.destination.data.repository.AuditWorkflowStepTRepository;
-import com.tcs.destination.data.repository.ContactRepository;
-import com.tcs.destination.data.repository.DeliveryCentreRepository;
-import com.tcs.destination.data.repository.DeliveryOwnershipRepository;
 import com.tcs.destination.data.repository.OpportunityTimelineHistoryTRepository;
-import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.data.repository.WorkflowRequestTRepository;
-import com.tcs.destination.enums.DeliveryStage;
 import com.tcs.destination.enums.EntityTypeId;
-import com.tcs.destination.enums.Operation;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.utils.Constants;
+import com.tcs.destination.framework.history.HistoryBuilderHelper;
+import com.tcs.destination.framework.history.IHistoryBuilder;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ErrorConstants;
-import com.tcs.destination.utils.FieldNameMapper;
 import com.tcs.destination.utils.PropertyUtil;
 
 /**
@@ -104,70 +55,12 @@ public class AuditDetailService {
 	private static final String KEY_SALES_CODE = "SALES_CODE";
 	private static final String KEY_NEXT_SALES_CODE = "NEXT_SALES_CODE";
 	private static final String KEY_USER_ID = "KEY_USER_ID";
-	
-	private static final String SPAN_START_TAG ="<span class=\"span-closed-won\">";
-	private static final String SPAN_END_TAG ="</span>";
-	
-	
-	private static final Integer OPERATION_ADD = new Integer(1);
-	private static final Integer OPERATION_UPDATE = new Integer(2);
 
 	@Autowired
 	private WorkflowRequestTRepository workflowRequestRepository;
 
 	@Autowired
-	private AuditWorkflowStepTRepository aWorkflowStepRepository;
-
-	@Autowired
-	private AuditWorkflowPartnerTRepository aWorkflowPartnerRepository;
-
-	@Autowired
-	private AuditWorkflowCustomerTRepository aWorkflowCustomerRepository;
-
-	@Autowired
-	private AuditWorkflowCompetitorTRepository aWorkflowCompetitorRepository;
-	
-	@Autowired
-	private AuditOpportunityRepository aOpportunityRepository;
-
-	@Autowired
-	private AuditOpportunityCompetitorLinkTRepository aCompetitorRepo;
-	
-	@Autowired
-	private AuditOpportunityCustomerContactLinkTRepository aCustomerContactRepo;
-	
-	@Autowired
-	private AuditOpportunityOfferingLinkTRepository aOpportunityOfferingRepo;
-	
-	@Autowired
-	private AuditOpportunityPartnerLinkTRepository aOpportunityPartnerRepo;
-	
-	@Autowired
-	private AuditOpportunitySalesSupportLinkTRepository aSalesSupportRepo;
-	
-	@Autowired
-	private AuditOpportunitySubSpLinkTRepository aOpportunitySubSpRepo;
-	
-	@Autowired
-	private AuditOpportunityTcsAccountContactLinkTRepository aTcsAccountContactRepo;
-
-	@Autowired
-	private AuditOpportunityWinLossFactorsTRepository aWinLossFactorsRepo;
-	
-	@Autowired
-	private AuditBidDetailsTRepository aBidDetailRepo;
-	
-	@Autowired
-	private AuditBidOfficeGroupOwnerLinkTRepository aBidOfficeGroupOwnerRepo;
-	
-	@Autowired
-	private ContactRepository contactRepository;
-	
-	@Autowired
 	private UserRepository userRepository;
-
-	@Autowired
-	private PartnerRepository partnerRepository;
 	
 	@Autowired
 	private OpportunityTimelineHistoryTRepository timelineHistoryRepo;
@@ -176,22 +69,10 @@ public class AuditDetailService {
 	private AuditDeliveryMasterRepository aDeliveryRepo;
 	
 	@Autowired
-	private DeliveryCentreRepository deliveryCentreRepo;
-
+	private IHistoryBuilder historyBuilder;
+	
 	@Autowired
-	private AuditDeliveryMasterManagerLinkRepository aDeliveryManagerLinkRepo;
-
-	@Autowired
-	private AuditDeliveryResourcesTRepository aEngResourceRepo;
-
-	@Autowired
-	private AuditDeliveryRequirementTRepository aEngRequirmentRepo;
-
-	@Autowired
-	private DeliveryOwnershipRepository deliveryOwnershipRepo;
-
-	@Autowired
-	private AuditOpportunityDeliveryCenterRepository aOppoDeliveryCentreRepo;
+	private HistoryBuilderHelper historyBuilderHelper;
 	
 	/**
 	 * service method to retrieve the workflow history 
@@ -214,7 +95,7 @@ public class AuditDetailService {
 		String entityId = workFlow.getEntityId();
 		
 		//fetch audit entries of workflow step using workflowId 
-		List<AuditEntryDTO> stepEntries = getWorkflowStepEntries(wfId);
+		List<AuditEntryDTO> stepEntries = historyBuilder.getAuditEntries("workflow_steps", wfId);
 		
 		if(CollectionUtils.isEmpty(stepEntries)) {
 			throw new DestinationException(HttpStatus.NOT_FOUND, PropertyUtil.getProperty(ErrorConstants.WORKFLOW_AUDIT_NOT_AVAILABLE));
@@ -225,7 +106,7 @@ public class AuditDetailService {
 		
 		stepEntries.addAll(entityEntries);
 		//group the audit entries by date and user
-		List<AuditHistoryDTO> auditHistories = groupAuditHistory(stepEntries, entityTypeId);
+		List<AuditHistoryDTO> auditHistories = historyBuilderHelper.groupAuditHistory(stepEntries, entityTypeId);
 		Collections.sort(auditHistories);//sort the list on date
 		logger.info("Ends AuditDetailService :: getWorkFlowHistory");
 		return new AuditHistoryResponseDTO<AuditHistoryDTO>(auditHistories);
@@ -243,7 +124,7 @@ public class AuditDetailService {
 		List<OpportunityTimelineHistoryT> timeLineHistories = timelineHistoryRepo.findByOpportunityIdOrderByUpdatedDatetimeAsc(oppId);
 		
 		List<Map<String, Object>> salesCodeSequenceMap = getSalesCodeSequenceMap(oppId, timeLineHistories);
-		List<AuditEntryDTO> entries = getOpportunityAudits(oppId);
+		List<AuditEntryDTO> entries = historyBuilder.getAuditEntries("opportunity", oppId);
 		
 		//group entries by sales stage code and date
 		Map<String, List<AuditEntryDTO>> salesCodeHistoryMap = groupBySalesCode(entries, salesCodeSequenceMap);
@@ -312,9 +193,6 @@ public class AuditDetailService {
 		Date fromDate = truncateSeconds(previousStage.getCreatedModifiedDatetime());
 		deliverySequenceMap.add(createMapWith(fromDate, previousStage.getNewDeliveryStage(), null, null, previousStage.getCreatedModifiedBy()));
 		
-		logger.info("########################## Sequence map ################################");
-		logger.info("{}", deliverySequenceMap);
-		logger.info("########################## Sequence map ################################");
 		return deliverySequenceMap;
 	}
 
@@ -354,7 +232,6 @@ public class AuditDetailService {
 		int salesCode = getStageCode(mapEntry.getKey());
 		//startDate
 		Date startDate = getDate(mapEntry.getKey());
-		//TODO get and set name here
 		String userName = getUserName(mapEntry.getKey());
 		dto.setUserName(userName);
 		
@@ -366,7 +243,7 @@ public class AuditDetailService {
 			//get entries from timeline for old opportunities
 			entries = getHistoryFromTimeLine(timeLineHistories, salesCode, startDate);
 		}
-		auditHistories = groupAuditHistory(entries, EntityTypeId.OPPORTUNITY.getType());
+		auditHistories = historyBuilderHelper.groupAuditHistory(entries, EntityTypeId.OPPORTUNITY.getType());
 		Collections.sort(auditHistories);
 		dto.setHistories(auditHistories);
 		return dto;
@@ -380,7 +257,6 @@ public class AuditDetailService {
 		//startDate
 		Date startDate = getDate(mapEntry.getKey());
 
-		//TODO get and set name here
 		String userName = getUserName(mapEntry.getKey());
 		dto.setUserName(userName);
 		dto.setEngagementStage(engStageCode);
@@ -388,7 +264,7 @@ public class AuditDetailService {
 		List<AuditHistoryDTO> auditHistories;
 		List<AuditEntryDTO> entries = mapEntry.getValue();
 		
-		auditHistories = groupAuditHistory(entries, EntityTypeId.ENGAGEMENT.getType());
+		auditHistories = historyBuilderHelper.groupAuditHistory(entries, EntityTypeId.ENGAGEMENT.getType());
 		Collections.sort(auditHistories);
 		dto.setHistories(auditHistories);
 		return dto;
@@ -409,15 +285,16 @@ public class AuditDetailService {
 			}
 			preTimeLineHistory = item;
 		}
+		
 		if(timeLineHistory != null) {
 			String user = userRepository.findUserNameByUserId(timeLineHistory.getUserUpdated());
 			Date date = new Date(timeLineHistory.getUpdatedDatetime().getTime());
 			currentBid = timeLineHistory.getBidDetailsT();
 			if(preTimeLineHistory != null) {
 				preBid = preTimeLineHistory.getBidDetailsT();
-				entries.add(getAuditEntry("Sales Stage", String.valueOf(preTimeLineHistory.getSalesStageCode()), String.valueOf(timeLineHistory.getSalesStageCode()), user, date));
+				entries.add(historyBuilderHelper.getAuditEntry("Sales Stage", String.valueOf(preTimeLineHistory.getSalesStageCode()), String.valueOf(timeLineHistory.getSalesStageCode()), user, date));
 			} else {
-				entries.add(getAuditEntry("Sales Stage", null, String.valueOf(timeLineHistory.getSalesStageCode()), user, date));
+				entries.add(historyBuilderHelper.getAuditEntry("Sales Stage", null, String.valueOf(timeLineHistory.getSalesStageCode()), user, date));
 			}
 
 			if(currentBid != null) {
@@ -427,7 +304,7 @@ public class AuditDetailService {
 				if(preBid == null) {
 					preBid = new BidDetailsT();
 				}
-				entries.addAll(getEntry(preBid, currentBid, fieldArray, user, date));
+				entries.addAll(historyBuilderHelper.getEntry(preBid, currentBid, fieldArray, user, date));
 			}
 		}
 		return entries;
@@ -543,833 +420,6 @@ public class AuditDetailService {
 		return Integer.parseInt(code);
 	}
 
-	/**
-	 * fetch all available audit entries from opportunity
-	 * @param oppId
-	 * @return
-	 */
-	private List<AuditEntryDTO> getOpportunityAudits(String oppId) {
-		List<AuditEntryDTO> entries = Lists.newArrayList();
-		
-		entries.addAll(getOpportunityAudit(oppId));
-		entries.addAll(getOppCompetitorAudit(oppId));
-		entries.addAll(getCustomerContactAudit(oppId));
-		entries.addAll(getOppOfferingAudit(oppId));
-		entries.addAll(getOppPartnerAudit(oppId));
-		entries.addAll(getSalesSupportAudit(oppId));
-		entries.addAll(getOppSubspAudit(oppId));
-		entries.addAll(getTcsContactAudit(oppId));
-		entries.addAll(getWinLossFactorAudit(oppId));
-		entries.addAll(getBidDetailsAudit(oppId));
-		entries.addAll(getDeliveryCentreAudit(oppId));
-		
-		return entries;
-	}
-
-	/**
-	 * fetch all available audit entries from delivery tables
-	 * @param oppId
-	 * @return
-	 */
-	private List<AuditEntryDTO> getEngagementAudits(String engId) {
-		List<AuditEntryDTO> entries = Lists.newArrayList();
-		
-		entries.addAll(getEngagementAudit(engId));
-		entries.addAll(getEngManagersAudit(engId));
-		entries.addAll(getEngResourcesAudit(engId));
-		
-		return entries;
-	}
-
-	/**
-	 * get all engagement resource related changes
-	 * @param engId
-	 * @return
-	 */
-	private List<AuditEntryDTO> getEngResourcesAudit(
-			String engId) {
-		List<AuditEntryDTO> entries = Lists.newArrayList();
-		List<AuditDeliveryResourcesT> engResources = aEngResourceRepo.findByDeliveryMasterId(engId);
-		if(CollectionUtils.isNotEmpty(engResources)) {
-			Set<String> rgsIds = Sets.newHashSet();
-			for (AuditDeliveryResourcesT aEngReource : engResources) {
-				if(aEngReource.getNewDeliveryRgsId() != null) {
-					rgsIds.add(aEngReource.getNewDeliveryRgsId());
-				}
-				entries.addAll(getEngResourcesAudit(aEngReource));
-			}
-			
-			for (String rgsId : rgsIds) {
-				entries.addAll(getEngRequirementAudtit(rgsId));
-			}
-		}
-		return entries;
-	}
-
-	/**
-	 * get all engagement resource related changes
-	 * @param aEngReource
-	 * @return
-	 */
-	private List<AuditEntryDTO> getEngResourcesAudit(
-			AuditDeliveryResourcesT aEngReource) {
-		List<AuditEntryDTO> entryDTOs = Lists.newArrayList();
-		String user = userRepository.findUserNameByUserId(aEngReource.getCreatedModifiedBy());
-		Date date = new Date(aEngReource.getCreatedModifiedDatetime().getTime());
-		List<String> fieldArray = Lists.newArrayList("Role", "Skill", 
-				"RequirementFulfillment", "DeliveryRgsId");
-		
-		entryDTOs.addAll(getEntriesFromFields(aEngReource, fieldArray, user, date, null));
-		return entryDTOs;
-	}
-	
-
-	/**
-	 * get all engagement requirement related changes
-	 * @param rgsId
-	 * @return
-	 */
-	private List<AuditEntryDTO> getEngRequirementAudtit(
-			String rgsId) {
-		List<AuditEntryDTO> entries = Lists.newArrayList();
-		List<AuditDeliveryRequirementT> engReqs = aEngRequirmentRepo.findByDeliveryRgsId(rgsId);
-		if(CollectionUtils.isNotEmpty(engReqs)) {
-			for (AuditDeliveryRequirementT aEngReq : engReqs) {
-				entries.addAll(getEngRequirementAudtit(aEngReq));
-			}
-		}
-		return entries;
-	}
-
-	/**
-	 * get all engagement requirement related changes
-	 * @param aEngReq
-	 * @return
-	 */
-	private List<AuditEntryDTO> getEngRequirementAudtit(
-			AuditDeliveryRequirementT aEngReq) {
-		List<AuditEntryDTO> entryDTOs = Lists.newArrayList();
-		String user = userRepository.findUserNameByUserId(aEngReq.getCreatedModifiedBy());
-		Date date = new Date(aEngReq.getCreatedModifiedDatetime().getTime());
-		List<String> fieldArray = Lists.newArrayList("EmployeeId", "EmployeeName");
-		entryDTOs.addAll(getEntriesFromFields(aEngReq, fieldArray, user, date, null));
-		return entryDTOs;
-	}
-
-	/**
-	 * list audit entries from delivery manager addition and remove
-	 * @param engId
-	 * @return
-	 */
-	private List<AuditEntryDTO> getEngManagersAudit(
-			String engId) {
-		List<AuditEntryDTO> entries = Lists.newArrayList();
-		List<AuditDeliveryMasterManagerLinkT> aDeliveryManagers = aDeliveryManagerLinkRepo.findByDeliveryMasterId(engId);
-		if(CollectionUtils.isNotEmpty(aDeliveryManagers)) {
-			for (AuditDeliveryMasterManagerLinkT adeliveryManagerLinkT : aDeliveryManagers) {
-				entries.addAll(getEngManagersAudit(adeliveryManagerLinkT));
-			}
-		}
-		return entries;
-	}
-
-	/**
-	 * a audit entry for delivery manager
-	 * @param adeliveryManagerLinkT
-	 * @return
-	 */
-	private List<AuditEntryDTO> getEngManagersAudit(
-			AuditDeliveryMasterManagerLinkT adeliveryManagerLinkT) {
-		Operation operationType = Operation.getByCode(adeliveryManagerLinkT.getOperationType());
-		String user = userRepository.findUserNameByUserId(adeliveryManagerLinkT.getCreatedModifiedBy());
-		Date date = new Date(adeliveryManagerLinkT.getCreatedModifiedDatetime().getTime());
-		String deliveryManager = adeliveryManagerLinkT.getDeliveryManagerId();
-		String fieldName = "Delivery Manager";
-		AuditEntryDTO entry = getEntryByOperation(operationType, user, date,
-				deliveryManager, fieldName, FieldType.USER_ID);
-		return Lists.newArrayList(entry);
-	}
-
-	/**
-	 * get all bid related changes
-	 * @param oppId
-	 * @return
-	 */
-	private List<AuditEntryDTO> getBidDetailsAudit(String oppId) {
-		List<AuditEntryDTO> entries = Lists.newArrayList();
-		List<AuditBidDetailsT> bidDetail = aBidDetailRepo.findByOldOpportunityId(oppId);
-		Set<String> bidIds = Sets.newHashSet();
-		if(CollectionUtils.isNotEmpty(bidDetail)) {
-			for (AuditBidDetailsT aBidDetailT : bidDetail) {
-				entries.addAll(getBidDetailsAudit(aBidDetailT));
-				bidIds.add(aBidDetailT.getBidId());
-			}
-			
-			for (String bidId : bidIds) {
-				entries.addAll(getBidOfficeGrpOwnerAudit(bidId));
-			}
-		}
-		return entries;
-	}
-
-	/**
-	 * get all bid related changes
-	 * @param aBidDetailT
-	 * @return
-	 */
-	private List<AuditEntryDTO> getBidDetailsAudit(
-			AuditBidDetailsT aBidDetailT) {
-		
-		List<AuditEntryDTO> entryDTOs = Lists.newArrayList();
-		String user = userRepository.findUserNameByUserId(aBidDetailT.getCreatedModifiedBy());
-		Date date = new Date(aBidDetailT.getCreatedModifiedDatetime().getTime());
-		List<String> fieldArray = Lists.newArrayList("BidRequestReceiveDate", "TargetBidSubmissionDate", 
-				"ActualBidSubmissionDate", "ExpectedDateOfOutcome", "WinProbability", 
-				"CoreAttributesUsedForWinning", "BidRequestType");
-		
-		for (String fieldName : fieldArray) {
-			AuditEntryDTO entry = getEntry(aBidDetailT, fieldName, user, date, null);
-			if(entry != null) {
-				entryDTOs.add(entry);
-			}
-		}
-		
-		return entryDTOs;
-	}
-
-
-	/**
-	 * get all bid owner related changes
-	 * @param bidId
-	 * @return
-	 */
-	private List<AuditEntryDTO> getBidOfficeGrpOwnerAudit(
-			String bidId) {
-		List<AuditEntryDTO> entries = Lists.newArrayList();
-		List<AuditBidOfficeGroupOwnerLinkT> bidOffGrpOwners = aBidOfficeGroupOwnerRepo.findByOldBidId(bidId);
-		if(CollectionUtils.isNotEmpty(bidOffGrpOwners)) {
-			for (AuditBidOfficeGroupOwnerLinkT aBidOffGrpOwner : bidOffGrpOwners) {
-				entries.addAll(getBidOfficeGrpOwnerAudit(aBidOffGrpOwner));
-			}
-		}
-		return entries;
-	}
-
-
-	/**
-	 * get all bid owner related changes
-	 * @param aBidOffGrpOwner
-	 * @return
-	 */
-	private List<AuditEntryDTO> getBidOfficeGrpOwnerAudit(
-			AuditBidOfficeGroupOwnerLinkT aBidOffGrpOwner) {
-		List<AuditEntryDTO> entries = Lists.newArrayList();
-		String user = userRepository.findUserNameByUserId(aBidOffGrpOwner.getCreatedModifiedBy());
-		Date date = new Date(aBidOffGrpOwner.getCreatedModifiedDatetime().getTime());
-		AuditEntryDTO entry = getEntry(aBidOffGrpOwner, "BidOfficeGroupOwner", user, date, null);
-		if(entry != null) {
-			String fromVal = entry.getFromVal();
-			String toVal = entry.getToVal();
-			entry.setFromVal(fromVal != null ? userRepository.findUserNameByUserId(fromVal) : null);
-			entry.setToVal(toVal != null ? userRepository.findUserNameByUserId(toVal) : null);
-			entries.add(entry);
-		}
-		return entries;
-	}
-
-	/**
-	 * get all winloss factor related changes
-	 * @param oppId
-	 * @return
-	 */
-	private List<AuditEntryDTO> getWinLossFactorAudit(String oppId) {
-		//		opportunity_win_loss_factors_t
-		List<AuditEntryDTO> entries = Lists.newArrayList();
-		List<AuditOpportunityWinLossFactorsT> aWinLossTs = aWinLossFactorsRepo.findByOldOpportunityId(oppId);
-		if(CollectionUtils.isNotEmpty(aWinLossTs)) {
-			for (AuditOpportunityWinLossFactorsT aWinLossFactorsT : aWinLossTs) {
-				entries.addAll(getWinLossFactorAudit(aWinLossFactorsT));
-			}
-		}
-		return entries;
-	}
-
-
-	/**
-	 * get all winloss factor related changes
-	 * @param aWinLossFactorsT
-	 * @return
-	 */
-	private List<AuditEntryDTO> getWinLossFactorAudit(
-			AuditOpportunityWinLossFactorsT aWinLossFactorsT) {
-		Operation operationType = Operation.getByCode(aWinLossFactorsT.getOperationType());
-		String user = userRepository.findUserNameByUserId(aWinLossFactorsT.getCreatedModifiedBy());
-		Date date = new Date(aWinLossFactorsT.getCreatedModifiedDatetime().getTime());
-		String winLossFactor = aWinLossFactorsT.getOldWinLossFactor();
-		String fieldName = "Win Loss Factor";
-		AuditEntryDTO entry = getEntryByOperation(operationType, user, date,
-				winLossFactor, fieldName);
-		return Lists.newArrayList(entry);
-	}
-
-
-	/**
-	 * get all tcs contact related changes
-	 * @param oppId
-	 * @return
-	 */
-	private List<AuditEntryDTO> getTcsContactAudit(String oppId) {
-		//		opportunity_tcs_account_contact_link_t
-		List<AuditEntryDTO> entries = Lists.newArrayList();
-		List<AuditOpportunityTcsAccountContactLinkT> aTcsContactTs = aTcsAccountContactRepo.findByOldOpportunityId(oppId);
-		if(CollectionUtils.isNotEmpty(aTcsContactTs)) {
-			for (AuditOpportunityTcsAccountContactLinkT aTcsContactT : aTcsContactTs) {
-				entries.addAll(getTcsContactAudit(aTcsContactT));
-			}
-		}
-		return entries;
-	}
-
-
-	/**
-	 * get all tcs contact related changes
-	 * @param aTcsContactT
-	 * @return
-	 */
-	private List<AuditEntryDTO> getTcsContactAudit(
-			AuditOpportunityTcsAccountContactLinkT aTcsContactT) {
-		Operation operationType = Operation.getByCode(aTcsContactT.getOperationType());
-		String user = userRepository.findUserNameByUserId(aTcsContactT.getCreatedModifiedBy());
-		Date date = new Date(aTcsContactT.getCreatedModifiedDatetime().getTime());
-		String contact = contactRepository.findOne(aTcsContactT.getOldContactId()).getContactName();
-		String fieldName = "TCS Contact";
-		AuditEntryDTO entry = getEntryByOperation(operationType, user, date,
-				contact, fieldName);
-		return Lists.newArrayList(entry);
-	}
-
-
-	/**
-	 * get all subsp related changes
-	 * @param oppId
-	 * @return
-	 */
-	private List<AuditEntryDTO> getOppSubspAudit(String oppId) {
-		//		opportunity_sub_sp_link_t
-		List<AuditEntryDTO> entries = Lists.newArrayList();
-		List<AuditOpportunitySubSpLinkT> aSubSpTs = aOpportunitySubSpRepo.findByOldOpportunityId(oppId);
-		if(CollectionUtils.isNotEmpty(aSubSpTs)) {
-			for (AuditOpportunitySubSpLinkT aSubSpT : aSubSpTs) {
-				entries.addAll(getOppSubspAudit(aSubSpT));
-			}
-		}
-		return entries;
-	}
-
-
-	/**
-	 * get all subsp related changes
-	 * @param aSubSpTs
-	 * @return
-	 */
-	private List<AuditEntryDTO> getOppSubspAudit(
-			AuditOpportunitySubSpLinkT aSubSpTs) {
-		Operation operationType = Operation.getByCode(aSubSpTs.getOperationType());
-		String user = userRepository.findUserNameByUserId(aSubSpTs.getCreatedModifiedBy());
-		Date date = new Date(aSubSpTs.getCreatedModifiedDatetime().getTime());
-		String subSp = aSubSpTs.getOldSubSp();
-		String fieldName = "Sub SP";
-		List<AuditEntryDTO> entries = Lists.newArrayList();
-		if(operationType == Operation.ADD) {
-			entries.add(getAuditEntry(fieldName, null, subSp, user, date));
-			if(aSubSpTs.getNewSubspPrimary() != null && aSubSpTs.getNewSubspPrimary().booleanValue()) {
-				entries.add( getAuditEntry("Sub SP Primary", null, subSp, user, date));
-			}
-		} else if(operationType == Operation.UPDATE) {
-			entries.add( getAuditEntry("Sub SP Primary", null, subSp, user, date));
-		} else {
-			entries.add( getAuditEntry(fieldName, subSp, null, user, date));
-		}
-		return entries;
-	}
-
-
-	/**
-	 * get all sales support owner related changes
-	 * @param oppId
-	 * @return
-	 */
-	private List<AuditEntryDTO> getSalesSupportAudit(String oppId) {
-		//		opportunity_sales_support_link_t
-		List<AuditEntryDTO> entries = Lists.newArrayList();
-		List<AuditOpportunitySalesSupportLinkT> aSalesSpportTs = aSalesSupportRepo.findByOldOpportunityId(oppId);
-		if(CollectionUtils.isNotEmpty(aSalesSpportTs)) {
-			for (AuditOpportunitySalesSupportLinkT aSalesSpportT : aSalesSpportTs) {
-				entries.addAll(getSalesSupportAudit(aSalesSpportT));
-			}
-		}
-		return entries;
-	}
-
-
-	/**
-	 * get all sales support owner related changes
-	 * @param aSalesSpportT
-	 * @return
-	 */
-	private List<AuditEntryDTO> getSalesSupportAudit(
-			AuditOpportunitySalesSupportLinkT aSalesSpportT) {
-		Operation operationType = Operation.getByCode(aSalesSpportT.getOperationType());
-		String user = userRepository.findUserNameByUserId(aSalesSpportT.getCreatedModifiedBy());
-		Date date = new Date(aSalesSpportT.getCreatedModifiedDatetime().getTime());
-		String salesSupport = userRepository.findUserNameByUserId(aSalesSpportT.getOldSalesSupportOwner());
-		String fieldName = "Sales Support Owner";
-		AuditEntryDTO entry = getEntryByOperation(operationType, user, date,
-				salesSupport, fieldName);
-		return Lists.newArrayList(entry);
-	}
-
-
-	/**
-	 * get all partner related changes
-	 * @param oppId
-	 * @return
-	 */
-	private List<AuditEntryDTO> getOppPartnerAudit(String oppId) {
-		//		opportunity_partner_link_t
-		List<AuditEntryDTO> entries = Lists.newArrayList();
-		List<AuditOpportunityPartnerLinkT> aPartnerTs = aOpportunityPartnerRepo.findByOldOpportunityId(oppId);
-		if(CollectionUtils.isNotEmpty(aPartnerTs)) {
-			for (AuditOpportunityPartnerLinkT aPartnerT : aPartnerTs) {
-				entries.addAll(getOppPartnerAudit(aPartnerT));
-			}
-		}
-		return entries;
-	}
-
-
-	/**
-	 * get all partner related changes
-	 * @param aPartnerT
-	 * @return
-	 */
-	private List<AuditEntryDTO> getOppPartnerAudit(
-			AuditOpportunityPartnerLinkT aPartnerT) {
-		Operation operationType = Operation.getByCode(aPartnerT.getOperationType());
-		String user = userRepository.findUserNameByUserId(aPartnerT.getCreatedModifiedBy());
-		Date date = new Date(aPartnerT.getCreatedModifiedDatetime().getTime());
-		String partner = partnerRepository.findOne(aPartnerT.getOldPartnerId()).getPartnerName();
-		String fieldName = "Partner";
-		AuditEntryDTO entry = getEntryByOperation(operationType, user, date,
-				partner, fieldName);
-		return Lists.newArrayList(entry);
-	}
-
-
-	/**
-	 * get all offering related changes
-	 * @param oppId
-	 * @return
-	 */
-	private List<AuditEntryDTO> getOppOfferingAudit(String oppId) {
-		//opportunity_offering_link_t
-		List<AuditEntryDTO> entries = Lists.newArrayList();
-		List<AuditOpportunityOfferingLinkT> aOfferingTs = aOpportunityOfferingRepo.findByOldOpportunityId(oppId);
-		if(CollectionUtils.isNotEmpty(aOfferingTs)) {
-			for (AuditOpportunityOfferingLinkT aOfferingT : aOfferingTs) {
-				entries.addAll(getOppOfferingAudit(aOfferingT));
-			}
-		}
-		return entries;
-	}
-
-
-	/**
-	 * get all offering related changes
-	 * @param aOfferingT
-	 * @return
-	 */
-	private List<AuditEntryDTO> getOppOfferingAudit(
-			AuditOpportunityOfferingLinkT aOfferingT) {
-		Operation operationType = Operation.getByCode(aOfferingT.getOperationType());
-		String user = userRepository.findUserNameByUserId(aOfferingT.getCreatedModifiedBy());
-		Date date = new Date(aOfferingT.getCreatedModifiedDatetime().getTime());
-		String partner = aOfferingT.getOldOffering();
-		String fieldName = "Offering";
-		AuditEntryDTO entry = getEntryByOperation(operationType, user, date,
-				partner, fieldName);
-		return Lists.newArrayList(entry);
-	}
-
-
-	/**
-	 * get all customer contact related changes
-	 * @param oppId
-	 * @return
-	 */
-	private List<AuditEntryDTO> getCustomerContactAudit(String oppId) {
-		//opportunity_customer_contact_link_t
-		List<AuditEntryDTO> entries = Lists.newArrayList();
-		List<AuditOpportunityCustomerContactLinkT> aCustomerContactTs = aCustomerContactRepo.findByOldOpportunityId(oppId);
-		if(CollectionUtils.isNotEmpty(aCustomerContactTs)) {
-			for (AuditOpportunityCustomerContactLinkT aCustomerContactT : aCustomerContactTs) {
-				entries.addAll(getCustomerContactAudit(aCustomerContactT));
-			}
-		}
-		return entries;
-	}
-
-
-	/**
-	 * get all offering related changes
-	 * @param aCustomerContactT
-	 * @return
-	 */
-	private List<AuditEntryDTO> getCustomerContactAudit(
-			AuditOpportunityCustomerContactLinkT aCustomerContactT) {
-		Operation operationType = Operation.getByCode(aCustomerContactT.getOperationType());
-		String user = userRepository.findUserNameByUserId(aCustomerContactT.getCreatedModifiedBy());
-		Date date = new Date(aCustomerContactT.getCreatedModifiedDatetime().getTime());
-		String custContact = contactRepository.findOne(aCustomerContactT.getOldContactId()).getContactName();
-		String fieldName = "Customer Contact";
-		AuditEntryDTO entry = getEntryByOperation(operationType, user, date,
-				custContact, fieldName);
-		return Lists.newArrayList(entry);
-	}
-	
-
-	private List<AuditEntryDTO> getDeliveryCentreAudit(
-			String oppId) {
-		List<AuditEntryDTO> entries = Lists.newArrayList();
-		List<AuditOpportunityDeliveryCentreT> aDeliveryCentres = aOppoDeliveryCentreRepo.findByOpportunityId(oppId);
-		if(CollectionUtils.isNotEmpty(aDeliveryCentres)) {
-			for (AuditOpportunityDeliveryCentreT aDeliveryCentre : aDeliveryCentres) {
-				entries.addAll(getDeliveryCentreAudit(aDeliveryCentre));
-			}
-		}
-		return entries;
-	}
-
-
-	private List<AuditEntryDTO> getDeliveryCentreAudit(
-			AuditOpportunityDeliveryCentreT aDeliveryCentre) {
-		Operation operationType = Operation.getByCode(aDeliveryCentre.getOperationType());
-		String user = userRepository.findUserNameByUserId(aDeliveryCentre.getCreatedModifiedBy());
-		Date date = new Date(aDeliveryCentre.getCreatedModifiedDatetime().getTime());
-		
-		String fieldName = "Delivery Centre";
-		AuditEntryDTO entry = getEntryByOperation(operationType, user, date, aDeliveryCentre.getDeliveryCentreId(), fieldName, FieldType.DELIVERY_CENTRE);
-		return Lists.newArrayList(entry);
-	}
-
-
-	/**
-	 * get all competitor related changes
-	 * @param oppId
-	 * @return
-	 */
-	private List<AuditEntryDTO> getOppCompetitorAudit(String oppId) {
-		//opportunity_competitor_link_t
-		List<AuditEntryDTO> entries = Lists.newArrayList();
-		List<AuditOpportunityCompetitorLinkT> aCompetitorTs = aCompetitorRepo.findByOldOpportunityId(oppId);
-		if(CollectionUtils.isNotEmpty(aCompetitorTs)) {
-			for (AuditOpportunityCompetitorLinkT aCompetitorT : aCompetitorTs) {
-				entries.addAll(getOppCompetitorAudit(aCompetitorT));
-			}
-		}
-		return entries;
-	}
-
-
-	/**
-	 * get all competitor related changes
-	 * @param aCompetitorT
-	 * @return
-	 */
-	private List<AuditEntryDTO> getOppCompetitorAudit(
-			AuditOpportunityCompetitorLinkT aCompetitorT) {
-		List<AuditEntryDTO> entries = Lists.newArrayList();
-		Operation operationType = Operation.getByCode(aCompetitorT.getOperationType());
-		String user = userRepository.findUserNameByUserId(aCompetitorT.getCreatedModifiedBy());
-		Date date = new Date(aCompetitorT.getCreatedModifiedDatetime().getTime());
-		String compeitor = aCompetitorT.getOldCompetitorName();
-		String fieldName = "Competitor";
-		if(operationType == Operation.ADD) {
-			entries.add(getAuditEntry(fieldName, null, compeitor, user, date));
-			if(StringUtils.equals(Constants.Y,aCompetitorT.getNewIncumbentFlag())) {
-				entries.add(getAuditEntry("Incumbent Flag", null, compeitor, user, date));
-			}
-			
-		} else if(operationType == Operation.UPDATE) {
-			entries.add(getAuditEntry("Incumbent Flag", null, compeitor, user, date));
-		} else {
-			entries.add(getAuditEntry(fieldName, compeitor, null, user, date));
-		}
-		return entries;
-	}
-
-
-	/**
-	 * get all opportunity master related changes
-	 * @param oppId
-	 * @return
-	 */
-	private List<AuditEntryDTO> getOpportunityAudit(String oppId) {
-		//opportunity audit
-		List<AuditEntryDTO> entryDTOs = Lists.newArrayList();
-		
-		List<AuditOpportunityT> opportunities = aOpportunityRepository.findByOpportunityId(oppId);
-		if(CollectionUtils.isNotEmpty(opportunities))
-		for (AuditOpportunityT auditOpportunityT : opportunities) {
-			entryDTOs.addAll(getOpportunityAudit(auditOpportunityT));
-		}
-		return entryDTOs;
-	}
-
-	/**
-	 * get all delivery master related changes as audit entries
-	 * @param engId
-	 * @return
-	 */
-	private List<AuditEntryDTO> getEngagementAudit(String engId) {
-		//opportunity audit
-		List<AuditEntryDTO> entryDTOs = Lists.newArrayList();
-		
-		List<AuditDeliveryMasterT> engagements = aDeliveryRepo.findByDeliveryMasterId(engId);
-		if(CollectionUtils.isNotEmpty(engagements))
-			for (AuditDeliveryMasterT auditEngagementT : engagements) {
-				entryDTOs.addAll(getEngagementAudit(auditEngagementT));
-			}
-		return entryDTOs;
-	}
-
-
-	/**
-	 * get all opportunity master related changes
-	 * @param auditOpportunityT
-	 * @return
-	 */
-	private List<AuditEntryDTO> getOpportunityAudit(
-			AuditOpportunityT auditOpportunityT) {
-		List<AuditEntryDTO> entryDTOs = Lists.newArrayList();
-		String user = userRepository.findUserNameByUserId(auditOpportunityT.getNewModifiedBy());
-		Date date = new Date(auditOpportunityT.getNewModifiedDatetime().getTime());
-		
-		List<String> fieldArray = Lists.newArrayList("CrmId", "OpportunityName", "OpportunityDescription", "StrategicDeal", 
-				"DealCurrency", "OverallDealSize", "DigitalDealValue", "DealClosureDate",
-				"DescriptionForWinLoss","EngagementDuration","SalesStageCode", 
-				"DealType", "Country", "DigitalFlag", "IsuOwnReason");
-		
-		Map<String, FieldType> fieldMap = Maps.newHashMap();
-		fieldMap.put("DeliveryOwnershipId", FieldType.OWNERSHIP_ID);
-		fieldMap.put("OpportunityOwner", FieldType.USER_ID);
-		
-		entryDTOs.addAll(getEntriesFromFields(auditOpportunityT, fieldArray, user, date, fieldMap));
-		
-		/*AuditEntryDTO entry = getEntry(auditOpportunityT, "OpportunityOwner", user, date, null);
-		if(entry != null) {
-			String fromVal = entry.getFromVal();
-			String toVal = entry.getToVal();
-			entry.setFromVal(fromVal != null ? userRepository.findUserNameByUserId(fromVal) : null);
-			entry.setToVal(toVal != null ? userRepository.findUserNameByUserId(toVal) : null);
-			entryDTOs.add(entry);
-		}*/
-		return entryDTOs;
-	}
-
-	/**
-	 * get all delivery master related changes
-	 * @param auditOpportunityT
-	 * @return
-	 */
-	private List<AuditEntryDTO> getEngagementAudit(
-			AuditDeliveryMasterT auditDeliveryMasterT) {
-		List<AuditEntryDTO> entryDTOs = Lists.newArrayList();
-		String user = userRepository.findUserNameByUserId(auditDeliveryMasterT.getCreatedModifiedBy());
-		Date date = new Date(auditDeliveryMasterT.getCreatedModifiedDatetime().getTime());
-		
-		List<String> fieldArray = Lists.newArrayList("ScheduledStartDate", "ActualStartDate", "ExpectedEndDate",
-				"WonNum", "Odc", "DeliveryPartnerId", "DeliveryPartnerName", "GlId", "GlName",
-				"PlId", "PlName", "EngagementName" );
-		
-		Map<String, FieldType> fieldMap = Maps.newHashMap();
-		fieldMap.put("DeliveryCentreId", FieldType.DELIVERY_CENTRE);
-		fieldMap.put("DeliveryStage", FieldType.DELIVERY_STAGE);
-		
-		entryDTOs.addAll(getEntriesFromFields(auditDeliveryMasterT, fieldArray, user, date, fieldMap));
-		
-		return entryDTOs;
-	}
-
-	/**
-	 * return the sub table entry only for addition and updation
-	 * @param operationType
-	 * @param user
-	 * @param date
-	 * @param fieldValue
-	 * @param fieldName
-	 * @return
-	 */
-	private AuditEntryDTO getEntryByOperation(Operation operationType,
-			String user, Date date, String fieldValue, String fieldName) {
-		return getEntryByOperation(operationType, user, date, fieldValue, fieldName, null);
-	}
-
-	private AuditEntryDTO getEntryByOperation(Operation operationType,
-			String user, Date date, Object fieldValue, String fieldName, FieldType fieldType) {
-		AuditEntryDTO entry;
-		if(operationType == Operation.ADD) {
-			entry = getAuditEntry(fieldName, user, date, fieldType, null, fieldValue);
-		} else { //removed
-			entry = getAuditEntry(fieldName, user, date, fieldType, fieldValue, null);
-		}
-		return entry;
-	}
-
-	/**
-	 * group the entries by date and user
-	 * @param entries
-	 * @param entityTypeId
-	 * @return
-	 */
-	private List<AuditHistoryDTO> groupAuditHistory(
-			List<AuditEntryDTO> entries, Integer entityTypeId) {
-		List<AuditHistoryDTO> history = Lists.newArrayList();
-		Map<String, List<AuditEntryDTO>> groupEntries= groupEntries(entries);
-		
-		for (Entry<String, List<AuditEntryDTO>> entryGroup : groupEntries.entrySet()) {
-			history.add(constructAuditHistory(entryGroup.getValue(), entityTypeId));
-		}
-		
-		return history;
-	}
-	
-	/**
-	 * creates audit history with date, user and list of messages
-	 * @param entries
-	 * @param entityTypeId
-	 * @return
-	 */
-	private AuditHistoryDTO constructAuditHistory(List<AuditEntryDTO> entries, Integer entityTypeId) {
-		AuditHistoryDTO history = new AuditHistoryDTO();
-		List<String> messages = Lists.newArrayList();
-		if(CollectionUtils.isNotEmpty(entries)) {
-			history.setDate(entries.get(0).getDate());
-			history.setUserName(entries.get(0).getUser());
-			history.setOperation(getOperation(entries.get(0).getOperation()));
-			for (AuditEntryDTO entry : entries) {
-				messages.add(constructMessage(entry, entityTypeId));
-			}
-
-			history.setMessages(messages);
-		}
-		return history;
-	}
-
-	/**
-	 * @param operation
-	 * @return
-	 */
-	private String getOperation(int operation) {
-		return Operation.getByCode(operation).name();
-	}
-
-	/**
-	 * constructs the message for a entry
-	 * @param entry
-	 * @param entityTypeId
-	 * @return
-	 */
-	private String constructMessage(AuditEntryDTO entry, Integer entityTypeId) {
-		String message;
-		if(entry.isNewEntry()) {
-			message = getNewRequestMessage(entityTypeId);
-		} else if(entry.getFromVal() == null && entry.getToVal() != null) {
-			message = getAddionMessage(entry.getFieldName(), entry.getToVal());
-		} else if(entry.getFromVal() != null && entry.getToVal() == null) {
-			message = getRemoveMessage(entry.getFieldName(), entry.getFromVal());
-		} else {
-			message = getUpdateMessage(entry.getFieldName(), entry.getFromVal(), entry.getToVal());
-		}
-		
-		return message;
-	}
-
-	/**
-	 * returns a new entry message
-	 * @param entityTypeId
-	 * @return
-	 */
-	private String getNewRequestMessage(Integer entityTypeId) {//TODO form with template
-		StringBuffer sb = new StringBuffer();
-		sb.append(EntityTypeId.getFrom(entityTypeId).getDisplayName()).append(" Request");
-		
-		return sb.toString();
-	}
-
-	/**
-	 * returns field addition message with field name and value
-	 * @param fieldName
-	 * @param toVal
-	 * @return
-	 */
-	private String getAddionMessage(String fieldName, String toVal) {//TODO form with template
-		StringBuffer sb = new StringBuffer("Added ");
-		sb.append(fieldName).append(": ").append(SPAN_START_TAG).append(toVal).append(SPAN_END_TAG);
-		
-		return sb.toString();
-	}
-	
-	/**
-	 * returns field removing message
-	 * @param fieldName
-	 * @param fromVal
-	 * @return
-	 */
-	private String getRemoveMessage(String fieldName, String fromVal) {//TODO form with template
-		StringBuffer sb = new StringBuffer("Removed ");
-		sb.append(fieldName).append(" : ").append(SPAN_START_TAG).append(fromVal).append(SPAN_END_TAG);
-		
-		return sb.toString();
-	}
-
-	/**
-	 * returns field updation message with from and to values
-	 * @param fieldName
-	 * @param fromVal
-	 * @param toVal
-	 * @return
-	 */
-	private String getUpdateMessage(String fieldName, String fromVal,
-			String toVal) {//TODO form with template
-		StringBuffer sb = new StringBuffer("Updated ");
-		sb.append(fieldName).append(" from ").append(SPAN_START_TAG).append(fromVal).append(SPAN_END_TAG).append(" to ").append(SPAN_START_TAG).append(toVal).append(SPAN_END_TAG);
-		
-		return sb.toString();
-	}
-
-	/**
-	 * group and create the map with entries by date and user
-	 * @param entries
-	 * @return
-	 */
-	private Map<String, List<AuditEntryDTO>> groupEntries(
-			List<AuditEntryDTO> entries) {
-		Map<String, List<AuditEntryDTO>> map = Maps.newHashMap();
-		if(CollectionUtils.isNotEmpty(entries)) {
-			for (AuditEntryDTO auditEntryDTO : entries) {
-				String code = String.valueOf(auditEntryDTO.hashCode());
-				if (!map.containsKey(code)) {
-					List<AuditEntryDTO> list = Lists.newArrayList();
-					list.add(auditEntryDTO);
-					map.put(code, list);
-				} else {
-					map.get(code).add(auditEntryDTO);
-				}
-			}
-		}
-		return map;
-	}
 
 	/**
 	 * get entries based on entity
@@ -1383,15 +433,15 @@ public class AuditDetailService {
 		
 		switch (EntityTypeId.getFrom(entityTypeId)) {
 		case CUSTOMER:
-			auditEntryDTOs = getCustomerAudit(entityId);
+			auditEntryDTOs = historyBuilder.getAuditEntries("workflow_customer", entityId);
 			break;
 
 		case PARTNER:
-			auditEntryDTOs = getPartnerAudit(entityId);
+			auditEntryDTOs = historyBuilder.getAuditEntries("workflow_partner", entityId);
 			break;
 		
 		case COMPETITOR:
-			auditEntryDTOs = getCompetitorAudit(entityId);
+			auditEntryDTOs = historyBuilder.getAuditEntries("workflow_competitor", entityId);
 			break;
 
 		default:
@@ -1400,347 +450,6 @@ public class AuditDetailService {
 		return auditEntryDTOs;
 	}
 
-	/**
-	 * returns all competitor changes
-	 * @param entityId
-	 * @return
-	 */
-	private List<AuditEntryDTO> getCompetitorAudit(String entityId) {
-		List<AuditEntryDTO> entryDTOs = Lists.newArrayList();
-		List<AuditWorkflowCompetitorT> competitorAudit = aWorkflowCompetitorRepository.findByWorkflowCompetitorIdAndOperationType(entityId, 2);
-
-		if(CollectionUtils.isNotEmpty(competitorAudit)) {
-			for (AuditWorkflowCompetitorT aWorkflowCompetitorT : competitorAudit) {
-				entryDTOs.addAll(getCompetitorAudit(aWorkflowCompetitorT));
-			}
-		}
-		return entryDTOs;
-	}
-
-	/**
-	 * returns all workflow competitor changes
-	 * @param wfCompetitor
-	 * @return
-	 */
-	private List<AuditEntryDTO> getCompetitorAudit(
-			AuditWorkflowCompetitorT wfCompetitor) {
-		List<AuditEntryDTO> entryDTOs = Lists.newArrayList();
-		String user = userRepository.findUserNameByUserId(wfCompetitor.getCreatedModifiedBy());
-		Date date = new Date(wfCompetitor.getCreatedModifiedDatetime().getTime());
-		
-		List<String> fieldArray = Lists.newArrayList("WorkflowCompetitorName", "WorkflowCompetitorWebsite", "WorkflowCompetitorNotes");
-		
-		entryDTOs.addAll(getEntriesFromFields(wfCompetitor, fieldArray, user, date, null));
-		return entryDTOs;
-	}
-
-	/**
-	 * returns all workflow partner changes
-	 * @param entityId
-	 * @return
-	 */
-	private List<AuditEntryDTO> getPartnerAudit(String entityId) {
-		List<AuditEntryDTO> entryDTOs = Lists.newArrayList();
-		List<AuditWorkflowPartnerT> partnerAudit = aWorkflowPartnerRepository.findByWorkflowPartnerIdAndOperationType(entityId, 2);
-
-		if(CollectionUtils.isNotEmpty(partnerAudit)) {
-			for (AuditWorkflowPartnerT aWorkflowPartnerT : partnerAudit) {
-				entryDTOs.addAll(getPartnerAudit(aWorkflowPartnerT));
-			}
-		}
-		return entryDTOs;
-	}
-
-	/**
-	 * returns all workflow partner changes
-	 * @param wfPartner
-	 * @return
-	 */
-	private List<AuditEntryDTO> getPartnerAudit(
-			AuditWorkflowPartnerT wfPartner) {
-		List<AuditEntryDTO> entryDTOs = Lists.newArrayList();
-		String user = userRepository.findUserNameByUserId(wfPartner.getCreatedModifiedBy());
-		Date date = new Date(wfPartner.getCreatedModifiedDatetime().getTime());
-		
-		List<String> fieldArray = Lists.newArrayList("PartnerName", "Website", "Facebook", "CorporateHqAddress", "Iou", "Geography", "Notes");
-		
-		entryDTOs.addAll(getEntriesFromFields(wfPartner, fieldArray, user, date, null));
-		return entryDTOs;
-	}
-
-	/**
-	 * returns all workflow customer changes
-	 * @param entityId
-	 * @return
-	 */
-	private List<AuditEntryDTO> getCustomerAudit(String entityId) {
-		List<AuditEntryDTO> entryDTOs = Lists.newArrayList();
-		List<AuditWorkflowCustomerT> customerAudit = aWorkflowCustomerRepository.findByWorkflowCustomerIdAndOperationType(entityId, 2);
-
-		if(CollectionUtils.isNotEmpty(customerAudit)) {
-			for (AuditWorkflowCustomerT aWorkflowCustomerT : customerAudit) {
-				entryDTOs.addAll(getCustomerAudit(aWorkflowCustomerT));
-			}
-		}
-		return entryDTOs;
-	}
-
-	/**
-	 * returns all workflow customer changes
-	 * @param wfCustomer
-	 * @return
-	 */
-	private List<AuditEntryDTO> getCustomerAudit(
-			AuditWorkflowCustomerT wfCustomer) {
-		List<AuditEntryDTO> entryDTOs = Lists.newArrayList();
-		String user = userRepository.findUserNameByUserId(wfCustomer.getCreatedModifiedBy());
-		Date date = new Date(wfCustomer.getCreatedModifiedDatetime().getTime());
-		
-		List<String> fieldArray = Lists.newArrayList("GroupCustomerName", "CustomerName", "Website", "Facebook", 
-				"CorporateHqAddress", "Iou", "Geography", "Remarks");
-		
-		entryDTOs.addAll(getEntriesFromFields(wfCustomer, fieldArray, user, date, null));
-		return entryDTOs;
-	}
-
-	/**
-	 * creates a {@link AuditEntryDTO},comparing old and new by calling 'getOld' and 'getNew' methods for the provided field name
-	 * using reflection to call getter methods
-	 * @param obj
-	 * @param fieldName
-	 * @param user
-	 * @param date
-	 * @param fieldType 
-	 * @return
-	 */
-	private AuditEntryDTO getEntry(Object obj, String fieldName, String user, Date date, FieldType fieldType) {
-		try {
-			Method oldGetter = obj.getClass().getDeclaredMethod("getOld"+fieldName);
-			Method newGetter = obj.getClass().getDeclaredMethod("getNew"+fieldName);
-			Object oldVal = oldGetter.invoke(obj);
-			Object newVal = newGetter.invoke(obj);
-			if(!ObjectUtils.equals(oldVal, newVal)) {
-				return getAuditEntry(fieldName, user, date, fieldType, oldVal,
-						newVal);
-			}
-
-		} catch (InvocationTargetException | IllegalAccessException | IllegalArgumentException | NoSuchMethodException | SecurityException e) {
-			logger.error("AuditDetailService :: error on getter method reflection -> {}", e.getMessage());
-		}
-
-		return null;
-	}
-
-
-	private AuditEntryDTO getAuditEntry(String fieldName, String user,
-			Date date, FieldType fieldType, Object oldVal, Object newVal) {
-		String dispOldVal = null;
-		String dispNewVal = null;
-		if(fieldType == null) {
-			dispOldVal = (oldVal != null )? String.valueOf(oldVal): null;
-			dispNewVal = (newVal != null )? String.valueOf(newVal): null;
-		} else {
-			switch (fieldType) {
-			case USER_ID:
-				dispOldVal = oldVal != null ? userRepository.findUserNameByUserId(String.valueOf(oldVal)) : null;
-				dispNewVal = newVal != null ? userRepository.findUserNameByUserId(String.valueOf(newVal)) : null;
-				break;
-			case DELIVERY_CENTRE:
-				dispOldVal = oldVal != null ? deliveryCentreRepo.findByDeliveryCentreId((Integer)oldVal).getDeliveryCentre() : null;
-				dispNewVal = newVal != null ? deliveryCentreRepo.findByDeliveryCentreId((Integer)newVal).getDeliveryCentre() : null;
-				break;
-			case DELIVERY_STAGE:
-				dispOldVal = oldVal != null ? DeliveryStage.byStageCode((Integer) oldVal).getStageName() : null;
-				dispNewVal = newVal != null ? DeliveryStage.byStageCode((Integer) newVal).getStageName() : null;
-				break;
-			case OWNERSHIP_ID:
-				Integer n2 = (Integer) newVal;
-				dispOldVal = oldVal != null ? deliveryOwnershipRepo.findOne((Integer) oldVal).getOwnership() : null;
-				dispNewVal = newVal != null ? deliveryOwnershipRepo.findOne(n2).getOwnership() : null;
-				break;
-			default:
-				dispOldVal = (oldVal != null ) ? String.valueOf(oldVal): null;
-				dispNewVal = (newVal != null ) ? String.valueOf(newVal): null;
-			}
-		}
-		
-		return getAuditEntry(fieldName, dispOldVal, dispNewVal, user, date);
-	}
-	
-	/**
-	 * creates a {@link AuditEntryDTO},comparing old and new by calling 'getOld' and 'getNew' methods for the provided field name
-	 * using reflection to call getter methods
-	 * @param obj
-	 * @param fieldName
-	 * @param user
-	 * @param date
-	 * @return
-	 */
-	private AuditEntryDTO getEntry(Object obj, String fieldName, String user, Date date) {
-		return getEntry(obj, fieldName, user, date, null);
-	}
-	
-	/**
-	 * 
-	 * compares the old and new objects and returns the list of entries
-	 * @param oldObj
-	 * @param newObj
-	 * @param fieldNames
-	 * @param user
-	 * @param date
-	 * @return
-	 */
-	private List<AuditEntryDTO> getEntry(Object oldObj, Object newObj, List<String> fieldNames, String user, Date date) {
-
-		List<AuditEntryDTO> entries = Lists.newArrayList();
-		for (String fieldName : fieldNames) {
-
-			try {
-				Method oldGetter = oldObj.getClass().getDeclaredMethod("get"+fieldName);
-				Method newGetter = newObj.getClass().getDeclaredMethod("get"+fieldName);
-				Object oldVal = oldGetter.invoke(oldObj);
-				Object newVal = newGetter.invoke(newObj);
-				if(!ObjectUtils.equals(oldVal, newVal)) {
-					entries.add(getAuditEntry(fieldName, (oldVal != null )? String.valueOf(oldVal): null, 
-							(newVal != null )? String.valueOf(newVal): null, user, date));
-				}
-
-			} catch (InvocationTargetException | IllegalAccessException | IllegalArgumentException | NoSuchMethodException | SecurityException e) {
-				logger.error("AuditDetailService :: error on getter method reflection -> {}", e.getMessage());
-			}
-		}
-		return entries;
-	}
-
-	/**
-	 * get all audits in workflow steps
-	 * @param workflowId
-	 * @return
-	 */
-	private List<AuditEntryDTO> getWorkflowStepEntries(Integer workflowId) {
-		List<AuditEntryDTO> auditEntryDTOs = Lists.newArrayList();
-		List<AuditWorkflowStepT> aWorkflowSteps = aWorkflowStepRepository.findByRequestIdAndStatus(workflowId);
-		if(CollectionUtils.isNotEmpty(aWorkflowSteps)) {
-			for (AuditWorkflowStepT auditWorkflowStepT : aWorkflowSteps) {
-				auditEntryDTOs.addAll(getWorkflowStepEntries(auditWorkflowStepT));
-			}
-		}
-		return auditEntryDTOs;
-	}
-
-	/**
-	 * get all audits in workflow steps
-	 * @param auditWorkflowStepT
-	 * @return
-	 */
-	private List<AuditEntryDTO> getWorkflowStepEntries(AuditWorkflowStepT auditWorkflowStepT) {
-		List<AuditEntryDTO> auditEntryDTOs = null;
-		if(OPERATION_ADD.equals(auditWorkflowStepT.getOperationType())) {
-			auditEntryDTOs = Lists.newArrayList(getWorkFlowNewEntry(auditWorkflowStepT));
-		} else if(OPERATION_UPDATE.equals(auditWorkflowStepT.getOperationType())) {
-			auditEntryDTOs = getWorkflowUpdationEntries(auditWorkflowStepT);
-		}
-		return auditEntryDTOs;
-	}
-
-	/**
-	 * returns workflow new request entry
-	 * @param auditWorkflowStepT
-	 * @return
-	 */
-	private AuditEntryDTO getWorkFlowNewEntry(
-			AuditWorkflowStepT auditWorkflowStepT) {
-		return getAuditEntry(userRepository.findUserNameByUserId(auditWorkflowStepT.getCreatedModifiedBy()),auditWorkflowStepT.getCreatedModifiedDatetime());
-	}
-
-	/**
-	 * returns workflow update entry
-	 * @param auditWorkflowStepT
-	 * @return
-	 */
-	private List<AuditEntryDTO> getWorkflowUpdationEntries(
-			AuditWorkflowStepT auditWorkflowStepT) {
-		List<AuditEntryDTO> auditEntryDTOs = Lists.newArrayList();
-		
-		String createdModifiedBy = userRepository.findUserNameByUserId(auditWorkflowStepT.getCreatedModifiedBy());
-		Timestamp createdModifiedDatetime = auditWorkflowStepT.getCreatedModifiedDatetime();
-		auditEntryDTOs.add(getAuditEntry("Status", auditWorkflowStepT.getOldStepStatus(), 
-				auditWorkflowStepT.getNewStepStatus(), createdModifiedBy, 
-				createdModifiedDatetime));
-		
-		if(StringUtils.isNotEmpty(auditWorkflowStepT.getNewComments())) {
-			auditEntryDTOs.add(getAuditEntry("Comments", null, auditWorkflowStepT.getNewComments(), createdModifiedBy, createdModifiedDatetime));
-		}
-		
-		return auditEntryDTOs;
-	}
-	
-
-	/**
-	 * returns all the entries by traversing the object for the given fields
-	 * @param entity
-	 * @param fieldArray
-	 * @param user
-	 * @param date
-	 * @param fieldMap - map of fields where 
-	 * @return
-	 */
-	private List<AuditEntryDTO> getEntriesFromFields(
-			Object entity, List<String> fieldArray, String user, Date date, Map<String, FieldType> fieldMap) {
-		List<AuditEntryDTO> entryDTOs = Lists.newArrayList();
-		for (String fieldName : fieldArray) {
-			AuditEntryDTO entry = getEntry(entity, fieldName, user, date);
-			if(entry != null) {
-				entryDTOs.add(entry);
-			}
-		}
-		
-		if(fieldMap != null) {
-			for (Entry<String, FieldType> field : fieldMap.entrySet()) {
-				AuditEntryDTO entry = getEntry(entity, field.getKey(), user, date, field.getValue());
-				if(entry != null) {
-					entryDTOs.add(entry);
-				}
-			}
-		}
-		return entryDTOs;
-	}
-
-	
-	/**
-	 * creates AuditEntryDTO with operation-NEW 
-	 * @param fieldName
-	 * @param fromVal
-	 * @param toVal
-	 * @param user
-	 * @param date
-	 * @return
-	 */
-	private AuditEntryDTO getAuditEntry(String fieldName, String fromVal, String toVal,
-			String user, Date date) {
-		return new AuditEntryDTO(getFieldLabel(fieldName), fromVal, toVal, user, DateUtils.truncateSeconds(date));
-	}
-
-	
-	/**
-	 * creates AuditEntryDTO with operation-NEW 
-	 * @param user
-	 * @param date
-	 * @return
-	 */
-	private AuditEntryDTO getAuditEntry(String user, Date date) {
-		return new AuditEntryDTO(user, DateUtils.truncateSeconds(date));
-	}
-	
-	/**
-	 * get the field Label for the given filed name
-	 * @param fieldName
-	 * @return
-	 */
-	private String getFieldLabel(String fieldName) {
-		return FieldNameMapper.getFieldLabel(fieldName);
-	}
-	
 	private Date truncateSeconds(Timestamp timestamps) {
 		return DateUtils.truncateSeconds(new Date(timestamps.getTime()));
 	}
@@ -1759,7 +468,7 @@ public class AuditDetailService {
 		//List<AuditDeliveryMasterT> aDeliveryList = aDeliveryRepo.findByOldDeliveryMasterId(engId);
 		
 		List<Map<String, Object>> engStageSequenceMap = getEngagementCodeSequenceMap(engId);
-		List<AuditEntryDTO> entries = getEngagementAudits(engId);
+		List<AuditEntryDTO> entries = historyBuilder.getAuditEntries("engagement", engId);
 		
 		//group entries by sales stage code and date
 		Map<String, List<AuditEntryDTO>> engStageHistoryMap = groupBySalesCode(entries, engStageSequenceMap);
@@ -1772,9 +481,5 @@ public class AuditDetailService {
 		logger.info("Ends AuditDetailService :: getOpportunityHistory");
 		return new AuditHistoryResponseDTO<AuditEngagementHistoryDTO>(histories);
 	}
-	
-	enum FieldType {
-		NORMAL, USER_ID, DELIVERY_CENTRE, DELIVERY_STAGE, OWNERSHIP_ID;
-		
-	}
+
 }
