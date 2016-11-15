@@ -1270,9 +1270,9 @@ public class DeliveryMasterService {
 	private void saveDeliveryIntimated(OpportunityT opportunity,
 			List<Integer> deliveryIntimatedCentreIds, String userId) {
 		DeliveryIntimatedT deliveryIntimated = new DeliveryIntimatedT();
-		deliveryIntimated.setCreatedBy(userId);
+		deliveryIntimated.setCreatedBy(Constants.SYSTEM_USER);
 		deliveryIntimated.setDeliveryStage(DeliveryStage.INTIMATED.getStageCode());
-		deliveryIntimated.setModifiedBy(userId);
+		deliveryIntimated.setModifiedBy(Constants.SYSTEM_USER);
 		deliveryIntimated.setAccepted(false);
 		deliveryIntimated.setOpportunityId(opportunity.getOpportunityId());
 		deliveryIntimatedRepository.save(deliveryIntimated);
@@ -1292,7 +1292,7 @@ public class DeliveryMasterService {
 	private void saveDeliveryIntimatedCentreLink(Integer deliveryCentreId,
 			DeliveryIntimatedT deliveryIntimated, String userId) {
 		DeliveryIntimatedCentreLinkT deliveryIntimatedCentreLinkT = new DeliveryIntimatedCentreLinkT();
-		deliveryIntimatedCentreLinkT.setCreatedBy(userId);
+		deliveryIntimatedCentreLinkT.setCreatedBy(Constants.SYSTEM_USER);
 		deliveryIntimatedCentreLinkT.setDeliveryCentreId(deliveryCentreId);
 		deliveryIntimatedCentreLinkT.setDeliveryIntimatedId(deliveryIntimated.getDeliveryIntimatedId());
 		deliveryIntimatedCentreLinkRepository.save(deliveryIntimatedCentreLinkT);
