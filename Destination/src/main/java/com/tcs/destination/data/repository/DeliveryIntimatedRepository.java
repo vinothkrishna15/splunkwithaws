@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository;
 import com.tcs.destination.bean.DeliveryIntimatedT;
 
 @Repository
-public interface DeliveryIntimetedRepository extends CrudRepository<DeliveryIntimatedT, String> {
+public interface DeliveryIntimatedRepository extends CrudRepository<DeliveryIntimatedT, String> {
 
 }

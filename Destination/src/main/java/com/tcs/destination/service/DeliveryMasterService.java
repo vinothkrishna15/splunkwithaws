@@ -25,11 +25,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.tcs.destination.bean.AsyncJobRequest;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryClusterT;
 import com.tcs.destination.bean.DeliveryFulfillment;
+import com.tcs.destination.bean.DeliveryIntimatedCentreLinkT;
+import com.tcs.destination.bean.DeliveryIntimatedT;
 import com.tcs.destination.bean.DeliveryMasterDTO;
 import com.tcs.destination.bean.DeliveryMasterManagerLinkT;
 import com.tcs.destination.bean.DeliveryMasterT;
@@ -44,6 +47,8 @@ import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.DeliveryCentreRepository;
 import com.tcs.destination.data.repository.DeliveryClusterRepository;
+import com.tcs.destination.data.repository.DeliveryIntimatedCentreLinkRepository;
+import com.tcs.destination.data.repository.DeliveryIntimatedRepository;
 import com.tcs.destination.data.repository.DeliveryMasterManagerLinkRepository;
 import com.tcs.destination.data.repository.DeliveryMasterPagingRepository;
 import com.tcs.destination.data.repository.DeliveryMasterRepository;
@@ -104,6 +109,12 @@ public class DeliveryMasterService {
 
 	@Autowired
 	OpportunityService opportunityService;
+	
+	@Autowired
+	DeliveryIntimatedRepository deliveryIntimatedRepository;
+	
+	@Autowired
+	DeliveryIntimatedCentreLinkRepository deliveryIntimatedCentreLinkRepository;
 
 
 	private static final Map<String,String>ATTRIBUTE_MAP;
@@ -1236,5 +1247,75 @@ public class DeliveryMasterService {
 		deliveryFulfillment.setWeekNumber(weekNumber);
 		return deliveryFulfillment;
 	}
+
+
+	public void createDeliveryIntimated(OpportunityT opportunity,
+			Map<Integer, List<Integer>> deliveryCentreMap, String userId) {
+		for(Integer clusterId : deliveryCentreMap.keySet()) {
+			saveDeliveryIntimated(opportunity,deliveryCentreMap.get(clusterId),userId);
+		}
+	}
+
+
+	private void saveDeliveryIntimated(OpportunityT opportunity,
+			List<Integer> deliveryIntimatedCentreIds, String userId) {
+		DeliveryIntimatedT deliveryIntimated = new DeliveryIntimatedT();
+		deliveryIntimated.setCreatedBy(userId);
+		deliveryIntimated.setDeliveryStage(DeliveryStage.INTIMATED.getStageCode());
+		deliveryIntimated.setModifiedBy(userId);
+		deliveryIntimated.setAccepted(false);
+		deliveryIntimated.setOpportunityId(opportunity.getOpportunityId());
+		deliveryIntimatedRepository.save(deliveryIntimated);
+		saveDeliveryIntimatedCentreLink(deliveryIntimated,deliveryIntimatedCentreIds,userId);
+	}
+
+
+	private void saveDeliveryIntimatedCentreLink(
+			DeliveryIntimatedT deliveryIntimated,
+			List<Integer> deliveryIntimatedCentreIds, String userId) {
+		for(Integer deliveryCentreId : deliveryIntimatedCentreIds) {
+			saveDeliveryIntimatedCentreLink(deliveryCentreId,deliveryIntimated,userId);
+		}
+	}
+
+
+	private void saveDeliveryIntimatedCentreLink(Integer deliveryCentreId,
+			DeliveryIntimatedT deliveryIntimated, String userId) {
+		DeliveryIntimatedCentreLinkT deliveryIntimatedCentreLinkT = new DeliveryIntimatedCentreLinkT();
+		deliveryIntimatedCentreLinkT.setCreatedBy(userId);
+		deliveryIntimatedCentreLinkT.setDeliveryCentreId(deliveryCentreId);
+		deliveryIntimatedCentreLinkT.setDeliveryIntimatedId(deliveryIntimated.getDeliveryIntimatedId());
+		deliveryIntimatedCentreLinkRepository.save(deliveryIntimatedCentreLinkT);
+		
+	}
+
+	/**
+	 * Gets the cluster Id and their respective centre Details
+	 * @param userId
+	 * @param opportunityDeliveryCentreIds
+	 * @return
+	 */
+	public Map<Integer, List<Integer>> getDeliveryCentreForCluster(
+			String userId,List<Integer> opportunityDeliveryCentreIds) {
+		Map<Integer, List<Integer>> deliveryCentreMap = Maps
+				.newHashMap();
+		List<Integer> deliveryIntimatedCentreLinkTs;
+		List<DeliveryClusterT> deliveryClusters = (List<DeliveryClusterT>) deliveryClusterRepository
+				.findAll();
+		for (DeliveryClusterT cluster : deliveryClusters) {
+			deliveryIntimatedCentreLinkTs = Lists.newArrayList();
+			for(DeliveryCentreT deliveryCentreT : cluster.getDeliveryCentreTs()) {
+				if(opportunityDeliveryCentreIds.contains(deliveryCentreT.getDeliveryCentreId())) {
+					deliveryIntimatedCentreLinkTs.add(deliveryCentreT.getDeliveryCentreId());
+				}
+			}
+			if(CollectionUtils.isNotEmpty(deliveryIntimatedCentreLinkTs)) {
+				deliveryCentreMap.put(cluster.getDeliveryClusterId(),
+						deliveryIntimatedCentreLinkTs);
+			}
+		}
+		return deliveryCentreMap;
+	}
+
 }
 

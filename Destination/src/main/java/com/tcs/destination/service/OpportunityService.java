@@ -41,6 +41,8 @@ import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
 import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DeliveryCentreT;
+import com.tcs.destination.bean.DeliveryClusterT;
+import com.tcs.destination.bean.DeliveryIntimatedCentreLinkT;
 import com.tcs.destination.bean.DeliveryMasterT;
 import com.tcs.destination.bean.DeliveryOwnershipT;
 import com.tcs.destination.bean.NotesT;
@@ -81,6 +83,7 @@ import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.CountryRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.DeliveryCentreRepository;
+import com.tcs.destination.data.repository.DeliveryClusterRepository;
 import com.tcs.destination.data.repository.DeliveryMasterRepository;
 import com.tcs.destination.data.repository.DeliveryOwnershipRepository;
 import com.tcs.destination.data.repository.NotesTRepository;
@@ -1743,15 +1746,27 @@ public class OpportunityService {
 				opportunityDeliveryCentreMappingT.setModifiedBy(userId);
 				opportunityDeliveryCentreMappingT.setCreatedBy(userId);
 				opportunityDeliveryCentreMappingTRepository.save(opportunityDeliveryCentreMappingT);
-				//save delivery master object for each delivery centre
-				if(opportunity.getSalesStageCode()!=oldSalesStageCode && opportunity.getSalesStageCode()==9){
-					deliveryMasterService.createDeliveryMaster(opportunity, opportunityDeliveryCentreMappingT);
-				}
 			}
 			
 			//deleting the removed delivery centres
 			for (Integer id : storedCentres) {
 				opportunityDeliveryCentreMappingTRepository.delete(id);
+			}
+			// Creating Intimated Delivery if Opportunity Wins
+			if (opportunity.getSalesStageCode() != oldSalesStageCode
+					&& opportunity.getSalesStageCode() == SalesStageCode.WIN
+							.getCodeValue()) {
+				List<Integer> deliveryCentreIds = Lists.newArrayList();
+				for (OpportunityDeliveryCentreMappingT opportunityDeliveryCentreMappingT : opportunity
+						.getOpportunityDeliveryCentreMappingTs()) {
+					deliveryCentreIds.add(opportunityDeliveryCentreMappingT
+							.getDeliveryCentreId());
+				}
+				//Getting Cluster and their Respective delivery centres Map
+				Map<Integer, List<Integer>> deliveryCentreMap = deliveryMasterService
+						.getDeliveryCentreForCluster(userId, deliveryCentreIds);
+				deliveryMasterService.createDeliveryIntimated(opportunity,
+						deliveryCentreMap, userId);
 			}
 		}
 			
