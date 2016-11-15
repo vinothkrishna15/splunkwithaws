@@ -12,7 +12,7 @@ import com.tcs.destination.bean.DeliveryIntimatedT;
 @Repository
 public interface DeliveryIntimatedPagingRepository extends PagingAndSortingRepository<DeliveryIntimatedT, String> {
 
-	Page<DeliveryIntimatedT> findByDeliveryIntimatedIdIsIn(
+	Page<DeliveryIntimatedT> findByDeliveryIntimatedIdIsInAndAcceptedFalse(
 			List<String> deliveryIntimatedIds,Pageable pageable);
 
 }

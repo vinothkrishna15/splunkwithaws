@@ -322,6 +322,26 @@ public class DeliveryMasterService {
 	}
 
 	/**
+	 * To fetch delivery intimated details by delivery intimated id
+	 * 
+	 * @param deliveryIntiId
+	 * @return
+	 * @throws Exception
+	 */
+	public DeliveryIntimatedT findByDeliveryIntimatedId(String deliveryIntiId) throws Exception {
+		logger.debug("Inside findByDeliveryIntimatedId() service");
+		DeliveryIntimatedT deliveryIntimated = deliveryIntimatedRepository.findOne(deliveryIntiId);
+		if (deliveryIntimated != null) {
+			removeCyclicReferenceOfDeliveryIntimated(Lists.newArrayList(deliveryIntimated));
+			return deliveryIntimated;
+		} else {
+			logger.error("NOT_FOUND: Delivery intimated Details not found: {}", deliveryIntiId);
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Delivery intimated not found: " + deliveryIntiId);
+		}
+	}
+
+	/**
 	 * This method removes the List<DeliveryMasterT> cyclic data 
 	 * 
 	 * @param deliveryMasterTList
@@ -1169,7 +1189,7 @@ public class DeliveryMasterService {
 				pageable = new PageRequest(page, count, sort);
 				
 				deliveryIntimatedTs = deliveryIntimatedPagingRepository
-						.findByDeliveryIntimatedIdIsIn(deliveryIntimatedIds,
+						.findByDeliveryIntimatedIdIsInAndAcceptedFalse(deliveryIntimatedIds,
 								pageable);
 				
 			
@@ -1199,7 +1219,7 @@ public class DeliveryMasterService {
 					sort = getSortFromOrder(order, orderBy);
 					pageable = new PageRequest(page, count, sort);
 					deliveryIntimatedTs = deliveryIntimatedPagingRepository
-							.findByDeliveryIntimatedIdIsIn(deliveryIntimatedIds,
+							.findByDeliveryIntimatedIdIsInAndAcceptedFalse(deliveryIntimatedIds,
 									pageable);
 				}
 			}
@@ -1227,7 +1247,12 @@ public class DeliveryMasterService {
 	private void removeCyclicReferenceOfDeliveryIntimated(
 			List<DeliveryIntimatedT> deliveryIntimatedTs) {
 		for (DeliveryIntimatedT deliveryIntimatedT : deliveryIntimatedTs) {
-			deliveryIntimatedT.setDeliveryMasterTs(null);
+			if(CollectionUtils.isNotEmpty(deliveryIntimatedT.getDeliveryMasterTs())) {
+				for (DeliveryMasterT deliveryMasterT : deliveryIntimatedT.getDeliveryMasterTs()) {
+					deliveryMasterT.setDeliveryIntimatedT(null);
+				}
+			}
+			
 			for(DeliveryIntimatedCentreLinkT deliveryIntimatedCentreLinkT : deliveryIntimatedT.getDeliveryIntimatedCentreLinkTs()) {
 				deliveryIntimatedCentreLinkT.setDeliveryIntimatedT(null);
 				deliveryIntimatedCentreLinkT.getDeliveryCentreT().setDeliveryIntimatedCentreLinkTs(null);

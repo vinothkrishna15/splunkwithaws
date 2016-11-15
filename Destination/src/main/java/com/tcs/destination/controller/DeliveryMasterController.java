@@ -341,4 +341,40 @@ public class DeliveryMasterController {
 		logger.info("Inside DeliveryMasterController: End of findAllIntimated GET");
 		return response;
 	}
+	
+	/**
+	 * This method is used to get the delivery intimated details for the given
+	 * delivery master id
+	 * 
+	 * @param deliveryIntimatedId
+	 * @param fields
+	 * @param view
+	 * @return deliveryMasterT
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/intimated/dtl", method = RequestMethod.GET)
+	public @ResponseBody String findByDeliveryIntimatedId(
+			@RequestParam(value = "id") String deliveryIntimatedId,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+					throws DestinationException {
+
+		logger.info("Inside DeliveryMasterController: Start of search by intimated id");
+		String response = null;
+		DeliveryIntimatedT deliveryIntimatedT;
+		try {
+			deliveryIntimatedT = deliveryMasterService.findByDeliveryIntimatedId(deliveryIntimatedId);
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, deliveryIntimatedT);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the delivery intimated details for the id:"
+							+ deliveryIntimatedId);
+		}
+		logger.info("Inside DeliveryMasterController: End of search by intimate id");
+		return response;
+	}
 }
