@@ -2,7 +2,6 @@ package com.tcs.destination.controller;
 
 
 import java.util.List;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -19,19 +18,15 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.AsyncJobRequest;
+import com.tcs.destination.bean.DeliveryIntimatedT;
 import com.tcs.destination.bean.DeliveryMasterDTO;
 import com.tcs.destination.bean.DeliveryMasterT;
-import com.tcs.destination.bean.DeliveryRgsT;
-import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserT;
-import com.tcs.destination.enums.EntityType;
-import com.tcs.destination.enums.JobName;
-import com.tcs.destination.enums.OperationType;
-import com.tcs.destination.enums.Switch;
 import com.tcs.destination.enums.SmartSearchType;
+import com.tcs.destination.enums.Switch;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.DeliveryMasterService;
 import com.tcs.destination.utils.DestinationUtils;
@@ -80,7 +75,7 @@ public class DeliveryMasterController {
 					throws DestinationException {
 		logger.info("Inside DeliveryMasterController: Start of /delivery/all GET");
 		String response = null;
-		PageDTO deliveryMasterDTO = null;
+		PageDTO<DeliveryMasterT> deliveryMasterDTO = null;
 		try {
 
 			deliveryMasterDTO = deliveryMasterService.findEngagements(stage,sortBy, order,
@@ -303,6 +298,47 @@ public class DeliveryMasterController {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, "Backend error in delivering the deliveryDashboard details");
 		}
 		logger.info("Inside DeliveryMasterController: End of delivery/dashboard GET");
+		return response;
+	}
+	
+	/**
+	 * This method retrieves the delivery master list
+	 * @param page
+	 * @param count
+	 * @param order
+	 * @param sortBy
+	 * @param stage
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/intimatedList", method = RequestMethod.GET)
+	public @ResponseBody String findAllIntimated(
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "30") int count,
+			@RequestParam(value = "order", defaultValue = "DESC") String order,
+			@RequestParam(value = "sortBy", defaultValue = "deliveryIntimatedId") String sortBy,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+					throws DestinationException {
+		logger.info("Inside DeliveryMasterController: Start of  findAllIntimated GET");
+		String response = null;
+		PageDTO<DeliveryIntimatedT> deliveryMasterDTO = null;
+		try {
+
+			deliveryMasterDTO = deliveryMasterService.getDeliveryIntimated(sortBy, order,
+					page, count);
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, deliveryMasterDTO);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the deliveryMaster list");
+		}
+		logger.info("Inside DeliveryMasterController: End of findAllIntimated GET");
 		return response;
 	}
 }

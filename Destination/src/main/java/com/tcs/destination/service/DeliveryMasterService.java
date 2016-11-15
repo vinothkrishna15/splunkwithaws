@@ -30,6 +30,8 @@ import com.tcs.destination.bean.AsyncJobRequest;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryClusterT;
 import com.tcs.destination.bean.DeliveryFulfillment;
+import com.tcs.destination.bean.DeliveryIntimatedCentreLinkT;
+import com.tcs.destination.bean.DeliveryIntimatedT;
 import com.tcs.destination.bean.DeliveryMasterDTO;
 import com.tcs.destination.bean.DeliveryMasterManagerLinkT;
 import com.tcs.destination.bean.DeliveryMasterT;
@@ -44,6 +46,8 @@ import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.DeliveryCentreRepository;
 import com.tcs.destination.data.repository.DeliveryClusterRepository;
+import com.tcs.destination.data.repository.DeliveryIntimatedCentreLinkRepository;
+import com.tcs.destination.data.repository.DeliveryIntimatedPagingRepository;
 import com.tcs.destination.data.repository.DeliveryMasterManagerLinkRepository;
 import com.tcs.destination.data.repository.DeliveryMasterPagingRepository;
 import com.tcs.destination.data.repository.DeliveryMasterRepository;
@@ -104,6 +108,12 @@ public class DeliveryMasterService {
 
 	@Autowired
 	OpportunityService opportunityService;
+	
+	@Autowired
+	DeliveryIntimatedCentreLinkRepository deliveryIntimatedCentreLinkRepository;
+	
+	@Autowired
+	DeliveryIntimatedPagingRepository deliveryIntimatedPagingRepository;
 
 
 	private static final Map<String,String>ATTRIBUTE_MAP;
@@ -120,6 +130,7 @@ public class DeliveryMasterService {
 		attributeMap.put("stage","deliveryStage");
 		attributeMap.put("deliveryCentre","deliveryCentreT.deliveryCentre");
 		attributeMap.put("modifiedDatetime","modifiedDatetime");
+		attributeMap.put("deliveryIntimatedId", "deliveryIntimatedId");
 		ATTRIBUTE_MAP = Collections.unmodifiableMap(attributeMap);
 	}
 
@@ -1235,6 +1246,106 @@ public class DeliveryMasterService {
 		deliveryFulfillment.setOpenCount(openCount);
 		deliveryFulfillment.setWeekNumber(weekNumber);
 		return deliveryFulfillment;
+	}
+
+
+	public PageDTO<DeliveryIntimatedT> getDeliveryIntimated(String orderBy, String order, int page,
+			int count) {
+		PageDTO<DeliveryIntimatedT> deliveryIntimatedDTO = null;
+
+		logger.debug("Starting findEngagements deliveryMasterService");
+
+		UserT loginUser = DestinationUtils.getCurrentUserDetails();
+		String loginUserGroup = loginUser.getUserGroup();
+
+		Page<DeliveryIntimatedT> deliveryIntimatedTs = null;
+		Sort sort = null;
+		Pageable pageable = null;
+		switch (UserGroup.valueOf(UserGroup.getName(loginUserGroup))) {
+		case STRATEGIC_INITIATIVES:
+
+			List<DeliveryCentreT> deliveryCentresSI = (List<DeliveryCentreT>) deliveryCentreRepository
+					.findAll();
+			if (!CollectionUtils.isEmpty(deliveryCentresSI)) {
+				List<Integer> deliveryCentreIds = new ArrayList<Integer>();
+				List<String> deliveryIntimatedIds = Lists.newArrayList();
+				for (DeliveryCentreT deliveryCentre : deliveryCentresSI) {
+					deliveryCentreIds.add(deliveryCentre.getDeliveryCentreId());
+				}
+				deliveryCentreIds.add(-1);
+				
+				deliveryIntimatedIds = deliveryIntimatedCentreLinkRepository
+						.getDeliveryIntimatedIdsByCentreIds(deliveryCentreIds);
+				
+				orderBy = ATTRIBUTE_MAP.get(orderBy);
+				sort = getSortFromOrder(order, orderBy);
+				pageable = new PageRequest(page, count, sort);
+				
+				deliveryIntimatedTs = deliveryIntimatedPagingRepository
+						.findByDeliveryIntimatedIdIsIn(deliveryIntimatedIds,
+								pageable);
+				
+			
+
+			}
+
+			break;
+		case DELIVERY_CLUSTER_HEAD:
+
+			DeliveryClusterT deliveryClusterT = deliveryClusterRepository
+					.findByDeliveryClusterHead(loginUser.getUserId());
+			if (deliveryClusterT != null) {
+				List<DeliveryCentreT> deliveryCentres = deliveryCentreRepository
+						.findByDeliveryClusterId(deliveryClusterT
+								.getDeliveryClusterId());
+				if (!CollectionUtils.isEmpty(deliveryCentres)) {
+					List<Integer> deliveryCentreIds = new ArrayList<Integer>();
+					List<String> deliveryIntimatedIds = Lists.newArrayList();
+					for (DeliveryCentreT deliveryCentre : deliveryCentres) {
+						deliveryCentreIds.add(deliveryCentre
+								.getDeliveryCentreId());
+					}
+					deliveryCentreIds.add(-1);
+					deliveryIntimatedIds = deliveryIntimatedCentreLinkRepository
+							.getDeliveryIntimatedIdsByCentreIds(deliveryCentreIds);
+					orderBy = ATTRIBUTE_MAP.get(orderBy);
+					sort = getSortFromOrder(order, orderBy);
+					pageable = new PageRequest(page, count, sort);
+					deliveryIntimatedTs = deliveryIntimatedPagingRepository
+							.findByDeliveryIntimatedIdIsIn(deliveryIntimatedIds,
+									pageable);
+				}
+			}
+			break;
+		default:
+			throw new DestinationException(HttpStatus.FORBIDDEN,
+					"You are not authorised to use this service");
+		}
+		deliveryIntimatedDTO = new PageDTO<DeliveryIntimatedT>();
+		if (deliveryIntimatedTs != null) {
+			
+			removeCyclicReferenceOfDeliveryIntimated(deliveryIntimatedTs.getContent());
+			deliveryIntimatedDTO.setContent(deliveryIntimatedTs.getContent());
+			deliveryIntimatedDTO.setTotalCount(new Long(deliveryIntimatedTs
+					.getTotalElements()).intValue());
+		} else {
+			logger.error("NOT_FOUND: Delivery Master Details not found:");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Delivery Master not found: ");
+		}
+		return deliveryIntimatedDTO;
+	}
+
+
+	private void removeCyclicReferenceOfDeliveryIntimated(
+			List<DeliveryIntimatedT> deliveryIntimatedTs) {
+		for (DeliveryIntimatedT deliveryIntimatedT : deliveryIntimatedTs) {
+			deliveryIntimatedT.setDeliveryMasterTs(null);
+			for(DeliveryIntimatedCentreLinkT deliveryIntimatedCentreLinkT : deliveryIntimatedT.getDeliveryIntimatedCentreLinkTs()) {
+				deliveryIntimatedCentreLinkT.setDeliveryIntimatedT(null);
+				deliveryIntimatedCentreLinkT.getDeliveryCentreT().setDeliveryIntimatedCentreLinkTs(null);
+			}
+		}
 	}
 }
 
