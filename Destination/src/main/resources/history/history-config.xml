@@ -233,4 +233,24 @@
 			</fields>
 		</auditHistoryTable>
 	</auditHistoryEntity>
+	
+	<!-- audit configuration for intimated engagements(Delivery Module stage-intimated) -->
+	<auditHistoryEntity type="inti_engagement">
+		<auditHistoryTable repository="auditDeliveryIntimatedRepository"
+			repoMethod="findByDeliveryIntimatedId" modifiedByField="CreatedModifiedBy"
+			modifiedDateField="CreatedModifiedDatetime" isChildTable="false" operationTypeField="OperationType">
+			<fields>
+				<field name="DeliveryStage" type="DELIVERY_STAGE" label="Engagement Stage"/>
+				<field name="RejectComments" type="NORMAL" label="Comments for rejection"/>
+				<field name="RejectReason" type="NORMAL" label="Reason for rejection"/>
+			</fields>
+		</auditHistoryTable>
+		<auditHistoryTable repository="auditDeliveryIntimatedCentreLinkRepository"
+			repoMethod="findByDeliveryIntimatedId" modifiedByField="CreatedModifiedBy"
+			modifiedDateField="CreatedModifiedDatetime" isChildTable="true" operationTypeField="OperationType">
+			<fields>
+				<field name="DeliveryCentreId" type="DELIVERY_CENTRE" label="Delivery Centre"/>
+			</fields>
+		</auditHistoryTable>
+	</auditHistoryEntity>
 </auditHistoryEntities>

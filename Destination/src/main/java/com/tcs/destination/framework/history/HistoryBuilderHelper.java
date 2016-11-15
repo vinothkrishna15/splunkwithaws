@@ -45,8 +45,8 @@ public class HistoryBuilderHelper {
 	private static final String SPAN_END_TAG ="</span>";
 	
 	
-	private static final Integer OPERATION_ADD = new Integer(1);
-	private static final Integer OPERATION_UPDATE = new Integer(2);
+/*	private static final Integer OPERATION_ADD = new Integer(1);
+	private static final Integer OPERATION_UPDATE = new Integer(2);*/
 	
 	@Autowired
 	private ApplicationContext appContext;
@@ -332,12 +332,12 @@ public class HistoryBuilderHelper {
 	 * @return
 	 */
 	public List<AuditHistoryDTO> groupAuditHistory(
-			List<AuditEntryDTO> entries, Integer entityTypeId) {
+			List<AuditEntryDTO> entries) {
 		List<AuditHistoryDTO> history = Lists.newArrayList();
 		Map<String, List<AuditEntryDTO>> groupEntries= groupEntries(entries);
 		
 		for (Entry<String, List<AuditEntryDTO>> entryGroup : groupEntries.entrySet()) {
-			history.add(constructAuditHistory(entryGroup.getValue(), entityTypeId));
+			history.add(constructAuditHistory(entryGroup.getValue()));
 		}
 		
 		return history;
@@ -372,7 +372,7 @@ public class HistoryBuilderHelper {
 	 * @param entityTypeId
 	 * @return
 	 */
-	private AuditHistoryDTO constructAuditHistory(List<AuditEntryDTO> entries, Integer entityTypeId) {
+	private AuditHistoryDTO constructAuditHistory(List<AuditEntryDTO> entries) {
 		AuditHistoryDTO history = new AuditHistoryDTO();
 		List<String> messages = Lists.newArrayList();
 		if(CollectionUtils.isNotEmpty(entries)) {
@@ -380,7 +380,7 @@ public class HistoryBuilderHelper {
 			history.setUserName(entries.get(0).getUser());
 			history.setOperation(getOperation(entries.get(0).getOperation()));
 			for (AuditEntryDTO entry : entries) {
-				messages.add(constructMessage(entry, entityTypeId));
+				messages.add(constructMessage(entry));
 			}
 
 			history.setMessages(messages);
@@ -402,11 +402,9 @@ public class HistoryBuilderHelper {
 	 * @param entityTypeId
 	 * @return
 	 */
-	private String constructMessage(AuditEntryDTO entry, Integer entityTypeId) {
+	private String constructMessage(AuditEntryDTO entry) {
 		String message;
-		if(entry.isNewEntry()) {
-			message = getNewRequestMessage(entityTypeId);
-		} else if(entry.getFromVal() == null && entry.getToVal() != null) {
+		if(entry.getFromVal() == null && entry.getToVal() != null) {
 			message = getAddionMessage(entry.getFieldName(), entry.getToVal());
 		} else if(entry.getFromVal() != null && entry.getToVal() == null) {
 			message = getRemoveMessage(entry.getFieldName(), entry.getFromVal());

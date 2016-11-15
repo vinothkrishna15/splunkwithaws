@@ -106,7 +106,7 @@ public class AuditDetailService {
 		
 		stepEntries.addAll(entityEntries);
 		//group the audit entries by date and user
-		List<AuditHistoryDTO> auditHistories = historyBuilderHelper.groupAuditHistory(stepEntries, entityTypeId);
+		List<AuditHistoryDTO> auditHistories = historyBuilderHelper.groupAuditHistory(stepEntries);
 		Collections.sort(auditHistories);//sort the list on date
 		logger.info("Ends AuditDetailService :: getWorkFlowHistory");
 		return new AuditHistoryResponseDTO<AuditHistoryDTO>(auditHistories);
@@ -243,7 +243,7 @@ public class AuditDetailService {
 			//get entries from timeline for old opportunities
 			entries = getHistoryFromTimeLine(timeLineHistories, salesCode, startDate);
 		}
-		auditHistories = historyBuilderHelper.groupAuditHistory(entries, EntityTypeId.OPPORTUNITY.getType());
+		auditHistories = historyBuilderHelper.groupAuditHistory(entries);
 		Collections.sort(auditHistories);
 		dto.setHistories(auditHistories);
 		return dto;
@@ -264,7 +264,7 @@ public class AuditDetailService {
 		List<AuditHistoryDTO> auditHistories;
 		List<AuditEntryDTO> entries = mapEntry.getValue();
 		
-		auditHistories = historyBuilderHelper.groupAuditHistory(entries, EntityTypeId.ENGAGEMENT.getType());
+		auditHistories = historyBuilderHelper.groupAuditHistory(entries);
 		Collections.sort(auditHistories);
 		dto.setHistories(auditHistories);
 		return dto;
@@ -480,6 +480,22 @@ public class AuditDetailService {
 		Collections.sort(histories);
 		logger.info("Ends AuditDetailService :: getOpportunityHistory");
 		return new AuditHistoryResponseDTO<AuditEngagementHistoryDTO>(histories);
+	}
+
+	/**
+	 * the service method - to get intiated engagement history
+	 * @param engId
+	 * @return
+	 */
+	public AuditHistoryResponseDTO<AuditHistoryDTO> getIntiEngHistory(
+			String iEngId) {
+		logger.info("Entering AuditDetailService :: getInitEngHistory");
+		List<AuditEntryDTO> entries = historyBuilder.getAuditEntries("inti_engagement", iEngId);
+		
+		List<AuditHistoryDTO> auditHistories = historyBuilderHelper.groupAuditHistory(entries);
+		Collections.sort(auditHistories);//sort the list on date
+		logger.info("Ends AuditDetailService :: getInitEngHistory");
+		return new AuditHistoryResponseDTO<AuditHistoryDTO>(auditHistories);
 	}
 
 }
