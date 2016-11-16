@@ -34,4 +34,8 @@ public enum DeliveryStage {
 		return null;
 	}
 	
+	public static int getTotalNumberOfStages() {
+		return DeliveryStage.values().length;
+	}
+	
 }

@@ -79,8 +79,6 @@ public class DeliveryMasterService {
 
 	private static final Logger logger = LoggerFactory.getLogger(DeliveryMasterService.class);
 
-	private static final int numDeliveryStages = 6;
-
 	@Autowired
 	DeliveryMasterRepository deliveryMasterRepository;
 
@@ -188,7 +186,7 @@ public class DeliveryMasterService {
 			}
 			break;
 		case STRATEGIC_INITIATIVES:
-			requiredStages = getRequiredStages(stages, DeliveryStage.INTIMATED.getStageCode());
+			requiredStages = getRequiredStages(stages, DeliveryStage.ACCEPTED.getStageCode());
 			
 			List<DeliveryCentreT> deliveryCentresSI = (List<DeliveryCentreT>) deliveryCentreRepository.findAll();
 			 if(!CollectionUtils.isEmpty(deliveryCentresSI)){
@@ -209,7 +207,7 @@ public class DeliveryMasterService {
 			 break;
 		case DELIVERY_CLUSTER_HEAD:
 			
-			requiredStages = getRequiredStages(stages, DeliveryStage.INTIMATED.getStageCode());
+			requiredStages = getRequiredStages(stages, DeliveryStage.ACCEPTED.getStageCode());
 			
 			DeliveryClusterT deliveryClusterT = deliveryClusterRepository
 					.findByDeliveryClusterHead(loginUser.getUserId());
@@ -275,7 +273,7 @@ public class DeliveryMasterService {
 	private List<Integer> getRequiredStages(List<Integer> stages, Integer stageFrom) {
 		 List<Integer> requiredStages = Lists.newArrayList();
 		if (stages.contains(new Integer(-1))) {
-			for (int i = stageFrom.intValue(); i < numDeliveryStages; i++)
+			for (int i = stageFrom.intValue(); i < DeliveryStage.getTotalNumberOfStages(); i++)
 				requiredStages.add(i);
 		} else {
 			requiredStages.addAll(stages);
@@ -944,11 +942,11 @@ public class DeliveryMasterService {
 		List<Integer> deliveryCentreIds = null;
 		List<Integer> stages = new ArrayList<Integer>();
 		List<String> deliveryMasterIds = new ArrayList<String>();
-
+		Integer acceptedStageCode = DeliveryStage.ACCEPTED.getStageCode();
 		switch (UserGroup.valueOf(UserGroup.getName(loginUserGroup))) {
 		case DELIVERY_CENTRE_HEAD:
 			if (stage == -1) {
-				for (int i = 1; i < numDeliveryStages; i++)
+				for (int i = acceptedStageCode; i < DeliveryStage.getTotalNumberOfStages(); i++)
 					stages.add(i);
 			} else {
 				stages.add(stage);
@@ -966,7 +964,7 @@ public class DeliveryMasterService {
 			break;
 		case STRATEGIC_INITIATIVES:
 			if (stage == -1) {
-				for (int i = 0; i < numDeliveryStages; i++)
+				for (int i = acceptedStageCode; i < DeliveryStage.getTotalNumberOfStages(); i++)
 					stages.add(i);
 			} else {
 				stages.add(stage);
@@ -984,7 +982,8 @@ public class DeliveryMasterService {
 		case DELIVERY_CLUSTER_HEAD:
 
 			if (stage == -1) {
-				for (int i = 0; i < numDeliveryStages; i++)
+				
+				for (int i = acceptedStageCode; i < DeliveryStage.getTotalNumberOfStages(); i++)
 					stages.add(i);
 			} else {
 				stages.add(stage);
@@ -1008,7 +1007,7 @@ public class DeliveryMasterService {
 			break;
 		case DELIVERY_MANAGER:
 			if (stage == -1) {
-				for (int i = 2; i < numDeliveryStages; i++)
+				for (int i = DeliveryStage.ASSIGNED.getStageCode(); i < DeliveryStage.getTotalNumberOfStages(); i++)
 					stages.add(i);
 			} else {
 				stages.add(stage);
@@ -1160,7 +1159,7 @@ public class DeliveryMasterService {
 			int count) {
 		PageDTO<DeliveryIntimatedT> deliveryIntimatedDTO = null;
 
-		logger.debug("Starting findEngagements deliveryMasterService");
+		logger.debug("Starting getDeliveryIntimated deliveryMasterService");
 
 		UserT loginUser = DestinationUtils.getCurrentUserDetails();
 		String loginUserGroup = loginUser.getUserGroup();
@@ -1170,7 +1169,6 @@ public class DeliveryMasterService {
 		Pageable pageable = null;
 		switch (UserGroup.valueOf(UserGroup.getName(loginUserGroup))) {
 		case STRATEGIC_INITIATIVES:
-
 			List<DeliveryCentreT> deliveryCentresSI = (List<DeliveryCentreT>) deliveryCentreRepository
 					.findAll();
 			if (!CollectionUtils.isEmpty(deliveryCentresSI)) {
@@ -1180,20 +1178,16 @@ public class DeliveryMasterService {
 					deliveryCentreIds.add(deliveryCentre.getDeliveryCentreId());
 				}
 				deliveryCentreIds.add(-1);
-				
 				deliveryIntimatedIds = deliveryIntimatedCentreLinkRepository
 						.getDeliveryIntimatedIdsByCentreIds(deliveryCentreIds);
-				
 				orderBy = ATTRIBUTE_MAP.get(orderBy);
 				sort = getSortFromOrder(order, orderBy);
 				pageable = new PageRequest(page, count, sort);
-				
-				deliveryIntimatedTs = deliveryIntimatedPagingRepository
-						.findByDeliveryIntimatedIdIsInAndAcceptedFalse(deliveryIntimatedIds,
-								pageable);
-				
-			
-
+				if(CollectionUtils.isNotEmpty(deliveryIntimatedIds)) {
+					deliveryIntimatedTs = deliveryIntimatedPagingRepository
+							.findByDeliveryIntimatedIdIsInAndAcceptedFalse(deliveryIntimatedIds,
+									pageable);
+				}
 			}
 
 			break;
@@ -1218,9 +1212,11 @@ public class DeliveryMasterService {
 					orderBy = ATTRIBUTE_MAP.get(orderBy);
 					sort = getSortFromOrder(order, orderBy);
 					pageable = new PageRequest(page, count, sort);
-					deliveryIntimatedTs = deliveryIntimatedPagingRepository
-							.findByDeliveryIntimatedIdIsInAndAcceptedFalse(deliveryIntimatedIds,
-									pageable);
+					if(CollectionUtils.isNotEmpty(deliveryIntimatedIds)) {
+						deliveryIntimatedTs = deliveryIntimatedPagingRepository
+								.findByDeliveryIntimatedIdIsInAndAcceptedFalse(deliveryIntimatedIds,
+										pageable);
+					}
 				}
 			}
 			break;
@@ -1236,9 +1232,9 @@ public class DeliveryMasterService {
 			deliveryIntimatedDTO.setTotalCount(new Long(deliveryIntimatedTs
 					.getTotalElements()).intValue());
 		} else {
-			logger.error("NOT_FOUND: Delivery Master Details not found:");
+			logger.error("NOT_FOUND: Intimated Deliveries not found");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Delivery Master not found: ");
+					"Intimated Deliveries not found");
 		}
 		return deliveryIntimatedDTO;
 	}

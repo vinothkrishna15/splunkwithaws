@@ -96,29 +96,40 @@ public interface DeliveryMasterRepository extends JpaRepository<DeliveryMasterT,
 			+ " where DMT.delivery_centre_id in (:deliveryCentreIds) and DMT.delivery_stage IN (:deliveryStages) GROUP BY DSMT.stage", nativeQuery = true)
 	List<Object[]> findEngagementByDeliveryStage(@Param ("deliveryCentreIds") List<Integer> deliveryCentreIds,
 			@Param ("deliveryStages") List<Integer> deliveryStages);
-
-	@Query(value="select  CMT.geography, count(*) from opportunity_t OPP JOIN delivery_master_t DMT ON (OPP.opportunity_id = DMT.opportunity_id)"
-			+ " JOIN customer_master_t CMT ON CMT.customer_id = OPP.customer_id where DMT.delivery_centre_id in (:deliveryCentreIds) and DMT.delivery_stage "
-			+ " IN (:deliveryStages) GROUP BY CMT.geography", nativeQuery=true)
+	
+	@Query(value="select GMT.display_geography, count(*) from delivery_master_t DMT join opportunity_t OPP on "
+			+ "DMT.opportunity_id = OPP.opportunity_id join customer_master_t CMT on "
+			+ "CMT.customer_id = OPP.customer_id join geography_mapping_t GMT on "
+			+ "CMT.geography = GMT.geography where DMT.delivery_centre_id in (:deliveryCentreIds) "
+			+ "and DMT.delivery_stage IN (:deliveryStages) and GMT.active = 'true' "
+			+ "GROUP BY GMT.display_geography", nativeQuery=true)
 	List<Object[]> findEngagementByGeography(@Param ("deliveryCentreIds") List<Integer> deliveryCentreIds,
 			@Param ("deliveryStages") List<Integer> deliveryStages);
-
-	@Query(value="select  OSLT.sub_sp, count(*) from opportunity_t OPP JOIN delivery_master_t DMT ON (OPP.opportunity_id = DMT.opportunity_id) "
-			+ " JOIN opportunity_sub_sp_link_t OSLT ON OSLT.opportunity_id = OPP.opportunity_id where DMT.delivery_centre_id in (:deliveryCentreIds) and"
-			+ " DMT.delivery_stage IN (:deliveryStages) and OSLT.subsp_primary = 'true' GROUP BY OSLT.sub_sp", nativeQuery = true)
+	
+	@Query(value="select SSMT.display_sub_sp, count(*) from delivery_master_t DMT JOIN opportunity_t OPP ON "
+			+ "OPP.opportunity_id = DMT.opportunity_id JOIN opportunity_sub_sp_link_t OSLT ON "
+			+ "OSLT.opportunity_id = OPP.opportunity_id join sub_sp_mapping_t SSMT on "
+			+ "OSLT.sub_sp = SSMT.sub_sp where DMT.delivery_centre_id in (:deliveryCentreIds) and "
+			+ "DMT.delivery_stage IN (:deliveryStages) and OSLT.subsp_primary = 'true' and "
+			+ "SSMT.active = 'true' GROUP BY SSMT.display_sub_sp", nativeQuery=true)
 	List<Object[]> findEngagementBySubsp(@Param ("deliveryCentreIds") List<Integer> deliveryCentreIds,
 			@Param ("deliveryStages") List<Integer> deliveryStages);
 
 	// delivery dashboard for Delivery managers
-	@Query(value="select  CMT.geography, count(*) from opportunity_t OPP JOIN delivery_master_t DMT ON (OPP.opportunity_id = DMT.opportunity_id)"
-			+ " JOIN customer_master_t CMT ON CMT.customer_id = OPP.customer_id where DMT.delivery_master_id in (:deliveryMasterIds) and DMT.delivery_stage "
-			+ " IN (:deliveryStages) GROUP BY CMT.geography", nativeQuery=true)
+	@Query(value="select GMT.display_geography, count(*) from delivery_master_t DMT join opportunity_t OPP on "
+			+ "OPP.opportunity_id = DMT.opportunity_id JOIN customer_master_t CMT ON "
+			+ "CMT.customer_id = OPP.customer_id join geography_mapping_t GMT on "
+			+ "CMT.geography = GMT.geography where DMT.delivery_master_id in (:deliveryMasterIds) and "
+			+ "DMT.delivery_stage IN (:deliveryStages) and GMT.active = 'true' GROUP BY GMT.display_geography", nativeQuery=true)
 	List<Object[]> findEngagementByGeographyForDM(@Param ("deliveryMasterIds") List<String> deliveryMasterIds,
 			@Param ("deliveryStages") List<Integer> deliveryStages);
-
-	@Query(value="select  OSLT.sub_sp, count(*) from opportunity_t OPP JOIN delivery_master_t DMT ON (OPP.opportunity_id = DMT.opportunity_id) "
-			+ " JOIN opportunity_sub_sp_link_t OSLT ON OSLT.opportunity_id = OPP.opportunity_id where DMT.delivery_master_id in (:deliveryMasterIds) and"
-			+ " DMT.delivery_stage IN (:deliveryStages) and OSLT.subsp_primary = 'true' GROUP BY OSLT.sub_sp", nativeQuery = true)
+	
+	@Query(value="select SSMT.display_sub_sp, count(*) from delivery_master_t DMT JOIN opportunity_t OPP ON "
+			+ "OPP.opportunity_id = DMT.opportunity_id JOIN opportunity_sub_sp_link_t OSLT ON "
+			+ "OSLT.opportunity_id = OPP.opportunity_id join sub_sp_mapping_t SSMT on "
+			+ "OSLT.sub_sp = SSMT.sub_sp where DMT.delivery_master_id in (:deliveryMasterIds) and "
+			+ "DMT.delivery_stage IN (:deliveryStages) and OSLT.subsp_primary = 'true' and "
+			+ "SSMT.active = 'true' GROUP BY SSMT.display_sub_sp", nativeQuery = true)
 	List<Object[]> findEngagementBySubspForDM(@Param ("deliveryMasterIds") List<String> deliveryMasterIds,
 			@Param ("deliveryStages") List<Integer> deliveryStages);
 

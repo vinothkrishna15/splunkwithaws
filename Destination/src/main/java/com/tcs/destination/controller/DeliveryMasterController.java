@@ -336,7 +336,7 @@ public class DeliveryMasterController {
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					"Backend error in retrieving the deliveryMaster list");
+					"Backend error in retrieving the deliveryIntimated list");
 		}
 		logger.info("Inside DeliveryMasterController: End of findAllIntimated GET");
 		return response;
