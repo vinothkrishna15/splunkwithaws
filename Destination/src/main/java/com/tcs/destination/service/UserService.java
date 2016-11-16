@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +63,6 @@ import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationMailUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
-import com.tcs.destination.utils.StringUtils;
 
 /**
  * 
@@ -867,7 +867,7 @@ public class UserService {
 	 */
 	private String getTempPassword() {
 		logger.info("Inside getTempPassword() method");
-		String tempPassword=StringUtils.generateRandomString(defaultPasswordLength);
+		String tempPassword=com.tcs.destination.utils.StringUtils.generateRandomString(defaultPasswordLength);
 		
 		return tempPassword;
 	}
@@ -957,8 +957,10 @@ public class UserService {
 		// validate user
 		validateUser(user, true);
 		if (userRepository.save(user) != null) {
-			//TODO check user group and modify settings
-//			saveOrUpdateUserGeneralSettings(user);//update user general settings
+			if(!StringUtils.equals(userT.getUserGroup(), user.getUserGroup())) {
+				//modify settings, if usergroup changed
+				saveOrUpdateUserGeneralSettings(user);//update user general settings
+			}
 			updateUserPrivileges(user);//update user access privileges
 			saveOrUpdateUserGoals(user);//update user goals
 			logger.info("End:inside updateUserDetails() of UserService: user Saved : " + user.getUserId());
