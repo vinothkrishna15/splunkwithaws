@@ -90,7 +90,7 @@
 			repoMethod="findByOldOpportunityId" modifiedByField="CreatedModifiedBy"
 			modifiedDateField="CreatedModifiedDatetime" isChildTable="true" operationTypeField="OperationType">
 			<fields>
-				<field name="OldWinLossFactor" type="CONTACT_ID" label="Win Loss Factor"/>
+				<field name="OldWinLossFactor" type="NORMAL" label="Win Loss Factor"/>
 			</fields>
 		</auditHistoryTable>
 		<auditHistoryTable repository="auditBidDetailsTRepository"
