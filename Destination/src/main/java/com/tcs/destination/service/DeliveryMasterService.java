@@ -40,7 +40,6 @@ import com.tcs.destination.bean.DeliveryRequirementT;
 import com.tcs.destination.bean.DeliveryResourcesT;
 import com.tcs.destination.bean.DeliveryRgsT;
 import com.tcs.destination.bean.EngagementDashboardDTO;
-import com.tcs.destination.bean.OpportunityDeliveryCentreMappingT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.SearchResultDTO;
@@ -686,25 +685,6 @@ public class DeliveryMasterService {
 
 	}
 
-
-	/**
-	 * This method is used to save the delivery master details for each delivery centre 
-	 * 
-	 * @param opportunity
-	 * @param opportunityDeliveryCentreMappingT
-	 */
-	public void createDeliveryMaster(OpportunityT opportunity,
-			OpportunityDeliveryCentreMappingT opportunityDeliveryCentreMappingT) {
-		logger.info("Inside saveDeliveryMaster() method");
-		DeliveryMasterT deliveryMasterT= new DeliveryMasterT();
-		deliveryMasterT.setOpportunityId(opportunity.getOpportunityId());
-		deliveryMasterT.setDeliveryCentreId(opportunityDeliveryCentreMappingT.getDeliveryCentreId());
-		deliveryMasterT.setDeliveryStage(0);
-		deliveryMasterT.setCreatedBy(Constants.SYSTEM_USER);
-		deliveryMasterT.setModifiedBy(Constants.SYSTEM_USER);
-		deliveryMasterRepository.save(deliveryMasterT);
-	}
-
 	public List<String> searchByDeliveryRgsId(String idLike, int limitNum) throws Exception {
 		logger.debug("Inside searchByDeliveryRgsId() service");
 		List<String> response = deliveryRgsTRepository.findByRgsIdPattern(idLike + '%', limitNum);
@@ -1321,6 +1301,121 @@ public class DeliveryMasterService {
 			}
 		}
 		return deliveryCentreMap;
+	}
+
+	/**
+	 * updates the intimated delivery and creates engagement for each centres if accepted
+	 * @param deliveryIntimatedT
+	 * @return
+	 */
+	public List<AsyncJobRequest> updateDeliveryIntimated(
+			DeliveryIntimatedT deliveryIntimatedT) {
+		logger.debug("Inside updateDeliveryIntimated method");
+		List<AsyncJobRequest> asyncJobRequests = Lists.newArrayList();
+		UserT currentUser = DestinationUtils.getCurrentUserDetails();
+		String currentUserId = currentUser.getUserId();
+		String userGroup = currentUser.getUserGroup();
+		validateDeliveryIntimated(deliveryIntimatedT, userGroup);
+		deliveryIntimatedT.setModifiedBy(currentUserId);
+		deliveryIntimatedRepository.save(deliveryIntimatedT);
+		updateDeliveryIntimatedCentres(deliveryIntimatedT,currentUserId);
+		//If the intimated delivery accepted, creating each engagement per delivery centre tagged
+		if(deliveryIntimatedT.getAccepted()) {
+			createEngagement(deliveryIntimatedT,currentUserId);
+		}
+		//TODO Creating job requests for mails
+		return asyncJobRequests;
+	}
+
+
+	private void createEngagement(DeliveryIntimatedT deliveryIntimatedT, String currentUserId) {
+		if (CollectionUtils.isNotEmpty(deliveryIntimatedT
+				.getDeliveryIntimatedCentreLinkTs())) {
+			for (DeliveryIntimatedCentreLinkT deliveryIntimatedCentreLinkT : deliveryIntimatedT
+					.getDeliveryIntimatedCentreLinkTs()) {
+				DeliveryMasterT deliveryMasterT = new DeliveryMasterT();
+				deliveryMasterT.setCreatedBy(currentUserId);
+				deliveryMasterT
+				.setDeliveryCentreId(deliveryIntimatedCentreLinkT
+						.getDeliveryCentreId());
+				deliveryMasterT.setDeliveryIntimatedId(deliveryIntimatedT
+						.getDeliveryIntimatedId());
+				deliveryMasterT.setDeliveryStage(DeliveryStage.ACCEPTED
+						.getStageCode());
+				deliveryMasterT.setModifiedBy(currentUserId);
+				deliveryMasterT.setOpportunityId(deliveryIntimatedT
+						.getOpportunityId());
+				deliveryMasterRepository.save(deliveryMasterT);
+			}
+		}
+	}
+
+
+	/**
+	 * Updates the delivery intimated centres
+	 * @param deliveryIntimatedT
+	 * @param currentUserId
+	 */
+	private void updateDeliveryIntimatedCentres(
+			DeliveryIntimatedT deliveryIntimatedT, String currentUserId) {
+		logger.debug("updateDeliveryIntimatedCentres");
+		String deliveryIntimatedId = deliveryIntimatedT
+				.getDeliveryIntimatedId();
+		List<String> storedCentres = deliveryIntimatedCentreLinkRepository
+				.getIdByDeliveryIntimatedId(deliveryIntimatedId);
+		List<DeliveryIntimatedCentreLinkT> deliveryIntimatedCentreLinkTs = deliveryIntimatedT
+				.getDeliveryIntimatedCentreLinkTs();
+		if (CollectionUtils.isNotEmpty(deliveryIntimatedCentreLinkTs)) {
+			for (DeliveryIntimatedCentreLinkT deliveryIntimatedCentreLinkT : deliveryIntimatedCentreLinkTs) {
+				String deliveryIntimatedCentreLinkId = deliveryIntimatedCentreLinkT
+						.getDeliveryIntimatedCentreLinkId();
+				if (deliveryIntimatedCentreLinkId != null
+						&& CollectionUtils.isNotEmpty(storedCentres)) {
+					storedCentres.remove(deliveryIntimatedCentreLinkId);
+				}
+				deliveryIntimatedCentreLinkT.setCreatedBy(currentUserId);
+				deliveryIntimatedCentreLinkT
+						.setDeliveryIntimatedId(deliveryIntimatedId);
+				deliveryIntimatedCentreLinkRepository
+						.save(deliveryIntimatedCentreLinkT);
+			}
+		}
+		deleteRemovedDeliveryIntimatedCentres(storedCentres);
+	}
+
+	/**
+	 * Deleting removed delivery centres
+	 * @param removedCentres
+	 */
+	private void deleteRemovedDeliveryIntimatedCentres(
+			List<String> removedCentres) {
+		if (CollectionUtils.isNotEmpty(removedCentres)) {
+			for (String removedCentreId : removedCentres) {
+				deliveryIntimatedCentreLinkRepository.delete(removedCentreId);
+			}
+		}
+	}
+
+	
+	private void validateDeliveryIntimated(
+			DeliveryIntimatedT deliveryIntimatedT, String userGroup) {
+		switch (UserGroup.getUserGroup(userGroup)) {
+		case DELIVERY_CLUSTER_HEAD:
+		case STRATEGIC_INITIATIVES:
+			if (StringUtils
+					.isEmpty(deliveryIntimatedT.getDeliveryIntimatedId())) {
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Delivery Intimated Id is required for update");
+			} else if (!deliveryIntimatedRepository.exists(deliveryIntimatedT
+					.getDeliveryIntimatedId())) {
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"Delivery Intimated Details not found for given id");
+			}
+			break;
+		default:
+			throw new DestinationException(HttpStatus.FORBIDDEN,
+					"User is not authorised to access this service");
+		}
 	}
 
 }

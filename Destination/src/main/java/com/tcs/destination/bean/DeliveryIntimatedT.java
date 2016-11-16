@@ -32,7 +32,7 @@ public class DeliveryIntimatedT implements Serializable {
 
 	private Boolean accepted;
 
-	@Column(name="created_datetime")
+	@Column(name="created_datetime", updatable=false)
 	private Timestamp createdDatetime;
 
 	@Column(name="modified_datetime")
@@ -44,7 +44,7 @@ public class DeliveryIntimatedT implements Serializable {
 	@Column(name="reject_reason")
 	private String rejectReason;
 	
-	@Column(name="created_by")
+	@Column(name="created_by", updatable=false)
 	private String createdBy;
 	
 	@Column(name="modified_by")

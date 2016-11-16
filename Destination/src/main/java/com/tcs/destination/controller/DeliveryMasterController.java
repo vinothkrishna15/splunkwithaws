@@ -377,4 +377,50 @@ public class DeliveryMasterController {
 		logger.info("Inside DeliveryMasterController: End of search by intimate id");
 		return response;
 	}
+	
+	/**
+	 * updates the intimated delivery and creates engagement for each centres if accepted
+	 * @param deliveryIntimatedT
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/update/intimated" ,method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> editDeliveryIntimated(
+			@RequestBody DeliveryIntimatedT deliveryIntimatedT,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Inside DeliveryMasterController: Start of editDeliveryIntimated");
+		Status status = new Status();
+		status.setStatus(Status.FAILED, "");
+		try {
+			List<AsyncJobRequest> asyncJobRequests = deliveryMasterService
+					.updateDeliveryIntimated(deliveryIntimatedT);
+			for (AsyncJobRequest asyncJobRequest : asyncJobRequests) {
+				if (asyncJobRequest.getOn().equals(Switch.ON)) {
+					jobLauncherController.asyncJobLaunch(asyncJobRequest
+							.getJobName(), asyncJobRequest.getEntityType()
+							.name(), asyncJobRequest.getEntityId(),
+							asyncJobRequest.getDealValue(), asyncJobRequest
+									.getDeliveryCentreId());
+				}
+			}
+			status.setStatus(Status.SUCCESS,
+					deliveryIntimatedT.getDeliveryIntimatedId());
+			logger.info("Inside DeliveryMasterController: End of editDeliveryIntimated");
+
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while updating delivery intimated");
+		}
+
+	}
 }

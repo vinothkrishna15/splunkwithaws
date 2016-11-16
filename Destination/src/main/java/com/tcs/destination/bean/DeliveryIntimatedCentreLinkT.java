@@ -29,10 +29,10 @@ public class DeliveryIntimatedCentreLinkT implements Serializable {
 	@Column(name="delivery_intimated_centre_link_id")
 	private String deliveryIntimatedCentreLinkId;
 
-	@Column(name="created_datetime")
+	@Column(name="created_datetime", updatable=false)
 	private Timestamp createdDatetime;
 	
-	@Column(name="created_by")
+	@Column(name="created_by", updatable=false)
 	private String createdBy;
 	
 	@Column(name="delivery_centre_id")
