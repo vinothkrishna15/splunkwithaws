@@ -156,13 +156,13 @@ public class DeliveryMasterService {
 		String loginUserGroup = loginUser.getUserGroup();
 
 		List<Integer> requiredStages = new ArrayList<Integer>();
-		
+
 		Page<DeliveryMasterT> deliveryMasterTs = null;
-		
+
 		orderBy = ATTRIBUTE_MAP.get(orderBy);
 		Sort sort = getSortFromOrder(order,orderBy);
 		Pageable pageable = new PageRequest(page, count, sort);
-		
+
 		switch (UserGroup.valueOf(UserGroup.getName(loginUserGroup))) {
 		case DELIVERY_CENTRE_HEAD:
 			DeliveryCentreT deliveryCentreT = deliveryCentreRepository.findByDeliveryCentreHead(loginUser.getUserId());
@@ -180,15 +180,15 @@ public class DeliveryMasterService {
 			List<Integer> deliveryCentreIds = deliveryCentreRepository.findAllDeliveryCentreIds();
 
 			if(!CollectionUtils.isEmpty(deliveryCentreIds)){
-				 deliveryMasterTs = deliveryMasterPagingRepository
-						 .findByDeliveryCentreIdInAndDeliveryStageIn(
-								 deliveryCentreIds, requiredStages, pageable);
-			 }
-			 break;
+				deliveryMasterTs = deliveryMasterPagingRepository
+						.findByDeliveryCentreIdInAndDeliveryStageIn(
+								deliveryCentreIds, requiredStages, pageable);
+			}
+			break;
 		case DELIVERY_CLUSTER_HEAD:
 			requiredStages = getRequiredStages(stages, DeliveryStage.ACCEPTED.getStageCode());
 			List<Integer> dCentreIds = deliveryCentreRepository.findAllCentreIdsOfCluster(loginUser.getUserId());
-			
+
 			if(!CollectionUtils.isEmpty(dCentreIds)) {
 				deliveryMasterTs = deliveryMasterPagingRepository
 						.findByDeliveryCentreIdInAndDeliveryStageIn(
@@ -197,26 +197,18 @@ public class DeliveryMasterService {
 			break;
 		case DELIVERY_MANAGER:
 			requiredStages = getRequiredStages(stages, DeliveryStage.ASSIGNED.getStageCode());
-			
-			String managerId = loginUser.getUserId();
-			List<DeliveryMasterManagerLinkT> deliveryMasterManagerList = deliveryMasterManagerLinkRepository.findByDeliveryManagerId(managerId);
-			if(CollectionUtils.isEmpty(deliveryMasterManagerList)){
-				logger.error("NOT_FOUND: Delivery Master details not found");
-				throw new DestinationException(HttpStatus.NOT_FOUND,
-						"Delivery Master details not found");
-			} else {
-			List<String> deliveryMasterIds = new ArrayList<String>();
-			for(DeliveryMasterManagerLinkT deliveryMasterManagerLinkT:deliveryMasterManagerList){
-			deliveryMasterIds.add(deliveryMasterManagerLinkT.getDeliveryMasterId());
-			}
-			deliveryMasterTs = deliveryMasterPagingRepository
-			.findByDeliveryMasterIdInAndDeliveryStageIn(
-			deliveryMasterIds, requiredStages, pageable);
+			List<String> deliveryMasterIds = deliveryMasterManagerLinkRepository.findDeliveryIdsByManagerId(loginUser.getUserId());
+
+			if(CollectionUtils.isNotEmpty(deliveryMasterIds)) {
+				deliveryMasterTs = deliveryMasterPagingRepository
+						.findByDeliveryMasterIdInAndDeliveryStageIn(
+								deliveryMasterIds, requiredStages, pageable);
 			}
 			break;
 		default:
 			break;
 		}
+		
 		deliveryMasterDTO = new PageDTO<DeliveryMasterT>();
 		if (deliveryMasterTs != null) {
 			deliveryMasterDTO.setContent(deliveryMasterTs.getContent());
