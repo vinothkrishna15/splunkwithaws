@@ -158,84 +158,46 @@ public class DeliveryMasterService {
 		List<Integer> requiredStages = new ArrayList<Integer>();
 		
 		Page<DeliveryMasterT> deliveryMasterTs = null;
-		Sort sort = null;
-		Pageable pageable = null;
+		
+		orderBy = ATTRIBUTE_MAP.get(orderBy);
+		Sort sort = getSortFromOrder(order,orderBy);
+		Pageable pageable = new PageRequest(page, count, sort);
+		
 		switch (UserGroup.valueOf(UserGroup.getName(loginUserGroup))) {
 		case DELIVERY_CENTRE_HEAD:
-			requiredStages = getRequiredStages(stages, DeliveryStage.ACCEPTED.getStageCode());
-			
-			DeliveryCentreT deliveryCentreT = deliveryCentreRepository
-					.findByDeliveryCentreHead(loginUser.getUserId());
+			DeliveryCentreT deliveryCentreT = deliveryCentreRepository.findByDeliveryCentreHead(loginUser.getUserId());
 			if (deliveryCentreT != null) {
-				Integer deliveryCentreId = deliveryCentreT
-						.getDeliveryCentreId();
-
-				List<Integer> deliveryCentreIds = new ArrayList<Integer>();
-				deliveryCentreIds.add(deliveryCentreId);
-				deliveryCentreIds.add(-1);
-
-				orderBy = ATTRIBUTE_MAP.get(orderBy);
-				sort = getSortFromOrder(order,orderBy);
-				pageable = new PageRequest(page, count, sort);
+				List<Integer> deliveryCentreIds = Lists.newArrayList(deliveryCentreT.getDeliveryCentreId());
+				requiredStages = getRequiredStages(stages, DeliveryStage.ACCEPTED.getStageCode());
 
 				deliveryMasterTs = deliveryMasterPagingRepository
 						.findByDeliveryCentreIdInAndDeliveryStageIn(
 								deliveryCentreIds, requiredStages, pageable);
-
 			}
 			break;
 		case STRATEGIC_INITIATIVES:
 			requiredStages = getRequiredStages(stages, DeliveryStage.ACCEPTED.getStageCode());
-			
-			List<DeliveryCentreT> deliveryCentresSI = (List<DeliveryCentreT>) deliveryCentreRepository.findAll();
-			 if(!CollectionUtils.isEmpty(deliveryCentresSI)){
-					List<Integer> deliveryCentreIds = new ArrayList<Integer>();
-					for (DeliveryCentreT deliveryCentre : deliveryCentresSI) {
-						deliveryCentreIds.add(deliveryCentre.getDeliveryCentreId());
-					}
-					orderBy = ATTRIBUTE_MAP.get(orderBy);
-					sort = getSortFromOrder(order,orderBy);
-					pageable = new PageRequest(page, count, sort);
-					deliveryMasterTs = deliveryMasterPagingRepository
-								.findByDeliveryCentreIdInAndDeliveryStageIn(
-										deliveryCentreIds, requiredStages, pageable);
-						
-					
+			List<Integer> deliveryCentreIds = deliveryCentreRepository.findAllDeliveryCentreIds();
+
+			if(!CollectionUtils.isEmpty(deliveryCentreIds)){
+				 deliveryMasterTs = deliveryMasterPagingRepository
+						 .findByDeliveryCentreIdInAndDeliveryStageIn(
+								 deliveryCentreIds, requiredStages, pageable);
 			 }
-			 
 			 break;
 		case DELIVERY_CLUSTER_HEAD:
-			
 			requiredStages = getRequiredStages(stages, DeliveryStage.ACCEPTED.getStageCode());
+			List<Integer> dCentreIds = deliveryCentreRepository.findAllCentreIdsOfCluster(loginUser.getUserId());
 			
-			DeliveryClusterT deliveryClusterT = deliveryClusterRepository
-					.findByDeliveryClusterHead(loginUser.getUserId());
-			if(deliveryClusterT!=null){
-			List<DeliveryCentreT> deliveryCentres = deliveryCentreRepository
-					.findByDeliveryClusterId(deliveryClusterT
-							.getDeliveryClusterId());
-            if(!CollectionUtils.isEmpty(deliveryCentres)){
-			List<Integer> deliveryCentreIds = new ArrayList<Integer>();
-			for (DeliveryCentreT deliveryCentre : deliveryCentres) {
-				deliveryCentreIds.add(deliveryCentre.getDeliveryCentreId());
-			}
-			deliveryCentreIds.add(-1);
-			
-			orderBy = ATTRIBUTE_MAP.get(orderBy);
-			sort = getSortFromOrder(order,orderBy);
-			pageable = new PageRequest(page, count, sort);
-			deliveryMasterTs = deliveryMasterPagingRepository
-					.findByDeliveryCentreIdInAndDeliveryStageIn(
-							deliveryCentreIds, requiredStages, pageable);
-            }
+			if(!CollectionUtils.isEmpty(dCentreIds)) {
+				deliveryMasterTs = deliveryMasterPagingRepository
+						.findByDeliveryCentreIdInAndDeliveryStageIn(
+								dCentreIds, requiredStages, pageable);
 			}
 			break;
 		case DELIVERY_MANAGER:
 			requiredStages = getRequiredStages(stages, DeliveryStage.ASSIGNED.getStageCode());
 			
-			orderBy = ATTRIBUTE_MAP.get(orderBy);
-			sort = getSortFromOrder(order,orderBy);
-			pageable = new PageRequest(page, count, sort);
 			String managerId = loginUser.getUserId();
 			List<DeliveryMasterManagerLinkT> deliveryMasterManagerList = deliveryMasterManagerLinkRepository.findByDeliveryManagerId(managerId);
 			if(CollectionUtils.isEmpty(deliveryMasterManagerList)){
