@@ -14,73 +14,38 @@ public interface DeliveryMasterRepository extends JpaRepository<DeliveryMasterT,
 
 	/*------------------Start of delivery smart search queries-------------------*/
 	
-	@Query(value="SELECT * FROM delivery_master_t where (delivery_stage in (:stages) OR (-1) in (:stages)) AND delivery_centre_id in (SELECT delivery_centre_id FROM delivery_centre_t where delivery_cluster_id in ("
-			+ " SELECT delivery_cluster_id FROM delivery_cluster_t WHERE delivery_cluster_head=(:userId))  OR delivery_centre_id=-1) AND "
-			+ " UPPER(opportunity_id) like UPPER(:term) ORDER BY modified_datetime DESC LIMIT CASE WHEN :getAll THEN null ELSE 3 END",nativeQuery=true)
-	List<DeliveryMasterT> searchDeliveryClusterDetailsById(@Param("term") String term,
-			@Param("getAll") boolean getAll, @Param("userId") String userId, @Param("stages") List<Integer> stages);
-
-	@Query(value="SELECT * FROM delivery_master_t where (delivery_stage in (:stages) OR (-1) in (:stages)) AND delivery_centre_id in (SELECT delivery_centre_id FROM delivery_centre_t WHERE delivery_centre_head=(:userId)) AND "
-			+ " UPPER(opportunity_id) like UPPER(:term) ORDER BY modified_datetime DESC LIMIT CASE WHEN :getAll THEN null ELSE 3 END",nativeQuery=true)
-	List<DeliveryMasterT> searchDeliveryCentreDetailsById(@Param("term") String term,
-			@Param("getAll") boolean getAll, @Param("userId") String userId, @Param("stages") List<Integer> stages);
-
-	@Query(value="SELECT * FROM delivery_master_t where (delivery_stage in (:stages) OR (-1) in (:stages)) AND delivery_master_id in (SELECT delivery_master_id FROM delivery_master_manager_link_t WHERE delivery_manager_id=(:userId))"
-			+ " AND UPPER(opportunity_id) like UPPER(:term) ORDER BY modified_datetime DESC LIMIT CASE WHEN :getAll THEN null ELSE 3 END",nativeQuery=true)
-	List<DeliveryMasterT> searchDeliveryManagerDetailsById(@Param("term") String term,
-			@Param("getAll") boolean getAll, @Param("userId") String userId, @Param("stages") List<Integer> stages);
-
-	@Query(value="SELECT * FROM delivery_master_t where (delivery_stage in (:stages) OR (-1) in (:stages)) AND delivery_centre_id in (SELECT delivery_centre_id FROM delivery_centre_t where delivery_cluster_id in ("
-			+ " SELECT delivery_cluster_id FROM delivery_cluster_t WHERE delivery_cluster_head=(:userId) OR delivery_centre_id=-1) AND UPPER(delivery_centre) like UPPER(:term)) "
-			+ " ORDER BY modified_datetime DESC LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery=true)
-	List<DeliveryMasterT> searchDeliveryClusterDetailsByDeliveryCentres(@Param("term") String term,
-			@Param("getAll") boolean getAll, @Param("userId") String userId, @Param("stages") List<Integer> stages);
-
-	@Query(value="SELECT * FROM delivery_master_t where (delivery_stage in (:stages) OR (-1) in (:stages)) AND delivery_centre_id in (SELECT delivery_centre_id FROM delivery_centre_t WHERE delivery_centre_head=(:userId) "
-			+ "  AND UPPER(delivery_centre) like UPPER(:term)) ORDER BY modified_datetime DESC LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery=true)
-	List<DeliveryMasterT> searchDeliveryCentreDetailsByDeliveryCentres(@Param("term") String term,
-			@Param("getAll") boolean getAll, @Param("userId") String userId, @Param("stages") List<Integer> stages);
-
-	@Query(value="SELECT * FROM delivery_master_t where (delivery_stage in (:stages) OR (-1) in (:stages)) AND delivery_master_id in (SELECT delivery_master_id FROM delivery_master_manager_link_t"
-			+ " WHERE delivery_manager_id = (:userId)) AND delivery_centre_id in (SELECT delivery_centre_id FROM delivery_centre_t "
-			+ " WHERE UPPER(delivery_centre) like UPPER(:term)) ORDER BY modified_datetime DESC LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery=true)
-	List<DeliveryMasterT> searchDeliveryManagerDetailsByDeliveryCentres(@Param("term") String term,
-			@Param("getAll") boolean getAll, @Param("userId") String userId, @Param("stages") List<Integer> stages);
-
-	@Query(value="SELECT * FROM delivery_master_t where (delivery_stage in (:stages) OR (-1) in (:stages)) AND delivery_centre_id in (SELECT delivery_centre_id FROM delivery_centre_t WHERE delivery_cluster_id in ("
-			+ " SELECT delivery_cluster_id FROM delivery_cluster_t WHERE delivery_cluster_head=(:userId)) OR delivery_centre_id=-1) AND opportunity_id IN (SELECT opportunity_id FROM opportunity_t WHERE customer_id IN ("
-			+ " SELECT customer_id from customer_master_t WHERE UPPER(customer_name) like UPPER(:term))) ORDER BY modified_datetime DESC LIMIT CASE WHEN :getAll THEN null ELSE 3 END ", nativeQuery=true) 
-	List<DeliveryMasterT> searchDeliveryClusterDetailsByCustomerName(@Param("term") String term,
-			@Param("getAll") boolean getAll, @Param("userId") String userId, @Param("stages") List<Integer> stages);
+	/* smart search with opportunity id*/
+	@Query(value="SELECT dmt FROM DeliveryMasterT dmt WHERE deliveryStage IN (:stages) AND deliveryCentreId in (:centres) AND "
+			+ " UPPER(opportunityId) like UPPER(:term) ORDER BY modifiedDatetime DESC")
+	List<DeliveryMasterT> searchByOppIdTermAndCentresAndStages(@Param("term") String queryTerm,
+			@Param("centres") List<?> centres, @Param("stages") List<Integer> stages);
 	
-	@Query(value="SELECT * FROM delivery_master_t where (delivery_stage in (:stages) OR (-1) in (:stages)) AND delivery_centre_id in (SELECT delivery_centre_id FROM delivery_centre_t WHERE delivery_centre_head=(:userId)) "
-			+ " AND opportunity_id IN (SELECT opportunity_id FROM opportunity_t WHERE customer_id IN (SELECT customer_id from customer_master_t WHERE UPPER(customer_name) like UPPER(:term))) "
-			+ " ORDER BY modified_datetime DESC LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery=true)
-	List<DeliveryMasterT> searchDeliveryCentreDetailsByCustomerName(@Param("term") String term,
-			@Param("getAll") boolean getAll, @Param("userId") String userId, @Param("stages") List<Integer> stages);
+	@Query(value="SELECT dmt FROM DeliveryMasterT dmt WHERE deliveryStage IN (:stages) AND deliveryMasterId in (:ids) AND "
+			+ " UPPER(opportunityId) like UPPER(:term) ORDER BY modifiedDatetime DESC")
+	List<DeliveryMasterT> searchByOppIdTermAndIdsAndStages(@Param("term") String queryTerm,
+			@Param("ids") List<?> ids, @Param("stages") List<Integer> stages);
 	
-	@Query(value="SELECT * FROM delivery_master_t where (delivery_stage in (:stages) OR (-1) in (:stages)) AND delivery_master_id in (SELECT delivery_master_id FROM delivery_master_manager_link_t WHERE delivery_manager_id=(:userId))"
-			+ " AND opportunity_id IN (SELECT opportunity_id FROM opportunity_t WHERE customer_id IN (SELECT customer_id from customer_master_t WHERE UPPER(customer_name) like UPPER(:term))) "
-			+ " ORDER BY modified_datetime DESC LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery=true)
-	List<DeliveryMasterT> searchDeliveryManagerDetailsByCustomerName(@Param("term") String term,
-			@Param("getAll") boolean getAll, @Param("userId") String userId, @Param("stages") List<Integer> stages);
+	/* smart search with customer name*/
+	@Query(value="SELECT dmt FROM DeliveryMasterT dmt JOIN dmt.opportunityT opt JOIN opt.customerMasterT cmt WHERE  dmt.deliveryStage IN (:stages) AND dmt.deliveryCentreId in (:centres) AND "
+			+ " UPPER(cmt.customerName) like UPPER(:term) ORDER BY dmt.modifiedDatetime DESC")
+	List<DeliveryMasterT> searchByCustNameTermAndCentresAndStages(@Param("term") String queryTerm,
+			@Param("centres") List<?> centres, @Param("stages") List<Integer> stages);
 	
-	@Query(value="SELECT * FROM delivery_master_t where (delivery_stage in (:stages) OR (-1) in (:stages)) "
-			+ " AND UPPER(opportunity_id) like UPPER(:term) ORDER BY modified_datetime DESC LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery=true)
-	List<DeliveryMasterT> searchForSIDetailsById(@Param("term") String term,
-			@Param("getAll") boolean getAll, @Param("stages") List<Integer> stages);
+	@Query(value="SELECT dmt FROM DeliveryMasterT dmt JOIN dmt.opportunityT opt JOIN opt.customerMasterT cmt WHERE dmt.deliveryStage IN (:stages) AND dmt.deliveryMasterId in (:ids) AND "
+			+ " UPPER(cmt.customerName) like UPPER(:term) ORDER BY dmt.modifiedDatetime DESC")
+	List<DeliveryMasterT> searchByCustNameTermAndIdsAndStages(@Param("term") String queryTerm,
+			@Param("ids") List<?> ids, @Param("stages") List<Integer> stages);
 
-	@Query(value="SELECT * FROM delivery_master_t where (delivery_stage in (:stages) OR (-1) in (:stages)) "
-			+ " AND opportunity_id IN (SELECT opportunity_id FROM opportunity_t WHERE customer_id IN ( SELECT customer_id from customer_master_t WHERE UPPER(customer_name) like UPPER(:term))) "
-			+ " ORDER BY modified_datetime DESC LIMIT CASE WHEN :getAll THEN null ELSE 3 END ", nativeQuery=true) 
-	List<DeliveryMasterT> searchForSIDetailsByCustomerName(@Param("term") String term,
-			@Param("getAll") boolean getAll, @Param("stages") List<Integer> stages);
-
-	@Query(value="SELECT * FROM delivery_master_t where (delivery_stage in (:stages) OR (-1) in (:stages)) "
-			+ " AND delivery_centre_id in (SELECT delivery_centre_id FROM delivery_centre_t "
-			+ " where UPPER(delivery_centre) like UPPER(:term)) ORDER BY modified_datetime DESC LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery=true) 
-	List<DeliveryMasterT> searchForSIDetailsByCentres(@Param("term") String term,
-			@Param("getAll") boolean getAll, @Param("stages") List<Integer> stages);
+	/* smart search with delivery centre name*/
+	@Query(value="SELECT dmt FROM DeliveryMasterT dmt JOIN dmt.deliveryCentreT dct WHERE dmt.deliveryStage IN (:stages) AND dmt.deliveryCentreId in (:centres) AND "
+			+ " UPPER(dct.deliveryCentre) like UPPER(:term) ORDER BY dmt.modifiedDatetime DESC")
+	List<DeliveryMasterT> searchByCentreTermAndCentresAndStages(@Param("term") String queryTerm,
+			@Param("centres") List<?> centres, @Param("stages") List<Integer> stages);
+	
+	@Query(value="SELECT dmt FROM DeliveryMasterT dmt JOIN dmt.deliveryCentreT dct WHERE dmt.deliveryStage IN (:stages) AND dmt.deliveryMasterId in (:ids) AND "
+			+ " UPPER(dct.deliveryCentre) like UPPER(:term) ORDER BY dmt.modifiedDatetime DESC")
+	List<DeliveryMasterT> searchByCentreTermAndIdsAndStages(@Param("term") String queryTerm,
+			@Param("ids") List<?> ids, @Param("stages") List<Integer> stages);
 	
 	/*------------------End of delivery smart search queries-------------------*/
 	
@@ -228,4 +193,5 @@ public interface DeliveryMasterRepository extends JpaRepository<DeliveryMasterT,
 			@Param("deliveryStage") List<Integer> deliveryStage,
 			@Param("centreId") List<Integer> centreId,
 			@Param("geography") List<String> displayGeography);
+
 }
