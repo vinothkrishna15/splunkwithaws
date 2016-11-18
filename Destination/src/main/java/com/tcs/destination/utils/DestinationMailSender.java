@@ -58,7 +58,7 @@ public class DestinationMailSender {
 				List<String> recipients = message.getRecipients();
 				List<String> ccList = message.getCcList();
 				List<String> bccList = message.getBccList();
-				String subject = message.getSubject();
+				String subject = message.getSubject().trim();
 				String mailBody = message.getMessage();
 
 				msgHelper.setFrom(senderEmailId);

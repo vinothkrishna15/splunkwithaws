@@ -34,4 +34,7 @@ public interface DeliveryIntimatedRepository extends CrudRepository<DeliveryInti
 			+ "WHERE dclt.deliveryCentreId IN (:centreIdList) AND UPPER(dct.deliveryCentre) LIKE UPPER(:term) ORDER BY dit.modifiedDatetime DESC")
 	List<DeliveryIntimatedT> searchByCentreTermAndCentresIn(@Param("term") String queryTerm,
 			@Param("centreIdList") List<?> idList);
+	
+	List<DeliveryIntimatedT> findByOpportunityId(String opportunityId);
+
 }

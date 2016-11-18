@@ -387,17 +387,15 @@ public class DeliveryMasterService {
 			logger.info("Engagement has been updated successfully: "
 					+ deliveryMasterId);
 			if ((deliveryAfterEdit.getDeliveryStage() != oldDeliveryStage && deliveryAfterEdit
-					.getDeliveryStage() != DeliveryStage.PLANNED.getStageCode())
-					|| (deliveryAfterEdit.getDeliveryCentreId() != oldDeliveryCentreId && deliveryAfterEdit
-					.getDeliveryCentreId() == Constants.DELIVERY_CENTRE_OPEN)) {
+					.getDeliveryStage() != DeliveryStage.PLANNED.getStageCode() && deliveryAfterEdit
+							.getDeliveryStage() != DeliveryStage.ACCEPTED.getStageCode())
+					|| (deliveryAfterEdit.getDeliveryCentreId() != oldDeliveryCentreId)) {
 				asyncJobRequests.add(opportunityService
 						.constructAsyncJobRequest(
 								deliveryAfterEdit.getDeliveryMasterId(),
 								EntityType.DELIVERY,
 								JobName.deliveryEmailNotification, null,
-								deliveryAfterEdit
-								.getDeliveryCentreId() == Constants.DELIVERY_CENTRE_OPEN ? 
-										oldDeliveryCentreId : deliveryAfterEdit.getDeliveryCentreId()));
+								deliveryAfterEdit.getDeliveryCentreId()));
 			}
 		}
 
@@ -1379,17 +1377,18 @@ public class DeliveryMasterService {
 		validateDeliveryIntimated(deliveryIntimatedT, userGroup);
 		deliveryIntimatedT.setModifiedBy(currentUserId);
 		deliveryIntimatedRepository.save(deliveryIntimatedT);
-		updateDeliveryIntimatedCentres(deliveryIntimatedT,currentUserId);
-		//If the intimated delivery accepted, creating each engagement per delivery centre tagged
-		if(deliveryIntimatedT.getAccepted()) {
-			createEngagement(deliveryIntimatedT,currentUserId);
+		asyncJobRequests.addAll(updateDeliveryIntimatedCentres(deliveryIntimatedT, currentUserId));
+		// If the intimated delivery accepted, creating each engagement per
+		// delivery centre tagged
+		if (deliveryIntimatedT.getAccepted()) {
+			asyncJobRequests.addAll(createEngagement(deliveryIntimatedT, currentUserId));
 		}
-		//TODO Creating job requests for mails
 		return asyncJobRequests;
 	}
 
 
-	private void createEngagement(DeliveryIntimatedT deliveryIntimatedT, String currentUserId) {
+	private List<AsyncJobRequest> createEngagement(DeliveryIntimatedT deliveryIntimatedT, String currentUserId) {
+		List<AsyncJobRequest> asyncJobRequests = Lists.newArrayList();
 		if (CollectionUtils.isNotEmpty(deliveryIntimatedT
 				.getDeliveryIntimatedCentreLinkTs())) {
 			for (DeliveryIntimatedCentreLinkT deliveryIntimatedCentreLinkT : deliveryIntimatedT
@@ -1397,8 +1396,8 @@ public class DeliveryMasterService {
 				DeliveryMasterT deliveryMasterT = new DeliveryMasterT();
 				deliveryMasterT.setCreatedBy(currentUserId);
 				deliveryMasterT
-				.setDeliveryCentreId(deliveryIntimatedCentreLinkT
-						.getDeliveryCentreId());
+						.setDeliveryCentreId(deliveryIntimatedCentreLinkT
+								.getDeliveryCentreId());
 				deliveryMasterT.setDeliveryIntimatedId(deliveryIntimatedT
 						.getDeliveryIntimatedId());
 				deliveryMasterT.setDeliveryStage(DeliveryStage.ACCEPTED
@@ -1407,8 +1406,15 @@ public class DeliveryMasterService {
 				deliveryMasterT.setOpportunityId(deliveryIntimatedT
 						.getOpportunityId());
 				deliveryMasterRepository.save(deliveryMasterT);
+				asyncJobRequests.add(opportunityService
+						.constructAsyncJobRequest(
+								deliveryMasterT.getDeliveryMasterId(),
+								EntityType.DELIVERY,
+								JobName.deliveryEmailNotification, null,
+								deliveryMasterT.getDeliveryCentreId()));
 			}
 		}
+		return asyncJobRequests;
 	}
 
 
@@ -1416,9 +1422,12 @@ public class DeliveryMasterService {
 	 * Updates the delivery intimated centres
 	 * @param deliveryIntimatedT
 	 * @param currentUserId
+	 * @param oldDeliveryCentreIds 
 	 */
-	private void updateDeliveryIntimatedCentres(
+	private List<AsyncJobRequest> updateDeliveryIntimatedCentres(
 			DeliveryIntimatedT deliveryIntimatedT, String currentUserId) {
+		List<AsyncJobRequest> asyncJobRequests = Lists.newArrayList();
+		boolean rejected = false;
 		logger.debug("updateDeliveryIntimatedCentres");
 		String deliveryIntimatedId = deliveryIntimatedT
 				.getDeliveryIntimatedId();
@@ -1439,9 +1448,19 @@ public class DeliveryMasterService {
 						.setDeliveryIntimatedId(deliveryIntimatedId);
 				deliveryIntimatedCentreLinkRepository
 						.save(deliveryIntimatedCentreLinkT);
+				if(deliveryIntimatedCentreLinkT.getDeliveryCentreId()==Constants.DELIVERY_CENTRE_OPEN) {
+					rejected = true;
+				}
+			}
+			if (rejected) {
+				asyncJobRequests.add(opportunityService
+						.constructAsyncJobRequest(deliveryIntimatedId,
+								EntityType.DELIVERY_INTIMATED,
+								JobName.deliveryEmailNotification, null, null));
 			}
 		}
 		deleteRemovedDeliveryIntimatedCentres(storedCentres);
+		return asyncJobRequests;
 	}
 
 	/**

@@ -43,6 +43,7 @@ import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryClusterT;
 import com.tcs.destination.bean.DeliveryIntimatedCentreLinkT;
+import com.tcs.destination.bean.DeliveryIntimatedT;
 import com.tcs.destination.bean.DeliveryMasterT;
 import com.tcs.destination.bean.DeliveryOwnershipT;
 import com.tcs.destination.bean.NotesT;
@@ -84,6 +85,7 @@ import com.tcs.destination.data.repository.CountryRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.DeliveryCentreRepository;
 import com.tcs.destination.data.repository.DeliveryClusterRepository;
+import com.tcs.destination.data.repository.DeliveryIntimatedRepository;
 import com.tcs.destination.data.repository.DeliveryMasterRepository;
 import com.tcs.destination.data.repository.DeliveryOwnershipRepository;
 import com.tcs.destination.data.repository.NotesTRepository;
@@ -306,6 +308,9 @@ public class OpportunityService {
 
 	@Autowired
 	private DeliveryMasterService deliveryMasterService;
+	
+	@Autowired
+	DeliveryIntimatedRepository deliveryIntimatedRepository;
 
 	/**
 	 * Fetch opportunities by opportunity name
@@ -3597,11 +3602,11 @@ public class OpportunityService {
 			emailJobRequired = true;
 			
 			if(newSalesStageCode == SalesStageCode.WIN.getCodeValue()) {
-				List<DeliveryMasterT> deliveryMasters = deliveryMasterRepository.findByOpportunityId(opportunity.getOpportunityId());
-				if(CollectionUtils.isNotEmpty(deliveryMasters)) {
-				for (DeliveryMasterT deliveryMaster : deliveryMasters) {
-				asyncJobRequests.add(constructAsyncJobRequest(deliveryMaster.getDeliveryMasterId(), 
-				EntityType.DELIVERY, JobName.deliveryEmailNotification, null,deliveryMaster.getDeliveryCentreId()));
+				List<DeliveryIntimatedT> deliveriesIntimated = deliveryIntimatedRepository.findByOpportunityId(opportunity.getOpportunityId());
+				if(CollectionUtils.isNotEmpty(deliveriesIntimated)) {
+				for (DeliveryIntimatedT deliveryIntimated : deliveriesIntimated) {
+				asyncJobRequests.add(constructAsyncJobRequest(deliveryIntimated.getDeliveryIntimatedId(), 
+				EntityType.DELIVERY_INTIMATED, JobName.deliveryEmailNotification, null,null));
 				}
 			}
 		}
