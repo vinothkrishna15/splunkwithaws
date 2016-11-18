@@ -10,9 +10,6 @@
 		  		<td><b>Opportunity Id</b></td><td>:</td><td>${opportunityId}</td> 
 		  	</tr>
 		  	<tr>
-		  		<td><b>Engagement Id</b></td> <td>:</td><td>${engagementId}</td> 
-		  	</tr>
-		  	<tr>
 		  		<td><b>CRM ID</b></td><td>:</td><td>${crmId}</td> 
 		  	</tr>
 		  	<tr>

@@ -373,4 +373,6 @@ public class Constants {
 	public static final String PERIOD = "Period";
 	public static final String EMPTY_STRING = "";
 	
+	public static final String OPEN = "Open";
+	
 }

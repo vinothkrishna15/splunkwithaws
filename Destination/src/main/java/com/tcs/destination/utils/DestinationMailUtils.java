@@ -34,12 +34,15 @@ import org.springframework.ui.velocity.VelocityEngineUtils;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.tcs.destination.bean.AuditDeliveryIntimatedCentreLinkT;
 import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryClusterT;
+import com.tcs.destination.bean.DeliveryIntimatedCentreLinkT;
+import com.tcs.destination.bean.DeliveryIntimatedT;
 import com.tcs.destination.bean.DeliveryMasterManagerLinkT;
 import com.tcs.destination.bean.DeliveryMasterT;
 import com.tcs.destination.bean.DestinationMailMessage;
@@ -59,10 +62,12 @@ import com.tcs.destination.bean.WorkflowCustomerT;
 import com.tcs.destination.bean.WorkflowPartnerT;
 import com.tcs.destination.bean.WorkflowRequestT;
 import com.tcs.destination.bean.WorkflowStepT;
+import com.tcs.destination.data.repository.AuditDeliveryIntimatedCentreLinkRepository;
 import com.tcs.destination.data.repository.BidDetailsTRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.DeliveryCentreRepository;
+import com.tcs.destination.data.repository.DeliveryIntimatedRepository;
 import com.tcs.destination.data.repository.DeliveryMasterManagerLinkRepository;
 import com.tcs.destination.data.repository.DeliveryMasterRepository;
 import com.tcs.destination.data.repository.DocumentsTRepository;
@@ -106,6 +111,13 @@ public class DestinationMailUtils {
 	
 	private static final String[] deliverySubjectSearchList = { "<environmentName>", "<customerName>",
 		"<opportunityId>", "<deliveryCenter>"};
+	
+	private static final String[] deliveryIntimatedSubjectSearchList = { "<environmentName>", "<customerName>",
+		"<opportunityId>"};
+	
+	private static final Integer OPERATION_INSERT = Integer.valueOf(1);
+	private static final Integer OPERATION_UPDATE = Integer.valueOf(2);
+	private static final Integer OPERATION_DELETE = Integer.valueOf(0);
 
 	private static final int PATH_B_LAST_STEP_NUMBER = 4;
 	private static final int PATH_A_LAST_STEP_NUMBER = 5;
@@ -368,6 +380,12 @@ public class DestinationMailUtils {
 	
 	@Autowired
 	DeliveryMasterManagerLinkRepository deliveryMasterManagerLinkRepository;
+	
+	@Autowired
+	DeliveryIntimatedRepository deliveryIntimatedRepository;
+	
+	@Autowired
+	AuditDeliveryIntimatedCentreLinkRepository auditDeliveryIntimatedCentreLinkRepository;
 
 	@Value("${userDetailsApprovalSubject}")
 	private String userDetailsApprovalSubject;
@@ -3679,12 +3697,9 @@ public class DestinationMailUtils {
 		case DELIVERY:
 			DeliveryMasterT deliveryMaster = deliveryMasterRepository
 					.findOne(entityId);
-			 
-			 
 			if (deliveryMaster != null) {
 				List<DeliveryMasterManagerLinkT> deliveryMasterManagerLinkTs = deliveryMasterManagerLinkRepository.findByDeliveryMasterId(deliveryMaster.getDeliveryMasterId());
 				deliveryMaster.setDeliveryMasterManagerLinkTs(deliveryMasterManagerLinkTs);
-				 
 				DeliveryCentreT deliveryCentreT = deliveryMaster
 						.getDeliveryCentreT();
 				DeliveryClusterT deliveryClusterT = deliveryCentreT
@@ -3711,41 +3726,6 @@ public class DestinationMailUtils {
 
 				switch (DeliveryStage.byStageCode(deliveryMaster
 						.getDeliveryStage())) {
-				case INTIMATED:
-					if (deliveryCentreT.getDeliveryCentreId() == Constants.DELIVERY_CENTRE_OPEN) {
-						subject = StringUtils.replaceEach(
-								deliveryRejectedSubject,
-								deliverySubjectSearchList, replacementList);
-						DeliveryCentreT deliveryCentre = deliveryCentreRepository
-								.findOne(deliveryCenterId);
-						data.put("rejectedDeliveryCenter",
-								deliveryCentre.getDeliveryCentre());
-						List<String> pmo = userAccessPrivilegesRepository
-								.findUserIdsForCustomerUserGroup(
-										customer.getGeography(), Constants.Y,
-										UserGroup.PMO.getValue());
-						List<String> geoHeads = userAccessPrivilegesRepository
-								.findUserIdsForCustomerUserGroup(
-										customer.getGeography(), Constants.Y,
-										UserGroup.GEO_HEADS.getValue());
-						reciepientIds.add(opportunity.getPrimaryOwnerUser()
-								.getUserId());
-						ccIds.addAll(userRepository
-								.findUserIdByUserGroup(UserGroup.STRATEGIC_INITIATIVES
-										.getValue()));
-						reciepientIds.addAll(pmo);
-						reciepientIds.addAll(geoHeads);
-
-						templateLoc = deliveryRejectedTemplateLoc;
-					} else {
-						subject = StringUtils.replaceEach(
-								deliveryIntimatedSubject,
-								deliverySubjectSearchList, replacementList);
-						reciepientIds.add(deliveryClusterHead);
-						templateLoc = deliveryIntimatedTemplateLoc;
-					}
-
-					break;
 				case ACCEPTED:
 					subject = StringUtils.replaceEach(deliveryAcceptedSubject,
 							deliverySubjectSearchList, replacementList);
@@ -3818,6 +3798,55 @@ public class DestinationMailUtils {
 						+ entityId);
 			}
 			break;
+		// Entity Type -> Delivery Intimated : Intimating cluster head of delivery
+		// centres tagged to Opportunity prior win
+		case DELIVERY_INTIMATED:
+			List<String> deliveryCentres = Lists.newArrayList();
+			DeliveryIntimatedT deliveryIntimatedT = deliveryIntimatedRepository.findOne(entityId);
+			CustomerMasterT customerMasterT = deliveryIntimatedT.getOpportunityT().getCustomerMasterT();
+			String[] replacementList = { mailSubjectAppendEnvName,
+					customerMasterT.getCustomerName(),
+					deliveryIntimatedT.getOpportunityId()};
+			deliveryCentres = getDeliveryCentreNames(deliveryIntimatedT.getDeliveryIntimatedCentreLinkTs());
+			data.putAll(getDataForDeliveryintimated(deliveryIntimatedT,deliveryCentres));
+			data.putAll(getDataForOpportunityDelivery(deliveryIntimatedT.getOpportunityT()));
+			subject = StringUtils.replaceEach(deliveryIntimatedSubject,
+					deliveryIntimatedSubjectSearchList, replacementList);
+			if (deliveryCentres.contains(Constants.OPEN)) {
+				subject = StringUtils.replaceEach(deliveryRejectedSubject,
+						deliveryIntimatedSubjectSearchList, replacementList);
+				List<String> rejectedCentreNames = auditDeliveryIntimatedCentreLinkRepository
+						.getRejectedDeliveryCentreNames(
+								deliveryIntimatedT.getModifiedDatetime(),
+								OPERATION_DELETE);
+				data.put("rejectedDeliveryCenter",
+						defaultIfEmpty(StringUtils.join(rejectedCentreNames, ",")));
+				List<String> pmo = userAccessPrivilegesRepository
+						.findUserIdsForCustomerUserGroup(
+								customerMasterT.getGeography(), Constants.Y,
+								UserGroup.PMO.getValue());
+				List<String> geoHeads = userAccessPrivilegesRepository
+						.findUserIdsForCustomerUserGroup(
+								customerMasterT.getGeography(), Constants.Y,
+								UserGroup.GEO_HEADS.getValue());
+				reciepientIds.add(deliveryIntimatedT.getOpportunityT().getPrimaryOwnerUser()
+						.getUserId());
+				ccIds.addAll(userRepository
+						.findUserIdByUserGroup(UserGroup.STRATEGIC_INITIATIVES
+								.getValue()));
+				reciepientIds.addAll(pmo);
+				reciepientIds.addAll(geoHeads);
+				templateLoc = deliveryRejectedTemplateLoc;
+			} else {
+				subject = StringUtils.replaceEach(deliveryIntimatedSubject,
+						deliveryIntimatedSubjectSearchList, replacementList);
+				reciepientIds.add(deliveryIntimatedT
+						.getDeliveryIntimatedCentreLinkTs().get(0)
+						.getDeliveryCentreT().getDeliveryClusterT()
+						.getDeliveryClusterHead());
+				templateLoc = deliveryIntimatedTemplateLoc;
+			}
+			break;
 		default:
 			break;
 		}
@@ -3825,6 +3854,33 @@ public class DestinationMailUtils {
 				templateLoc, data);
 
 		return message;
+	}
+
+	private Map<String,Object> getDataForDeliveryintimated(
+			DeliveryIntimatedT deliveryIntimatedT, List<String> deliveryCentres) {
+		logger.debug("Inside getDataForDeliveryintimated method");
+		Map<String, Object> data = Maps.newHashMap();
+		data.put("deliveryCenter", defaultIfEmpty(StringUtils.join(deliveryCentres, ",")));
+		data.put("rejectionReasons", defaultIfEmpty(deliveryIntimatedT.getRejectReason()));
+		data.put("comments", defaultIfEmpty(deliveryIntimatedT.getRejectComments()));
+		data.put("rejectedDeliveryClusterHeadName",defaultIfEmpty(deliveryIntimatedT.getModifiedByUser().getUserName()));
+		logger.debug("End of getDataForDeliveryintimated method");
+		return data;
+	}
+
+	private List<String> getDeliveryCentreNames(
+			List<DeliveryIntimatedCentreLinkT> deliveryIntimatedCentreLinkTs) {
+		List<String> deliveryCentreNames = Lists.newArrayList();
+		List<Integer> deliveryCentreIds = Lists.newArrayList();
+		if(CollectionUtils.isNotEmpty(deliveryIntimatedCentreLinkTs)) {
+			for (DeliveryIntimatedCentreLinkT deliveryIntimatedCentreLinkT : deliveryIntimatedCentreLinkTs) {
+				deliveryCentreIds.add(deliveryIntimatedCentreLinkT.getDeliveryCentreId());
+			}
+			if(CollectionUtils.isNotEmpty(deliveryCentreIds)) {
+				deliveryCentreNames = deliveryCentreRepository.findDeliveryCentreNamesByIds(deliveryCentreIds);
+			}
+		}
+		return deliveryCentreNames;
 	}
 
 	/**
