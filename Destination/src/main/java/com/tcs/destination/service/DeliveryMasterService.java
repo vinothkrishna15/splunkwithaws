@@ -702,6 +702,65 @@ public class DeliveryMasterService {
 		return usersForDeliveryCentre;
 	}
 
+	public Object smartSearch(
+			SmartSearchType smartSearchType, String term, 
+			int page, int count, UserT user, List<Integer> stages) {
+		
+		if(isIntimatedStage(stages)) {
+			return smartSearchIntimated(smartSearchType, term, page, count, user, stages);
+		} else {
+			return smartSearchMaster(smartSearchType, term, page, count, user, stages);
+		}
+	}
+	
+	public PageDTO<SearchResultDTO<DeliveryIntimatedT>> smartSearchIntimated(
+			SmartSearchType smartSearchType, String term, 
+			int page, int count, UserT user, List<Integer> stages) {
+		logger.info("DeliveryMasterService::smartSearch type {}", smartSearchType);
+		Set<DeliveryIntimatedT> deliveryMasterSet = Sets.newHashSet();
+		List<DeliveryIntimatedT> deliveryMasterTs = Lists.newArrayList();
+		PageDTO<SearchResultDTO<DeliveryIntimatedT>> res = new PageDTO<SearchResultDTO<DeliveryIntimatedT>>();
+		List<SearchResultDTO<DeliveryIntimatedT>> resList = Lists.newArrayList();
+		SearchResultDTO<DeliveryIntimatedT> searchResultDTO = new SearchResultDTO<DeliveryIntimatedT>();
+		if (smartSearchType != null) {
+			UserGroup userGroup = UserGroup.getUserGroup(user.getUserGroup());
+			List<?> idList = getIdList(user.getUserId(), userGroup);
+			switch (smartSearchType) {
+			case ALL:
+				deliveryMasterSet.addAll(getDeliveryIntimatedByOppId(term, idList));
+				deliveryMasterSet.addAll(getDeliveryIntimatedByCustName(term, idList));
+				deliveryMasterSet.addAll(getDeliveryIntimatedByDeliveryCentres(term, idList));
+				deliveryMasterTs.addAll(deliveryMasterSet);
+				break;
+			case ID:
+				deliveryMasterTs = getDeliveryIntimatedByOppId(term, idList);
+				break;
+			case CUSTOMER:
+				deliveryMasterTs = getDeliveryIntimatedByCustName(term, idList);
+				break;
+			case DELIVERY_CENTRE:
+				deliveryMasterTs = getDeliveryIntimatedByDeliveryCentres(term, idList);
+				break;
+			default:
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Invalid search type");
+			}
+
+			// paginate the result if it is fetching entire record(ie.getAll=true)
+			List<DeliveryIntimatedT> records = PaginationUtils.paginateList(
+					page, count, deliveryMasterTs);
+			if (CollectionUtils.isNotEmpty(records)) {
+				removeCyclicReferenceOfDeliveryIntimated(records);
+			}
+			searchResultDTO.setValues(records);
+			searchResultDTO.setSearchType(smartSearchType);
+			res.setTotalCount(deliveryMasterTs.size());
+			resList.add(searchResultDTO);
+		}
+		res.setContent(resList);
+		return res;		
+		
+	}
 
 	/**
 	 * This method is used to fetch delivery master details 
@@ -715,7 +774,7 @@ public class DeliveryMasterService {
 	 * @param stages 
 	 * @return
 	 */
-	public PageDTO<SearchResultDTO<DeliveryMasterT>> smartSearch(
+	public PageDTO<SearchResultDTO<DeliveryMasterT>> smartSearchMaster(
 			SmartSearchType smartSearchType, String term, 
 			int page, int count, UserT user, List<Integer> stages) {
 		logger.info("DeliveryMasterService::smartSearch type {}", smartSearchType);
@@ -830,7 +889,7 @@ public class DeliveryMasterService {
 		List<DeliveryMasterT> records = null;
 		UserGroup userGroup = UserGroup.getUserGroup(user.getUserGroup());
 		List<?> idList = getIdList(user.getUserId(), userGroup);
-
+		
 		if(userGroup == UserGroup.DELIVERY_MANAGER) {
 			records = deliveryMasterRepository.searchByOppIdTermAndIdsAndStages(getQueryTerm(term), idList, stages);
 		} else {
@@ -838,6 +897,49 @@ public class DeliveryMasterService {
 		}
 
 		return records;
+	}
+	
+	/**
+	 * This method is used to fetch delivery master details for the delivery centres
+	 * 
+	 * @param term
+	 * @param user
+	 * @return
+	 */
+	private List<DeliveryIntimatedT> getDeliveryIntimatedByDeliveryCentres(
+			String term, List<?> centreIdList) {
+		logger.info("Inside getDeliveryIntimatedByDeliveryCentres() Method");
+		return deliveryIntimatedRepository.searchByCentreTermAndCentresIn(getQueryTerm(term), centreIdList);
+	}
+
+	/**
+	 * This method is used to fetch delivery master details for the given customer name
+	 * 
+	 * @param term
+	 * @param user
+	 * @return
+	 */
+	private List<DeliveryIntimatedT> getDeliveryIntimatedByCustName(
+			String term, List<?> centreIdList) {
+		logger.info("Inside getDeliveryMasterByCustName() Method");
+		return deliveryIntimatedRepository.searchByCustNameTermAndCentresIn(getQueryTerm(term), centreIdList);
+	}
+
+	/**
+	 * This method is used to fetch delivery master details for the given opportunity id
+	 * 
+	 * @param term
+	 * @param user
+	 * @return
+	 */
+	private List<DeliveryIntimatedT> getDeliveryIntimatedByOppId(
+			String term, List<?> centreIdList) {
+		logger.info("Inside getDeliveryMasterByCustName() Method");
+		return deliveryIntimatedRepository.searchByOppIdTermAndCentresIn(getQueryTerm(term), centreIdList);
+	}
+
+	private boolean isIntimatedStage(List<Integer> stages) {
+		return stages.size() == 1 && stages.contains(DeliveryStage.INTIMATED.getStageCode().intValue());
 	}
 
 	private List<?> getIdList(String userId, UserGroup userGroup) {

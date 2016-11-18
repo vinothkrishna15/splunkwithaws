@@ -218,7 +218,7 @@ public class DeliveryMasterController {
 		logger.info("Inside DeliveryMasterController: smart search by search term");
 		try {
 			UserT user = DestinationUtils.getCurrentUserDetails();
-			PageDTO<SearchResultDTO<DeliveryMasterT>> res = deliveryMasterService.smartSearch(SmartSearchType.get(searchType), term, page, count, user, stage);
+			Object res = deliveryMasterService.smartSearch(SmartSearchType.get(searchType), term, page, count, user, stage);
 			logger.info("Inside DeliveryMasterController: End - smart search by search term");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields, view, res);
 		} catch (DestinationException e) {
