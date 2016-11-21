@@ -15,7 +15,7 @@ public interface DeliveryIntimatedRepository extends CrudRepository<DeliveryInti
 	@Query(value = "SELECT dit FROM DeliveryIntimatedT dit "
 			+ "JOIN dit.deliveryIntimatedCentreLinkTs dclt "
 			+ "JOIN dit.opportunityT opt "
-			+ "WHERE dclt.deliveryCentreId IN (:centreIdList) AND UPPER(opt.opportunityId) LIKE UPPER(:term) ORDER BY dit.modifiedDatetime DESC")
+			+ "WHERE dit.accepted='false' AND dclt.deliveryCentreId IN (:centreIdList) AND UPPER(opt.opportunityId) LIKE UPPER(:term) ORDER BY dit.modifiedDatetime DESC")
 	List<DeliveryIntimatedT> searchByOppIdTermAndCentresIn(@Param("term") String queryTerm,
 			@Param("centreIdList") List<?> idList);
 
@@ -23,7 +23,7 @@ public interface DeliveryIntimatedRepository extends CrudRepository<DeliveryInti
 			+ "JOIN dit.deliveryIntimatedCentreLinkTs dclt "
 			+ "JOIN dit.opportunityT opt "
 			+ "JOIN opt.customerMasterT cmt "
-			+ "WHERE dclt.deliveryCentreId IN (:centreIdList) AND UPPER(cmt.customerName) LIKE UPPER(:term) ORDER BY dit.modifiedDatetime DESC")
+			+ "WHERE dit.accepted='false' AND dclt.deliveryCentreId IN (:centreIdList) AND UPPER(cmt.customerName) LIKE UPPER(:term) ORDER BY dit.modifiedDatetime DESC")
 	List<DeliveryIntimatedT> searchByCustNameTermAndCentresIn(@Param("term") String queryTerm,
 			@Param("centreIdList") List<?> idList);
 
@@ -31,7 +31,7 @@ public interface DeliveryIntimatedRepository extends CrudRepository<DeliveryInti
 			+ "JOIN dit.deliveryIntimatedCentreLinkTs dclt "
 			+ "JOIN dit.opportunityT opt "
 			+ "JOIN dclt.deliveryCentreT dct "
-			+ "WHERE dclt.deliveryCentreId IN (:centreIdList) AND UPPER(dct.deliveryCentre) LIKE UPPER(:term) ORDER BY dit.modifiedDatetime DESC")
+			+ "WHERE dit.accepted='false' AND dclt.deliveryCentreId IN (:centreIdList) AND UPPER(dct.deliveryCentre) LIKE UPPER(:term) ORDER BY dit.modifiedDatetime DESC")
 	List<DeliveryIntimatedT> searchByCentreTermAndCentresIn(@Param("term") String queryTerm,
 			@Param("centreIdList") List<?> idList);
 	
