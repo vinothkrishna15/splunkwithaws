@@ -345,8 +345,10 @@ public class Constants {
 	public static final String notifyUserRolesForBFM = "System Admin,Strategic Group Admin";
 	public static final String DELIVERY_MANAGER = "Delivery Manager";
 	public static final Integer DELIVERY_CENTRE_OPEN = -1;
+	public static final String ENGAGEMENT_BY_GEOGRAPHY = "geography";
+	public static final String ENGAGEMENT_BY_SUBSP = "subsp";
+	public static final String ENGAGEMENT_BY_STATUS = "status";
 
-	
 	//RGS Sheet column index
 	public static final int RGS_ID_COL_INDEX = 1;
 	public static final int REQ_ID_COL_INDEX = 2;
@@ -367,5 +369,10 @@ public class Constants {
 	
 	//Date Format
 	public static final String DATE_FORMAT = "MM/dd/yyyy";
+	
+	public static final String PERIOD = "Period";
+	public static final String EMPTY_STRING = "";
+	
+	public static final String OPEN = "Open";
 	
 }

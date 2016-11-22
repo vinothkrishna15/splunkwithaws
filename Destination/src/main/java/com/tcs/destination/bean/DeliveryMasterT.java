@@ -96,6 +96,9 @@ public class DeliveryMasterT implements Serializable {
 	@Column(name="reason")
 	private String reason;
 	
+	@Column(name="delivery_intimated_id")
+	private String deliveryIntimatedId;
+	
 
 	//bi-directional many-to-one association to DeliveryCentreT
 	@ManyToOne
@@ -129,6 +132,11 @@ public class DeliveryMasterT implements Serializable {
 	// bi-directional many-to-one association to DeliveryMasterManagerLinkT
 	@OneToMany(mappedBy = "deliveryMasterT")
 	private List<DeliveryMasterManagerLinkT> deliveryMasterManagerLinkTs;
+	
+	// bi-directional many-to-one association to DeliveryIntimatedT
+	@ManyToOne
+	@JoinColumn(name = "delivery_intimated_id", insertable = false, updatable = false)
+	private DeliveryIntimatedT deliveryIntimatedT;
 
 	public DeliveryMasterT() {
 	}
@@ -365,7 +373,21 @@ public class DeliveryMasterT implements Serializable {
 	public void setReason(String reason) {
 		this.reason = reason;
 	}
-	
-	
+
+	public DeliveryIntimatedT getDeliveryIntimatedT() {
+		return deliveryIntimatedT;
+	}
+
+	public void setDeliveryIntimatedT(DeliveryIntimatedT deliveryIntimatedT) {
+		this.deliveryIntimatedT = deliveryIntimatedT;
+	}
+
+	public String getDeliveryIntimatedId() {
+		return deliveryIntimatedId;
+	}
+
+	public void setDeliveryIntimatedId(String deliveryIntimatedId) {
+		this.deliveryIntimatedId = deliveryIntimatedId;
+	}
 	
 }

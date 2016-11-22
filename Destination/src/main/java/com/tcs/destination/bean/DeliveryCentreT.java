@@ -81,6 +81,9 @@ public class DeliveryCentreT implements Serializable {
 	@JoinColumn(name = "delivery_cluster_id", insertable = false, updatable = false)
 	private DeliveryClusterT deliveryClusterT;
 
+	//bi-directional many-to-one association to DeliveryIntimatedCentreLinkT
+	@OneToMany(mappedBy="deliveryCentreT")
+	private List<DeliveryIntimatedCentreLinkT> deliveryIntimatedCentreLinkTs;
 	public DeliveryCentreT() {
 	}
 
@@ -218,6 +221,13 @@ public class DeliveryCentreT implements Serializable {
 		this.deliveryClusterT = deliveryClusterT;
 	}
 	
+	public List<DeliveryIntimatedCentreLinkT> getDeliveryIntimatedCentreLinkTs() {
+		return this.deliveryIntimatedCentreLinkTs;
+	}
+
+	public void setDeliveryIntimatedCentreLinkTs(List<DeliveryIntimatedCentreLinkT> deliveryIntimatedCentreLinkTs) {
+		this.deliveryIntimatedCentreLinkTs = deliveryIntimatedCentreLinkTs;
+	}
 	
 	
 }

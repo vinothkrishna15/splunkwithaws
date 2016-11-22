@@ -83,5 +83,22 @@ public class AuditDetailController {
 		}
 	}
 
+	@RequestMapping(value = "/initEngagement", method = RequestMethod.GET)
+	public @ResponseBody AuditHistoryResponseDTO<AuditHistoryDTO> getIntiEngHistory(
+			@RequestParam(value = "id") String iEngId)
+					throws DestinationException {
+		logger.info("Inside AuditDetailController : Start of getInitEngHistory");
+		
+		try {
+			return auditDetailService.getIntiEngHistory(iEngId);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error("Erron on getEngagementHistory", e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the Engagement History");
+		}
+	}
+
 
 }

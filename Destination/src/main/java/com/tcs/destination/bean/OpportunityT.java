@@ -9,6 +9,7 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -261,6 +262,10 @@ public class OpportunityT implements Serializable, Cloneable {
 	// bi-directional many-to-one association to DeliveryMasterT
 	@OneToMany(mappedBy = "opportunityT")
 	private List<DeliveryMasterT> deliveryMasterTs;
+	
+	// bi-directional many-to-one association to DeliveryIntimatedT
+	@OneToMany(mappedBy = "opportunityT")
+	private List<DeliveryIntimatedT> deliveryIntimatedTs;
 
 	@Transient
 	private List<SearchKeywordsT> searchKeywordsTs;
@@ -1334,5 +1339,14 @@ public class OpportunityT implements Serializable, Cloneable {
 	public void setIsuOwnReason(String isuOwnReason) {
 		this.isuOwnReason = isuOwnReason;
 	}
+
+	public List<DeliveryIntimatedT> getDeliveryIntimatedTs() {
+		return deliveryIntimatedTs;
+	}
+
+	public void setDeliveryIntimatedTs(List<DeliveryIntimatedT> deliveryIntimatedTs) {
+		this.deliveryIntimatedTs = deliveryIntimatedTs;
+	}
+	
 
 }

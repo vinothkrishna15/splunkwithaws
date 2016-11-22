@@ -15,6 +15,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,6 +88,9 @@ public class PerformanceReportService {
 
 	@Autowired
 	UserService userService;
+	
+	@Autowired
+	OpportunityDownloadService opportunityDownloadService;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -2098,7 +2102,29 @@ public class PerformanceReportService {
 		topOppList = findTopOpportunities(displayGeography, geography, subSp,
 				iou, dateFrom, dateTo, stageFrom, stageTo, count, custName,
 				userId);
+		convertDealValueToUsd(topOppList);
 		return topOppList;
+
+	}
+
+	/**
+	 * Converts the Deal Value of the opportunities to US Dollars
+	 * @param opportunities
+	 * @throws Exception
+	 */
+	private void convertDealValueToUsd(List<OpportunityT> opportunities)
+			throws Exception {
+		if (CollectionUtils.isNotEmpty(opportunities)) {
+			for (OpportunityT opportunityT : opportunities) {
+				if (opportunityT.getDigitalDealValue() != null) {
+					BigDecimal dealValueInUsd = opportunityDownloadService
+							.convertCurrencyToUSD(
+									opportunityT.getDealCurrency(),
+									opportunityT.getDigitalDealValue());
+					opportunityT.setDigitalDealValue(dealValueInUsd.intValue());
+				}
+			}
+		}
 
 	}
 

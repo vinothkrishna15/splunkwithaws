@@ -34,6 +34,11 @@ public class DeliveryStageMappingT implements Serializable {
 	@OneToMany(mappedBy="deliveryStageMappingT")
 	private List<DeliveryMasterT> deliveryMasterTs;
 
+	
+	//bi-directional many-to-one association to DeliveryIntimatedT
+	@OneToMany(mappedBy="deliveryStageMappingT")
+	private List<DeliveryIntimatedT> deliveryIntimatedTs;
+	
 	public DeliveryStageMappingT() {
 	}
 
@@ -75,4 +80,11 @@ public class DeliveryStageMappingT implements Serializable {
 		return deliveryMasterT;
 	}
 
+	public List<DeliveryIntimatedT> getDeliveryIntimatedTs() {
+		return deliveryIntimatedTs;
+	}
+
+	public void setDeliveryIntimatedTs(List<DeliveryIntimatedT> deliveryIntimatedTs) {
+		this.deliveryIntimatedTs = deliveryIntimatedTs;
+	}
 }

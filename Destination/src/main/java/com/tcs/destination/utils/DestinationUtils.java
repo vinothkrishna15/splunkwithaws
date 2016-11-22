@@ -5,11 +5,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -23,6 +27,9 @@ import com.tcs.destination.controller.UserRepositoryUserDetailsService.UserRepos
 import com.tcs.destination.exception.DestinationException;
 
 public class DestinationUtils {
+	
+	private static final Logger logger = LoggerFactory
+			.getLogger(DestinationUtils.class);
 
 	private static final Map<String, String> MIME_TYPE;
 
@@ -143,6 +150,32 @@ public class DestinationUtils {
 			return MIME_TYPE.get(extention);
 		}
 		return "";
+	}
+	
+	/**
+	 * calls the method using the reflection and returns the method's return value
+	 * @param obj
+	 * @param methodName
+	 * @param parameters
+	 * @return
+	 */
+	public static Object invokeMethod(Object obj, String methodName,
+			Object... parameters) {
+		if(obj != null) {
+			try {
+				Class<?>[] paramTypes = new Class<?>[parameters.length];
+				for (int i = 0; i < parameters.length; i++) {
+					paramTypes[i] = parameters[i].getClass();
+				}
+				Method method = obj.getClass().getMethod(methodName, paramTypes);
+				return method.invoke(obj, parameters);
+
+			} catch (IllegalAccessException | IllegalArgumentException
+					| InvocationTargetException | NoSuchMethodException | SecurityException e) {
+				logger.info("Exception on method reflecction for the method {}.{}, message :{}", obj.getClass().getName(), methodName, e.getMessage());
+			}
+		}
+		return null;
 	}
 	
 }

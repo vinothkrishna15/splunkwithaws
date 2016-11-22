@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.TargetVsActualDetailed;
+import com.tcs.destination.bean.UserT;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.BDMDetailedReportService;
 import com.tcs.destination.service.BDMReportsService;
@@ -59,6 +60,7 @@ public class ReportsController {
 	private static int bidConcurrentRequestCounter = 1;
 	private static int opportunityConcurrentRequestCounter = 1;
 	private static int bdmConcurrentRequestCounter = 1;
+	private static int deliveryConcurrentRequestCounter = 1;
 
 	@Value("${targetVsActualConcurrentRequestLimit}")
 	private int targetVsActualConcurrentRequestLimit;
@@ -70,6 +72,9 @@ public class ReportsController {
 	private int opportunityConcurrentRequestLimit;
 	@Value("${bdmConcurrentRequestLimit}")
 	private int bdmConcurrentRequestLimit;
+	
+	@Value("${deliveryConcurrentRequestLimit}")
+	private int deliveryConcurrentRequestLimit;
 
 	/**
 	 * This Controller retrieves the Target Vs Actual Details based on input
@@ -1025,4 +1030,67 @@ public class ReportsController {
 
 		}
 	}
+	
+	/**
+	 * Gets the Engagement report in Excel format and is applicable only for
+	 * Delivery Team and Strategic Initiatives
+	 * @param country
+	 * @param geography
+	 * @param iou
+	 * @param serviceline
+	 * @param deliveryStage
+	 * @param deliveryCentre
+	 * @param fields
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value= "/deliveryEngagement/", method = RequestMethod.GET)
+	public @ResponseBody ResponseEntity <InputStreamResource> getDeliveryEngagementReport(
+			@RequestParam(value = "country", defaultValue = "") List<String> country,
+			@RequestParam(value = "displayGeography", defaultValue = "") List<String> geography,
+			@RequestParam(value = "displayIou", defaultValue = "") List<String> iou,
+			@RequestParam(value = "displaySubSp", defaultValue = "") List<String> serviceline,
+			@RequestParam(value = "deliveryStage", defaultValue = "-1") List<Integer> deliveryStage,
+			@RequestParam(value = "deliveryCentre", defaultValue = "-2") List<Integer> deliveryCentre,
+			@RequestParam(value = "optColumns", defaultValue = "") List<String> fields)
+			throws DestinationException {
+		logger.info("Inside ReportsController / Start of Delivery Engagement detailed report download");
+		if (deliveryConcurrentRequestCounter <= deliveryConcurrentRequestLimit) {
+			UserT user = DestinationUtils.getCurrentUserDetails();
+			try {
+				++deliveryConcurrentRequestCounter;
+				InputStreamResource inputStreamResource = reportsService
+						.getDeliveryEngagementReport(geography,country, serviceline, iou, deliveryStage, deliveryCentre, user, fields);
+				HttpHeaders respHeaders = new HttpHeaders();
+				respHeaders
+						.setContentType(MediaType
+								.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+				String toDate = DateUtils.getCurrentDate();
+				String environmentName=PropertyUtil.getProperty("environment.name");
+				String repName = environmentName+"_DeliveryEngagementReport_" + toDate + ".xlsx";
+				respHeaders.add("reportName", repName);
+
+				respHeaders
+						.setContentDispositionFormData("attachment", repName);
+				logger.info("Inside ReportController / End of Delivery Engagement detailed report download");
+				return new ResponseEntity<InputStreamResource>(
+						inputStreamResource, respHeaders, HttpStatus.OK);
+			} catch (DestinationException e) {
+				throw e;
+			} catch (Exception e) {
+				logger.error(e.getMessage(), e);
+				throw new DestinationException(
+						HttpStatus.INTERNAL_SERVER_ERROR,
+						"Backend error in downloading the Delivery Engagement detailed report");
+			} finally {
+				--deliveryConcurrentRequestCounter;
+			}
+		} else {
+			throw new DestinationException(HttpStatus.SERVICE_UNAVAILABLE,
+					"Delivery Engagement report  is experiencing high loads, please try again after sometime");
+
+		}
+	}
+
+
 }

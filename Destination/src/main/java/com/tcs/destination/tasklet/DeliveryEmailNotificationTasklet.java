@@ -33,8 +33,12 @@ public class DeliveryEmailNotificationTasklet implements Tasklet {
 				.getStepExecution().getJobExecution().getJobParameters();
 		String entityId = jobParameters.getString("entityId");
 		String entityType = jobParameters.getString("EntityType");
-		Integer deliveryCenterId = Integer.parseInt(jobParameters
-				.getString("deliveryCentreId"));
+		Integer deliveryCenterId = null;
+		String centreId = jobParameters
+				.getString("deliveryCentreId");
+		if(centreId!=null) {
+			deliveryCenterId = Integer.parseInt(centreId);
+		}
 		destinationMailUtils.sendDeliveryEmails(entityId, entityType,
 				deliveryCenterId);
 		return RepeatStatus.FINISHED;

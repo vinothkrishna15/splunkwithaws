@@ -12,5 +12,7 @@ public interface AuditWorkflowCompetitorTRepository extends CrudRepository<Audit
 
 	List<AuditWorkflowCompetitorT> findByWorkflowCompetitorIdAndOperationType(
 			String entityId, Integer opType);
+	List<AuditWorkflowCompetitorT> findByWorkflowCompetitorId(
+			String entityId);
 
 }
