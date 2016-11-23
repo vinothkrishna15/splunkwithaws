@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
 import com.tcs.destination.bean.AuditDeliveryMasterT;
+import com.tcs.destination.bean.DeliveryIntimatedT;
 import com.tcs.destination.bean.DeliveryMasterT;
 import com.tcs.destination.bean.DeliveryRequirementT;
 import com.tcs.destination.bean.DeliveryResourcesT;
@@ -190,8 +191,9 @@ public class BuildDeliveryReport {
 									.removeSquareBracesAndAppendListElementsAsString(deliveryManagers));// set
 																										// delivery
 																										// managers
-			colNo++;
+			
 		}
+		colNo++;
 		row.createCell(colNo).setCellValue(
 				defaultIfEmptyString(deliveryMasterT.getDeliveryPartnerName(),
 						Constants.EMPTY_STRING));// set delivery partner name
@@ -677,6 +679,7 @@ public class BuildDeliveryReport {
 					row.createCell(colValue).setCellValue(
 							deliveryOpportunity.getDigitalFlag());
 				}
+				colValue++;
 			}
 			if (strategicDealFlag) {
 				if (StringUtils.isNotEmpty(deliveryOpportunity
@@ -697,10 +700,6 @@ public class BuildDeliveryReport {
 			for (AuditDeliveryMasterT auditDeliveryMaster : auditDeliveryMasterTs) {
 				switch (DeliveryStage.byStageCode(auditDeliveryMaster
 						.getNewDeliveryStage())) {
-				case INTIMATED:
-					intimatedOn = DateUtils.toDate(auditDeliveryMaster
-							.getCreatedModifiedDatetime());
-					break;
 				case ACCEPTED:
 					acceptedOn = DateUtils.toDate(auditDeliveryMaster
 							.getCreatedModifiedDatetime());
@@ -720,11 +719,17 @@ public class BuildDeliveryReport {
 				default:
 					break;
 				}
+				
 			}
+				
 			if (intimatedOnFlag) {
-				if (intimatedOn != null) {
-					row.createCell(colValue).setCellValue(intimatedOn);
-					row.getCell(colValue).setCellStyle(cellStyleDateFormat);
+				DeliveryIntimatedT deliveryIntimatedT = deliveryMaster.getDeliveryIntimatedT();
+				if(deliveryIntimatedT!=null) {
+					intimatedOn = DateUtils.toDate(deliveryIntimatedT.getCreatedDatetime());
+					if (intimatedOn != null) {
+						row.createCell(colValue).setCellValue(intimatedOn);
+						row.getCell(colValue).setCellStyle(cellStyleDateFormat);
+					}
 				}
 				colValue++;
 			}
