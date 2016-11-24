@@ -21,14 +21,15 @@ public interface DeliveryIntimatedCentreLinkRepository extends CrudRepository<De
 	List<String> getIdByDeliveryIntimatedId(
 			@Param("deliveryIntimatedId") String deliveryIntimatedId);
 
-	@Query(value="select DICT.deliveryCentreId from DeliveryIntimatedCentreLinkT DICT join "
-			+ "deliveryCentreT DCT join deliveryIntimatedT DIT where "
-			+ "DCT.deliveryClusterId = (:deliveryClusterId) and DIT.opportunityId = (:opportunityId)"
+	@Query(value="select DICT.deliveryCentreId from DeliveryIntimatedCentreLinkT DICT "
+			+ "join DICT.deliveryCentreT DCT "
+			+ "join DICT.deliveryIntimatedT DIT "
+			+ "where DCT.deliveryClusterId = (:deliveryClusterId) and DIT.opportunityId = (:opportunityId)"
 			+ "and DIT.accepted = false")
 	List<Integer> getByOpportunityIdAndClusterId(@Param("deliveryClusterId") Integer clusterId,@Param("opportunityId") String opportunityId);
 	
 	@Query(value="select DICT.deliveryCentreId from DeliveryIntimatedCentreLinkT DICT "
-			+ "join deliveryIntimatedT DIT where "
-			+ "DIT.opportunityId = (:opportunityId) and DICT.deliveryCentreId in (:deliveryCentreIds) ")
+			+ "join DICT.deliveryIntimatedT DIT "
+			+ "where DIT.opportunityId = (:opportunityId) and DICT.deliveryCentreId in (:deliveryCentreIds) ")
 	List<Integer> getByOpportunityId(@Param("opportunityId") String opportunityId, @Param("deliveryCentreIds") List<Integer> deliveryCentreIds);
 }
