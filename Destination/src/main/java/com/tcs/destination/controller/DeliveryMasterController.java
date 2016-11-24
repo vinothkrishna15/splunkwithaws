@@ -22,7 +22,6 @@ import com.tcs.destination.bean.DeliveryIntimatedT;
 import com.tcs.destination.bean.DeliveryMasterDTO;
 import com.tcs.destination.bean.DeliveryMasterT;
 import com.tcs.destination.bean.PageDTO;
-import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.enums.SmartSearchType;
