@@ -1459,12 +1459,14 @@ public class DeliveryMasterService {
 				}
 			}
 		}
-		List<Integer> centresByOpportunity = deliveryIntimatedCentreLinkRepository.getByOpportunityId(deliveryIntimatedT.getOpportunityId(), newCentres);
-		if(CollectionUtils.isNotEmpty(centresByOpportunity)) {
-			throw new DestinationException(HttpStatus.BAD_REQUEST, PropertyUtil.getProperty(ErrorConstants.ERR_ENG_CENTRE_EXISTS));
+		if(CollectionUtils.isNotEmpty(newCentres)) {
+			List<Integer> centresByOpportunity = deliveryIntimatedCentreLinkRepository.getByOpportunityId(deliveryIntimatedT.getOpportunityId(), newCentres);
+			if(CollectionUtils.isNotEmpty(centresByOpportunity)) {
+				throw new DestinationException(HttpStatus.BAD_REQUEST, PropertyUtil.getProperty(ErrorConstants.ERR_ENG_CENTRE_EXISTS));
+			}
+
+			asyncJobRequests.addAll(saveDeliveryIntimatedCentres(newCentres,deliveryIntimatedT,currentUserId,rejected));
 		}
-		
-		asyncJobRequests.addAll(saveDeliveryIntimatedCentres(newCentres,deliveryIntimatedT,currentUserId,rejected));
 		deleteRemovedDeliveryIntimatedCentres(storedCentres);
 		
 		if (rejected) {
