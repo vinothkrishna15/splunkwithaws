@@ -240,18 +240,18 @@ public class BuildDeliveryReport {
 						.getDeliveryRgsT().getDeliveryRequirementTs();
 				if (CollectionUtils.isNotEmpty(deliveryRequirementTs)) {
 					for (DeliveryRequirementT deliveryRequirementT : deliveryRequirementTs) {
-						if (StringUtils.equalsIgnoreCase("Open",
-								deliveryRequirementT.getStatus())) {
+						if (deliveryRequirementT.getStatus().equals(Constants.DELIVERY_REQUIREMENT_OPEN) || 
+								deliveryRequirementT.getStatus().equals(Constants.DELIVERY_REQUIREMENT_PROPOSED)) {
 							open++;
-						} else if (StringUtils.equalsIgnoreCase("closed",
-								deliveryRequirementT.getStatus())) {
+						} else if (deliveryRequirementT.getStatus().equals(Constants.DELIVERY_REQUIREMENT_CONFIRMED) || 
+								deliveryRequirementT.getStatus().equals(Constants.DELIVERY_REQUIREMENT_CLOSED)) {
 							joined++;
 						}
 					}
 				}
 			}
 		}
-
+		total = open + joined;
 		row.createCell(colNo)
 				.setCellValue(
 						ExcelUtils

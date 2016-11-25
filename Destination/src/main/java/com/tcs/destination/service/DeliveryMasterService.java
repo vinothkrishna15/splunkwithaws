@@ -1326,7 +1326,7 @@ public class DeliveryMasterService {
 			DeliveryIntimatedT deliveryIntimated,
 			List<Integer> deliveryIntimatedCentreIds, String userId) {
 		for(Integer deliveryCentreId : deliveryIntimatedCentreIds) {
-			saveDeliveryIntimatedCentreLink(deliveryCentreId,deliveryIntimated,userId);
+			saveDeliveryIntimatedCentreLink(deliveryCentreId,deliveryIntimated,Constants.SYSTEM_USER);
 		}
 	}
 
@@ -1334,7 +1334,7 @@ public class DeliveryMasterService {
 	private void saveDeliveryIntimatedCentreLink(Integer deliveryCentreId,
 			DeliveryIntimatedT deliveryIntimated, String userId) {
 		DeliveryIntimatedCentreLinkT deliveryIntimatedCentreLinkT = new DeliveryIntimatedCentreLinkT();
-		deliveryIntimatedCentreLinkT.setCreatedBy(Constants.SYSTEM_USER);
+		deliveryIntimatedCentreLinkT.setCreatedBy(userId);
 		deliveryIntimatedCentreLinkT.setDeliveryCentreId(deliveryCentreId);
 		deliveryIntimatedCentreLinkT.setDeliveryIntimatedId(deliveryIntimated.getDeliveryIntimatedId());
 		deliveryIntimatedCentreLinkRepository.save(deliveryIntimatedCentreLinkT);
@@ -1461,7 +1461,7 @@ public class DeliveryMasterService {
 		}
 		if(CollectionUtils.isNotEmpty(newCentres)) {
 			List<Integer> centresByOpportunity = deliveryIntimatedCentreLinkRepository.getByOpportunityId(deliveryIntimatedT.getOpportunityId(), newCentres);
-			if(CollectionUtils.isNotEmpty(centresByOpportunity)) {
+			if(CollectionUtils.isNotEmpty(centresByOpportunity) && newCentres.get(0) != Constants.DELIVERY_CENTRE_OPEN) {
 				throw new DestinationException(HttpStatus.BAD_REQUEST, PropertyUtil.getProperty(ErrorConstants.ERR_ENG_CENTRE_EXISTS));
 			}
 
@@ -1494,12 +1494,10 @@ public class DeliveryMasterService {
 					asyncJobRequests.addAll(saveDeliveryIntimated(deliveryIntimatedT.getOpportunityId(),
 							mapEntry.getValue(), currentUser));
 				} else {
-					for(DeliveryIntimatedCentreLinkT deliveryIntimatedCentreLinkT : deliveryIntimatedCentreLinkTs) {
+					DeliveryIntimatedCentreLinkT deliveryIntimatedCentreLinkT = deliveryIntimatedCentreLinkTs.get(0);
 						for (Integer centreId : mapEntry.getValue()) {
 							saveDeliveryIntimatedCentreLink(centreId, deliveryIntimatedCentreLinkT.getDeliveryIntimatedT(), currentUser);
-						}
 					}
-					
 				}
 			}
 		}
