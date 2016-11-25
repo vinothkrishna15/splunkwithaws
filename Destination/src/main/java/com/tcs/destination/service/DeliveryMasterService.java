@@ -1300,21 +1300,25 @@ public class DeliveryMasterService {
 	public void createDeliveryIntimated(OpportunityT opportunity,
 			Map<Integer, List<Integer>> deliveryCentreMap, String userId) {
 		for(Integer clusterId : deliveryCentreMap.keySet()) {
-			saveDeliveryIntimated(opportunity,deliveryCentreMap.get(clusterId),userId);
+			saveDeliveryIntimated(opportunity.getOpportunityId(),deliveryCentreMap.get(clusterId),userId);
 		}
 	}
 
 
-	private void saveDeliveryIntimated(OpportunityT opportunity,
+	private List<AsyncJobRequest> saveDeliveryIntimated(String opportunityId,
 			List<Integer> deliveryIntimatedCentreIds, String userId) {
+		List<AsyncJobRequest> asyncJobRequests = Lists.newArrayList();
 		DeliveryIntimatedT deliveryIntimated = new DeliveryIntimatedT();
 		deliveryIntimated.setCreatedBy(Constants.SYSTEM_USER);
 		deliveryIntimated.setDeliveryStage(DeliveryStage.INTIMATED.getStageCode());
 		deliveryIntimated.setModifiedBy(Constants.SYSTEM_USER);
 		deliveryIntimated.setAccepted(false);
-		deliveryIntimated.setOpportunityId(opportunity.getOpportunityId());
+		deliveryIntimated.setOpportunityId(opportunityId);
 		deliveryIntimatedRepository.save(deliveryIntimated);
 		saveDeliveryIntimatedCentreLink(deliveryIntimated,deliveryIntimatedCentreIds,userId);
+		asyncJobRequests.add(opportunityService.constructAsyncJobRequest(deliveryIntimated.getDeliveryIntimatedId(), 
+				EntityType.DELIVERY_INTIMATED, JobName.deliveryEmailNotification, null,null));
+		return asyncJobRequests;
 	}
 
 
@@ -1460,7 +1464,7 @@ public class DeliveryMasterService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, PropertyUtil.getProperty(ErrorConstants.ERR_ENG_CENTRE_EXISTS));
 		}
 		
-		saveDeliveryIntimatedCentres(newCentres,deliveryIntimatedT,currentUserId);
+		asyncJobRequests.addAll(saveDeliveryIntimatedCentres(newCentres,deliveryIntimatedT,currentUserId,rejected));
 		deleteRemovedDeliveryIntimatedCentres(storedCentres);
 		
 		if (rejected) {
@@ -1473,23 +1477,31 @@ public class DeliveryMasterService {
 	}
 
 
-	private void saveDeliveryIntimatedCentres(List<Integer> newCentres,
-			DeliveryIntimatedT deliveryIntimatedT, String currentUser) {
-
-		Map<Integer, List<Integer>> clusterCentreMap = getDeliveryCentreForCluster(newCentres);
-		for (Entry<Integer, List<Integer>> mapEntry : clusterCentreMap.entrySet()) {
-			List<Integer> deliveryIntimatedCentreLinkTs = deliveryIntimatedCentreLinkRepository
-					.getByOpportunityIdAndClusterId(mapEntry.getKey(),
-							deliveryIntimatedT.getOpportunityId());
-			if (CollectionUtils.isEmpty(deliveryIntimatedCentreLinkTs)) {
-				saveDeliveryIntimated(deliveryIntimatedT.getOpportunityT(),
-						mapEntry.getValue(), currentUser);
-			} else {
-				for (Integer centreId : mapEntry.getValue()) {
-					saveDeliveryIntimatedCentreLink(centreId, deliveryIntimatedT, currentUser);
+	private List<AsyncJobRequest> saveDeliveryIntimatedCentres(List<Integer> newCentres,
+			DeliveryIntimatedT deliveryIntimatedT, String currentUser,boolean rejected) {
+		List<AsyncJobRequest> asyncJobRequests = Lists.newArrayList();
+		if(rejected) {
+			saveDeliveryIntimatedCentreLink(Constants.DELIVERY_CENTRE_OPEN, deliveryIntimatedT, currentUser);
+		} else {
+			Map<Integer, List<Integer>> clusterCentreMap = getDeliveryCentreForCluster(newCentres);
+			for (Entry<Integer, List<Integer>> mapEntry : clusterCentreMap.entrySet()) {
+				List<DeliveryIntimatedCentreLinkT> deliveryIntimatedCentreLinkTs = deliveryIntimatedCentreLinkRepository
+						.getByOpportunityIdAndClusterId(mapEntry.getKey(),
+								deliveryIntimatedT.getOpportunityId());
+				if (CollectionUtils.isEmpty(deliveryIntimatedCentreLinkTs)) {
+					asyncJobRequests.addAll(saveDeliveryIntimated(deliveryIntimatedT.getOpportunityId(),
+							mapEntry.getValue(), currentUser));
+				} else {
+					for(DeliveryIntimatedCentreLinkT deliveryIntimatedCentreLinkT : deliveryIntimatedCentreLinkTs) {
+						for (Integer centreId : mapEntry.getValue()) {
+							saveDeliveryIntimatedCentreLink(centreId, deliveryIntimatedCentreLinkT.getDeliveryIntimatedT(), currentUser);
+						}
+					}
+					
 				}
 			}
 		}
+		return asyncJobRequests;
 	}
 
 
