@@ -1500,18 +1500,26 @@ public class DeliveryMasterService {
 						for (Integer centreId : mapEntry.getValue()) {
 							saveDeliveryIntimatedCentreLink(centreId, deliveryIntimatedT.getDeliveryIntimatedId(), currentUser);
 						}
-					} else if(deliveryIntimatedRepository.findByOpportunityId(opportunityId).size() == totalClsuter) { //checking intimated created for all the clusters
+					} else if(deliveryIntimatedRepository.findByOpportunityId(opportunityId).size() >= totalClsuter) { //checking intimated created for all the clusters
 						// add the centres in the first rejected intimated
-						List<DeliveryIntimatedCentreLinkT> openIntimateds = deliveryIntimatedCentreLinkRepository.findByDeliveryCentreIdAndOpportunityId(Constants.DELIVERY_CENTRE_OPEN, opportunityId);
-						if(CollectionUtils.isNotEmpty(openIntimateds)) { 
-							String intimatedId = openIntimateds.get(0).getDeliveryIntimatedId();
-							//remove the open centre from the intimated
-							storedCentres.add(openIntimateds.get(0).getDeliveryIntimatedCentreLinkId());
+						String intimatedId = null;
+						List<DeliveryIntimatedT> intimatedEmpty = deliveryIntimatedRepository.findByEmptyCentres(opportunityId);
+						if(CollectionUtils.isNotEmpty(intimatedEmpty)) { 
+							intimatedId = intimatedEmpty.get(0).getDeliveryIntimatedId();
+						} else {
+							List<DeliveryIntimatedCentreLinkT> openIntimateds = deliveryIntimatedCentreLinkRepository.findByDeliveryCentreIdAndOpportunityId(Constants.DELIVERY_CENTRE_OPEN, opportunityId);
+
+							if(CollectionUtils.isNotEmpty(openIntimateds)) { 
+								intimatedId = openIntimateds.get(0).getDeliveryIntimatedId();
+								//remove the open centre from the intimated
+								storedCentres.add(openIntimateds.get(0).getDeliveryIntimatedCentreLinkId());
+							} 
+						}
+						if(intimatedId != null) {
 							for (Integer centreId : mapEntry.getValue()) {
 								saveDeliveryIntimatedCentreLink(centreId, intimatedId, currentUser);
 							}
 						}
-						
 					} else {
 						//create a new entry
 						asyncJobRequests.addAll(saveDeliveryIntimated(opportunityId,
