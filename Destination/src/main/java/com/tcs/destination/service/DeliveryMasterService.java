@@ -1326,17 +1326,16 @@ public class DeliveryMasterService {
 			DeliveryIntimatedT deliveryIntimated,
 			List<Integer> deliveryIntimatedCentreIds, String userId) {
 		for(Integer deliveryCentreId : deliveryIntimatedCentreIds) {
-			saveDeliveryIntimatedCentreLink(deliveryCentreId,deliveryIntimated,Constants.SYSTEM_USER);
+			saveDeliveryIntimatedCentreLink(deliveryCentreId, deliveryIntimated.getDeliveryIntimatedId(),Constants.SYSTEM_USER);
 		}
 	}
 
-
 	private void saveDeliveryIntimatedCentreLink(Integer deliveryCentreId,
-			DeliveryIntimatedT deliveryIntimated, String userId) {
+			String deliveryIntimatedId, String userId) {
 		DeliveryIntimatedCentreLinkT deliveryIntimatedCentreLinkT = new DeliveryIntimatedCentreLinkT();
 		deliveryIntimatedCentreLinkT.setCreatedBy(userId);
 		deliveryIntimatedCentreLinkT.setDeliveryCentreId(deliveryCentreId);
-		deliveryIntimatedCentreLinkT.setDeliveryIntimatedId(deliveryIntimated.getDeliveryIntimatedId());
+		deliveryIntimatedCentreLinkT.setDeliveryIntimatedId(deliveryIntimatedId);
 		deliveryIntimatedCentreLinkRepository.save(deliveryIntimatedCentreLinkT);
 		
 	}
@@ -1438,7 +1437,7 @@ public class DeliveryMasterService {
 		logger.debug("updateDeliveryIntimatedCentres");
 		String deliveryIntimatedId = deliveryIntimatedT
 				.getDeliveryIntimatedId();
-		List<String> storedCentres = deliveryIntimatedCentreLinkRepository
+		Set<String> storedCentres = deliveryIntimatedCentreLinkRepository
 				.getIdByDeliveryIntimatedId(deliveryIntimatedId);
 		List<DeliveryIntimatedCentreLinkT> deliveryIntimatedCentreLinkTs = deliveryIntimatedT
 				.getDeliveryIntimatedCentreLinkTs();
@@ -1465,7 +1464,7 @@ public class DeliveryMasterService {
 				throw new DestinationException(HttpStatus.BAD_REQUEST, PropertyUtil.getProperty(ErrorConstants.ERR_ENG_CENTRE_EXISTS));
 			}
 
-			asyncJobRequests.addAll(saveDeliveryIntimatedCentres(newCentres,deliveryIntimatedT,currentUserId,rejected));
+			asyncJobRequests.addAll(saveDeliveryIntimatedCentres(newCentres,deliveryIntimatedT,currentUserId,rejected, storedCentres));
 		}
 		deleteRemovedDeliveryIntimatedCentres(storedCentres);
 		
@@ -1480,23 +1479,48 @@ public class DeliveryMasterService {
 
 
 	private List<AsyncJobRequest> saveDeliveryIntimatedCentres(List<Integer> newCentres,
-			DeliveryIntimatedT deliveryIntimatedT, String currentUser,boolean rejected) {
+			DeliveryIntimatedT deliveryIntimatedT, String currentUser,boolean rejected, Set<String> storedCentres) {
 		List<AsyncJobRequest> asyncJobRequests = Lists.newArrayList();
 		if(rejected) {
-			saveDeliveryIntimatedCentreLink(Constants.DELIVERY_CENTRE_OPEN, deliveryIntimatedT, currentUser);
+			saveDeliveryIntimatedCentreLink(Constants.DELIVERY_CENTRE_OPEN, deliveryIntimatedT.getDeliveryIntimatedId(), currentUser);
 		} else {
 			Map<Integer, List<Integer>> clusterCentreMap = getDeliveryCentreForCluster(newCentres);
+			long totalClsuter = deliveryClusterRepository.count()-1;
 			for (Entry<Integer, List<Integer>> mapEntry : clusterCentreMap.entrySet()) {
+				String opportunityId = deliveryIntimatedT.getOpportunityId();
 				List<DeliveryIntimatedCentreLinkT> deliveryIntimatedCentreLinkTs = deliveryIntimatedCentreLinkRepository
 						.getByOpportunityIdAndClusterId(mapEntry.getKey(),
-								deliveryIntimatedT.getOpportunityId());
-				if (CollectionUtils.isEmpty(deliveryIntimatedCentreLinkTs)) {
-					asyncJobRequests.addAll(saveDeliveryIntimated(deliveryIntimatedT.getOpportunityId(),
-							mapEntry.getValue(), currentUser));
-				} else {
-					DeliveryIntimatedCentreLinkT deliveryIntimatedCentreLinkT = deliveryIntimatedCentreLinkTs.get(0);
+								opportunityId);
+				
+				if (CollectionUtils.isEmpty(deliveryIntimatedCentreLinkTs)) { // cluster entry not available
+					List<DeliveryIntimatedCentreLinkT> deliveryIntimatedCentreLinkT = deliveryIntimatedCentreLinkRepository.findByDeliveryIntimatedId(deliveryIntimatedT.getDeliveryIntimatedId());
+					boolean isOpen = CollectionUtils.isNotEmpty(deliveryIntimatedCentreLinkT) && 
+							deliveryIntimatedCentreLinkT.size() == 1 && deliveryIntimatedCentreLinkT.get(0).getDeliveryCentreId() == Constants.DELIVERY_CENTRE_OPEN;
+					if(isOpen) { //add it current entry is rejected
 						for (Integer centreId : mapEntry.getValue()) {
-							saveDeliveryIntimatedCentreLink(centreId, deliveryIntimatedCentreLinkT.getDeliveryIntimatedT(), currentUser);
+							saveDeliveryIntimatedCentreLink(centreId, deliveryIntimatedT.getDeliveryIntimatedId(), currentUser);
+						}
+					} else if(deliveryIntimatedRepository.findByOpportunityId(opportunityId).size() == totalClsuter) { //checking intimated created for all the clusters
+						// add the centres in the first rejected intimated
+						List<DeliveryIntimatedCentreLinkT> openIntimateds = deliveryIntimatedCentreLinkRepository.findByDeliveryCentreIdAndOpportunityId(Constants.DELIVERY_CENTRE_OPEN, opportunityId);
+						if(CollectionUtils.isNotEmpty(openIntimateds)) { 
+							String intimatedId = openIntimateds.get(0).getDeliveryIntimatedId();
+							//remove the open centre from the intimated
+							storedCentres.add(openIntimateds.get(0).getDeliveryIntimatedCentreLinkId());
+							for (Integer centreId : mapEntry.getValue()) {
+								saveDeliveryIntimatedCentreLink(centreId, intimatedId, currentUser);
+							}
+						}
+						
+					} else {
+						//create a new entry
+						asyncJobRequests.addAll(saveDeliveryIntimated(opportunityId,
+								mapEntry.getValue(), currentUser));
+					}
+				} else { //cluster entry aready available 
+					String intimatedId = deliveryIntimatedCentreLinkTs.get(0).getDeliveryIntimatedId();
+					for (Integer centreId : mapEntry.getValue()) {
+							saveDeliveryIntimatedCentreLink(centreId, intimatedId, currentUser);
 					}
 				}
 			}
@@ -1507,12 +1531,12 @@ public class DeliveryMasterService {
 
 	/**
 	 * Deleting removed delivery centres
-	 * @param removedCentres
+	 * @param storedCentres
 	 */
 	private void deleteRemovedDeliveryIntimatedCentres(
-			List<String> removedCentres) {
-		if (CollectionUtils.isNotEmpty(removedCentres)) {
-			for (String removedCentreId : removedCentres) {
+			Set<String> storedCentres) {
+		if (CollectionUtils.isNotEmpty(storedCentres)) {
+			for (String removedCentreId : storedCentres) {
 				deliveryIntimatedCentreLinkRepository.delete(removedCentreId);
 			}
 		}
