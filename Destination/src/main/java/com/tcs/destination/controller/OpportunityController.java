@@ -1024,5 +1024,28 @@ public class OpportunityController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/all/privilege", method = RequestMethod.GET)
+	public @ResponseBody String findOppByPrivilege(
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Inside OpportunityController: Start of /opportunity/all/privilege");
+		String response = null;
+		List<OpportunityT> opportunities;
+		try {
+			opportunities = opportunityService.getOpportunitiesBasedOnPrivileges();
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, opportunities);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(),e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the opportunity details ");
+		}
+		logger.info("Inside OpportunityController: End of /opportunity/all/privilege");
+		return response;
+	}
+	
 	
 }

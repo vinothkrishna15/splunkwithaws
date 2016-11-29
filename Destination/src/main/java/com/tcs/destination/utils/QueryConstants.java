@@ -227,5 +227,14 @@ public static final String TASK_TRGT_DT_POST_SUPERVISOR = "select distinct t.tas
 	public static final String BFM_PENDING_WITH_SI_QUERY ="select WBT.opportunity_id,WRT.status,WRT.entity_Id,WST.* from workflow_bfm_t  WBT join workflow_request_t WRT on WBT.workflow_bfm_id = WRT.entity_id and WRT.entity_type_id IN (4,5,6,7,8) join workflow_step_t WST on WRT.request_id = WST.request_id and WST.step_status ='PENDING' and WST.user_id IS NULL and (WST.user_role like (:userRole) or WST.user_group like (:userGroup))";
 
     public static final String BFM_PENDING_WITH_USER_QUERY ="select WBT.opportunity_id,WRT.status,WRT.entity_Id,WST.* from workflow_bfm_t WBT join workflow_request_t WRT on WBT.workflow_bfm_id = WRT.entity_id and WRT.entity_type_id IN (4,5,6,7,8) join workflow_step_t WST on WRT.request_id = WST.request_id and WST.step_status ='PENDING' and WST.user_id = (:userId)";
+    
+    public static final String OPPORTUNITY_QUERY_PREFIX = "select distinct(OPP.*) from opportunity_t OPP join "
+    		+ "customer_master_t CMT on CMT.customer_id = OPP.customer_id "
+    		+ "join geography_mapping_t GMT on CMT.geography = GMT.geography "
+    		+ "join iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou "
+    		+ "join opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
+    		+ "join sub_sp_mapping_t SSMT on SSMT.sub_sp = OSSL.sub_sp "
+    		+ "join opportunity_sales_support_link_t OSLT on OSLT.opportunity_id = OPP.opportunity_id "
+    		+ "where OPP.opportunity_owner in (:owner) or OSLT.sales_support_owner in (:owner)";
 
 }
