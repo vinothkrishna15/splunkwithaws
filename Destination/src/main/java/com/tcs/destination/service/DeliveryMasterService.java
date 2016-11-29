@@ -1488,6 +1488,10 @@ public class DeliveryMasterService {
 			long totalClsuter = deliveryClusterRepository.count()-1;
 			for (Entry<Integer, List<Integer>> mapEntry : clusterCentreMap.entrySet()) {
 				String opportunityId = deliveryIntimatedT.getOpportunityId();
+				Integer clusterId = deliveryIntimatedCentreLinkRepository.getAcceptedClusterByOpportunityId(mapEntry.getKey(),opportunityId);
+				if(clusterId!=null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, PropertyUtil.getProperty(ErrorConstants.ERR_ENG_CENTRE_ACCEPTED));
+				}
 				List<DeliveryIntimatedCentreLinkT> deliveryIntimatedCentreLinkTs = deliveryIntimatedCentreLinkRepository
 						.getByOpportunityIdAndClusterId(mapEntry.getKey(),
 								opportunityId);

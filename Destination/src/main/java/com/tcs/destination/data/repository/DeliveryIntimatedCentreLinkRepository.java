@@ -43,4 +43,10 @@ public interface DeliveryIntimatedCentreLinkRepository extends CrudRepository<De
 			+ "AND DICT.deliveryIntimatedId NOT IN (SELECT DICT2.deliveryIntimatedId FROM DeliveryIntimatedCentreLinkT DICT2 where DICT2.deliveryCentreId != :deliveryCentreId)")
 	List<DeliveryIntimatedCentreLinkT> findByDeliveryCentreIdAndOpportunityId(
 			@Param("deliveryCentreId") Integer deliveryCentreOpen, @Param("opportunityId") String opportunityId);
+
+	@Query(value="select DCT.deliveryClusterId from DeliveryIntimatedCentreLinkT DICT "
+			+ "join DICT.deliveryIntimatedT DIT "
+			+ "join DICT.deliveryCentreT DCT where DIT.opportunityId = (:opportunityId) "
+			+ "and DIT.accepted = true and DCT.deliveryClusterId = (:clusterId)")
+	Integer getAcceptedClusterByOpportunityId(@Param("clusterId") Integer clusterId,@Param("opportunityId") String opportunityId);
 }
