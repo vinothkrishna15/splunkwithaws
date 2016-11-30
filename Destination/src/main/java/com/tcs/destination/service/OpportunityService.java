@@ -20,6 +20,7 @@ import javax.persistence.Query;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.tcs.destination.bean.AsyncJobRequest;
 import com.tcs.destination.bean.AuditOpportunityDeliveryCentreT;
 import com.tcs.destination.bean.BidDetailsT;
@@ -67,6 +69,7 @@ import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
+import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.WorkflowBfmT;
@@ -136,6 +139,7 @@ import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
 import com.tcs.destination.utils.PropertyUtil;
+import com.tcs.destination.utils.QueryConstants;
 
 @Service
 public class OpportunityService {
@@ -311,6 +315,11 @@ public class OpportunityService {
 	
 	@Autowired
 	DeliveryIntimatedRepository deliveryIntimatedRepository;
+	
+	private static final String GEO_COND_PREFIX = "GMT.geography in (";
+	private static final String SUBSP_COND_PREFIX = "SSMT.display_sub_sp in (";
+	private static final String IOU_COND_PREFIX = "ICMT.display_iou in (";
+	private static final String CUSTOMER_COND_PREFIX = "CMT.customer_name in (";
 
 	/**
 	 * Fetch opportunities by opportunity name
@@ -3664,5 +3673,59 @@ public class OpportunityService {
 			asyncJobRequest.setDeliveryCentreId(deliveryCentreId);
 			return asyncJobRequest;
 		}
+	
+	public List<OpportunityT> getOpportunitiesBasedOnPrivileges(Date fromDate, Date toDate) throws Exception {
+		List<OpportunityT> opportunityTs = Lists.newArrayList();
+		UserT currentUser = DestinationUtils.getCurrentUserDetails();
+		String userId = currentUser.getUserId();
+		String userGroup = currentUser.getUserGroup();
+		List<String> owners = Lists.newArrayList();
+		owners.add(userId);
+		
+		Date startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
+		Date endDate = toDate != null ? toDate : new Date();
+		
+		switch (UserGroup.getUserGroup(userGroup)) {
+		case STRATEGIC_INITIATIVES:
+			opportunityTs = opportunityRepository.findByDealClosureDateBetween(fromDate,toDate);
+			break;
+		default :
+				String oppQueryString = getOpportunityQueryByPrivilege(userId);
+				Query oppQuery = entityManager.createNativeQuery(oppQueryString, OpportunityT.class);
+			oppQuery.setParameter("fromDate", startDate);
+			oppQuery.setParameter("toDate", endDate);
+				opportunityTs = oppQuery.getResultList();
+				break;
+		}
+		for(OpportunityT opp : opportunityTs) {
+			removeCyclicForCustomers(opp);
+			removeCyclicForLinkedConnects(opp);
+			removeCyclicForLinkedContacts(opp);
+			if(opp.getDigitalDealValue()!=null) {
+				BigDecimal dealValueInUsd = beaconConverterService.convertCurrencyRate(opp.getDealCurrency(), "USD", opp.getDigitalDealValue());
+				opp.setDigitalDealValue(dealValueInUsd.intValue());
+			}
+		}
+		return opportunityTs;
+		
+	}
+	
+	private String getOpportunityQueryByPrivilege(String userId)
+			throws Exception {
+		StringBuffer queryBuffer = new StringBuffer(
+				QueryConstants.OPPORTUNITY_QUERY_PREFIX);
+		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
+				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
+						IOU_COND_PREFIX, CUSTOMER_COND_PREFIX);
+
+		String whereClause = userAccessPrivilegeQueryBuilder
+				.getUserAccessPrivilegeWhereConditionClause(userId,
+						queryPrefixMap);
+		if (whereClause != null && !whereClause.isEmpty()) {
+			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+		}
+		queryBuffer.append(QueryConstants.OPPORTUNITY_DEAL_CLOSURE_DATE_ORDER_BY);
+		return queryBuffer.toString();
+	}
 
 }
