@@ -3687,7 +3687,7 @@ public class OpportunityService {
 		
 		switch (UserGroup.getUserGroup(userGroup)) {
 		case STRATEGIC_INITIATIVES:
-			opportunityTs = opportunityRepository.findByDealClosureDateBetween(fromDate,toDate);
+			opportunityTs = opportunityRepository.findByDealClosureDateBetween(startDate,endDate);
 			break;
 		default :
 				String oppQueryString = getOpportunityQueryByPrivilege(userId);
