@@ -1777,7 +1777,7 @@ public class OpportunityService {
 				}
 				//Getting Cluster and their Respective delivery centres Map
 				Map<Integer, List<Integer>> deliveryCentreMap = deliveryMasterService
-						.getDeliveryCentreForCluster(userId, deliveryCentreIds);
+						.getDeliveryCentreForCluster(deliveryCentreIds);
 				deliveryMasterService.createDeliveryIntimated(opportunity,
 						deliveryCentreMap, userId);
 			}

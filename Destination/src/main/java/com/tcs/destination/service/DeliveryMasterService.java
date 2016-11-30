@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -65,7 +66,9 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
+import com.tcs.destination.utils.ErrorConstants;
 import com.tcs.destination.utils.PaginationUtils;
+import com.tcs.destination.utils.PropertyUtil;
 
 /**
  * handle service functionalities for delivery
@@ -1297,21 +1300,25 @@ public class DeliveryMasterService {
 	public void createDeliveryIntimated(OpportunityT opportunity,
 			Map<Integer, List<Integer>> deliveryCentreMap, String userId) {
 		for(Integer clusterId : deliveryCentreMap.keySet()) {
-			saveDeliveryIntimated(opportunity,deliveryCentreMap.get(clusterId),userId);
+			saveDeliveryIntimated(opportunity.getOpportunityId(),deliveryCentreMap.get(clusterId),userId);
 		}
 	}
 
 
-	private void saveDeliveryIntimated(OpportunityT opportunity,
+	private List<AsyncJobRequest> saveDeliveryIntimated(String opportunityId,
 			List<Integer> deliveryIntimatedCentreIds, String userId) {
+		List<AsyncJobRequest> asyncJobRequests = Lists.newArrayList();
 		DeliveryIntimatedT deliveryIntimated = new DeliveryIntimatedT();
 		deliveryIntimated.setCreatedBy(Constants.SYSTEM_USER);
 		deliveryIntimated.setDeliveryStage(DeliveryStage.INTIMATED.getStageCode());
 		deliveryIntimated.setModifiedBy(Constants.SYSTEM_USER);
 		deliveryIntimated.setAccepted(false);
-		deliveryIntimated.setOpportunityId(opportunity.getOpportunityId());
+		deliveryIntimated.setOpportunityId(opportunityId);
 		deliveryIntimatedRepository.save(deliveryIntimated);
 		saveDeliveryIntimatedCentreLink(deliveryIntimated,deliveryIntimatedCentreIds,userId);
+		asyncJobRequests.add(opportunityService.constructAsyncJobRequest(deliveryIntimated.getDeliveryIntimatedId(), 
+				EntityType.DELIVERY_INTIMATED, JobName.deliveryEmailNotification, null,null));
+		return asyncJobRequests;
 	}
 
 
@@ -1319,17 +1326,16 @@ public class DeliveryMasterService {
 			DeliveryIntimatedT deliveryIntimated,
 			List<Integer> deliveryIntimatedCentreIds, String userId) {
 		for(Integer deliveryCentreId : deliveryIntimatedCentreIds) {
-			saveDeliveryIntimatedCentreLink(deliveryCentreId,deliveryIntimated,userId);
+			saveDeliveryIntimatedCentreLink(deliveryCentreId, deliveryIntimated.getDeliveryIntimatedId(),Constants.SYSTEM_USER);
 		}
 	}
 
-
 	private void saveDeliveryIntimatedCentreLink(Integer deliveryCentreId,
-			DeliveryIntimatedT deliveryIntimated, String userId) {
+			String deliveryIntimatedId, String userId) {
 		DeliveryIntimatedCentreLinkT deliveryIntimatedCentreLinkT = new DeliveryIntimatedCentreLinkT();
-		deliveryIntimatedCentreLinkT.setCreatedBy(Constants.SYSTEM_USER);
+		deliveryIntimatedCentreLinkT.setCreatedBy(userId);
 		deliveryIntimatedCentreLinkT.setDeliveryCentreId(deliveryCentreId);
-		deliveryIntimatedCentreLinkT.setDeliveryIntimatedId(deliveryIntimated.getDeliveryIntimatedId());
+		deliveryIntimatedCentreLinkT.setDeliveryIntimatedId(deliveryIntimatedId);
 		deliveryIntimatedCentreLinkRepository.save(deliveryIntimatedCentreLinkT);
 		
 	}
@@ -1340,8 +1346,7 @@ public class DeliveryMasterService {
 	 * @param opportunityDeliveryCentreIds
 	 * @return
 	 */
-	public Map<Integer, List<Integer>> getDeliveryCentreForCluster(
-			String userId,List<Integer> opportunityDeliveryCentreIds) {
+	public Map<Integer, List<Integer>> getDeliveryCentreForCluster(List<Integer> opportunityDeliveryCentreIds) {
 		Map<Integer, List<Integer>> deliveryCentreMap = Maps
 				.newHashMap();
 		List<Integer> deliveryIntimatedCentreLinkTs;
@@ -1367,6 +1372,7 @@ public class DeliveryMasterService {
 	 * @param deliveryIntimatedT
 	 * @return
 	 */
+	@Transactional
 	public List<AsyncJobRequest> updateDeliveryIntimated(
 			DeliveryIntimatedT deliveryIntimatedT) {
 		logger.debug("Inside updateDeliveryIntimated method");
@@ -1431,46 +1437,118 @@ public class DeliveryMasterService {
 		logger.debug("updateDeliveryIntimatedCentres");
 		String deliveryIntimatedId = deliveryIntimatedT
 				.getDeliveryIntimatedId();
-		List<String> storedCentres = deliveryIntimatedCentreLinkRepository
+		Set<String> storedCentres = deliveryIntimatedCentreLinkRepository
 				.getIdByDeliveryIntimatedId(deliveryIntimatedId);
 		List<DeliveryIntimatedCentreLinkT> deliveryIntimatedCentreLinkTs = deliveryIntimatedT
 				.getDeliveryIntimatedCentreLinkTs();
+		List<Integer> newCentres = Lists.newArrayList();
 		if (CollectionUtils.isNotEmpty(deliveryIntimatedCentreLinkTs)) {
 			for (DeliveryIntimatedCentreLinkT deliveryIntimatedCentreLinkT : deliveryIntimatedCentreLinkTs) {
 				String deliveryIntimatedCentreLinkId = deliveryIntimatedCentreLinkT
 						.getDeliveryIntimatedCentreLinkId();
-				if (deliveryIntimatedCentreLinkId != null
+				if(deliveryIntimatedCentreLinkId==null) {
+					newCentres.add(deliveryIntimatedCentreLinkT.getDeliveryCentreId());
+				}
+				else if (deliveryIntimatedCentreLinkId != null
 						&& CollectionUtils.isNotEmpty(storedCentres)) {
 					storedCentres.remove(deliveryIntimatedCentreLinkId);
 				}
-				deliveryIntimatedCentreLinkT.setCreatedBy(currentUserId);
-				deliveryIntimatedCentreLinkT
-						.setDeliveryIntimatedId(deliveryIntimatedId);
-				deliveryIntimatedCentreLinkRepository
-						.save(deliveryIntimatedCentreLinkT);
-				if(deliveryIntimatedCentreLinkT.getDeliveryCentreId()==Constants.DELIVERY_CENTRE_OPEN) {
+				if (deliveryIntimatedCentreLinkT.getDeliveryCentreId() == Constants.DELIVERY_CENTRE_OPEN) {
 					rejected = true;
 				}
 			}
-			if (rejected) {
-				asyncJobRequests.add(opportunityService
-						.constructAsyncJobRequest(deliveryIntimatedId,
-								EntityType.DELIVERY_INTIMATED,
-								JobName.deliveryEmailNotification, null, null));
+		}
+		if(CollectionUtils.isNotEmpty(newCentres)) {
+			List<Integer> centresByOpportunity = deliveryIntimatedCentreLinkRepository.getByOpportunityId(deliveryIntimatedT.getOpportunityId(), newCentres);
+			if(CollectionUtils.isNotEmpty(centresByOpportunity) && newCentres.get(0) != Constants.DELIVERY_CENTRE_OPEN) {
+				throw new DestinationException(HttpStatus.BAD_REQUEST, PropertyUtil.getProperty(ErrorConstants.ERR_ENG_CENTRE_EXISTS));
 			}
+
+			asyncJobRequests.addAll(saveDeliveryIntimatedCentres(newCentres,deliveryIntimatedT,currentUserId,rejected, storedCentres));
 		}
 		deleteRemovedDeliveryIntimatedCentres(storedCentres);
+		
+		if (rejected) {
+			asyncJobRequests.add(opportunityService
+					.constructAsyncJobRequest(deliveryIntimatedId,
+							EntityType.DELIVERY_INTIMATED,
+							JobName.deliveryEmailNotification, null, null));
+		}
 		return asyncJobRequests;
 	}
 
+
+	private List<AsyncJobRequest> saveDeliveryIntimatedCentres(List<Integer> newCentres,
+			DeliveryIntimatedT deliveryIntimatedT, String currentUser,boolean rejected, Set<String> storedCentres) {
+		List<AsyncJobRequest> asyncJobRequests = Lists.newArrayList();
+		if(rejected) {
+			saveDeliveryIntimatedCentreLink(Constants.DELIVERY_CENTRE_OPEN, deliveryIntimatedT.getDeliveryIntimatedId(), currentUser);
+		} else {
+			Map<Integer, List<Integer>> clusterCentreMap = getDeliveryCentreForCluster(newCentres);
+			long totalClsuter = deliveryClusterRepository.count()-1;
+			for (Entry<Integer, List<Integer>> mapEntry : clusterCentreMap.entrySet()) {
+				String opportunityId = deliveryIntimatedT.getOpportunityId();
+				Integer clusterId = deliveryIntimatedCentreLinkRepository.getAcceptedClusterByOpportunityId(mapEntry.getKey(),opportunityId);
+				if(clusterId!=null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, PropertyUtil.getProperty(ErrorConstants.ERR_ENG_CENTRE_ACCEPTED));
+				}
+				List<DeliveryIntimatedCentreLinkT> deliveryIntimatedCentreLinkTs = deliveryIntimatedCentreLinkRepository
+						.getByOpportunityIdAndClusterId(mapEntry.getKey(),
+								opportunityId);
+				
+				if (CollectionUtils.isEmpty(deliveryIntimatedCentreLinkTs)) { // cluster entry not available
+					List<DeliveryIntimatedCentreLinkT> deliveryIntimatedCentreLinkT = deliveryIntimatedCentreLinkRepository.findByDeliveryIntimatedId(deliveryIntimatedT.getDeliveryIntimatedId());
+					boolean isOpen = CollectionUtils.isNotEmpty(deliveryIntimatedCentreLinkT) && 
+							deliveryIntimatedCentreLinkT.size() == 1 && deliveryIntimatedCentreLinkT.get(0).getDeliveryCentreId() == Constants.DELIVERY_CENTRE_OPEN;
+					if(isOpen) { //add it current entry is rejected
+						for (Integer centreId : mapEntry.getValue()) {
+							saveDeliveryIntimatedCentreLink(centreId, deliveryIntimatedT.getDeliveryIntimatedId(), currentUser);
+						}
+					} else if(deliveryIntimatedRepository.findByOpportunityId(opportunityId).size() >= totalClsuter) { //checking intimated created for all the clusters
+						// add the centres in the first rejected intimated
+						String intimatedId = null;
+						List<DeliveryIntimatedT> intimatedEmpty = deliveryIntimatedRepository.findByEmptyCentres(opportunityId);
+						if(CollectionUtils.isNotEmpty(intimatedEmpty)) { 
+							intimatedId = intimatedEmpty.get(0).getDeliveryIntimatedId();
+						} else {
+							List<DeliveryIntimatedCentreLinkT> openIntimateds = deliveryIntimatedCentreLinkRepository.findByDeliveryCentreIdAndOpportunityId(Constants.DELIVERY_CENTRE_OPEN, opportunityId);
+
+							if(CollectionUtils.isNotEmpty(openIntimateds)) { 
+								intimatedId = openIntimateds.get(0).getDeliveryIntimatedId();
+								//remove the open centre from the intimated
+								storedCentres.add(openIntimateds.get(0).getDeliveryIntimatedCentreLinkId());
+							} 
+						}
+						if(intimatedId != null) {
+							for (Integer centreId : mapEntry.getValue()) {
+								saveDeliveryIntimatedCentreLink(centreId, intimatedId, currentUser);
+							}
+						}
+					} else {
+						//create a new entry
+						asyncJobRequests.addAll(saveDeliveryIntimated(opportunityId,
+								mapEntry.getValue(), currentUser));
+					}
+				} else { //cluster entry aready available 
+					String intimatedId = deliveryIntimatedCentreLinkTs.get(0).getDeliveryIntimatedId();
+					for (Integer centreId : mapEntry.getValue()) {
+							saveDeliveryIntimatedCentreLink(centreId, intimatedId, currentUser);
+					}
+				}
+			}
+		}
+		return asyncJobRequests;
+	}
+
+
 	/**
 	 * Deleting removed delivery centres
-	 * @param removedCentres
+	 * @param storedCentres
 	 */
 	private void deleteRemovedDeliveryIntimatedCentres(
-			List<String> removedCentres) {
-		if (CollectionUtils.isNotEmpty(removedCentres)) {
-			for (String removedCentreId : removedCentres) {
+			Set<String> storedCentres) {
+		if (CollectionUtils.isNotEmpty(storedCentres)) {
+			for (String removedCentreId : storedCentres) {
 				deliveryIntimatedCentreLinkRepository.delete(removedCentreId);
 			}
 		}

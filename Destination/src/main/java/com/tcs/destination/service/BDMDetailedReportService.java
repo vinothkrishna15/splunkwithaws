@@ -315,8 +315,10 @@ public class BDMDetailedReportService {
 				List<String> fields, boolean isIncludingSupervisor, CellStyle cellStyleDateFormat, CellStyle cellStyleDateTimeFormat) throws Exception {
 			logger.info("Inside setBDMReportAlongWithOptionalFieldsDetail method");
 			SXSSFRow row = null;
-			boolean projectDVFlag = fields.contains(ReportConstants.PROJECTDEALVALUE);
+			
 			boolean opportunityNameFlag = fields.contains(ReportConstants.OPPNAME);
+			boolean projectDVFlag = fields.contains(ReportConstants.PROJECTDEALVALUE);
+			
 			boolean targetBidSubDtFlag = fields.contains(ReportConstants.TARGETBIDSUBMISSIONDATE);
 			boolean actualBidSubDtFlag = fields.contains(ReportConstants.ACTUALBIDSUBMISSIONDATE);
 			boolean winProbFlag = fields.contains(ReportConstants.WINPROBABILITY);
@@ -344,6 +346,12 @@ public class BDMDetailedReportService {
 				int colValue = currentCol;
 				if (currency.size() > 1) {
 					colValue = currentCol+1;
+				}
+				
+				//set opportunity name
+				if (opportunityNameFlag) {
+					row.createCell(colValue).setCellValue(opportunity.getOpportunityName());
+					colValue++;
 				}
 				
 				//set project deal value and deal currency
@@ -396,11 +404,7 @@ public class BDMDetailedReportService {
 				}
 				
 				
-				//set opportunity name
-				if (opportunityNameFlag) {
-					row.createCell(colValue).setCellValue(opportunity.getOpportunityName());
-					colValue++;
-				}
+				
 	
 				//set factors for win loss
 				if (factorForWLFlag) {
@@ -533,8 +537,7 @@ public class BDMDetailedReportService {
 				if(isIncludingSupervisor){
 					row.createCell(columnNo++).setCellValue(oppOwner.getSupervisorUserName()+", "+salesOwnerSupervisor);
 				}
-				//set opportunity id
-				row.createCell(columnNo++).setCellValue(opportunity.getOpportunityId());
+				
 				//set opportunity owner name
 				row.createCell(columnNo++).setCellValue(oppOwner.getUserName());
 				
@@ -591,6 +594,10 @@ public class BDMDetailedReportService {
 					}
 					columnNo++;
 				}
+				//set opportunity id
+				row.createCell(columnNo++).setCellValue(opportunity.getOpportunityId());
+				
+				
 			}
 			
 		/**
@@ -609,7 +616,7 @@ public class BDMDetailedReportService {
 			if(isIncludingSupervisor){
 				headerList.add("Supervisor");
 			}
-			headerList.add("Opportunity Id");headerList.add("Opportunity Owner");headerList.add("Sales Support Owners");headerList.add("Display Primary Service Line");headerList.add("Display Secondary Service Line");
+			headerList.add("Opportunity Owner");headerList.add("Sales Support Owners");headerList.add("Display Primary Service Line");headerList.add("Display Secondary Service Line");
 			headerList.add("Display Geography");headerList.add("Display IOU");headerList.add("Country");headerList.add("Group Customer Name");
 			headerList.add("Customer Name");headerList.add("Sales Stage");headerList.add("Expected Date Of Outcome");headerList.add("CRM ID");
 			int columnNo = 0;
@@ -627,7 +634,10 @@ public class BDMDetailedReportService {
 				row.createCell(columnNo).setCellValue(ReportConstants.DIGITALDEALVALUE + "(" + currency.get(0) + ")");
 				row.getCell(columnNo).setCellStyle(cellStyle);
 			}
-		}
+			row.createCell(columnNo).setCellValue(ReportConstants.OPPORTUNITYID);
+			row.getCell(columnNo++).setCellStyle(cellStyle);
+			
+			}
 		
 		/**
 		 * This Method used to set bdm supervisor header(both mandatory and optional fields) details to excel
@@ -647,15 +657,25 @@ public class BDMDetailedReportService {
 			if(isIncludingSupervisor){
 				columnNo=17;
 			}
+			
+
+			List<String> orderedFields = Arrays.asList("projectDealValue","winProbability", "targetBidSubmissionDate","actualBidSubmissionDate",  "factorsForWinLoss", 
+					"dealClosureComments", "dealRemarksNotes","competitors","partnershipsInvolved", "subSp", "dealClosureDate", "createdBy","createdDate","modifiedBy","modifiedDate");
+		
+			
+			if(fields.contains("opportunityName")){
+			row.createCell(columnNo).setCellValue("Opportunity Name");
+			row.getCell(columnNo).setCellStyle(cellStyle);
+			columnNo++;
+			}
+			
+			
 			if(fields.contains("projectDealValue")){
 				row.createCell(columnNo).setCellValue("Project Digital Deal Value");
 				row.getCell(columnNo).setCellStyle(cellStyle);
 				columnNo++;
 			}
 			
-			List<String> orderedFields = Arrays.asList("projectDealValue","winProbability", "targetBidSubmissionDate","actualBidSubmissionDate", "opportunityName", "factorsForWinLoss", 
-					"dealClosureComments", "dealRemarksNotes","competitors","partnershipsInvolved", "subSp", "dealClosureDate", "createdBy",	"createdDate","modifiedBy","modifiedDate");
-
 			
 			for (String field : orderedFields) {
 				if(fields.contains(field)){

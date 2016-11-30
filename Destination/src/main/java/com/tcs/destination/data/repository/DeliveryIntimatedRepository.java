@@ -37,4 +37,7 @@ public interface DeliveryIntimatedRepository extends CrudRepository<DeliveryInti
 	
 	List<DeliveryIntimatedT> findByOpportunityId(String opportunityId);
 
+	@Query(value = "SELECT dit FROM DeliveryIntimatedT dit "
+			+ "WHERE dit.opportunityId = :opportunityId AND dit.deliveryIntimatedCentreLinkTs IS EMPTY ")
+	List<DeliveryIntimatedT> findByEmptyCentres(@Param("opportunityId") String opportunityId);
 }

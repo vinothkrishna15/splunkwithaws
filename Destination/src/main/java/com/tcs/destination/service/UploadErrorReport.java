@@ -9,6 +9,8 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +26,9 @@ import com.tcs.destination.utils.ReportConstants;
 @Component
 public class UploadErrorReport {
 
+	private static final Logger logger = LoggerFactory
+			.getLogger(UploadErrorReport.class);
+	
 	/**
 	 * This Method converts the errorDetailsDTOs into Input Stream
 	 * @param errorDetailsDTOs
@@ -80,28 +85,32 @@ public class UploadErrorReport {
 		row = spreadSheet.createRow((short) currentRow);
 		row.createCell(0).setCellValue(Constants.SHEETNAME);
 		row.getCell(0).setCellStyle(headerSyle);
-		spreadSheet.autoSizeColumn(0);
 		row.createCell(1).setCellValue(Constants.ROWNUMBER);
 		row.getCell(1).setCellStyle(headerSyle);
-		spreadSheet.autoSizeColumn(1);
 		row.createCell(2).setCellValue(Constants.ERROR_MESSAGE);
 		row.getCell(2).setCellStyle(headerSyle);
-		spreadSheet.autoSizeColumn(2);
 		currentRow++;
+		
+		logger.info("error writter total errors :: " + errorDetailsDTOs.size());
+		
 		if (errorDetailsDTOs != null) {
 			for (UploadServiceErrorDetailsDTO upErorDto : errorDetailsDTOs) {
+				
+				logger.info("error row no ::" + currentRow);
+
 				row = spreadSheet.createRow((short) currentRow);
 				row.createCell(0).setCellValue(upErorDto.getSheetName());
 				row.getCell(0).setCellStyle(rowStyle);
-				spreadSheet.autoSizeColumn(0);
 				row.createCell(1).setCellValue(upErorDto.getRowNumber());
 				row.getCell(1).setCellStyle(rowStyle);
-				spreadSheet.autoSizeColumn(1);
 				row.createCell(2).setCellValue(upErorDto.getMessage());
 				row.getCell(2).setCellStyle(rowStyle);
-				spreadSheet.autoSizeColumn(2);				
 				currentRow++;
 			}
+			spreadSheet.autoSizeColumn(0);
+			spreadSheet.autoSizeColumn(1);
+			spreadSheet.autoSizeColumn(2);
+			logger.info("error writter ends");
 		}		
 	}
 	

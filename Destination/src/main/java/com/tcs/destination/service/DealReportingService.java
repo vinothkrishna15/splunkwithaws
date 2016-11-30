@@ -54,13 +54,13 @@ public class DealReportingService {
 		if(UserRole.contains(userRole)){
 			switch (UserRole.valueOf(UserRole.getName(userRole))){
 			case SYSTEM_ADMIN:
+				dealReportingRepository.updateDealClosureActiveStatus(false);
 				if(monthsSelectedList!=null){
-					dealReportingRepository.updateDealClosureActiveStatus(false);
 					for(DealClosureReportingT monthsSelected : monthsSelectedList){
 						monthsSelected.setCreatedBy(userId);
 						monthsSelected.setActive(true);
 						dealReportingRepository.save(monthsSelected);
-					}
+					} 
 					status.setStatus(Status.SUCCESS, "The reporting Months for deal closure are selected!");
 				}
 				break;

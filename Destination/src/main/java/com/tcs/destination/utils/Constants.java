@@ -375,4 +375,10 @@ public class Constants {
 	
 	public static final String OPEN = "Open";
 	
+	//Delivery Requirement Status
+	public static final String DELIVERY_REQUIREMENT_OPEN = "OPEN";
+	public static final String DELIVERY_REQUIREMENT_PROPOSED = "PROPOSED";
+	public static final String DELIVERY_REQUIREMENT_CONFIRMED = "CONFIRMED";
+	public static final String DELIVERY_REQUIREMENT_CLOSED = "CLOSED";
+	
 }

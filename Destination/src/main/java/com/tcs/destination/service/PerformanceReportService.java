@@ -91,6 +91,9 @@ public class PerformanceReportService {
 	
 	@Autowired
 	OpportunityDownloadService opportunityDownloadService;
+	
+	@Autowired
+	BeaconConverterService beaconConverterService;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -2102,7 +2105,7 @@ public class PerformanceReportService {
 		topOppList = findTopOpportunities(displayGeography, geography, subSp,
 				iou, dateFrom, dateTo, stageFrom, stageTo, count, custName,
 				userId);
-		convertDealValueToUsd(topOppList);
+		convertDealValueToUsd(topOppList, currency);
 		return topOppList;
 
 	}
@@ -2112,15 +2115,15 @@ public class PerformanceReportService {
 	 * @param opportunities
 	 * @throws Exception
 	 */
-	private void convertDealValueToUsd(List<OpportunityT> opportunities)
+	private void convertDealValueToUsd(List<OpportunityT> opportunities, String currency)
 			throws Exception {
 		if (CollectionUtils.isNotEmpty(opportunities)) {
 			for (OpportunityT opportunityT : opportunities) {
 				if (opportunityT.getDigitalDealValue() != null) {
-					BigDecimal dealValueInUsd = opportunityDownloadService
-							.convertCurrencyToUSD(
-									opportunityT.getDealCurrency(),
-									opportunityT.getDigitalDealValue());
+					BigDecimal dealValueInUsd = beaconConverterService
+							.convertCurrencyRate(
+									opportunityT.getDealCurrency(), currency,
+									opportunityT.getDigitalDealValue().doubleValue());
 					opportunityT.setDigitalDealValue(dealValueInUsd.intValue());
 				}
 			}

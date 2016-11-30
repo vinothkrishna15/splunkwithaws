@@ -61,9 +61,7 @@ public class DealReportingController {
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try{
-			if(monthsSelected.size()>0){
-				dealReportingService.createDealMonthReporting(monthsSelected,status);
-			}
+			dealReportingService.createDealMonthReporting(monthsSelected,status);
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",
 							status), HttpStatus.OK);
