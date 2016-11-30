@@ -20,6 +20,7 @@ import javax.persistence.Query;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -3673,22 +3674,26 @@ public class OpportunityService {
 			return asyncJobRequest;
 		}
 	
-	public List<OpportunityT> getOpportunitiesBasedOnPrivileges() throws Exception {
+	public List<OpportunityT> getOpportunitiesBasedOnPrivileges(Date fromDate, Date toDate) throws Exception {
 		List<OpportunityT> opportunityTs = Lists.newArrayList();
 		UserT currentUser = DestinationUtils.getCurrentUserDetails();
 		String userId = currentUser.getUserId();
 		String userGroup = currentUser.getUserGroup();
 		List<String> owners = Lists.newArrayList();
 		owners.add(userId);
+		
+		Date startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
+		Date endDate = toDate != null ? toDate : new Date();
+		
 		switch (UserGroup.getUserGroup(userGroup)) {
 		case STRATEGIC_INITIATIVES:
-			opportunityTs = (List<OpportunityT>) opportunityRepository.findAll();
+			opportunityTs = opportunityRepository.findByDealClosureDateBetween(fromDate,toDate);
 			break;
 		default :
-
 				String oppQueryString = getOpportunityQueryByPrivilege(userId);
 				Query oppQuery = entityManager.createNativeQuery(oppQueryString, OpportunityT.class);
-				oppQuery.setParameter("owner", owners);
+			oppQuery.setParameter("fromDate", startDate);
+			oppQuery.setParameter("toDate", endDate);
 				opportunityTs = oppQuery.getResultList();
 				break;
 		}
@@ -3696,8 +3701,11 @@ public class OpportunityService {
 			removeCyclicForCustomers(opp);
 			removeCyclicForLinkedConnects(opp);
 			removeCyclicForLinkedContacts(opp);
+			if(opp.getDigitalDealValue()!=null) {
+				BigDecimal dealValueInUsd = beaconConverterService.convertCurrencyRate(opp.getDealCurrency(), "USD", opp.getDigitalDealValue());
+				opp.setDigitalDealValue(dealValueInUsd.intValue());
+			}
 		}
-		
 		return opportunityTs;
 		
 	}
@@ -3714,8 +3722,9 @@ public class OpportunityService {
 				.getUserAccessPrivilegeWhereConditionClause(userId,
 						queryPrefixMap);
 		if (whereClause != null && !whereClause.isEmpty()) {
-			queryBuffer.append(Constants.OR_CLAUSE + whereClause);
+			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
 		}
+		queryBuffer.append(QueryConstants.OPPORTUNITY_DEAL_CLOSURE_DATE_ORDER_BY);
 		return queryBuffer.toString();
 	}
 

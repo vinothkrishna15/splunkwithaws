@@ -882,6 +882,33 @@ public class DateUtils {
 		return String.format("FY [%d-%d]", startYr, endYr%100) ;
 	}
 	
+	public static Date getFinancialYrStartDate() {
+		int startYr;
+		LocalDate dateTime = new LocalDate();
+		
+		int currentYr = dateTime.getYear();
+		if(dateTime.monthOfYear().get() < 4) {
+			startYr = currentYr-1;
+		} else {
+			startYr = currentYr;
+		}
+		return new LocalDate(startYr, 4, 1).toDate();
+	}
+
+	public static Date getFinancialYrEndDate() {
+		int endYr;
+		LocalDate dateTime = new LocalDate();
+		
+		int currentYr = dateTime.getYear();
+		if(dateTime.monthOfYear().get() < 4) {
+			endYr = currentYr;
+		} else {
+			endYr = currentYr + 1;
+		}
+
+		return new LocalDate(endYr, 3, 31).toDate();
+	}
+	
 	/**
 	 * gets the current financial year in format FYendYear
 	 * @param date

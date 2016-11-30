@@ -1026,6 +1026,8 @@ public class OpportunityController {
 	
 	@RequestMapping(value = "/all/privilege", method = RequestMethod.GET)
 	public @ResponseBody String findOppByPrivilege(
+			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
+			@RequestParam(value = "toDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
@@ -1033,7 +1035,7 @@ public class OpportunityController {
 		String response = null;
 		List<OpportunityT> opportunities;
 		try {
-			opportunities = opportunityService.getOpportunitiesBasedOnPrivileges();
+			opportunities = opportunityService.getOpportunitiesBasedOnPrivileges(fromDate,toDate);
 			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, opportunities);
 		} catch (DestinationException e) {

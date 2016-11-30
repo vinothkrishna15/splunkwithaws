@@ -1429,5 +1429,7 @@ public interface OpportunityRepository extends
 			+ " UNION (select (OPT.*) from opportunity_t OPT LEFT OUTER JOIN opportunity_sales_support_link_t OSLT "
 			+ " ON OPT.opportunity_id=OSLT.opportunity_id where OPT.customer_id =?1 AND (OPT.opportunity_owner in (?2) OR (OSLT.sales_support_owner in (?2))))", nativeQuery=true) 
 	List<OpportunityT> findAllDeliveryOpportunitiesByOwnersAndCustomer(String customerId, List<String> userIds);
+
+	List<OpportunityT> findByDealClosureDateBetween(Date fromDate, Date toDate);
 	
 }
