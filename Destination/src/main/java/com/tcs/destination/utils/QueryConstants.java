@@ -235,6 +235,8 @@ public static final String TASK_TRGT_DT_POST_SUPERVISOR = "select distinct t.tas
     		+ "join opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
     		+ "join sub_sp_mapping_t SSMT on SSMT.sub_sp = OSSL.sub_sp "
     		+ "join opportunity_sales_support_link_t OSLT on OSLT.opportunity_id = OPP.opportunity_id "
-    		+ "where OPP.opportunity_owner in (:owner) or OSLT.sales_support_owner in (:owner)";
+    		+ "where OPP.deal_closure_date between (:fromDate) and (:toDate)";
+    
+    public static final String OPPORTUNITY_DEAL_CLOSURE_DATE_ORDER_BY = " order by OPP.deal_closure_date ASC";
 
 }
