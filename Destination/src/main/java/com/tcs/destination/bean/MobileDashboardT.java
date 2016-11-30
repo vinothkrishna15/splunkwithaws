@@ -42,7 +42,7 @@ public class MobileDashboardT implements Serializable {
 
 	//bi-directional many-to-one association to MobileDashboardCategory
 	@ManyToOne
-	@JoinColumn(name="dashboard_category")
+	@JoinColumn(name="dashboard_category", insertable=false, updatable=false)
 	private MobileDashboardCategory mobileDashboardCategory;
 
 	//bi-directional many-to-one association to UserT
