@@ -6,7 +6,6 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -27,12 +26,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.ConnectT;
+import com.tcs.destination.bean.ContentDTO;
 import com.tcs.destination.bean.LeadershipAllOpportunityDTO;
 import com.tcs.destination.bean.LeadershipConnectsDTO;
 import com.tcs.destination.bean.LeadershipOpportunitiesDTO;
 import com.tcs.destination.bean.LeadershipOpportunityBySalesStageCodeDTO;
 import com.tcs.destination.bean.LeadershipOverallWinsDTO;
 import com.tcs.destination.bean.LeadershipWinsDTO;
+import com.tcs.destination.bean.MobileDashboardT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PerformaceChartBean;
 import com.tcs.destination.bean.UserT;
@@ -47,6 +48,7 @@ import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.StringUtils;
+import com.tcs.destination.data.repository.MobileDashboardRepository;
 
 import static com.tcs.destination.utils.LeadershipQueryConstants.*;
 
@@ -86,6 +88,9 @@ public class DashBoardService {
 
 	@Autowired
 	BeaconConverterService beaconConverterService;
+	
+	@Autowired
+	MobileDashboardRepository mobileDashboardRepository;
 
 	private static Map<String, BigDecimal> beaconConverterMap = null;
 
@@ -1428,5 +1433,36 @@ public class DashBoardService {
 		logger.info("End of findUsersAjaxSearch() method");
 		return users;
 
+	}
+	
+	/**
+	 * this service is used to get the mobile dashboard values
+	 * @param dashboardCategory
+	 * @return
+	 * @throws Exception
+	 */
+
+	
+
+	public ContentDTO<MobileDashboardT> getMobileDashboardValues(
+			int dashboardCategory) throws Exception {
+		ContentDTO<MobileDashboardT> content = new ContentDTO<MobileDashboardT>();
+		logger.info("Start: Inside getMobileDashboardValues() of DashBoardService");
+		String userId = DestinationUtils.getCurrentUserId();
+		List<MobileDashboardT> mobileDashboardValues = mobileDashboardRepository
+				.findByUserIdAndDashboardCategoryOrderByOrderNumberAsc(userId,
+						dashboardCategory);
+		removeCyclicForMobileDashboard(mobileDashboardValues);
+		content.setContent(mobileDashboardValues);
+		logger.info("End getMobileDashboardValues() of DashBoardService");
+		return content;
+	}
+
+	private void removeCyclicForMobileDashboard(
+			List<MobileDashboardT> mobiledashboardvalues) {
+		for (MobileDashboardT mobileDashboardT : mobiledashboardvalues) {
+			mobileDashboardT.getMobileDashboardCategory().setMobileDashboardTs(
+					null);
+		}
 	}
 }

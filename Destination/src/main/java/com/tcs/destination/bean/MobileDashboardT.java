@@ -45,11 +45,6 @@ public class MobileDashboardT implements Serializable {
 	@JoinColumn(name="dashboard_category", insertable=false, updatable=false)
 	private MobileDashboardCategory mobileDashboardCategory;
 
-	//bi-directional many-to-one association to UserT
-	@ManyToOne
-	@JoinColumn(name="user_id", insertable = false, updatable = false)
-	private UserT userT;
-
 	public MobileDashboardT() {
 		super();
 	}
@@ -84,14 +79,6 @@ public class MobileDashboardT implements Serializable {
 
 	public void setMobileDashboardCategory(MobileDashboardCategory mobileDashboardCategory) {
 		this.mobileDashboardCategory = mobileDashboardCategory;
-	}
-
-	public UserT getUserT() {
-		return this.userT;
-	}
-
-	public void setUserT(UserT userT) {
-		this.userT = userT;
 	}
 
 	public Integer getDashboardCategory() {

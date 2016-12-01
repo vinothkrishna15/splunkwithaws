@@ -1,6 +1,5 @@
 package com.tcs.destination.controller;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -15,11 +14,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tcs.destination.bean.ConnectT;
+import com.tcs.destination.bean.ContentDTO;
 import com.tcs.destination.bean.DeliveryFulfillment;
 import com.tcs.destination.bean.LeadershipConnectsDTO;
 import com.tcs.destination.bean.LeadershipOpportunitiesDTO;
 import com.tcs.destination.bean.LeadershipOverallWinsDTO;
+import com.tcs.destination.bean.MobileDashboardT;
 import com.tcs.destination.bean.PerformaceChartBean;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.exception.DestinationException;
@@ -28,9 +28,6 @@ import com.tcs.destination.service.DeliveryMasterService;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 import com.tcs.destination.utils.StringUtils;
-import com.tcs.destination.service.DashBoardService;
-
-import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * 
@@ -346,4 +343,32 @@ public class DashboardController {
 					"Backend Error while retrieving Delivery fulfillment");
 		}
 	}
+	
+	/**
+	 * 
+	 * @param dashboardCategory
+	 * @return
+	 * @throws DestinationException
+	 */
+	
+	@RequestMapping(value = "/mobile", method = RequestMethod.GET)
+	public String mobiledashboard(	
+			@RequestParam(value = "dashboardCategory") int dashboardCategory)
+				throws DestinationException {
+		ContentDTO<MobileDashboardT> mobiledashboardValues;
+			logger.info("Start of retrieving the mobile dashboard values");
+		try {
+			mobiledashboardValues = dashboardService.getMobileDashboardValues(dashboardCategory);
+			logger.info("End of retrieving the mobile dashboard values");
+			return ResponseConstructors.filterJsonForFieldAndViews("",
+					"", mobiledashboardValues);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(),e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the mobile dashboard values");
+		}
+	}
+
 }
