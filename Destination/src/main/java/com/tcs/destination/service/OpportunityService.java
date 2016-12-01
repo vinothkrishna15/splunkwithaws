@@ -3674,7 +3674,8 @@ public class OpportunityService {
 			return asyncJobRequest;
 		}
 	
-	public List<OpportunityT> getOpportunitiesBasedOnPrivileges(Date fromDate, Date toDate) throws Exception {
+	public PaginatedResponse getOpportunitiesBasedOnPrivileges(Date fromDate, Date toDate) throws Exception {
+		PaginatedResponse response = new PaginatedResponse();
 		List<OpportunityT> opportunityTs = Lists.newArrayList();
 		UserT currentUser = DestinationUtils.getCurrentUserDetails();
 		String userId = currentUser.getUserId();
@@ -3687,7 +3688,7 @@ public class OpportunityService {
 		
 		switch (UserGroup.getUserGroup(userGroup)) {
 		case STRATEGIC_INITIATIVES:
-			opportunityTs = opportunityRepository.findByDealClosureDateBetween(fromDate,toDate);
+			opportunityTs = opportunityRepository.findByDealClosureDateBetween(startDate,endDate);
 			break;
 		default :
 				String oppQueryString = getOpportunityQueryByPrivilege(userId);
@@ -3706,7 +3707,8 @@ public class OpportunityService {
 				opp.setDigitalDealValue(dealValueInUsd.intValue());
 			}
 		}
-		return opportunityTs;
+		response.setOpportunityTs(opportunityTs);
+		return response;
 		
 	}
 	

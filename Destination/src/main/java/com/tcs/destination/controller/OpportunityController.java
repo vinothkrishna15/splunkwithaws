@@ -1033,7 +1033,7 @@ public class OpportunityController {
 			throws DestinationException {
 		logger.info("Inside OpportunityController: Start of /opportunity/all/privilege");
 		String response = null;
-		List<OpportunityT> opportunities;
+		PaginatedResponse opportunities;
 		try {
 			opportunities = opportunityService.getOpportunitiesBasedOnPrivileges(fromDate,toDate);
 			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
