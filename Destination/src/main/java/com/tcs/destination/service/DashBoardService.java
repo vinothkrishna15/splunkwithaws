@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.ContentDTO;
@@ -1463,6 +1464,30 @@ public class DashBoardService {
 		for (MobileDashboardT mobileDashboardT : mobiledashboardvalues) {
 			mobileDashboardT.getMobileDashboardCategory().setMobileDashboardTs(
 					null);
+			mobileDashboardT.getMobileDashboardComponentT().setMobileDashboardTs(null);
 		}
+	}
+
+	@Transactional
+	public void updateMobileDashboard(ContentDTO<MobileDashboardT> mobileDashboardContent) {
+		List<MobileDashboardT> mobileDashboardTs = mobileDashboardContent.getContent();
+		Integer category = mobileDashboardTs.get(0).getDashboardCategory();
+		String userId = DestinationUtils.getCurrentUserId();
+		deleteMobileDashboardList(category,userId);
+		saveMobileDashboardList(mobileDashboardTs);
+	}
+
+	private void deleteMobileDashboardList(Integer category, String userId) {
+		mobileDashboardRepository.deleteByDashboardCategoryAndUserId(category,userId);
+	}
+
+	private void saveMobileDashboardList(
+			List<MobileDashboardT> mobileDashboardTs) {
+		mobileDashboardRepository.save(mobileDashboardTs);
+	}
+
+	private void deleteMobileDashboardList(List<MobileDashboardT> mobileDashboardTs) {
+		mobileDashboardRepository.delete(mobileDashboardTs);
+		
 	}
 }

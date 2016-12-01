@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,6 +23,7 @@ import com.tcs.destination.bean.LeadershipOpportunitiesDTO;
 import com.tcs.destination.bean.LeadershipOverallWinsDTO;
 import com.tcs.destination.bean.MobileDashboardT;
 import com.tcs.destination.bean.PerformaceChartBean;
+import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.DashBoardService;
@@ -369,6 +372,34 @@ public class DashboardController {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in retrieving the mobile dashboard values");
 		}
+	}
+	
+	@RequestMapping(value = "/mobile/update" ,method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> editMobileDashboard(
+			@RequestBody ContentDTO<MobileDashboardT> mobileDashboardContent,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Start of updating mobile dashboard list");
+		Status status = new Status();
+		status.setStatus(Status.FAILED, "");
+		try {
+			dashboardService.updateMobileDashboard(mobileDashboardContent);
+			status.setStatus(Status.SUCCESS,
+					"Dashboard List Updated");
+			logger.info("End of updating mobile dashboard list");
+
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while updating Mobile Dashboard list");
+		}
+
 	}
 
 }
