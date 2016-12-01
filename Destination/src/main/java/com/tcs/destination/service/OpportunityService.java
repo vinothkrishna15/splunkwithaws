@@ -20,7 +20,6 @@ import javax.persistence.Query;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +34,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.tcs.destination.bean.AsyncJobRequest;
 import com.tcs.destination.bean.AuditOpportunityDeliveryCentreT;
 import com.tcs.destination.bean.BidDetailsT;
@@ -43,11 +41,9 @@ import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
 import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DeliveryCentreT;
-import com.tcs.destination.bean.DeliveryClusterT;
-import com.tcs.destination.bean.DeliveryIntimatedCentreLinkT;
 import com.tcs.destination.bean.DeliveryIntimatedT;
-import com.tcs.destination.bean.DeliveryMasterT;
 import com.tcs.destination.bean.DeliveryOwnershipT;
+import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
 import com.tcs.destination.bean.OpportunityCompetitorLinkT;
@@ -69,11 +65,13 @@ import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
-import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.WorkflowBfmT;
 import com.tcs.destination.bean.WorkflowRequestT;
+import com.tcs.destination.bean.dto.CustomerMasterDTO;
+import com.tcs.destination.bean.dto.GeographyMappingDTO;
+import com.tcs.destination.bean.dto.OpportunityDTO;
 import com.tcs.destination.data.repository.AuditOpportunityDeliveryCenterRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
@@ -87,7 +85,6 @@ import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.CountryRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.DeliveryCentreRepository;
-import com.tcs.destination.data.repository.DeliveryClusterRepository;
 import com.tcs.destination.data.repository.DeliveryIntimatedRepository;
 import com.tcs.destination.data.repository.DeliveryMasterRepository;
 import com.tcs.destination.data.repository.DeliveryOwnershipRepository;
@@ -3674,44 +3671,64 @@ public class OpportunityService {
 			return asyncJobRequest;
 		}
 	
-	public PaginatedResponse getOpportunitiesBasedOnPrivileges(Date fromDate, Date toDate) throws Exception {
-		PaginatedResponse response = new PaginatedResponse();
+	public PageDTO<OpportunityDTO> getOpportunitiesBasedOnPrivileges(Date fromDate, Date toDate) throws Exception {
+		PageDTO<OpportunityDTO> response = new PageDTO<OpportunityDTO>();
 		List<OpportunityT> opportunityTs = Lists.newArrayList();
 		UserT currentUser = DestinationUtils.getCurrentUserDetails();
 		String userId = currentUser.getUserId();
 		String userGroup = currentUser.getUserGroup();
 		List<String> owners = Lists.newArrayList();
 		owners.add(userId);
-		
+
 		Date startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
 		Date endDate = toDate != null ? toDate : new Date();
-		
-		switch (UserGroup.getUserGroup(userGroup)) {
-		case STRATEGIC_INITIATIVES:
-			opportunityTs = opportunityRepository.findByDealClosureDateBetween(startDate,endDate);
-			break;
-		default :
-				String oppQueryString = getOpportunityQueryByPrivilege(userId);
-				Query oppQuery = entityManager.createNativeQuery(oppQueryString, OpportunityT.class);
-			oppQuery.setParameter("fromDate", startDate);
-			oppQuery.setParameter("toDate", endDate);
-				opportunityTs = oppQuery.getResultList();
-				break;
-		}
-		for(OpportunityT opp : opportunityTs) {
-			removeCyclicForCustomers(opp);
-			removeCyclicForLinkedConnects(opp);
-			removeCyclicForLinkedContacts(opp);
-			if(opp.getDigitalDealValue()!=null) {
-				BigDecimal dealValueInUsd = beaconConverterService.convertCurrencyRate(opp.getDealCurrency(), "USD", opp.getDigitalDealValue());
-				opp.setDigitalDealValue(dealValueInUsd.intValue());
-			}
-		}
-		response.setOpportunityTs(opportunityTs);
+
+		String oppQueryString = getOpportunityQueryByPrivilege(userId);
+		Query oppQuery = entityManager.createNativeQuery(oppQueryString, OpportunityT.class);
+		oppQuery.setParameter("fromDate", startDate);
+		oppQuery.setParameter("toDate", endDate);
+		opportunityTs = oppQuery.getResultList();
+
+		List<OpportunityDTO> dtos = prepareWinRatioResposeDTO(opportunityTs);
+		response.setContent(dtos);
 		return response;
-		
+
 	}
 	
+	private List<OpportunityDTO> prepareWinRatioResposeDTO(
+			List<OpportunityT> opportunityTs) {
+		List<OpportunityDTO> dtos = Lists.newArrayList();
+		for (OpportunityT opportunity : opportunityTs) {
+			OpportunityDTO dto = new OpportunityDTO();
+			
+			CustomerMasterDTO custDto = new CustomerMasterDTO();
+			CustomerMasterT customerMasterT = opportunity.getCustomerMasterT();
+			custDto.setCustomerId(customerMasterT.getCustomerId());
+			custDto.setCustomerName(customerMasterT.getCustomerName());
+
+			GeographyMappingT geographyMappingT = customerMasterT.getGeographyMappingT();
+			GeographyMappingDTO geographyMappingDTO = new GeographyMappingDTO();
+			geographyMappingDTO.setGeography(geographyMappingT.getGeography());
+			geographyMappingDTO.setDisplayGeography(geographyMappingT.getDisplayGeography());
+			custDto.setGeographyMappingT(geographyMappingDTO);
+			
+			dto.setCustomerMasterT(custDto);
+			dto.setDealClosureDate(opportunity.getDealClosureDate());
+			
+			if(opportunity.getDigitalDealValue()!=null) {
+				BigDecimal dealValueInUsd = beaconConverterService.convertCurrencyRate(opportunity.getDealCurrency(), "USD", opportunity.getDigitalDealValue());
+				dto.setDigitalDealValue(dealValueInUsd.intValue());
+			}
+			
+			dto.setOpportunityId(opportunity.getOpportunityId());
+			dto.setOpportunityName(opportunity.getOpportunityName());
+			dto.setSalesStageCode(opportunity.getSalesStageCode());
+			
+			dtos.add(dto);
+		}
+		return dtos;
+	}
+
 	private String getOpportunityQueryByPrivilege(String userId)
 			throws Exception {
 		StringBuffer queryBuffer = new StringBuffer(

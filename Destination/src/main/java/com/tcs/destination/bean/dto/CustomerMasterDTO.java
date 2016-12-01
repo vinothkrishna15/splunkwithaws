@@ -5,14 +5,14 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonFilter;
-import com.tcs.destination.utils.Constants;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  * The persistent class for the customer_master_t database table.
  * 
  */
-@JsonFilter(Constants.FILTER)
+@JsonInclude(Include.NON_NULL)
 public class CustomerMasterDTO implements Serializable {
 	private static final long serialVersionUID = 1L;
 
@@ -28,7 +28,7 @@ public class CustomerMasterDTO implements Serializable {
 	private String website;
 	private String iou;
 	private String geography;
-	private boolean active;
+	private Boolean active;
 
 	private List<BeaconCustomerMappingDTO> beaconCustomerMappingTs;
 	private List<ContactCustomerLinkDTO> contactCustomerLinkTs;
@@ -141,14 +141,6 @@ public class CustomerMasterDTO implements Serializable {
 		this.geography = geography;
 	}
 
-	public boolean isActive() {
-		return active;
-	}
-
-	public void setActive(boolean active) {
-		this.active = active;
-	}
-
 	public List<BeaconCustomerMappingDTO> getBeaconCustomerMappingTs() {
 		return beaconCustomerMappingTs;
 	}
@@ -223,5 +215,14 @@ public class CustomerMasterDTO implements Serializable {
 			List<RevenueCustomerMappingDTO> revenueCustomerMappingTs) {
 		this.revenueCustomerMappingTs = revenueCustomerMappingTs;
 	}
+
+	public Boolean getActive() {
+		return active;
+	}
+
+	public void setActive(Boolean active) {
+		this.active = active;
+	}
+	
 
 }

@@ -207,7 +207,7 @@ public class BeaconConverterService {
 	 * @return
 	 * @throws Exception
 	 */
-	public BigDecimal convertCurrencyRate(String base, String target, double value) throws Exception {
+	public BigDecimal convertCurrencyRate(String base, String target, double value) {
 
 		Map<String, BigDecimal> mapOfBeaconConverter = getCurrencyNameAndRate();
 		
@@ -234,10 +234,9 @@ public class BeaconConverterService {
      * @return BigDecimal
      * @throws Exception
      */
-    private BigDecimal getMapValuesForKey(Map<String, BigDecimal> map, String key)
-			throws Exception {
+    private BigDecimal getMapValuesForKey(Map<String, BigDecimal> map, String key) {
     	BigDecimal value = null;
-		if (map.containsKey(key)) {
+		if (map != null && map.containsKey(key)) {
 			value = map.get(key);
 		}
 		return value;

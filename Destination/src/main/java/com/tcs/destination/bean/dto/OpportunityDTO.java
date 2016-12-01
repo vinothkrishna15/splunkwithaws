@@ -6,14 +6,14 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonFilter;
-import com.tcs.destination.utils.Constants;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  * The persistent class for the opportunity_t database table.
  * 
  */
-@JsonFilter(Constants.FILTER)
+@JsonInclude(Include.NON_NULL)
 public class OpportunityDTO implements Serializable, Cloneable {
 	private static final long serialVersionUID = 1L;
 
@@ -62,7 +62,8 @@ public class OpportunityDTO implements Serializable, Cloneable {
 	private String dealCurrency;
 
 	private String isuOwnReason; 
-
+	
+	private Integer salesStageCode; 
 	private SalesStageMappingDTO salesStageMappingT;
 	
 	private List<BidDetailsDTO> bidDetailsTs;
@@ -413,6 +414,14 @@ public class OpportunityDTO implements Serializable, Cloneable {
 	public void setOpportunityWinLossFactorsTs(
 			List<OpportunityWinLossFactorsDTO> opportunityWinLossFactorsTs) {
 		this.opportunityWinLossFactorsTs = opportunityWinLossFactorsTs;
+	}
+
+	public Integer getSalesStageCode() {
+		return salesStageCode;
+	}
+
+	public void setSalesStageCode(Integer salesStageCode) {
+		this.salesStageCode = salesStageCode;
 	}
 
 }

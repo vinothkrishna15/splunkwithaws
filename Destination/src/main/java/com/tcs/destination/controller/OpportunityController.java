@@ -37,6 +37,7 @@ import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.bean.dto.OpportunityDTO;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.JobName;
 import com.tcs.destination.enums.OperationType;
@@ -1025,7 +1026,7 @@ public class OpportunityController {
 	}
 	
 	@RequestMapping(value = "/all/privilege", method = RequestMethod.GET)
-	public @ResponseBody String findOppByPrivilege(
+	public @ResponseBody PageDTO<OpportunityDTO> findOppByPrivilege(
 			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
 			@RequestParam(value = "toDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
@@ -1033,11 +1034,11 @@ public class OpportunityController {
 			throws DestinationException {
 		logger.info("Inside OpportunityController: Start of /opportunity/all/privilege");
 		String response = null;
-		PaginatedResponse opportunities;
+		PageDTO<OpportunityDTO> opportunities;
 		try {
 			opportunities = opportunityService.getOpportunitiesBasedOnPrivileges(fromDate,toDate);
-			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
-					view, opportunities);
+			/*response = ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, opportunities);*/
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -1046,7 +1047,7 @@ public class OpportunityController {
 					"Backend error in retrieving the opportunity details ");
 		}
 		logger.info("Inside OpportunityController: End of /opportunity/all/privilege");
-		return response;
+		return opportunities;
 	}
 	
 	

@@ -3,19 +3,19 @@ package com.tcs.destination.bean.dto;
 import java.io.Serializable;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonFilter;
-import com.tcs.destination.utils.Constants;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  * The GeographyMappingDTO.
  * 
  */
-@JsonFilter(Constants.FILTER)
+@JsonInclude(Include.NON_NULL)
 public class GeographyMappingDTO implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private String geography;
-	private boolean active;
+	private Boolean active;
 	private String displayGeography;
 	
 	private List<GeographyCountryMappingDTO> geographyCountryMappingTs;
@@ -32,11 +32,11 @@ public class GeographyMappingDTO implements Serializable {
 		this.geography = geography;
 	}
 
-	public boolean isActive() {
+	public Boolean isActive() {
 		return active;
 	}
 
-	public void setActive(boolean active) {
+	public void setActive(Boolean active) {
 		this.active = active;
 	}
 
