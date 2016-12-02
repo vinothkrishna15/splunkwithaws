@@ -20,6 +20,7 @@ import javax.persistence.Query;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.dozer.DozerBeanMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -147,6 +148,9 @@ public class OpportunityService {
 
 	@Autowired
 	UserAccessPrivilegeQueryBuilder userAccessPrivilegeQueryBuilder;
+
+	@Autowired
+	DozerBeanMapper beanMapper;
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(OpportunityService.class);
@@ -3698,34 +3702,15 @@ public class OpportunityService {
 	private List<OpportunityDTO> prepareWinRatioResposeDTO(
 			List<OpportunityT> opportunityTs) {
 		List<OpportunityDTO> dtos = Lists.newArrayList();
-		for (OpportunityT opportunity : opportunityTs) {
-			OpportunityDTO dto = new OpportunityDTO();
-			
-			CustomerMasterDTO custDto = new CustomerMasterDTO();
-			CustomerMasterT customerMasterT = opportunity.getCustomerMasterT();
-			custDto.setCustomerId(customerMasterT.getCustomerId());
-			custDto.setCustomerName(customerMasterT.getCustomerName());
-
-			GeographyMappingT geographyMappingT = customerMasterT.getGeographyMappingT();
-			GeographyMappingDTO geographyMappingDTO = new GeographyMappingDTO();
-			geographyMappingDTO.setGeography(geographyMappingT.getGeography());
-			geographyMappingDTO.setDisplayGeography(geographyMappingT.getDisplayGeography());
-			custDto.setGeographyMappingT(geographyMappingDTO);
-			
-			dto.setCustomerMasterT(custDto);
-			dto.setDealClosureDate(opportunity.getDealClosureDate());
-			
-			if(opportunity.getDigitalDealValue()!=null) {
-				BigDecimal dealValueInUsd = beaconConverterService.convertCurrencyRate(opportunity.getDealCurrency(), "USD", opportunity.getDigitalDealValue());
+		for (OpportunityT opportunityT : opportunityTs) {
+			OpportunityDTO dto = beanMapper.map(opportunityT, OpportunityDTO.class, "opportunity-winloss");
+			if(opportunityT.getDigitalDealValue()!=null) {
+				BigDecimal dealValueInUsd = beaconConverterService.convertCurrencyRate(opportunityT.getDealCurrency(), "USD", opportunityT.getDigitalDealValue());
 				dto.setDigitalDealValue(dealValueInUsd.intValue());
 			}
-			
-			dto.setOpportunityId(opportunity.getOpportunityId());
-			dto.setOpportunityName(opportunity.getOpportunityName());
-			dto.setSalesStageCode(opportunity.getSalesStageCode());
-			
 			dtos.add(dto);
 		}
+	
 		return dtos;
 	}
 

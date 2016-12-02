@@ -138,7 +138,16 @@
 	    <property name="jobRepository" ref="jobRepository" />
 	    <property name="taskExecutor">
 	        <bean class="org.springframework.core.task.SimpleAsyncTaskExecutor" />
-    </property>
+    	</property>
     
-</bean>
+	</bean>
+	
+	<!--  -->
+	<bean id="mapper" class="org.dozer.DozerBeanMapper">
+	  <property name="mappingFiles">
+	    <list>
+	      <value>dozer/dozer-configuration.xml</value>			   
+	    </list>
+	  </property>
+	</bean>
 </beans>

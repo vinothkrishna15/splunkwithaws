@@ -2,14 +2,10 @@ package com.tcs.destination.bean.dto;
 
 import java.io.Serializable;
 
-import com.fasterxml.jackson.annotation.JsonFilter;
-import com.tcs.destination.utils.Constants;
-
 /**
  * The IouCustomerMappingT.
  * 
  */
-@JsonFilter(Constants.FILTER)
 public class IouCustomerMappingDTO implements Serializable {
 	private static final long serialVersionUID = 1L;
 
