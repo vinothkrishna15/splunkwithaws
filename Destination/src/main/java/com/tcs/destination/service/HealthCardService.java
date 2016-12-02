@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.ContentDTO;
 import com.tcs.destination.bean.DeliveryCentreUnallocationT;
+import com.tcs.destination.bean.DeliveryCentreUtilizationT;
 import com.tcs.destination.data.repository.DeliveryCentreUnallocationRepository;
 import com.tcs.destination.data.repository.DeliveryCentreUtilizationRepository;
 import com.tcs.destination.exception.DestinationException;
@@ -41,5 +42,20 @@ public class HealthCardService {
 		}
 		return contentDTO;
 	}
-
+	public ContentDTO<DeliveryCentreUtilizationT> getDeliveryCentreUtilization(Date fromDate,
+			Date toDate) {
+		ContentDTO<DeliveryCentreUtilizationT> contentDTO = new ContentDTO<DeliveryCentreUtilizationT>();
+		Date startDate = fromDate != null ? fromDate : DateUtils
+				.getFinancialYrStartDate();
+		Date endDate = toDate != null ? toDate : new Date();
+		List<DeliveryCentreUtilizationT> utilizationTs = deliveryCentreUtilizationRepository
+				.findByDateBetween(startDate, endDate);
+		if (CollectionUtils.isNotEmpty(utilizationTs)) {
+			contentDTO.setContent(utilizationTs);
+		} else {
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Utilization Details not found");
+		}
+		return contentDTO;
+	}
 }

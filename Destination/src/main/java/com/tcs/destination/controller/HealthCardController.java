@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.ContentDTO;
 import com.tcs.destination.bean.DeliveryCentreUnallocationT;
+import com.tcs.destination.bean.DeliveryCentreUtilizationT;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.HealthCardService;
 import com.tcs.destination.utils.ResponseConstructors;
@@ -27,6 +28,16 @@ public class HealthCardController {
 	
 	@Autowired
 	HealthCardService healthCardService;
+	
+	/**
+	 * 
+	 * @param fromDate
+	 * @param toDate
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	
 	@RequestMapping(value = "/unallocation", method = RequestMethod.GET)
 	public @ResponseBody String findUnallocation(
@@ -52,4 +63,41 @@ public class HealthCardController {
 		}
 		return response;
 	}
+	
+	
+	/**
+	 * 
+	 * @param fromDate
+	 * @param toDate
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/utilization", method = RequestMethod.GET)
+	public @ResponseBody String findUtilization(
+			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
+			@RequestParam(value = "toDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
+			@RequestParam(value = "fields", defaultValue = "all", required = false) String fields,
+			@RequestParam(value = "view", defaultValue = "", required = false) String view)
+			throws DestinationException {
+		logger.info("Start of retrieving utilization details");
+		String response = null;
+		ContentDTO<DeliveryCentreUtilizationT> content;
+		try {
+			content = healthCardService.getDeliveryCentreUtilization(fromDate,toDate);
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, content);
+			logger.info("End of retrieving utilization details");
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving utilization details");
+		}
+		return response;
+	}
+	
+	
 }
