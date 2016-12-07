@@ -1,49 +1,35 @@
-package com.tcs.destination.bean;
+package com.tcs.destination.bean.dto;
 
 import java.io.Serializable;
-import javax.persistence.*;
 import java.math.BigDecimal;
-import java.util.Date;
 import java.sql.Timestamp;
+import java.util.Date;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 
 /**
  * The persistent class for the delivery_centre_utilization_t database table.
  * 
  */
-@Entity
-@Table(name="delivery_centre_utilization_t")
-@NamedQuery(name="DeliveryCentreUtilizationT.findAll", query="SELECT d FROM DeliveryCentreUtilizationT d")
-public class DeliveryCentreUtilizationT implements Serializable {
+@JsonInclude(Include.NON_NULL)
+public class DeliveryCentreUtilizationDTO implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="utilization_id")
 	private Integer utilizationId;
-
-	@Column(name="created_datetime", updatable = false)
 	private Timestamp createdDatetime;
-
-	@Temporal(TemporalType.DATE)
 	private Date date;
-
-	@Column(name="utilization_percentage")
 	private BigDecimal utilizationPercentage;
-
-	@Column(name="delivery_centre_id")
 	private Integer deliveryCentreId;
+	private DeliveryCentreDTO deliveryCentreT;
 
-	//bi-directional many-to-one association to DeliveryCentreT
-	@ManyToOne
-	@JoinColumn(name="delivery_centre_id", insertable = false, updatable = false)
-	private DeliveryCentreT deliveryCentreT;
-
-	public DeliveryCentreUtilizationT() {
+	public DeliveryCentreUtilizationDTO() {
+		super();
 	}
 
 	public Integer getUtilizationId() {
-		return this.utilizationId;
+		return utilizationId;
 	}
 
 	public void setUtilizationId(Integer utilizationId) {
@@ -51,7 +37,7 @@ public class DeliveryCentreUtilizationT implements Serializable {
 	}
 
 	public Timestamp getCreatedDatetime() {
-		return this.createdDatetime;
+		return createdDatetime;
 	}
 
 	public void setCreatedDatetime(Timestamp createdDatetime) {
@@ -59,7 +45,7 @@ public class DeliveryCentreUtilizationT implements Serializable {
 	}
 
 	public Date getDate() {
-		return this.date;
+		return date;
 	}
 
 	public void setDate(Date date) {
@@ -67,19 +53,11 @@ public class DeliveryCentreUtilizationT implements Serializable {
 	}
 
 	public BigDecimal getUtilizationPercentage() {
-		return this.utilizationPercentage;
+		return utilizationPercentage;
 	}
 
 	public void setUtilizationPercentage(BigDecimal utilizationPercentage) {
 		this.utilizationPercentage = utilizationPercentage;
-	}
-
-	public DeliveryCentreT getDeliveryCentreT() {
-		return this.deliveryCentreT;
-	}
-
-	public void setDeliveryCentreT(DeliveryCentreT deliveryCentreT) {
-		this.deliveryCentreT = deliveryCentreT;
 	}
 
 	public Integer getDeliveryCentreId() {
@@ -89,5 +67,12 @@ public class DeliveryCentreUtilizationT implements Serializable {
 	public void setDeliveryCentreId(Integer deliveryCentreId) {
 		this.deliveryCentreId = deliveryCentreId;
 	}
-	
+
+	public DeliveryCentreDTO getDeliveryCentreT() {
+		return deliveryCentreT;
+	}
+
+	public void setDeliveryCentreT(DeliveryCentreDTO deliveryCentreT) {
+		this.deliveryCentreT = deliveryCentreT;
+	}
 }

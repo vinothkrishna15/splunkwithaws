@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.ContentDTO;
-import com.tcs.destination.bean.DeliveryCentreUnallocationT;
-import com.tcs.destination.bean.DeliveryCentreUtilizationT;
+import com.tcs.destination.bean.dto.DeliveryCentreUnallocationDTO;
+import com.tcs.destination.bean.dto.DeliveryCentreUtilizationDTO;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.HealthCardService;
 import com.tcs.destination.utils.ResponseConstructors;
@@ -38,7 +38,6 @@ public class HealthCardController {
 	 * @return
 	 * @throws DestinationException
 	 */
-	
 	@RequestMapping(value = "/unallocation", method = RequestMethod.GET)
 	public @ResponseBody String findUnallocation(
 			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
@@ -48,7 +47,7 @@ public class HealthCardController {
 			throws DestinationException {
 		logger.info("Start of retrieving unallocation details");
 		String response = null;
-		ContentDTO<DeliveryCentreUnallocationT> content;
+		ContentDTO<DeliveryCentreUnallocationDTO> content;
 		try {
 			content = healthCardService.getDeliveryCentreUnallocation(fromDate,toDate);
 			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
@@ -57,7 +56,7 @@ public class HealthCardController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in retrieving unallocation details");
 		}
@@ -83,7 +82,7 @@ public class HealthCardController {
 			throws DestinationException {
 		logger.info("Start of retrieving utilization details");
 		String response = null;
-		ContentDTO<DeliveryCentreUtilizationT> content;
+		ContentDTO<DeliveryCentreUtilizationDTO> content;
 		try {
 			content = healthCardService.getDeliveryCentreUtilization(fromDate,toDate);
 			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
@@ -92,7 +91,7 @@ public class HealthCardController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in retrieving utilization details");
 		}

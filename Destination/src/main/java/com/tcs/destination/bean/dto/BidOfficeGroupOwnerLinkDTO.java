@@ -3,14 +3,14 @@ package com.tcs.destination.bean.dto;
 import java.io.Serializable;
 import java.sql.Timestamp;
 
-import com.fasterxml.jackson.annotation.JsonFilter;
-import com.tcs.destination.utils.Constants;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  * The persistent class for the bid_office_group_owner_link_t database table.
  * 
  */
-@JsonFilter(Constants.FILTER)
+@JsonInclude(Include.NON_NULL)
 public class BidOfficeGroupOwnerLinkDTO implements Serializable {
 	
 	private static final long serialVersionUID = 1L;

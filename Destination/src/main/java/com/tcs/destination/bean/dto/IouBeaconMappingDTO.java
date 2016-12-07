@@ -2,15 +2,15 @@ package com.tcs.destination.bean.dto;
 
 import java.io.Serializable;
 
-import com.fasterxml.jackson.annotation.JsonFilter;
-import com.tcs.destination.utils.Constants;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 
 /**
  * The persistent class for the iou_beacon_mapping_t database table.
  * 
  */
-@JsonFilter(Constants.FILTER)
+@JsonInclude(Include.NON_NULL)
 public class IouBeaconMappingDTO implements Serializable {
 	private static final long serialVersionUID = 1L;
 

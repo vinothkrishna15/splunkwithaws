@@ -3,14 +3,14 @@ package com.tcs.destination.bean.dto;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
-import com.fasterxml.jackson.annotation.JsonFilter;
-import com.tcs.destination.utils.Constants;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  * The ProjectedRevenuesDataDTO.
  * 
  */
-@JsonFilter(Constants.FILTER)
+@JsonInclude(Include.NON_NULL)
 public class ProjectedRevenuesDataDTO implements Serializable {
 	private static final long serialVersionUID = 1L;
 

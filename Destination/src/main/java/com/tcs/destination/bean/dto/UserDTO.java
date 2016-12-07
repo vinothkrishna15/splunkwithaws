@@ -24,7 +24,7 @@ public class UserDTO implements Serializable {
 	private byte[] userPhoto;
 	private String userTelephone;
 	private String userRole;
-	private boolean active;
+	private Boolean active;
     private int status; 
 	private String userMobile;
 	private Timestamp lastLogin;
@@ -106,11 +106,11 @@ public class UserDTO implements Serializable {
 		this.userRole = userRole;
 	}
 
-	public boolean isActive() {
+	public Boolean isActive() {
 		return active;
 	}
 
-	public void setActive(boolean active) {
+	public void setActive(Boolean active) {
 		this.active = active;
 	}
 

@@ -10,7 +10,7 @@ public class ContentDTO<T> {
 		super();
 	}
 	
-	public ContentDTO(List<T> content, int totalCount) {
+	public ContentDTO(List<T> content) {
 		super();
 		this.content = content;
 	}

@@ -1,55 +1,37 @@
-package com.tcs.destination.bean;
+package com.tcs.destination.bean.dto;
 
 import java.io.Serializable;
-import javax.persistence.*;
 import java.math.BigDecimal;
-import java.util.Date;
 import java.sql.Timestamp;
+import java.util.Date;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 
 /**
  * The persistent class for the delivery_centre_unallocation_t database table.
  * 
  */
-@Entity
-@Table(name="delivery_centre_unallocation_t")
-@NamedQuery(name="DeliveryCentreUnallocationT.findAll", query="SELECT d FROM DeliveryCentreUnallocationT d")
-public class DeliveryCentreUnallocationT implements Serializable {
+@JsonInclude(Include.NON_NULL)
+public class DeliveryCentreUnallocationDTO implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="unallocation_id")
 	private Integer unallocationId;
-
-	@Column(name="created_datetime", updatable=false)
 	private Timestamp createdDatetime;
-
-	@Temporal(TemporalType.DATE)
 	private Date date;
-
-	@Column(name="junior_percentage")
 	private BigDecimal juniorPercentage;
-
-	@Column(name="senior_percentage")
 	private BigDecimal seniorPercentage;
-
-	@Column(name="trainee_percentage")
 	private BigDecimal traineePercentage;
-
-	@Column(name="delivery_centre_id")
 	private Integer deliveryCentreId;
+	private DeliveryCentreDTO deliveryCentreT;
 
-	//bi-directional many-to-one association to DeliveryCentreT
-	@ManyToOne
-	@JoinColumn(name="delivery_centre_id", insertable=false, updatable=false)
-	private DeliveryCentreT deliveryCentreT;
-
-	public DeliveryCentreUnallocationT() {
+	public DeliveryCentreUnallocationDTO() {
+		super();
 	}
 
 	public Integer getUnallocationId() {
-		return this.unallocationId;
+		return unallocationId;
 	}
 
 	public void setUnallocationId(Integer unallocationId) {
@@ -57,7 +39,7 @@ public class DeliveryCentreUnallocationT implements Serializable {
 	}
 
 	public Timestamp getCreatedDatetime() {
-		return this.createdDatetime;
+		return createdDatetime;
 	}
 
 	public void setCreatedDatetime(Timestamp createdDatetime) {
@@ -65,7 +47,7 @@ public class DeliveryCentreUnallocationT implements Serializable {
 	}
 
 	public Date getDate() {
-		return this.date;
+		return date;
 	}
 
 	public void setDate(Date date) {
@@ -73,7 +55,7 @@ public class DeliveryCentreUnallocationT implements Serializable {
 	}
 
 	public BigDecimal getJuniorPercentage() {
-		return this.juniorPercentage;
+		return juniorPercentage;
 	}
 
 	public void setJuniorPercentage(BigDecimal juniorPercentage) {
@@ -81,7 +63,7 @@ public class DeliveryCentreUnallocationT implements Serializable {
 	}
 
 	public BigDecimal getSeniorPercentage() {
-		return this.seniorPercentage;
+		return seniorPercentage;
 	}
 
 	public void setSeniorPercentage(BigDecimal seniorPercentage) {
@@ -89,19 +71,11 @@ public class DeliveryCentreUnallocationT implements Serializable {
 	}
 
 	public BigDecimal getTraineePercentage() {
-		return this.traineePercentage;
+		return traineePercentage;
 	}
 
 	public void setTraineePercentage(BigDecimal traineePercentage) {
 		this.traineePercentage = traineePercentage;
-	}
-
-	public DeliveryCentreT getDeliveryCentreT() {
-		return this.deliveryCentreT;
-	}
-
-	public void setDeliveryCentreT(DeliveryCentreT deliveryCentreT) {
-		this.deliveryCentreT = deliveryCentreT;
 	}
 
 	public Integer getDeliveryCentreId() {
@@ -110,5 +84,13 @@ public class DeliveryCentreUnallocationT implements Serializable {
 
 	public void setDeliveryCentreId(Integer deliveryCentreId) {
 		this.deliveryCentreId = deliveryCentreId;
+	}
+
+	public DeliveryCentreDTO getDeliveryCentreT() {
+		return deliveryCentreT;
+	}
+
+	public void setDeliveryCentreT(DeliveryCentreDTO deliveryCentreT) {
+		this.deliveryCentreT = deliveryCentreT;
 	}
 }
