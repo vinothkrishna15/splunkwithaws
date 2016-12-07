@@ -1033,7 +1033,6 @@ public class OpportunityController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		logger.info("Inside OpportunityController: Start of /opportunity/all/privilege");
-		String response = null;
 		PageDTO<OpportunityDTO> opportunities;
 		try {
 			opportunities = opportunityService.getOpportunitiesBasedOnPrivileges(fromDate,toDate);

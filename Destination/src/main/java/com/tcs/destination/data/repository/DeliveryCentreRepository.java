@@ -35,7 +35,7 @@ public interface DeliveryCentreRepository extends
 	 * @param deliveryCentreId
 	 * @return
 	 */
-	List<DeliveryCentreT> findByDeliveryCentreIdGreaterThanEqual(int deliveryCentreId);
+	List<DeliveryCentreT> findByDeliveryCentreIdGreaterThanEqualOrderByDeliveryCentreIdAsc(int deliveryCentreId);
 
 	@Query(value = "select delivery_centre from delivery_centre_t where delivery_centre_id in (:deliveryCentres)", nativeQuery=true)
 	List<String> findDeliveryCentreNamesByIds(@Param("deliveryCentres") List<Integer> deliveryCentres);

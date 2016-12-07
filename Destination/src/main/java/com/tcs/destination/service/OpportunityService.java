@@ -498,7 +498,7 @@ public class OpportunityService {
 		List<DeliveryCentreT> deliveryCentre = new ArrayList<DeliveryCentreT>();
 		// Retrieving all delivery centres except open ->delivery centre id -1
 		deliveryCentre = deliveryCentreRepository
-				.findByDeliveryCentreIdGreaterThanEqual(Constants.CONSTANT_ZERO);
+				.findByDeliveryCentreIdGreaterThanEqualOrderByDeliveryCentreIdAsc(Constants.CONSTANT_ZERO);
 		return deliveryCentre;
 	}
 
