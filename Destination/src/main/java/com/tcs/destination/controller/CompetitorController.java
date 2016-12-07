@@ -47,8 +47,8 @@ public class CompetitorController {
 	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findNameWith(
-			@RequestParam("nameWith") String chars,
-			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value= "nameWith", defaultValue = "") String chars,
+			@RequestParam(value = "fields", defaultValue = "competitorName,active") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		logger.info("Inside CompetitorController : Start of retrieving the competitor list");
@@ -79,7 +79,7 @@ public class CompetitorController {
 	 * @return
 	 * @throws DestinationException
 	 */
-	@RequestMapping(value = "/all", method = RequestMethod.GET)
+	@RequestMapping(value = "/opportunity", method = RequestMethod.GET)
 	public @ResponseBody ContentDTO<CompetitorMappingDTO> findByNameContainingAndDealDate(
 			@RequestParam(value = "nameWith", defaultValue = "") String chars,
 			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,

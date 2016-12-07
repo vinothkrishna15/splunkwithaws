@@ -63,8 +63,10 @@ public class CompetitorService {
 		for (CompetitorMappingT competitorMappingT : competitorList) {
 			for (OpportunityCompetitorLinkT oppLink : competitorMappingT.getOpportunityCompetitorLinkTs()) {
 				OpportunityT opportunityT = oppLink.getOpportunityT();
-				BigDecimal convertedValue = converterService.convertCurrencyRate(opportunityT.getDealCurrency(), Constants.USD, opportunityT.getDigitalDealValue());
-				opportunityT.setDigitalDealValue(convertedValue.intValue());
+				if(opportunityT != null && opportunityT.getDigitalDealValue() != null) {
+					BigDecimal convertedValue = converterService.convertCurrencyRate(opportunityT.getDealCurrency(), Constants.USD, opportunityT.getDigitalDealValue().doubleValue());
+					opportunityT.setDigitalDealValue(convertedValue.intValue());
+				}
 			}
 			dtos.add(beanMapper.map(competitorMappingT, CompetitorMappingDTO.class, "competitor-opportunity"));
 		}
