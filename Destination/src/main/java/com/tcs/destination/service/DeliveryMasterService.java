@@ -1003,7 +1003,7 @@ public class DeliveryMasterService {
 						.getDeliveryCentreId());
 //				deliveryCentreIds.add(-1);
 			}
-			deliveryDashboardDTO = retrieveEngagementsBasedOnViewBy(viewBy, deliveryCentreIds, stages, deliveryMasterIds);
+			deliveryDashboardDTO = retrieveEngagementsBasedOnViewBy(viewBy, deliveryCentreIds, stages, deliveryMasterIds,false);
 			break;
 		case STRATEGIC_INITIATIVES:
 			if (stage == -1) {
@@ -1020,7 +1020,7 @@ public class DeliveryMasterService {
 					deliveryCentreIds.add(deliveryCentre.getDeliveryCentreId());
 				}
 			}
-			deliveryDashboardDTO = retrieveEngagementsBasedOnViewBy(viewBy, deliveryCentreIds, stages, deliveryMasterIds);
+			deliveryDashboardDTO = retrieveEngagementsBasedOnViewBy(viewBy, deliveryCentreIds, stages, deliveryMasterIds,true);
 			break;
 		case DELIVERY_CLUSTER_HEAD:
 
@@ -1046,7 +1046,7 @@ public class DeliveryMasterService {
 //					deliveryCentreIds.add(-1);
 				}
 			}
-			deliveryDashboardDTO = retrieveEngagementsBasedOnViewBy(viewBy, deliveryCentreIds, stages, deliveryMasterIds);
+			deliveryDashboardDTO = retrieveEngagementsBasedOnViewBy(viewBy, deliveryCentreIds, stages, deliveryMasterIds,true);
 			break;
 		case DELIVERY_MANAGER:
 			if (stage == -1) {
@@ -1066,7 +1066,7 @@ public class DeliveryMasterService {
 					deliveryMasterIds.add(deliveryMasterManagerLinkT.getDeliveryMasterId());
 				}
 			}
-			deliveryDashboardDTO = retrieveEngagementsBasedOnViewBy(viewBy, deliveryCentreIds, stages, deliveryMasterIds);
+			deliveryDashboardDTO = retrieveEngagementsBasedOnViewBy(viewBy, deliveryCentreIds, stages, deliveryMasterIds,false);
 			break;
 		default:
 			break;
@@ -1103,7 +1103,7 @@ public class DeliveryMasterService {
 	 * @return
 	 */
 	private DeliveryMasterDTO retrieveEngagementsBasedOnViewBy(String viewBy,
-			List<Integer> deliveryCentreIds, List<Integer> stages, List<String> deliveryMasterIds) {
+			List<Integer> deliveryCentreIds, List<Integer> stages, List<String> deliveryMasterIds, boolean clusterHead) {
 		List<Object[]> deliveryMasterTs = null;
 		DeliveryMasterDTO deliveryDashboardDTO = null;
 		EngagementDashboardDTO engagementDashboardDTO = null;
@@ -1144,7 +1144,9 @@ public class DeliveryMasterService {
 				engagementList.add(engagementDashboardDTO);
 			}
 		}
-		engagementList.add(getIntimatedCount("deliveryIntimatedId","DESC",0,30));
+		if(clusterHead) {
+			engagementList.add(getIntimatedCount("deliveryIntimatedId","DESC",0,30));
+		}
 		deliveryDashboardDTO.setEngagementList(engagementList);
 		return deliveryDashboardDTO;
 	}
