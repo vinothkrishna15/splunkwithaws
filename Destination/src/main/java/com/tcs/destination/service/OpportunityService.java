@@ -44,7 +44,6 @@ import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryIntimatedT;
 import com.tcs.destination.bean.DeliveryOwnershipT;
-import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
 import com.tcs.destination.bean.OpportunityCompetitorLinkT;
@@ -70,8 +69,6 @@ import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.WorkflowBfmT;
 import com.tcs.destination.bean.WorkflowRequestT;
-import com.tcs.destination.bean.dto.CustomerMasterDTO;
-import com.tcs.destination.bean.dto.GeographyMappingDTO;
 import com.tcs.destination.bean.dto.OpportunityDTO;
 import com.tcs.destination.data.repository.AuditOpportunityDeliveryCenterRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
@@ -3675,7 +3672,7 @@ public class OpportunityService {
 			return asyncJobRequest;
 		}
 	
-	public PageDTO<OpportunityDTO> getOpportunitiesBasedOnPrivileges(Date fromDate, Date toDate) throws Exception {
+	public PageDTO<OpportunityDTO> getOpportunitiesBasedOnPrivileges(Date fromDate, Date toDate, String mapId) throws Exception {
 		PageDTO<OpportunityDTO> response = new PageDTO<OpportunityDTO>();
 		List<OpportunityT> opportunityTs = Lists.newArrayList();
 		UserT currentUser = DestinationUtils.getCurrentUserDetails();
@@ -3693,17 +3690,20 @@ public class OpportunityService {
 		oppQuery.setParameter("toDate", endDate);
 		opportunityTs = oppQuery.getResultList();
 
-		List<OpportunityDTO> dtos = prepareWinRatioResposeDTO(opportunityTs);
+		if(StringUtils.isEmpty(mapId)) {
+			mapId = Constants.OPPORTUNITY_CUSTOMER_BASE;
+		}
+		List<OpportunityDTO> dtos = prepareWinRatioResposeDTO(opportunityTs, mapId);
 		response.setContent(dtos);
 		return response;
 
 	}
 	
 	private List<OpportunityDTO> prepareWinRatioResposeDTO(
-			List<OpportunityT> opportunityTs) {
+			List<OpportunityT> opportunityTs, String mapId) {
 		List<OpportunityDTO> dtos = Lists.newArrayList();
 		for (OpportunityT opportunityT : opportunityTs) {
-			OpportunityDTO dto = beanMapper.map(opportunityT, OpportunityDTO.class, "opportunity-winloss");
+			OpportunityDTO dto = beanMapper.map(opportunityT, OpportunityDTO.class, mapId);
 			if(opportunityT.getDigitalDealValue()!=null) {
 				BigDecimal dealValueInUsd = beaconConverterService.convertCurrencyRate(opportunityT.getDealCurrency(), "USD", opportunityT.getDigitalDealValue());
 				dto.setDigitalDealValue(dealValueInUsd.intValue());

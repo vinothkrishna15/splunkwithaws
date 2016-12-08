@@ -18,6 +18,7 @@ import com.tcs.destination.bean.dto.DeliveryCentreUtilizationDTO;
 import com.tcs.destination.data.repository.DeliveryCentreUnallocationRepository;
 import com.tcs.destination.data.repository.DeliveryCentreUtilizationRepository;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 
 
@@ -43,7 +44,7 @@ public class HealthCardService {
 		List<DeliveryCentreUnallocationT> unallocationTs = deliveryCentreUnallocationRepository
 				.findByDateBetween(startDate, endDate);
 		for (DeliveryCentreUnallocationT deliveryCentreUnallocationT : unallocationTs) {
-			DeliveryCentreUnallocationDTO dto = beanMapper.map(deliveryCentreUnallocationT, DeliveryCentreUnallocationDTO.class, "delivery-unallocation-map");
+			DeliveryCentreUnallocationDTO dto = beanMapper.map(deliveryCentreUnallocationT, DeliveryCentreUnallocationDTO.class, Constants.DELIVERY_UNALLOCATION_MAP);
 			dtos.add(dto);
 		}
 		if (CollectionUtils.isNotEmpty(dtos)) {
@@ -64,7 +65,7 @@ public class HealthCardService {
 		List<DeliveryCentreUtilizationT> utilizationTs = deliveryCentreUtilizationRepository
 				.findByDateBetween(startDate, endDate);
 		for (DeliveryCentreUtilizationT deliveryCentreUtilizationT : utilizationTs) {
-			DeliveryCentreUtilizationDTO dto = beanMapper.map(deliveryCentreUtilizationT, DeliveryCentreUtilizationDTO.class, "delivery-utilization-map");
+			DeliveryCentreUtilizationDTO dto = beanMapper.map(deliveryCentreUtilizationT, DeliveryCentreUtilizationDTO.class, Constants.DELIVERY_UTILIZATION_MAP);
 			dtos.add(dto);
 		}
 		

@@ -23,16 +23,12 @@ public interface CompetitorRepository extends
 	
 	List<CompetitorMappingT> findByCompetitorNameIgnoreCaseLike(String name);
 
-	//TODO sdhfjsh
-	
 	 @Query(value="SELECT DISTINCT cmt FROM CompetitorMappingT cmt "
 	 		+ "JOIN cmt.opportunityCompetitorLinkTs oclt "
 	 		+ "JOIN oclt.opportunityT ot "
 	 		+ "WHERE (ot.salesStageCode in (4,5,6,7,8) "
-	 		+ "OR (ot.salesStageCode in (9,10,11,13) AND ot.dealClosureDate between :startDate and :endDate)) "
-	 		+ "AND cmt.competitorName LIKE :chars")
-	List<CompetitorMappingT> findByNameContainingAndDealDate(@Param("chars") String chars,
-			@Param("startDate") Date startDate, @Param("endDate") Date endDate);
+	 		+ "OR (ot.salesStageCode in (9,10,11,13) AND ot.dealClosureDate between :startDate and :endDate))")
+	List<CompetitorMappingT> findByNameContainingAndDealDate(@Param("startDate") Date startDate, @Param("endDate") Date endDate);
 	 
 
 }

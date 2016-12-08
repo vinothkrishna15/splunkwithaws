@@ -59,7 +59,7 @@ public class CompetitorService {
 		Date endDate = toDate != null ? toDate : new Date();
 
 		List<CompetitorMappingDTO> dtos = Lists.newArrayList();
-		List<CompetitorMappingT> competitorList = compRepository.findByNameContainingAndDealDate("%" + chars + "%", startDate, endDate);
+		List<CompetitorMappingT> competitorList = compRepository.findByNameContainingAndDealDate(startDate, endDate);
 		for (CompetitorMappingT competitorMappingT : competitorList) {
 			for (OpportunityCompetitorLinkT oppLink : competitorMappingT.getOpportunityCompetitorLinkTs()) {
 				OpportunityT opportunityT = oppLink.getOpportunityT();
@@ -68,7 +68,7 @@ public class CompetitorService {
 					opportunityT.setDigitalDealValue(convertedValue.intValue());
 				}
 			}
-			dtos.add(beanMapper.map(competitorMappingT, CompetitorMappingDTO.class, "competitor-opportunity"));
+			dtos.add(beanMapper.map(competitorMappingT, CompetitorMappingDTO.class, Constants.COMPETITOR_OPPORTUNITY));
 		}
 		logger.info("End:Inside findByNameContainingAndDealDate() of CompetitorService");
 		return new ContentDTO<CompetitorMappingDTO>(dtos);

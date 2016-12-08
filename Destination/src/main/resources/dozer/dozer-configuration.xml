@@ -11,24 +11,18 @@
 	</configuration>
 	
 	
-	<mapping map-id="opportunity-winloss" wildcard="false">
+	<mapping map-id="opportunity-customer-base" wildcard="false">
 		<class-a>com.tcs.destination.bean.OpportunityT</class-a>
   		<class-b>com.tcs.destination.bean.dto.OpportunityDTO</class-b>
   		
-		<field> <a>opportunityId</a> <b>opportunityId</b> </field>
+  		<field> <a>opportunityId</a> <b>opportunityId</b> </field>
 		<field> <a>opportunityName</a> <b>opportunityName</b> </field>
 		<field> <a>dealClosureDate</a> <b>dealClosureDate</b> </field>
 	  	<field> <a>digitalDealValue</a> <b>digitalDealValue</b> </field>
 		<field> <a>salesStageCode</a> <b>salesStageCode</b> </field>
 		<field> <a>dealCurrency</a> <b>dealCurrency</b> </field>
-		
-		<field> <a>customerMasterT.customerId</a> <b>customerMasterT.customerId</b> </field>
-		<field> <a>customerMasterT.customerName</a> <b>customerMasterT.customerName</b> </field>
-		<field> <a>customerMasterT.groupCustomerName</a> <b>customerMasterT.groupCustomerName</b> </field>
-		<field> <a>customerMasterT.geographyMappingT.geography</a> <b>customerMasterT.geographyMappingT.geography</b> </field>
-		<field> <a>customerMasterT.geographyMappingT.displayGeography</a> <b>customerMasterT.geographyMappingT.displayGeography</b> </field>
-		<field> <a>customerMasterT.iouCustomerMappingT.iou</a> <b>customerMasterT.iouCustomerMappingT.iou</b> </field>
-		<field> <a>customerMasterT.iouCustomerMappingT.displayIou</a> <b>customerMasterT.iouCustomerMappingT.displayIou</b> </field>
+		<field map-id="customer-base-mapping"> <a>customerMasterT</a> <b>customerMasterT</b> </field>
+		<field map-id="winloss-factor-mapping"> <a>opportunityWinLossFactorsTs</a> <b>opportunityWinLossFactorsTs</b> </field>
 	</mapping>
 	
 	<mapping map-id="competitor-opportunity" wildcard="false">
@@ -38,11 +32,7 @@
   		<field> <a>competitorName</a> <b>competitorName</b> </field>
   		<field> <a>website</a> <b>website</b> </field>
   		<field> <a>active</a> <b>active</b> </field>
-  		<field map-id="competitor-opportunity-link">
-  			<a>opportunityCompetitorLinkTs</a> <b>opportunityCompetitorLinkTs</b> 
-  			<a-hint>com.tcs.destination.bean.OpportunityCompetitorLinkT</a-hint> 
-  			<b-hint>com.tcs.destination.bean.dto.OpportunityCompetitorLinkDTO</b-hint>
-  		</field>
+  		<field map-id="competitor-opportunity-link"> <a>opportunityCompetitorLinkTs</a> <b>opportunityCompetitorLinkTs</b> </field>
 	</mapping>
 	
 	<mapping map-id="competitor-opportunity-link" wildcard="false">
@@ -66,26 +56,6 @@
 	  	<field> <a>digitalDealValue</a> <b>digitalDealValue</b> </field>
 		<field> <a>salesStageCode</a> <b>salesStageCode</b> </field>
 		<field> <a>dealCurrency</a> <b>dealCurrency</b> </field>
-	</mapping>
-	
-	<mapping map-id="opportunity-customer-base" wildcard="false">
-		<class-a>com.tcs.destination.bean.OpportunityT</class-a>
-  		<class-b>com.tcs.destination.bean.dto.OpportunityDTO</class-b>
-  		
-  		<field> <a>opportunityId</a> <b>opportunityId</b> </field>
-		<field> <a>opportunityName</a> <b>opportunityName</b> </field>
-		<field> <a>dealClosureDate</a> <b>dealClosureDate</b> </field>
-	  	<field> <a>digitalDealValue</a> <b>digitalDealValue</b> </field>
-		<field> <a>salesStageCode</a> <b>salesStageCode</b> </field>
-		<field> <a>dealCurrency</a> <b>dealCurrency</b> </field>
-		
-		<field> <a>customerMasterT.customerId</a> <b>customerMasterT.customerId</b> </field>
-		<field> <a>customerMasterT.customerName</a> <b>customerMasterT.customerName</b> </field>
-		<field> <a>customerMasterT.groupCustomerName</a> <b>customerMasterT.groupCustomerName</b> </field>
-		<field> <a>customerMasterT.geographyMappingT.geography</a> <b>customerMasterT.geographyMappingT.geography</b> </field>
-		<field> <a>customerMasterT.geographyMappingT.displayGeography</a> <b>customerMasterT.geographyMappingT.displayGeography</b> </field>
-		<field> <a>customerMasterT.iouCustomerMappingT.iou</a> <b>customerMasterT.iouCustomerMappingT.iou</b> </field>
-		<field> <a>customerMasterT.iouCustomerMappingT.displayIou</a> <b>customerMasterT.iouCustomerMappingT.displayIou</b> </field>
 	</mapping>
 
 	<mapping map-id="opportunity-full" wildcard="false">
@@ -135,16 +105,38 @@
   		<field> <a>createdByUser</a> <b>createdByUser</b> </field>
 	</mapping>
 	
-	<mapping map-id="customer-mapping" wildcard="false">
+	<mapping map-id="customer-base-mapping" wildcard="false">
 		<class-a>com.tcs.destination.bean.CustomerMasterT</class-a>
   		<class-b>com.tcs.destination.bean.dto.CustomerMasterDTO</class-b>
+		
 		<field> <a>customerId</a> <b>customerId</b> </field>
 		<field> <a>customerName</a> <b>customerName</b> </field>
-
+		<field> <a>groupCustomerName</a> <b>groupCustomerName</b> </field>
 		<field> <a>geographyMappingT.geography</a> <b>geographyMappingT.geography</b> </field>
 		<field> <a>geographyMappingT.displayGeography</a> <b>geographyMappingT.displayGeography</b> </field>
+		<field> <a>iouCustomerMappingT.iou</a> <b>iouCustomerMappingT.iou</b> </field>
+		<field> <a>iouCustomerMappingT.displayIou</a> <b>iouCustomerMappingT.displayIou</b> </field>
+	</mapping>
+
+	<mapping map-id="winloss-factor-mapping" wildcard="false">
+		<class-a>com.tcs.destination.bean.OpportunityWinLossFactorsT</class-a>
+  		<class-b>com.tcs.destination.bean.dto.OpportunityWinLossFactorsDTO</class-b>
+		
+		<field> <a>winLossFactor</a> <b>winLossFactor</b> </field>
+		<field> <a>winLossOthersDescription</a> <b>winLossOthersDescription</b> </field>
+		<field> <a>rank</a> <b>rank</b> </field>
 	</mapping>
 	
+<!-- Connect  -->
+	<mapping map-id="connect-map" wildcard="false">
+		<class-a>com.tcs.destination.bean.ConnectT</class-a>
+		<class-b>com.tcs.destination.bean.dto.ConnectDTO</class-b>
+		
+		<field> <a>connectId</a> <b>connectId</b> </field>
+	</mapping>
+	
+	
+<!-- User -->
 	<mapping map-id="user-map" wildcard="false">
 		<class-a>com.tcs.destination.bean.UserT</class-a>
 		<class-b>com.tcs.destination.bean.dto.UserDTO</class-b>
@@ -172,15 +164,29 @@
 		<field>	<a>userGroup</a> <b>userGroup</b>  </field>
 	</mapping>
 		
-	<mapping map-id="connect-map" wildcard="false">
-		<class-a>com.tcs.destination.bean.ConnectT</class-a>
-		<class-b>com.tcs.destination.bean.dto.ConnectDTO</class-b>
-		<field>
-			<a>connectId</a> 
-			<b>connectId</b> 
-		</field>
+<!--  Delivery Centre and Delivery Cluster -->
+	<mapping map-id="delivery-centre-map" wildcard="false">
+		<class-a>com.tcs.destination.bean.DeliveryCentreT</class-a>
+		<class-b>com.tcs.destination.bean.dto.DeliveryCentreDTO</class-b>
+		
+		<field>	<a>deliveryCentreId</a> <b>deliveryCentreId</b> </field>
+		<field>	<a>deliveryCentre</a> <b>deliveryCentre</b> </field>
+		<field>	<a>deliveryClusterId</a> <b>deliveryClusterId</b> </field>
+		<field map-id="user-base"> <a>deliveryCentreHeadUser</a> <b>deliveryCentreHeadUser</b> </field>
+		<field map-id="delivery-cluster-map"> <a>deliveryClusterT</a> <b>deliveryClusterT</b> </field>
 	</mapping>
 
+	<mapping map-id="delivery-cluster-map" wildcard="false">
+		<class-a>com.tcs.destination.bean.DeliveryClusterT</class-a>
+		<class-b>com.tcs.destination.bean.dto.DeliveryClusterDTO</class-b>
+		
+		<field>	<a>deliveryClusterId</a> <b>deliveryClusterId</b> </field>
+		<field>	<a>deliveryCluster</a> <b>deliveryCluster</b> </field>
+		<field map-id="user-base"> <a>deliveryClusterHeadUser</a> <b>deliveryClusterHeadUser</b> </field>
+	</mapping>
+
+
+<!-- Utilization and Unallocation -->
 	<mapping map-id="delivery-utilization-map" wildcard="false">
 		<class-a>com.tcs.destination.bean.DeliveryCentreUtilizationT</class-a>
 		<class-b>com.tcs.destination.bean.dto.DeliveryCentreUtilizationDTO</class-b>
@@ -202,26 +208,6 @@
 		<field>	<a>traineePercentage</a> <b>traineePercentage</b> </field>
 		<field>	<a>deliveryCentreId</a> <b>deliveryCentreId</b> </field>
 		<field map-id="delivery-centre-map"> <a>deliveryCentreT</a> <b>deliveryCentreT</b> </field>
-	</mapping>
-
-	<mapping map-id="delivery-centre-map" wildcard="false">
-		<class-a>com.tcs.destination.bean.DeliveryCentreT</class-a>
-		<class-b>com.tcs.destination.bean.dto.DeliveryCentreDTO</class-b>
-		
-		<field>	<a>deliveryCentreId</a> <b>deliveryCentreId</b> </field>
-		<field>	<a>deliveryCentre</a> <b>deliveryCentre</b> </field>
-		<field>	<a>deliveryClusterId</a> <b>deliveryClusterId</b> </field>
-		<field map-id="user-base"> <a>deliveryCentreHeadUser</a> <b>deliveryCentreHeadUser</b> </field>
-		<field map-id="delivery-cluster-map"> <a>deliveryClusterT</a> <b>deliveryClusterT</b> </field>
-	</mapping>
-
-	<mapping map-id="delivery-cluster-map" wildcard="false">
-		<class-a>com.tcs.destination.bean.DeliveryClusterT</class-a>
-		<class-b>com.tcs.destination.bean.dto.DeliveryClusterDTO</class-b>
-		
-		<field>	<a>deliveryClusterId</a> <b>deliveryClusterId</b> </field>
-		<field>	<a>deliveryCluster</a> <b>deliveryCluster</b> </field>
-		<field map-id="user-base"> <a>deliveryClusterHeadUser</a> <b>deliveryClusterHeadUser</b> </field>
 	</mapping>
 
 </mappings> 
