@@ -2,7 +2,7 @@ package com.tcs.destination.bean;
 
 public class EngagementDashboardDTO {
 	private String engagementGroupedBy;
-	private String engagementCount;
+	private Integer engagementCount;
 	
 	public String getEngagementGroupedBy() {
 		return engagementGroupedBy;
@@ -10,10 +10,10 @@ public class EngagementDashboardDTO {
 	public void setEngagementGroupedBy(String engagementGroupedBy) {
 		this.engagementGroupedBy = engagementGroupedBy;
 	}
-	public String getEngagementCount() {
+	public Integer getEngagementCount() {
 		return engagementCount;
 	}
-	public void setEngagementCount(String engagementCount) {
+	public void setEngagementCount(Integer engagementCount) {
 		this.engagementCount = engagementCount;
 	}
 }

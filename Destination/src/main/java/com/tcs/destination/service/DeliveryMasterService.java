@@ -1,5 +1,6 @@
 package com.tcs.destination.service;
 
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -1000,7 +1001,7 @@ public class DeliveryMasterService {
 				deliveryCentreIds = new ArrayList<Integer>();
 				deliveryCentreIds.add(deliveryCentreT
 						.getDeliveryCentreId());
-				deliveryCentreIds.add(-1);
+//				deliveryCentreIds.add(-1);
 			}
 			deliveryDashboardDTO = retrieveEngagementsBasedOnViewBy(viewBy, deliveryCentreIds, stages, deliveryMasterIds);
 			break;
@@ -1042,7 +1043,7 @@ public class DeliveryMasterService {
 					for (DeliveryCentreT deliveryCentre : deliveryCentres) {
 						deliveryCentreIds.add(deliveryCentre.getDeliveryCentreId());
 					}
-					deliveryCentreIds.add(-1);
+//					deliveryCentreIds.add(-1);
 				}
 			}
 			deliveryDashboardDTO = retrieveEngagementsBasedOnViewBy(viewBy, deliveryCentreIds, stages, deliveryMasterIds);
@@ -1079,6 +1080,20 @@ public class DeliveryMasterService {
 		}
 		return deliveryDashboardDTO;
 	}
+
+
+	private EngagementDashboardDTO getIntimatedCount(String sortBy,
+			String order, int page, int count) {
+		EngagementDashboardDTO engagementDashboardDTO = new EngagementDashboardDTO();
+		PageDTO<DeliveryIntimatedT> deliveryMasterDTO = getDeliveryIntimated(sortBy, order, page, count);
+		if(deliveryMasterDTO!=null) {
+			int totalCount = deliveryMasterDTO.getTotalCount();
+			engagementDashboardDTO.setEngagementCount(totalCount);
+			engagementDashboardDTO.setEngagementGroupedBy(DeliveryStage.INTIMATED.getStageName());
+		}
+		return engagementDashboardDTO;
+	}
+
 
 	/**
 	 * This method retrieves the engagements for dash board based on delivery stage, geography, subsp
@@ -1118,18 +1133,19 @@ public class DeliveryMasterService {
 			}
 			break;
 		}
+		List<EngagementDashboardDTO> engagementList = new ArrayList<EngagementDashboardDTO>();
+		deliveryDashboardDTO = new DeliveryMasterDTO();
 		if (deliveryMasterTs.size() > 0) {
-			deliveryDashboardDTO = new DeliveryMasterDTO();
-			List<EngagementDashboardDTO> engagementList = new ArrayList<EngagementDashboardDTO>();
 			deliveryDashboardDTO.setViewEngagementBy(viewBy);
 			for (Object[] deliveryMaster : deliveryMasterTs) {
 				engagementDashboardDTO = new EngagementDashboardDTO();
 				engagementDashboardDTO.setEngagementGroupedBy(deliveryMaster[0].toString());
-				engagementDashboardDTO.setEngagementCount(deliveryMaster[1].toString());
+				engagementDashboardDTO.setEngagementCount(((BigInteger) deliveryMaster[1]).intValue());
 				engagementList.add(engagementDashboardDTO);
 			}
-			deliveryDashboardDTO.setEngagementList(engagementList);
 		}
+		engagementList.add(getIntimatedCount("deliveryIntimatedId","DESC",0,30));
+		deliveryDashboardDTO.setEngagementList(engagementList);
 		return deliveryDashboardDTO;
 	}
 

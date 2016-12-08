@@ -2,7 +2,6 @@ package com.tcs.destination.helper;
 
 import java.math.BigDecimal;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.Cell;
@@ -127,11 +126,6 @@ public class OpportunityDownloadHelper {
 
 
 
-
-	private static final DateFormat actualFormat = new SimpleDateFormat(
-			"yyyy-MM-dd");
-	private static final DateFormat desiredFormat = new SimpleDateFormat(
-			"MM/dd/yyyy");
 
 	/**
 	 * this method populates the opportunity values and setting it in the
@@ -294,7 +288,7 @@ public class OpportunityDownloadHelper {
 			if (opportunity.getEngagementDuration() != null) {
 				Cell cellEngDuration = row.createCell(37);
 				int engDuration = opportunity
-						.getEngagementDuration().intValueExact();
+						.getEngagementDuration().intValue();
 				cellEngDuration.setCellValue(String.valueOf(engDuration));
 			}
 
