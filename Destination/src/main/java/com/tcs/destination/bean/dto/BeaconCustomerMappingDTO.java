@@ -3,14 +3,14 @@ package com.tcs.destination.bean.dto;
 import java.io.Serializable;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonFilter;
-import com.tcs.destination.utils.Constants;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  * The BeaconCustomerMappingDTO.
  * 
  */
-@JsonFilter(Constants.FILTER)
+@JsonInclude(Include.NON_NULL)
 public class BeaconCustomerMappingDTO implements Serializable {
 	private static final long serialVersionUID = 1L;
 

@@ -16,7 +16,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_NULL)
 public class OpportunityDTO implements Serializable, Cloneable {
 	private static final long serialVersionUID = 1L;
-
+	
 	private String opportunityId;
 
 	private UserDTO createdByUser;
@@ -32,6 +32,8 @@ public class OpportunityDTO implements Serializable, Cloneable {
 	private Date dealClosureDate;
 
 	private Integer digitalDealValue;
+	
+	private BigDecimal digitalDealValueUSD;
 
 	private String documentsAttached;
 
@@ -422,6 +424,14 @@ public class OpportunityDTO implements Serializable, Cloneable {
 
 	public void setSalesStageCode(Integer salesStageCode) {
 		this.salesStageCode = salesStageCode;
+	}
+
+	public BigDecimal getDigitalDealValueUSD() {
+		return digitalDealValueUSD;
+	}
+
+	public void setDigitalDealValueUSD(BigDecimal digitalDealValueUSD) {
+		this.digitalDealValueUSD = digitalDealValueUSD;
 	}
 
 }

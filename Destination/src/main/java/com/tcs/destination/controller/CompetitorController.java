@@ -1,10 +1,12 @@
 package com.tcs.destination.controller;
 
+import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -13,6 +15,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.CompetitorMappingT;
+import com.tcs.destination.bean.ContentDTO;
+import com.tcs.destination.bean.dto.CompetitorMappingDTO;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.CompetitorService;
 import com.tcs.destination.utils.ResponseConstructors;
@@ -43,8 +47,8 @@ public class CompetitorController {
 	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findNameWith(
-			@RequestParam("nameWith") String chars,
-			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value= "nameWith", defaultValue = "") String chars,
+			@RequestParam(value = "fields", defaultValue = "competitorName,active") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		logger.info("Inside CompetitorController : Start of retrieving the competitor list");
@@ -62,6 +66,39 @@ public class CompetitorController {
 					"Backend error in retrieving the competitor name for : "
 							+ chars);
 		}
+
+	}
+	
+	/**
+	 * This method is used to retrieve list of competitors whose name starts
+	 * with value mentioned in nameWith parameter
+	 * 
+	 * @param nameWith
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/opportunity", method = RequestMethod.GET)
+	public @ResponseBody ContentDTO<CompetitorMappingDTO> findByNameContainingAndDealDate(
+			@RequestParam(value = "nameWith", defaultValue = "") String chars,
+			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
+			@RequestParam(value = "toDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate)
+			throws DestinationException {
+		logger.info("Inside CompetitorController : Start of retrieving the competitor list");
+		ContentDTO<CompetitorMappingDTO> compList;
+		try {
+			 compList = compService.findByNameContainingAndDealDate(chars, fromDate, toDate);
+			logger.info("Inside CompetitorController : End of retrieving the competitor list");
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the competitor name for : "
+							+ chars);
+		}
+		return compList;
 
 	}
 

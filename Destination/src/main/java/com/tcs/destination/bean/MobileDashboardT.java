@@ -13,6 +13,7 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 
+
 /**
  * The persistent class for the mobile_dashboard_t database table.
  * 
@@ -25,17 +26,17 @@ public class MobileDashboardT implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="component_id")
-	private Integer componentId;
-
-	@Column(name="component_name")
-	private String componentName;
+	@Column(name="dashboard_id")
+	private Integer dashboardId;
 
 	@Column(name="order_number")
 	private Integer orderNumber;
 
 	@Column(name="dashboard_category")
 	private Integer dashboardCategory;
+	
+	@Column(name="component_id")
+	private Integer componentId;
 
 	@Column(name="user_id")
 	private String userId;
@@ -44,30 +45,14 @@ public class MobileDashboardT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="dashboard_category", insertable=false, updatable=false)
 	private MobileDashboardCategory mobileDashboardCategory;
-
-	//bi-directional many-to-one association to UserT
+	
+	//bi-directional many-to-one association to MobileDashboardComponentT
 	@ManyToOne
-	@JoinColumn(name="user_id", insertable = false, updatable = false)
-	private UserT userT;
+	@JoinColumn(name="component_id", insertable=false, updatable=false)
+	private MobileDashboardComponentT mobileDashboardComponentT;
 
 	public MobileDashboardT() {
 		super();
-	}
-
-	public Integer getComponentId() {
-		return this.componentId;
-	}
-
-	public void setComponentId(Integer componentId) {
-		this.componentId = componentId;
-	}
-
-	public String getComponentName() {
-		return this.componentName;
-	}
-
-	public void setComponentName(String componentName) {
-		this.componentName = componentName;
 	}
 
 	public Integer getOrderNumber() {
@@ -86,14 +71,6 @@ public class MobileDashboardT implements Serializable {
 		this.mobileDashboardCategory = mobileDashboardCategory;
 	}
 
-	public UserT getUserT() {
-		return this.userT;
-	}
-
-	public void setUserT(UserT userT) {
-		this.userT = userT;
-	}
-
 	public Integer getDashboardCategory() {
 		return dashboardCategory;
 	}
@@ -108,6 +85,31 @@ public class MobileDashboardT implements Serializable {
 
 	public void setUserId(String userId) {
 		this.userId = userId;
+	}
+
+	public Integer getDashboardId() {
+		return dashboardId;
+	}
+
+	public void setDashboardId(Integer dashboardId) {
+		this.dashboardId = dashboardId;
+	}
+
+	public Integer getComponentId() {
+		return componentId;
+	}
+
+	public void setComponentId(Integer componentId) {
+		this.componentId = componentId;
+	}
+
+	public MobileDashboardComponentT getMobileDashboardComponentT() {
+		return mobileDashboardComponentT;
+	}
+
+	public void setMobileDashboardComponentT(
+			MobileDashboardComponentT mobileDashboardComponentT) {
+		this.mobileDashboardComponentT = mobileDashboardComponentT;
 	}
 
 }

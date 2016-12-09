@@ -4,15 +4,15 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonFilter;
-import com.tcs.destination.utils.Constants;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 
 /**
  * The persistent class for the product_master_t database table.
  * 
  */
-@JsonFilter(Constants.FILTER)
+@JsonInclude(Include.NON_NULL)
 public class ProductMasterDTO implements Serializable {
 	private static final long serialVersionUID = 1L;
 

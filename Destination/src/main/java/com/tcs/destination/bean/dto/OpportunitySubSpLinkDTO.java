@@ -3,14 +3,14 @@ package com.tcs.destination.bean.dto;
 import java.io.Serializable;
 import java.sql.Timestamp;
 
-import com.fasterxml.jackson.annotation.JsonFilter;
-import com.tcs.destination.utils.Constants;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  * The OpportunitySubSpLinkDTO.
  * 
  */
-@JsonFilter(Constants.FILTER)
+@JsonInclude(Include.NON_NULL)
 public class OpportunitySubSpLinkDTO implements Serializable {
 	private static final long serialVersionUID = 1L;
 

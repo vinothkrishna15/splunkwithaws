@@ -20,6 +20,7 @@ import javax.persistence.Query;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.dozer.DozerBeanMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +44,6 @@ import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryIntimatedT;
 import com.tcs.destination.bean.DeliveryOwnershipT;
-import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
 import com.tcs.destination.bean.OpportunityCompetitorLinkT;
@@ -69,8 +69,6 @@ import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.WorkflowBfmT;
 import com.tcs.destination.bean.WorkflowRequestT;
-import com.tcs.destination.bean.dto.CustomerMasterDTO;
-import com.tcs.destination.bean.dto.GeographyMappingDTO;
 import com.tcs.destination.bean.dto.OpportunityDTO;
 import com.tcs.destination.data.repository.AuditOpportunityDeliveryCenterRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
@@ -147,6 +145,9 @@ public class OpportunityService {
 
 	@Autowired
 	UserAccessPrivilegeQueryBuilder userAccessPrivilegeQueryBuilder;
+
+	@Autowired
+	DozerBeanMapper beanMapper;
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(OpportunityService.class);
@@ -494,7 +495,7 @@ public class OpportunityService {
 		List<DeliveryCentreT> deliveryCentre = new ArrayList<DeliveryCentreT>();
 		// Retrieving all delivery centres except open ->delivery centre id -1
 		deliveryCentre = deliveryCentreRepository
-				.findByDeliveryCentreIdGreaterThanEqual(Constants.CONSTANT_ZERO);
+				.findByDeliveryCentreIdGreaterThanEqualOrderByDeliveryCentreIdAsc(Constants.CONSTANT_ZERO);
 		return deliveryCentre;
 	}
 
@@ -3671,7 +3672,7 @@ public class OpportunityService {
 			return asyncJobRequest;
 		}
 	
-	public PageDTO<OpportunityDTO> getOpportunitiesBasedOnPrivileges(Date fromDate, Date toDate) throws Exception {
+	public PageDTO<OpportunityDTO> getOpportunitiesBasedOnPrivileges(Date fromDate, Date toDate, String mapId) throws Exception {
 		PageDTO<OpportunityDTO> response = new PageDTO<OpportunityDTO>();
 		List<OpportunityT> opportunityTs = Lists.newArrayList();
 		UserT currentUser = DestinationUtils.getCurrentUserDetails();
@@ -3689,43 +3690,27 @@ public class OpportunityService {
 		oppQuery.setParameter("toDate", endDate);
 		opportunityTs = oppQuery.getResultList();
 
-		List<OpportunityDTO> dtos = prepareWinRatioResposeDTO(opportunityTs);
+		if(StringUtils.isEmpty(mapId)) {
+			mapId = Constants.OPPORTUNITY_CUSTOMER_BASE;
+		}
+		List<OpportunityDTO> dtos = prepareWinRatioResposeDTO(opportunityTs, mapId);
 		response.setContent(dtos);
 		return response;
 
 	}
 	
 	private List<OpportunityDTO> prepareWinRatioResposeDTO(
-			List<OpportunityT> opportunityTs) {
+			List<OpportunityT> opportunityTs, String mapId) {
 		List<OpportunityDTO> dtos = Lists.newArrayList();
-		for (OpportunityT opportunity : opportunityTs) {
-			OpportunityDTO dto = new OpportunityDTO();
-			
-			CustomerMasterDTO custDto = new CustomerMasterDTO();
-			CustomerMasterT customerMasterT = opportunity.getCustomerMasterT();
-			custDto.setCustomerId(customerMasterT.getCustomerId());
-			custDto.setCustomerName(customerMasterT.getCustomerName());
-
-			GeographyMappingT geographyMappingT = customerMasterT.getGeographyMappingT();
-			GeographyMappingDTO geographyMappingDTO = new GeographyMappingDTO();
-			geographyMappingDTO.setGeography(geographyMappingT.getGeography());
-			geographyMappingDTO.setDisplayGeography(geographyMappingT.getDisplayGeography());
-			custDto.setGeographyMappingT(geographyMappingDTO);
-			
-			dto.setCustomerMasterT(custDto);
-			dto.setDealClosureDate(opportunity.getDealClosureDate());
-			
-			if(opportunity.getDigitalDealValue()!=null) {
-				BigDecimal dealValueInUsd = beaconConverterService.convertCurrencyRate(opportunity.getDealCurrency(), "USD", opportunity.getDigitalDealValue());
+		for (OpportunityT opportunityT : opportunityTs) {
+			OpportunityDTO dto = beanMapper.map(opportunityT, OpportunityDTO.class, mapId);
+			if(opportunityT.getDigitalDealValue()!=null) {
+				BigDecimal dealValueInUsd = beaconConverterService.convertCurrencyRate(opportunityT.getDealCurrency(), "USD", opportunityT.getDigitalDealValue());
 				dto.setDigitalDealValue(dealValueInUsd.intValue());
 			}
-			
-			dto.setOpportunityId(opportunity.getOpportunityId());
-			dto.setOpportunityName(opportunity.getOpportunityName());
-			dto.setSalesStageCode(opportunity.getSalesStageCode());
-			
 			dtos.add(dto);
 		}
+	
 		return dtos;
 	}
 

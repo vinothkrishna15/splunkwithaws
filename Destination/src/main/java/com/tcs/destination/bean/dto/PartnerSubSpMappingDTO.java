@@ -4,15 +4,15 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonFilter;
-import com.tcs.destination.utils.Constants;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 
 /**
  * The PartnerSubSpMappingDTO.
  * 
  */
-@JsonFilter(Constants.FILTER)
+@JsonInclude(Include.NON_NULL)
 public class PartnerSubSpMappingDTO implements Serializable {
 	private static final long serialVersionUID = 1L;
 
