@@ -43,6 +43,7 @@ import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryIntimatedT;
+import com.tcs.destination.bean.DeliveryMasterT;
 import com.tcs.destination.bean.DeliveryOwnershipT;
 import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
@@ -949,7 +950,13 @@ public class OpportunityService {
 					isBfmRaied = true;
 				}
 			}
-
+		
+			for (DeliveryMasterT deliveryMasterT : opportunity.getDeliveryMasterTs()) {
+				 deliveryMasterT.setDeliveryIntimatedT(null);
+			}
+			for(DeliveryIntimatedT deliveryItiIntimatedT : opportunity.getDeliveryIntimatedTs()) {
+				deliveryItiIntimatedT.setDeliveryMasterTs(null);
+			}
 			opportunity.setWorkflowBfmRaised(isBfmRaied);
 			return opportunity;
 		} else {
