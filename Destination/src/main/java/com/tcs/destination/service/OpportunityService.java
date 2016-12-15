@@ -42,6 +42,7 @@ import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
 import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DeliveryCentreT;
+import com.tcs.destination.bean.DeliveryIntimatedCentreLinkT;
 import com.tcs.destination.bean.DeliveryIntimatedT;
 import com.tcs.destination.bean.DeliveryMasterT;
 import com.tcs.destination.bean.DeliveryOwnershipT;
@@ -950,13 +951,9 @@ public class OpportunityService {
 					isBfmRaied = true;
 				}
 			}
-		
-			for (DeliveryMasterT deliveryMasterT : opportunity.getDeliveryMasterTs()) {
-				 deliveryMasterT.setDeliveryIntimatedT(null);
-			}
-			for(DeliveryIntimatedT deliveryItiIntimatedT : opportunity.getDeliveryIntimatedTs()) {
-				deliveryItiIntimatedT.setDeliveryMasterTs(null);
-			}
+			
+			setNullForDeliveryMaster(opportunity);
+			setNullForDeliveryIntimated(opportunity);
 			opportunity.setWorkflowBfmRaised(isBfmRaied);
 			return opportunity;
 		} else {
@@ -3738,5 +3735,32 @@ public class OpportunityService {
 		queryBuffer.append(QueryConstants.OPPORTUNITY_DEAL_CLOSURE_DATE_ORDER_BY);
 		return queryBuffer.toString();
 	}
-
+	
+	private void setNullForDeliveryMaster(OpportunityT opportunity) {
+		if(CollectionUtils.isNotEmpty(opportunity.getDeliveryIntimatedTs())) {
+			for(DeliveryIntimatedT deliveryItiIntimatedT : opportunity.getDeliveryIntimatedTs()) {
+				deliveryItiIntimatedT.setDeliveryMasterTs(null);
+				deliveryItiIntimatedT.getDeliveryStageMappingT().setDeliveryMasterTs(null);
+				for(DeliveryIntimatedCentreLinkT deliveryIntimatedCentreLinkT : deliveryItiIntimatedT.getDeliveryIntimatedCentreLinkTs()) {
+					deliveryIntimatedCentreLinkT.setDeliveryIntimatedT(null);
+					deliveryIntimatedCentreLinkT.getDeliveryCentreT().setDeliveryMasterTs(null);
+					deliveryIntimatedCentreLinkT.getDeliveryCentreT().getDeliveryClusterT().setDeliveryCentreTs(null);
+					deliveryIntimatedCentreLinkT.getDeliveryCentreT().setDeliveryIntimatedCentreLinkTs(null);
+				}
+			}
+		}
+	}
+	
+	private void setNullForDeliveryIntimated(OpportunityT opportunity) {
+		if(CollectionUtils.isNotEmpty(opportunity.getDeliveryMasterTs())) {
+			for (DeliveryMasterT deliveryMasterT : opportunity.getDeliveryMasterTs()) {
+				deliveryMasterT.setDeliveryIntimatedT(null);
+				deliveryMasterT.setDeliveryIntimatedId(null);
+				deliveryMasterT.getDeliveryCentreT().setDeliveryMasterTs(null);
+				deliveryMasterT.getDeliveryCentreT().getDeliveryClusterT().setDeliveryCentreTs(null);
+				deliveryMasterT.getDeliveryCentreT().setDeliveryIntimatedCentreLinkTs(null);
+				deliveryMasterT.getDeliveryStageMappingT().setDeliveryMasterTs(null);
+			}
+		}
+	}
 }
