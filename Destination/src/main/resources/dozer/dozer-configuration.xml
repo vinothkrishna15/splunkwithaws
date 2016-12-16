@@ -134,7 +134,26 @@
 		
 		<field> <a>connectId</a> <b>connectId</b> </field>
 	</mapping>
-	
+
+	<mapping map-id="connect-contact-base" wildcard="false">
+		<class-a>com.tcs.destination.bean.ConnectT</class-a>
+		<class-b>com.tcs.destination.bean.dto.ConnectDTO</class-b>
+		
+		<field> <a>connectId</a> <b>connectId</b> </field>
+		<field> <a>connectName</a> <b>connectName</b> </field>
+		
+		<field> <a>startDatetimeOfConnect</a> <b>startDatetimeOfConnect</b> </field>
+		<field> <a>endDatetimeOfConnect</a> <b>endDatetimeOfConnect</b> </field>
+		<field map-id="contact-link-base"> <a>connectCustomerContactLinkTs</a> <b>connectCustomerContactLinkTs</b> </field>
+	</mapping>
+
+	<mapping map-id="contact-link-base" wildcard="false">
+		<class-a>com.tcs.destination.bean.ConnectCustomerContactLinkT</class-a>
+		<class-b>com.tcs.destination.bean.dto.ConnectCustomerContactLinkDTO</class-b>
+		
+		<field> <a>contactT.contactRole</a> <b>contactT.contactRole</b> </field>
+		<field> <a>contactT.contactId</a> <b>contactT.contactId</b> </field>
+	</mapping>
 	
 <!-- User -->
 	<mapping map-id="user-map" wildcard="false">
@@ -209,5 +228,31 @@
 		<field>	<a>deliveryCentreId</a> <b>deliveryCentreId</b> </field>
 		<field map-id="delivery-centre-map"> <a>deliveryCentreT</a> <b>deliveryCentreT</b> </field>
 	</mapping>
+	
+	
+<!-- Customer -->
+	<mapping map-id="cust-connect-base" wildcard="false">
+		<class-a>com.tcs.destination.bean.CustomerMasterT</class-a>
+		<class-b>com.tcs.destination.bean.dto.CustomerMasterDTO</class-b>
+		
+		<field>	<a>customerId</a> <b>customerId</b> </field>
+		<field>	<a>customerName</a> <b>customerName</b> </field>
+		
+		<field map-id="connect-contact-base"> <a>connectTs</a> <b>connectTs</b> </field>
+	</mapping>
+	
+	<mapping map-id="cust-connect-logo-base" wildcard="false">
+		<class-a>com.tcs.destination.bean.CustomerMasterT</class-a>
+		<class-b>com.tcs.destination.bean.dto.CustomerMasterDTO</class-b>
+		
+		<field>	<a>customerId</a> <b>customerId</b> </field>
+		<field>	<a>customerName</a> <b>customerName</b> </field>
+		<field>	<a>logo</a> <b>logo</b> </field>
+		<field>	<a>active</a> <b>active</b> </field>
+		
+		<field map-id="connect-contact-base"> <a>connectTs</a> <b>connectTs</b> </field>
+	</mapping>
+
+
 
 </mappings> 
