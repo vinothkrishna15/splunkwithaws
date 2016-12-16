@@ -99,7 +99,10 @@ public class DeliveryMasterT implements Serializable {
 	@Column(name="delivery_intimated_id")
 	private String deliveryIntimatedId;
 	
-
+	@Temporal(TemporalType.DATE)
+	@Column(name="actual_end_date")
+	private Date actualEndDate;
+	
 	//bi-directional many-to-one association to DeliveryCentreT
 	@ManyToOne
 	@JoinColumn(name="delivery_centre_id", insertable = false, updatable = false)
@@ -389,5 +392,12 @@ public class DeliveryMasterT implements Serializable {
 	public void setDeliveryIntimatedId(String deliveryIntimatedId) {
 		this.deliveryIntimatedId = deliveryIntimatedId;
 	}
-	
+
+	public Date getActualEndDate() {
+		return actualEndDate;
+	}
+
+	public void setActualEndDate(Date actualEndDate) {
+		this.actualEndDate = actualEndDate;
+	}
 }
