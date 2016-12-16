@@ -398,4 +398,5 @@ public class Constants {
 	public static final String DELIVERY_UNALLOCATION_MAP = "delivery-unallocation-map";
 	public static final String DELIVERY_CENTRE_MAP = "delivery-centre-map";
 	public static final String DELIVERY_CLUSTER_MAP = "delivery-cluster-map";
+	public static final String CUST_CONNECT_BASE = "cust-connect-base";
 }
