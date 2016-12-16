@@ -953,7 +953,7 @@ public class UserService {
 		logger.info("Begin:inside updateUserDetails() of UserService");
 		UserT userT= userRepository.findByUserId(user.getUserId());
 		user.setTempPassword(userT.getTempPassword());
-		
+		user.setStatus(userT.getStatus());
 		// validate user
 		validateUser(user, true);
 		if (userRepository.save(user) != null) {

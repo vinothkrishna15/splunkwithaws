@@ -1085,7 +1085,7 @@ public class DeliveryMasterService {
 	private EngagementDashboardDTO getIntimatedCount(String sortBy,
 			String order, int page, int count) {
 		EngagementDashboardDTO engagementDashboardDTO = new EngagementDashboardDTO();
-		PageDTO<DeliveryIntimatedT> deliveryMasterDTO = getDeliveryIntimated(sortBy, order, page, count);
+		PageDTO<DeliveryIntimatedT> deliveryMasterDTO = getDeliveryIntimated(sortBy, order, page, count, true);
 		if(deliveryMasterDTO!=null) {
 			int totalCount = deliveryMasterDTO.getTotalCount();
 			engagementDashboardDTO.setEngagementCount(totalCount);
@@ -1216,7 +1216,7 @@ public class DeliveryMasterService {
 
 
 	public PageDTO<DeliveryIntimatedT> getDeliveryIntimated(String orderBy, String order, int page,
-			int count) {
+			int count, boolean isDashboard) {
 		PageDTO<DeliveryIntimatedT> deliveryIntimatedDTO = null;
 
 		logger.debug("Starting getDeliveryIntimated deliveryMasterService");
@@ -1292,9 +1292,11 @@ public class DeliveryMasterService {
 			deliveryIntimatedDTO.setTotalCount(new Long(deliveryIntimatedTs
 					.getTotalElements()).intValue());
 		} else {
-			logger.error("NOT_FOUND: Intimated Deliveries not found");
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Intimated Deliveries not found");
+			if(!isDashboard) {
+				logger.error("NOT_FOUND: Intimated Deliveries not found");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"Intimated Deliveries not found");
+			}
 		}
 		return deliveryIntimatedDTO;
 	}

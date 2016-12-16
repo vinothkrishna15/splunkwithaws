@@ -327,7 +327,7 @@ public class DeliveryMasterController {
 		try {
 
 			deliveryMasterDTO = deliveryMasterService.getDeliveryIntimated(sortBy, order,
-					page, count);
+					page, count,false);
 			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, deliveryMasterDTO);
 		} catch (DestinationException e) {
