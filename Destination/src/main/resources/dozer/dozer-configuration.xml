@@ -114,8 +114,15 @@
 		<field> <a>groupCustomerName</a> <b>groupCustomerName</b> </field>
 		<field> <a>geographyMappingT.geography</a> <b>geographyMappingT.geography</b> </field>
 		<field> <a>geographyMappingT.displayGeography</a> <b>geographyMappingT.displayGeography</b> </field>
-		<field> <a>iouCustomerMappingT.iou</a> <b>iouCustomerMappingT.iou</b> </field>
-		<field> <a>iouCustomerMappingT.displayIou</a> <b>iouCustomerMappingT.displayIou</b> </field>
+	</mapping>
+
+	<mapping map-id="customer-only-mapping" wildcard="false">
+		<class-a>com.tcs.destination.bean.CustomerMasterT</class-a>
+  		<class-b>com.tcs.destination.bean.dto.CustomerMasterDTO</class-b>
+		
+		<field> <a>customerId</a> <b>customerId</b> </field>
+		<field> <a>customerName</a> <b>customerName</b> </field>
+		<field> <a>groupCustomerName</a> <b>groupCustomerName</b> </field>
 	</mapping>
 
 	<mapping map-id="winloss-factor-mapping" wildcard="false">
@@ -135,7 +142,18 @@
 		<field> <a>connectId</a> <b>connectId</b> </field>
 	</mapping>
 
-	<mapping map-id="connect-contact-base" wildcard="false">
+	<mapping map-id="connect-customer-base" wildcard="false">
+		<class-a>com.tcs.destination.bean.ConnectT</class-a>
+		<class-b>com.tcs.destination.bean.dto.ConnectDTO</class-b>
+		
+		<field> <a>connectId</a> <b>connectId</b> </field>
+		<field> <a>connectName</a> <b>connectName</b> </field>
+		<field> <a>startDatetimeOfConnect</a> <b>startDatetimeOfConnect</b> </field>
+		<field> <a>endDatetimeOfConnect</a> <b>endDatetimeOfConnect</b> </field>
+		<field map-id="customer-base-mapping"> <a>customerMasterT</a> <b>customerMasterT</b> </field>
+	</mapping>
+	
+	<mapping map-id="connect-customer-contact-base" wildcard="false">
 		<class-a>com.tcs.destination.bean.ConnectT</class-a>
 		<class-b>com.tcs.destination.bean.dto.ConnectDTO</class-b>
 		
@@ -145,6 +163,7 @@
 		<field> <a>startDatetimeOfConnect</a> <b>startDatetimeOfConnect</b> </field>
 		<field> <a>endDatetimeOfConnect</a> <b>endDatetimeOfConnect</b> </field>
 		<field map-id="contact-link-base"> <a>connectCustomerContactLinkTs</a> <b>connectCustomerContactLinkTs</b> </field>
+		<field map-id="customer-only-mapping"> <a>customerMasterT</a> <b>customerMasterT</b> </field>
 	</mapping>
 
 	<mapping map-id="contact-link-base" wildcard="false">
@@ -252,7 +271,8 @@
 		
 		<field map-id="connect-contact-base"> <a>connectTs</a> <b>connectTs</b> </field>
 	</mapping>
-
+	
+	
 
 
 </mappings> 
