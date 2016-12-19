@@ -41,6 +41,7 @@ import com.tcs.destination.bean.CompetitorMappingT;
 import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.GeographyMappingT;
+import com.tcs.destination.bean.GroupCustomerT;
 import com.tcs.destination.bean.IouBeaconMappingT;
 import com.tcs.destination.bean.IouCustomerMappingT;
 import com.tcs.destination.bean.MyWorklistDTO;
@@ -74,6 +75,7 @@ import com.tcs.destination.data.repository.BeaconCustomerMappingRepository;
 import com.tcs.destination.data.repository.CompetitorRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
+import com.tcs.destination.data.repository.GroupCustomerRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.OpportunitySubSpLinkTRepository;
 import com.tcs.destination.data.repository.PartnerContactLinkTRepository;
@@ -224,6 +226,9 @@ public class WorkflowService {
 	
 	@Autowired
 	ProductRepository productRepository;
+	
+	@Autowired
+	GroupCustomerRepository groupCustomerRepository;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -244,6 +249,7 @@ public class WorkflowService {
 	 * @param workflowStepT
 	 * @return
 	 */
+	@Transactional
 	public boolean approveWorkflowEntity(WorkflowCustomerT workflowCustomerT) {
 
 		int stepId = -1;
@@ -1152,8 +1158,11 @@ public class WorkflowService {
 		String website = "";
 		CustomerMasterT savedCustomer = null;
 		oldCustomerMaster.setCustomerName(workflowCustomerT.getCustomerName());
-		oldCustomerMaster.setGroupCustomerName(workflowCustomerT
-				.getGroupCustomerName());
+		
+		String groupCustomerName = workflowCustomerT
+				.getGroupCustomerName();
+		saveGroupCustomer(groupCustomerName);
+		oldCustomerMaster.setGroupCustomerName(groupCustomerName);
 
 		// corpoarate address
 		if (!StringUtils.isEmpty(oldCustomerMaster.getCorporateHqAddress())) {
@@ -1211,6 +1220,16 @@ public class WorkflowService {
 				beaconCustomer.setCustomerId(savedCustomer.getCustomerId());
 				beaconRepository.save(beaconCustomer);
 			}
+		}
+	}
+
+	public void saveGroupCustomer(String groupCustomerName) {
+		GroupCustomerT grpCustomerT = groupCustomerRepository
+				.findOne(groupCustomerName);
+		if (grpCustomerT == null) {
+			GroupCustomerT newGrpCustomer = new GroupCustomerT();
+			newGrpCustomer.setGroupCustomerName(groupCustomerName);
+			groupCustomerRepository.save(newGrpCustomer);
 		}
 	}
 
@@ -3299,8 +3318,10 @@ public class WorkflowService {
 		CustomerMasterT customerMaster = new CustomerMasterT();
 		CustomerMasterT customerMastersaved = new CustomerMasterT();
 		customerMaster.setCustomerName(workflowCustomerT.getCustomerName());
-		customerMaster.setGroupCustomerName(workflowCustomerT
-				.getGroupCustomerName());
+		String groupCustomerName = workflowCustomerT
+				.getGroupCustomerName();
+		saveGroupCustomer(groupCustomerName);
+		customerMaster.setGroupCustomerName(groupCustomerName);
 		customerMaster.setCorporateHqAddress(workflowCustomerT
 				.getCorporateHqAddress());
 		customerMaster.setWebsite(workflowCustomerT.getWebsite());
