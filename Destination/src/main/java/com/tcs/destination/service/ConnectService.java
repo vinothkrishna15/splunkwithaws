@@ -2270,14 +2270,14 @@ public class ConnectService {
 	 * @param subSPType
 	 * @return
 	 */
-	public ContentDTO<ConnectDTO> getAllByConnect(Date cntDateFrom, Date cntDateTo, String subSPType, String mapId) {
+	public ContentDTO<ConnectDTO> getAllByConnect(Date cntDateFrom, Date cntDateTo, String subSPType, String category, String mapId) {
 		
 		Date startDate = cntDateFrom != null ? cntDateFrom : DateUtils.getFinancialYrStartDate();
 		Date endDate = cntDateTo != null ? cntDateTo : new Date();
 		
 		List<ConnectDTO> dtos = Lists.newArrayList();
 		
-		List<ConnectT> connects = connectRepository.findAllConnectByDateAndSubSP(startDate, endDate, subSPType);
+		List<ConnectT> connects = connectRepository.findAllConnectByDateAndSubSP(startDate, endDate, subSPType, category);
 		if(StringUtils.isEmpty(mapId)) {
 			mapId = Constants.CONNECT_CUSTOMER_CONTACT_BASE;
 		}

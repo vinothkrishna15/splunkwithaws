@@ -831,12 +831,16 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 	
 	 @Query(value = "SELECT DISTINCT cont FROM ConnectT cont "
 	    		+ "JOIN cont.connectSubSpLinkTs cslt "
-	    		+ "WHERE cont.startDatetimeOfConnect BETWEEN :startDate AND :endDate "
+	    		+ "WHERE ((:category = 'CUSTOMER' AND cont.connectCategory ='CUSTOMER') OR (:category = 'PARTNER' AND cont.connectCategory ='PARTNER')) "
+	    		+ "AND cont.startDatetimeOfConnect BETWEEN :startDate AND :endDate "
 	    		+ "AND "
 	    		+ "((:subSPType='All' AND UPPER(cslt.subSp) LIKE '%%') "
 	    		+ "OR (:subSPType='Consulting' AND UPPER(cslt.subSp) LIKE '%CONSULTING%') "
 	    		+ "OR (:subSPType='Sales' AND UPPER(cslt.subSp) NOT LIKE '%CONSULTING%'))")
-	    List<ConnectT> findAllConnectByDateAndSubSP(@Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("subSPType") String subSPType);
+	    List<ConnectT> findAllConnectByDateAndSubSP(@Param("startDate") Date startDate, 
+	    		@Param("endDate") Date endDate, 
+	    		@Param("subSPType") String subSPType, 
+	    		@Param("category") String category);
 
 	
 }
