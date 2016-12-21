@@ -32,6 +32,7 @@ import com.google.common.collect.Sets;
 import com.tcs.destination.bean.AsyncJobRequest;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryClusterT;
+import com.tcs.destination.bean.DeliveryCount;
 import com.tcs.destination.bean.DeliveryFulfillment;
 import com.tcs.destination.bean.DeliveryIntimatedCentreLinkT;
 import com.tcs.destination.bean.DeliveryIntimatedT;
@@ -1594,6 +1595,29 @@ public class DeliveryMasterService {
 			throw new DestinationException(HttpStatus.FORBIDDEN,
 					"User is not authorised to access this service");
 		}
+	}
+	
+	/**
+	 * This method is used to find delivery count for given customer id
+	 * @param customerId
+	 * @return
+	 * @throws Exception
+	 */
+	public DeliveryCount findDeliveryCountforCustomerId(String customerId,
+			List<Integer> deliveryStage) throws Exception {
+		DeliveryCount deliveryCount = new DeliveryCount();
+		logger.debug("Inside findByDeliveryCountforCustomerId() service");
+		Integer deliveryLiveCount = deliveryMasterRepository
+				.getEngagementCountByCustomerAndStage(customerId,
+						DeliveryStage.LIVE.getStageCode());
+		Integer deliveryInProgressCount = deliveryMasterRepository
+				.getEngagementCountByCustomerAndBetweenStages(customerId,
+						DeliveryStage.ACCEPTED.getStageCode(),
+						DeliveryStage.FULFILLED.getStageCode());
+		deliveryCount.setLiveCount(deliveryLiveCount);
+		deliveryCount.setInProgressCount(deliveryInProgressCount);
+		return deliveryCount;
+
 	}
 
 }

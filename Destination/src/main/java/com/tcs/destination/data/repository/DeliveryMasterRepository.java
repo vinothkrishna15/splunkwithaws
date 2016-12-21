@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.tcs.destination.bean.DeliveryCount;
 import com.tcs.destination.bean.DeliveryMasterT;
 
 @Repository
@@ -194,4 +195,23 @@ public interface DeliveryMasterRepository extends JpaRepository<DeliveryMasterT,
 			@Param("centreId") List<Integer> centreId,
 			@Param("geography") List<String> displayGeography);
 
+	
+	
+	@Query(value = "select count(DMT.*) from delivery_master_t DMT "
+			+ "join opportunity_t OPP on OPP.opportunity_id = DMT.opportunity_id "
+			+ "where OPP.customer_id = (:customerId) and DMT.delivery_stage = (:deliveryStage)",nativeQuery = true)
+	Integer getEngagementCountByCustomerAndStage(
+		@Param("customerId") String customerId, @Param("deliveryStage") Integer stage);
+	
+	@Query(value = "select count(DMT.*) from delivery_master_t DMT "
+			+ "join opportunity_t OPP on OPP.opportunity_id = DMT.opportunity_id "
+			+ "where OPP.customer_id = (:customerId) and DMT.delivery_stage between (:fromStage) "
+			+ "and (:toStage)",nativeQuery = true)
+	Integer getEngagementCountByCustomerAndBetweenStages(
+		@Param("customerId") String customerId,  @Param("fromStage") Integer fromStage,  @Param("toStage") Integer toStage);
+		
+			
+			
+			
+			
 }
