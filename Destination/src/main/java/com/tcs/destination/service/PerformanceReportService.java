@@ -136,6 +136,7 @@ public class PerformanceReportService {
 			+ " and (SSMT.display_sub_sp = (:serviceLine) or (:serviceLine) = '')"
 			+ " and (CMT.customer_name in (:customerName) or ('') in (:customerName))"
 			+ " and ARDT.financial_year = (:financialYear) and (ARDT.quarter = (:quarter) or (:quarter) = '')"
+			+ " and ARDT.category = (:category)"
 			+ " and (GMT.display_geography = (:displayGeography) or (:displayGeography) = '')";
 	
 	private static final String ACTUAL_REVENUE_QUERY_GROUP_BY_ORDER_BY = " group by ARDT.quarter order by ARDT.quarter asc ";
@@ -172,7 +173,8 @@ public class PerformanceReportService {
 			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
 			+ " and (SSMT.display_sub_sp = (:serviceLine) or (:serviceLine) = '')"
 			+ " and (CMT.customer_name in (:customerName) or ('') in (:customerName))"
-			+ " and ARDT.financial_year = (:financialYear) and (ARDT.quarter = (:quarter) or (:quarter) = '')";
+			+ " and ARDT.financial_year = (:financialYear) and (ARDT.quarter = (:quarter) or (:quarter) = '')"
+			+ " and ARDT.category = (:category)";
 	
 	private static final String ACTUAL_REVENUE_BY_QUARTER_QUERY_GROUP_BY_ORDER_BY = " group by ARDT.month order by ARDT.month asc ";
 
@@ -336,6 +338,7 @@ public class PerformanceReportService {
 
 	private static final String ACTUAL_REVENUES_BY_IOU_INNER_QUERY_COND_SUFFIX = " (ARDT.financial_year = (:financialYear) or (:financialYear) ='')"
 			+ " and (ARDT.quarter = (:quarter) or (:quarter) = '')"
+			+ " and ARDT.category = (:category)"
 			+ " and (GMT.display_geography = (:displayGeography) or (:displayGeography) = '')"
 			+ " and (GMT.geography = (:geography) or (:geography) = '')"
 			+ " and (SSMT.display_sub_sp = (:serviceLine) or (:serviceLine) = '')";
@@ -424,6 +427,7 @@ public class PerformanceReportService {
 	
 	private static final String ACTUAL_REVENUES_BY_SUBSP_INNER_QUERY_COND_SUFFIX = " (ARDT.financial_year = (:financialYear) or (:financialYear) = '')"
 			+ " and (ARDT.quarter = (:quarter) or (:quarter) = '')"
+			+ " and ARDT.category = (:category)"
 			+ " and (GMT.display_geography = (:displayGeography) or (:displayGeography) = '')"
 			+ " and (GMT.geography=(:geography) or (:geography)='')"
 			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
@@ -520,6 +524,7 @@ public class PerformanceReportService {
 	
 	private static final String ACTUAL_REVENUES_BY_GEO_INNER_QUERY_COND_SUFFIX = " (ARDT.financial_year = (:financialYear) or (:financialYear) = '')"
 			+ " and (ARDT.quarter = (:quarter) or (:quarter) = '')"
+			+ " and ARDT.category = (:category)"
 			+ " and (SSMT.display_sub_sp = (:subSp) or (:subSp) = '')"
 			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
 			+ " and (CMT.customer_name  in (:customer) or ('') in (:customer))";
@@ -635,8 +640,9 @@ public class PerformanceReportService {
 			+ " and (SSMT.display_sub_sp = (:subSp) or (:subSp) = '')"
 			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
 			+ " and (CMT.customer_name in (:customer) or ('') in (:customer))"
-			+ " and (ARDT.financial_year = (:financialYear) or (:financialYear) = '') "
-			+ " and (ARDT.quarter = (:quarter) or (:quarter) = '')";
+			+ " and (ARDT.financial_year = (:financialYear) or (:financialYear) = '')"
+			+ " and (ARDT.quarter = (:quarter) or (:quarter) = '')"
+			+ " and ARDT.category = (:category)";
 
 	private static final String ACTUAL_REVENUES_BY_SUB_GEO_INNER_QUERY_GROUP_BY_ORDER_BY = " group by GMT.geography"
 			+ " order by actualRevenue desc)";
@@ -714,6 +720,7 @@ public class PerformanceReportService {
 			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
 			+ " and (ARDT.financial_year=(:financialYear) or (:financialYear)= '') "
 			+ " and (ARDT.quarter=(:quarter) or (:quarter)= '') "
+			+ " and ARDT.category = (:category)"
 			+ " AND (RCMT.customer_geography=(:geography) or (:geography)='') ";
 
 	private static final String ACTUAL_REVENUES_BY_COUNTRY_GROUP_BY = " group by ARDT.client_country";
@@ -804,7 +811,7 @@ public class PerformanceReportService {
 			String financialYear, String quarter, String displayGeography,
 			String geography, String serviceLine, String iou,
 			String customerName, String currency, String groupCustomer,
-			boolean wins, String userId, boolean canValidate) throws Exception {
+			boolean wins, String userId, boolean canValidate, String category) throws Exception {
 		logger.info("Inside getRevenueSummary Service");
 		List<String> custName = new ArrayList<String>();
 		if (customerName.length() == 0 && groupCustomer.length() > 0) {
@@ -830,11 +837,11 @@ public class PerformanceReportService {
 			if (quarter.isEmpty()) {
 				actualObjList = findActualRevenue(financialYear, quarter,
 						displayGeography, geography, iou, custName,
-						serviceLine, userId, canValidate);
+						serviceLine, userId, canValidate,category);
 			} else {
 				actualObjList = findActualRevenueByQuarter(financialYear,
 						quarter, displayGeography, geography, iou, custName,
-						serviceLine, userId, canValidate);
+						serviceLine, userId, canValidate,category);
 			}
 			logger.info("Actual Revenue has " + actualObjList.size()
 					+ " values");
@@ -1123,7 +1130,7 @@ public class PerformanceReportService {
 	private List<Object[]> findActualRevenueByQuarter(String financialYear,
 			String quarter, String displayGeography, String geography,
 			String iou, List<String> custName, String serviceLine,
-			String userId, boolean canValidate) throws Exception {
+			String userId, boolean canValidate, String category) throws Exception {
 		List<Object[]> resultList = null;
 		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (canValidate) {
@@ -1141,6 +1148,7 @@ public class PerformanceReportService {
 				.setParameter("financialYear", financialYear);
 		actualRevenueByQuarterQuery.setParameter("customerName", custName);
 		actualRevenueByQuarterQuery.setParameter("quarter", quarter);
+		actualRevenueByQuarterQuery.setParameter("category", category);
 		resultList = actualRevenueByQuarterQuery.getResultList();
 		logger.info("Query string: Actual Revenue by Quarter{}", queryString);
 		return resultList;
@@ -1168,7 +1176,7 @@ public class PerformanceReportService {
 	private List<Object[]> findActualRevenue(String financialYear,
 			String quarter, String displayGeography, String geography,
 			String iou, List<String> custName, String serviceLine,
-			String userId, boolean canValidate) throws Exception {
+			String userId, boolean canValidate, String category) throws Exception {
 		// TODO Auto-generated method stub
 		List<Object[]> resultList = null;
 		userId = DestinationUtils.getCurrentUserDetails().getUserId();
@@ -1184,6 +1192,7 @@ public class PerformanceReportService {
 		actualRevenueQuery.setParameter("financialYear", financialYear);
 		actualRevenueQuery.setParameter("customerName", custName);
 		actualRevenueQuery.setParameter("quarter", quarter);
+		actualRevenueQuery.setParameter("category", category);
 		resultList = actualRevenueQuery.getResultList();
 		logger.info("Query string: Actual Revenue{}", queryString);
 		return resultList;
@@ -1391,11 +1400,11 @@ public class PerformanceReportService {
 
 	public List<IOUReport> getRevenuesByIOU(String financialYear,
 			String quarter, String displayGeography, String geography,
-			String serviceLine, String currency, String userId)
+			String serviceLine, String currency, String userId, String category)
 			throws Exception {
 
 		List<Object[]> iouObjList = getActualRevenuesByIOU(financialYear,
-				quarter, displayGeography, geography, serviceLine, userId);
+				quarter, displayGeography, geography, serviceLine, userId, category);
 
 		// initializing the map with actuals data
 		Map<String, BigDecimal> iouMap = getMapFromObjList(iouObjList);
@@ -1464,7 +1473,7 @@ public class PerformanceReportService {
 
 	private List<Object[]> getActualRevenuesByIOU(String financialYear,
 			String quarter, String displayGeography, String geography,
-			String serviceLine, String userId) throws Exception {
+			String serviceLine, String userId, String category) throws Exception {
 		List<Object[]> resultList = null;
 		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
@@ -1478,6 +1487,7 @@ public class PerformanceReportService {
 			actualRevenuesByIOUQuery.setParameter("financialYear",
 					financialYear);
 			actualRevenuesByIOUQuery.setParameter("quarter", quarter);
+			actualRevenuesByIOUQuery.setParameter("category", category);
 			resultList = actualRevenuesByIOUQuery.getResultList();
 			logger.info("Query string: Actual Revenues by IOU {}", queryString);
 		}
@@ -1561,7 +1571,7 @@ public class PerformanceReportService {
 	public List<SubSpReport> getRevenuesBySubSp(String financialYear,
 			String quarter, String displayGeography, String geography,
 			String customerName, String iou, String currency,
-			String groupCustomer, String userId) throws Exception {
+			String groupCustomer, String userId, String category) throws Exception {
 
 		List<String> custName = new ArrayList<String>();
 		if (customerName.length() == 0 && groupCustomer.length() > 0) {
@@ -1576,7 +1586,7 @@ public class PerformanceReportService {
 			custName.add(customerName);
 		}
 		List<Object[]> subObjList = getActualRevenuesBySubSp(financialYear,
-				quarter, displayGeography, geography, custName, iou, userId);
+				quarter, displayGeography, geography, custName, iou, userId, category);
 
 		// initializing the map with actuals data
 		Map<String, BigDecimal> subSpMap = getMapFromObjList(subObjList);
@@ -1646,7 +1656,7 @@ public class PerformanceReportService {
 
 	private List<Object[]> getActualRevenuesBySubSp(String financialYear,
 			String quarter, String displayGeography, String geography,
-			List<String> custName, String iou, String userId) throws Exception {
+			List<String> custName, String iou, String userId, String category) throws Exception {
 		List<Object[]> resultList = null;
 		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
@@ -1661,6 +1671,7 @@ public class PerformanceReportService {
 			actualRevenuesBySubSPQuery.setParameter("quarter", quarter);
 			actualRevenuesBySubSPQuery.setParameter("iou", iou);
 			actualRevenuesBySubSPQuery.setParameter("customerName", custName);
+			actualRevenuesBySubSPQuery.setParameter("category", category);
 			resultList = actualRevenuesBySubSPQuery.getResultList();
 			logger.info("Query string: Actual Revenues by SubSp {}",
 					queryString);
@@ -1712,7 +1723,7 @@ public class PerformanceReportService {
 	public List<GeographyReport> getRevenuesByDispGeography(
 			String financialYear, String quarter, String customerName,
 			String subSp, String iou, String currency, String groupCustomer,
-			String userId) throws Exception {
+			String userId, String category) throws Exception {
 
 		List<String> custName = new ArrayList<String>();
 		if (customerName.length() == 0 && groupCustomer.length() > 0) {
@@ -1727,7 +1738,7 @@ public class PerformanceReportService {
 			custName.add(customerName);
 		}
 		List<Object[]> geoObjList = getActualRevenuesByDispGeo(financialYear,
-				quarter, custName, subSp, iou, userId);
+				quarter, custName, subSp, iou, userId,category);
 
 		// initializing the map with actuals data
 		Map<String, BigDecimal> dispGeoMap = getMapFromObjList(geoObjList);
@@ -1795,7 +1806,7 @@ public class PerformanceReportService {
 
 	private List<Object[]> getActualRevenuesByDispGeo(String financialYear,
 			String quarter, List<String> custName, String subSp, String iou,
-			String userId) throws Exception {
+			String userId, String category) throws Exception {
 		List<Object[]> resultList = null;
 		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
@@ -1808,6 +1819,7 @@ public class PerformanceReportService {
 			actualRevenuesByDispGeoQuery.setParameter("quarter", quarter);
 			actualRevenuesByDispGeoQuery.setParameter("iou", iou);
 			actualRevenuesByDispGeoQuery.setParameter("customer", custName);
+			actualRevenuesByDispGeoQuery.setParameter("category", category);
 			resultList = actualRevenuesByDispGeoQuery.getResultList();
 			logger.info(
 					"Query string: Actual Revenues by display Geography {}",
@@ -1861,7 +1873,7 @@ public class PerformanceReportService {
 			String financialYear, String quarter, String customerName,
 			String subSp, String iou, String displayGeography,
 			String geography, String currency, String groupCustomer,
-			String userId) throws Exception {
+			String userId, String category) throws Exception {
 
 		List<Object[]> geoObjList = null;
 		List<Object[]> geoProjObjList = null;
@@ -1880,12 +1892,12 @@ public class PerformanceReportService {
 		}
 		if (geography.isEmpty()) {
 			geoObjList = getActualRevenuesBySubGeo(financialYear, quarter,
-					custName, subSp, iou, displayGeography, userId);
+					custName, subSp, iou, displayGeography, userId, category);
 			geoProjObjList = getProjectedRevenuesBySubGeo(financialYear,
 					quarter, custName, subSp, iou, displayGeography, userId);
 		} else {
 			geoObjList = getActualRevenuesByCountry(financialYear, quarter,
-					custName, subSp, iou, geography, userId);
+					custName, subSp, iou, geography, userId, category);
 			geoProjObjList = getProjectedRevenuesByCountry(financialYear,
 					quarter, custName, subSp, iou, displayGeography, userId);
 		}
@@ -1951,7 +1963,7 @@ public class PerformanceReportService {
 
 	private List<Object[]> getActualRevenuesByCountry(String financialYear,
 			String quarter, List<String> custName, String subSp, String iou,
-			String geography, String userId) throws Exception {
+			String geography, String userId, String category) throws Exception {
 		List<Object[]> resultList = null;
 		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
@@ -1965,6 +1977,7 @@ public class PerformanceReportService {
 			actualRevenuesByCountryQuery.setParameter("quarter", quarter);
 			actualRevenuesByCountryQuery.setParameter("iou", iou);
 			actualRevenuesByCountryQuery.setParameter("customer", custName);
+			actualRevenuesByCountryQuery.setParameter("category", category);
 			resultList = actualRevenuesByCountryQuery.getResultList();
 			logger.info("Query string: Actual Revenues by Country {}",
 					queryString);
@@ -2040,7 +2053,7 @@ public class PerformanceReportService {
 
 	private List<Object[]> getActualRevenuesBySubGeo(String financialYear,
 			String quarter, List<String> custName, String subSp, String iou,
-			String displayGeography, String userId) throws Exception {
+			String displayGeography, String userId, String category) throws Exception {
 		List<Object[]> resultList = null;
 		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
@@ -2055,6 +2068,7 @@ public class PerformanceReportService {
 			actualRevenuesBySubGeoQuery.setParameter("quarter", quarter);
 			actualRevenuesBySubGeoQuery.setParameter("iou", iou);
 			actualRevenuesBySubGeoQuery.setParameter("customer", custName);
+			actualRevenuesBySubGeoQuery.setParameter("category", category);
 			resultList = actualRevenuesBySubGeoQuery.getResultList();
 			logger.info("Query string: Actual Revenues by Sub Geography {}",
 					queryString);
