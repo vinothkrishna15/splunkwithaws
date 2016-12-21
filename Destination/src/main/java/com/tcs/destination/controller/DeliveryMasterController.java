@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.AsyncJobRequest;
+import com.tcs.destination.bean.DeliveryCount;
 import com.tcs.destination.bean.DeliveryIntimatedT;
 import com.tcs.destination.bean.DeliveryMasterDTO;
 import com.tcs.destination.bean.DeliveryMasterT;
@@ -422,4 +423,41 @@ public class DeliveryMasterController {
 		}
 
 	}
+	
+	/** This method is used to get the delivery count for the given
+	 * customer id
+	 * 
+	 * @param customerId
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/deliveryCount/{id}", method = RequestMethod.GET)
+	public @ResponseBody String findDeliveryCountforCustomerId(
+			@PathVariable(value = "id") String customerId,
+			@RequestParam(value = "deliveryStage", defaultValue = "5") List<Integer> deliveryStage,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Inside DeliveryMasterController: Start of find by delivery count for customer id");
+		String response = null;
+		DeliveryCount deliveryMasterTCount;
+		try {
+			deliveryMasterTCount = deliveryMasterService
+					.findDeliveryCountforCustomerId(customerId, deliveryStage);
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, deliveryMasterTCount);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the delivery count for the id:"
+							+ customerId);
+		}
+		logger.info("Inside DeliveryMasterController: End of find by delivery count for customer id");
+		return response;
+	}
+	
 }
