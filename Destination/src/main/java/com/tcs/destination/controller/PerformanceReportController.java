@@ -71,6 +71,7 @@ public class PerformanceReportController {
 			@RequestParam(value = "wins", defaultValue = "false") boolean wins,
 			@RequestParam(value = "customer", defaultValue = "", required = false) String customerName,
 			@RequestParam(value = "groupCustomer", defaultValue = "", required = false) String groupCustomer,
+			@RequestParam(value = "category", defaultValue = "REVENUE") String category,
 			@RequestParam(value = "currency", defaultValue = "INR", required = false) String currency,
 			@RequestParam(value = "fields", defaultValue = "all", required = false) String fields,
 			@RequestParam(value = "view", defaultValue = "", required = false) String view)
@@ -82,7 +83,7 @@ public class PerformanceReportController {
 			response = perfService.getTargetVsActualRevenueSummary(
 					financialYear, quarter, displayGeography, geography,
 					serviceLine, iou, customerName, currency, groupCustomer,
-					wins, userId, true);
+					wins, userId, true,category);
 			logger.info("Inside PerformanceReportController: End of /perfreport/revenue GET");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews(fields,
@@ -121,6 +122,7 @@ public class PerformanceReportController {
 			@RequestParam(value = "stagefrom", defaultValue = "-1") int salesStageFrom,
 			@RequestParam(value = "stageto", defaultValue = "-1") int salesStageTo,
 			@RequestParam(value = "currency", defaultValue = "INR") String currency,
+			@RequestParam(value = "category", defaultValue = "REVENUE") String category,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
@@ -139,7 +141,7 @@ public class PerformanceReportController {
 			} else {
 				iouList = perfService.getRevenuesByIOU(financialYear, quarter,
 						displayGeography, geography, serviceLine, currency,
-						userId);
+						userId,category);
 			}
 			logger.info("Inside PerformanceReportController: End of /perfreport/iou GET");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
@@ -181,6 +183,7 @@ public class PerformanceReportController {
 			@RequestParam(value = "groupCustomer", defaultValue = "") String groupCustomer,
 			@RequestParam(value = "customer", defaultValue = "") String customer,
 			@RequestParam(value = "currency", defaultValue = "INR") String currency,
+			@RequestParam(value = "category", defaultValue = "REVENUE") String category,
 			@RequestParam(value = "stagefrom", defaultValue = "-1") int salesStageFrom,
 			@RequestParam(value = "stageto", defaultValue = "-1") int salesStageTo,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
@@ -201,7 +204,7 @@ public class PerformanceReportController {
 			} else {
 				subSpList = perfService.getRevenuesBySubSp(financialYear,
 						quarter, displayGeography, geography, customerName,
-						iou, currency, groupCustomer, userId);
+						iou, currency, groupCustomer, userId, category);
 			}
 			logger.info("Inside PerformanceReportController: End of /perfreport/subsp GET");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
@@ -244,6 +247,7 @@ public class PerformanceReportController {
 			@RequestParam(value = "stageto", defaultValue = "-1") int salesStageTo,
 			@RequestParam(value = "serviceline", defaultValue = "") String serviceLine,
 			@RequestParam(value = "customer", defaultValue = "") String customerName,
+			@RequestParam(value = "category", defaultValue = "REVENUE") String category,
 			@RequestParam(value = "groupCustomer", defaultValue = "") String groupCustomer,
 			@RequestParam(value = "currency", defaultValue = "INR") String currency,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
@@ -268,7 +272,7 @@ public class PerformanceReportController {
 					}
 					geoList = perfService.getRevenuesByDispGeography(
 							financialYear, quarter, customerName, serviceLine,
-							iou, currency, groupCustomer, userId);
+							iou, currency, groupCustomer, userId, category);
 				}
 
 			} else {
@@ -286,7 +290,7 @@ public class PerformanceReportController {
 					geoList = perfService.getRevenuesBySubGeography(
 							financialYear, quarter, customerName, serviceLine,
 							iou, displayGeography, geography, currency,
-							groupCustomer, userId);
+							groupCustomer, userId, category);
 				}
 			}
 			logger.info("Inside PerformanceReportController: End of /perfreport/geo GET");

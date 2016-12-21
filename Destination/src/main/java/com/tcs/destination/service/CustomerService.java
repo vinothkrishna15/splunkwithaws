@@ -395,7 +395,7 @@ public class CustomerService {
 
 		return performanceReportService.getTargetVsActualRevenueSummary(
 				financialYear, quarter, "", "", "", "", customerName, currency,
-				"", false, userId, false);
+				"", false, userId, false, Constants.CATEGORY_REVENUE);
 	}
 
 	/**

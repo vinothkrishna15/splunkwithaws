@@ -9,7 +9,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
@@ -53,6 +52,8 @@ public class ActualRevenuesDataT implements Serializable {
 
 	@Column(name = "sub_sp")
 	private String subSp;
+
+	private String category;
 
 	// bi-directional many-to-one association to RevenueCustomerMappingT
 	@ManyToOne
@@ -148,4 +149,12 @@ public class ActualRevenuesDataT implements Serializable {
 		this.subSpMappingT = subSpMappingT;
 	}
 
+	public String getCategory() {
+		return category;
+	}
+
+	public void setCategory(String category) {
+		this.category = category;
+	}
+	
 }

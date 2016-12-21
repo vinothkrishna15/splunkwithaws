@@ -422,7 +422,8 @@ private static final String TOP_REVENUE_CUSTOMER_COND_PREFIX = "CUST.customer_na
 //private static final String TARGETVSACTUAL_MONTHS_PROJECTED_COND_PREFIX = " upper(PRDT.month) in (:months) ";
 private static final String TARGETVSACTUAL_MONTHS_PROJECTED_COND_PREFIX = " PRDT.month in (:months) ";
 //private static final String TARGETVSACTUAL_MONTHS_ACTUAL_COND_PREFIX = " upper(ARDT.month) in (:months) ";
-private static final String TARGETVSACTUAL_MONTHS_ACTUAL_COND_PREFIX = " ARDT.month in (:months) ";
+private static final String TARGETVSACTUAL_MONTHS_ACTUAL_COND_PREFIX = " ARDT.month in (:months) "
+		+ "and ARDT.category = 'REVENUE' ";
 private static final String TARVSACTUAL_BEACON_QUARTER_COND_PREFIX = " BDT.quarter in (:quarters) ";
 
 private static final String GEOGRAPHY_COND_PREFIX = " AND GMT.geography in (:geoList) ";
