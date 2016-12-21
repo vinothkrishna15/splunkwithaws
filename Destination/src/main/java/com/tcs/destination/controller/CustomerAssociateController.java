@@ -32,7 +32,7 @@ public class CustomerAssociateController {
 
 	@RequestMapping(method = RequestMethod.GET)
 	@ResponseBody
-	CustomerAssociateAllocationDetailsDTO findAssociatesByGroupCustomer()
+	public CustomerAssociateAllocationDetailsDTO findAssociatesByGroupCustomer()
 			throws DestinationException {
 		CustomerAssociateAllocationDetailsDTO response = null;
 		logger.info("Inside Customer Associate Controller: Start of fetching associate customer details");
