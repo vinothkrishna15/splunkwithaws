@@ -196,6 +196,9 @@ public class ConnectT implements Serializable {
 	// bi-directional many-to-one association to UserTaggedFollowedT
 	@OneToMany(mappedBy = "connectT")
 	private List<UserTaggedFollowedT> userTaggedFollowedTs;
+	
+	@Column(name="cxo_flag")
+	private boolean cxoFlag;
 
 	@Transient
 	private List<ConnectSubSpLinkT> connectSubLinkDeletionList;
@@ -874,4 +877,13 @@ public class ConnectT implements Serializable {
 	public void setProductId(String productId) {
 		this.productId = productId;
 	}
+
+	public boolean isCxoFlag() {
+		return cxoFlag;
+	}
+
+	public void setCxoFlag(boolean cxoFlag) {
+		this.cxoFlag = cxoFlag;
+	}
+	
 }
