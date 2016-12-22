@@ -4,6 +4,8 @@ import static com.tcs.destination.utils.ErrorConstants.ERR_INAC_01;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,8 +23,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -45,7 +50,6 @@ import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
-import com.tcs.destination.bean.ProductContactLinkT;
 import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.TaskT;
@@ -1432,8 +1436,8 @@ public class ConnectService {
 	 * @throws Exception
 	 */
 	public PaginatedResponse getAllConnectsForDashbaord(String status,
-			String financialYear, int page, int count) throws Exception {
-		Pageable pageable = new PageRequest(page, count);
+			String financialYear, int page, int count, String sortBy, String order) throws Exception {
+		
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		Page<ConnectT> pageConnects = null;
 		List<ConnectT> listOfConnects = null;
@@ -1457,35 +1461,31 @@ public class ConnectService {
 					List<String> connectIdsForStatusOpenClosed = null;
 					if (status.equalsIgnoreCase(ConnectStatusType.OPEN
 							.toString())) { // If Status is open, check for
-						// connects which has no notes in
-						// notes_t table
+						// connects which has no notes in notes_t table
 						connectIdsForStatusOpenClosed = connectRepository
 								.getAllConnectsForDashbaordStatusOpen(
-										connectIds, startTimestamp,
+										connectIds, new Timestamp(new Date().getTime()),
 										endTimestamp);
-						pageConnects = retrieveConnectsByConnetIdOrderByStartDateTime(
-								connectIdsForStatusOpenClosed, pageable);
+						pageConnects = retrieveConnectsByConnetId(
+								connectIdsForStatusOpenClosed, page, count, sortBy, order);
 						paginatedResponse.setTotalCount(pageConnects
 								.getTotalElements());
 						listOfConnects = pageConnects.getContent();
 
 					} else if (status.equalsIgnoreCase(ConnectStatusType.CLOSED
 							.toString())) { // If Status is closed, check for
-						// connects which has notes in
-						// notes_t table
+						// connects which has notes in notes_t table
 						connectIdsForStatusOpenClosed = notesRepository
 								.getAllConnectsForDashbaordStatusClosed(connectIds);
-						pageConnects = retrieveConnectsByConnetIdOrderByStartDateTime(
-								connectIdsForStatusOpenClosed, pageable);
+						pageConnects = retrieveConnectsByConnetId(
+								connectIdsForStatusOpenClosed, page, count, sortBy, order);
 						paginatedResponse.setTotalCount(pageConnects
 								.getTotalElements());
 						listOfConnects = pageConnects.getContent();
 					} else if (status.equalsIgnoreCase(ConnectStatusType.ALL
-							.toString())) { // If status is ALL, get connects
-						// from connect_t
-						pageConnects = connectRepository
-								.findByConnectIdInOrderByStartDatetimeOfConnectAsc(
-										connectIds, pageable);
+							.toString())) { // If status is ALL, get connects from connect_t
+						pageConnects = retrieveConnectsByConnetId(
+										connectIds, page, count, sortBy, order);
 						paginatedResponse.setTotalCount(pageConnects
 								.getTotalElements());
 						listOfConnects = pageConnects.getContent();
@@ -1512,15 +1512,30 @@ public class ConnectService {
 	 * @param connectIds
 	 * @return List<ConnectT>
 	 */
-	private Page<ConnectT> retrieveConnectsByConnetIdOrderByStartDateTime(
-			List<String> connectIds, Pageable pageable) {
-
+	private Page<ConnectT> retrieveConnectsByConnetId(
+			List<String> connectIds, int page, int count, String sortBy, String order) {
+		
 		Page<ConnectT> listOfConnects = null;
 
-		if ((connectIds != null) && (!connectIds.isEmpty())) {
-			listOfConnects = connectRepository
-					.findByConnectIdInOrderByStartDatetimeOfConnectAsc(
-							connectIds, pageable);
+		if (CollectionUtils.isNotEmpty(connectIds)) {
+			if(!StringUtils.equalsIgnoreCase(sortBy,"customerName")) {
+				Sort sort = getSortFromOrder(order, sortBy);
+				Pageable pageable = new PageRequest(page, count, sort);
+				listOfConnects = connectRepository.findByConnectIdIn(connectIds, pageable);
+			} else {
+				List<ConnectT> fullList = connectRepository.findByConnectIdIn(connectIds);
+				//Sort list
+				for (ConnectT connectT : fullList) {
+					connectT.setCustName(connectT.getCustomerMasterT() != null ? connectT.getCustomerMasterT().getCustomerName() : connectT.getPartnerMasterT().getPartnerName());
+				}
+				if(order.equals("ASC")) {
+					Collections.sort(fullList, new ConnectCustomerNameComparator());
+				} else {
+					Collections.sort(fullList, Collections.reverseOrder(new ConnectCustomerNameComparator()));
+				}
+				List<ConnectT> paginateList = PaginationUtils.paginateList(page, count, fullList);
+				listOfConnects = new PageImpl<ConnectT>(paginateList, new PageRequest(page, count), fullList.size());
+			}
 		}
 
 		return listOfConnects;
@@ -2257,5 +2272,29 @@ public class ConnectService {
 						fromTimestamp, customerId, "%"+ term.toUpperCase() +"%");
 		return connects;
 	}
+	
+	/**
+	 * returns the sort object for given order by column and the order direction
+	 * @param order
+	 * @param orderBy
+	 * @return
+	 */
+	private Sort getSortFromOrder(String order, String... orderBy) {
+		Sort sort = null;
+		if (order.equalsIgnoreCase("DESC")) {
+			sort = new Sort(Direction.DESC, orderBy);
+		} else {
+			sort = new Sort(Direction.ASC, orderBy);
+		}
+		return sort;
+	}
+	
+	class ConnectCustomerNameComparator implements Comparator<ConnectT> {
+		@Override
+		public int compare(ConnectT o1, ConnectT o2) {
+			return o1.getCustName().compareTo(o2.getCustName());
+		}
+	}
+	
 
 }

@@ -567,6 +567,12 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 	
 	Page<ConnectT> findByConnectIdInOrderByStartDatetimeOfConnectAsc(
 			List<String> connectIds, Pageable pageable);
+	
+	Page<ConnectT> findByConnectIdIn(
+			List<String> connectIds, Pageable pageable);
+
+	List<ConnectT> findByConnectIdIn(
+			List<String> connectIds);
 
 	/**
 	 * This query performs search of connect_t and search_keyword_t based on
