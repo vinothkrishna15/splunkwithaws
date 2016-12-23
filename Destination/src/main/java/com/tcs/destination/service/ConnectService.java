@@ -1177,9 +1177,11 @@ public class ConnectService {
 	 * @param connectT
 	 */
 	private void removeCyclicForLinkedPartnerMasterTs(ConnectT connectT) {
-		if (connectT != null)
-			if (connectT.getPartnerMasterT() != null)
+		if (connectT != null && connectT.getPartnerMasterT() != null) {
 				connectT.getPartnerMasterT().setConnectTs(null);
+				connectT.getPartnerMasterT().setPartnerMasterT(null);
+				connectT.getPartnerMasterT().setPartnerMasterTs(null);
+		}
 	}
 
 	/**
@@ -1190,8 +1192,9 @@ public class ConnectService {
 	 */
 	private void removeCyclicForLinkedCustomerMasterTs(ConnectT connectT) {
 		if (connectT != null)
-			if (connectT.getCustomerMasterT() != null)
+			if (connectT.getCustomerMasterT() != null) {
 				connectT.getCustomerMasterT().setConnectTs(null);
+			}
 
 	}
 
