@@ -390,13 +390,15 @@ public class ConnectController {
 			@RequestParam(value = "status", defaultValue = "ALL") String status,
 			@RequestParam(value = "sortBy", defaultValue = "startDatetimeOfConnect") String sortBy,
 			@RequestParam(value = "order", defaultValue = "DESC") String order,
+			@RequestParam(value = "type", defaultValue = "ALL") String type,
+			@RequestParam(value = "supervisorId", defaultValue = "") String supervisorId,
 			@RequestParam("fy") String financialYear)
 			throws DestinationException {
 		logger.info("Inside ConnectController: Start of retrieving all Connects for Dashboard");
 		PaginatedResponse pageConnects = null;
 		try {
 			pageConnects = connectService.getAllConnectsForDashbaord(status,
-					financialYear, page, count, sortBy, order);
+					financialYear, type, supervisorId, page, count, sortBy, order);
 			if (pageConnects == null) {
 				logger.error(
 						"NOT_FOUND : No Connects found for the status {} and FY {}",

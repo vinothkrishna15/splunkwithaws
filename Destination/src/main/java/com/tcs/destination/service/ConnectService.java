@@ -1439,71 +1439,75 @@ public class ConnectService {
 	 * @throws Exception
 	 */
 	public PaginatedResponse getAllConnectsForDashbaord(String status,
-			String financialYear, int page, int count, String sortBy, String order) throws Exception {
-		
+			String financialYear, String type, String supervisorId, int page, int count, String sortBy, String order) throws DestinationException {
+
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		Page<ConnectT> pageConnects = null;
 		List<ConnectT> listOfConnects = null;
 		List<String> connectIds = null;
-		try {
-			if (StringUtils.isEmpty(financialYear)) {
-				financialYear = DateUtils.getCurrentFinancialYear();
-			}
-
-			Timestamp startTimestamp = new Timestamp(DateUtils
-					.getDateFromFinancialYear(financialYear, true).getTime());
-			Timestamp endTimestamp = new Timestamp(DateUtils
-					.getDateFromFinancialYear(financialYear, false).getTime()
-					+ Constants.ONE_DAY_IN_MILLIS - 1);
-
-			if ((status != null) && (ConnectStatusType.contains(status))) {
-				// Retrieve all connectIds present within the FY
-				connectIds = connectRepository.getAllConnectsForDashbaord(
-						startTimestamp, endTimestamp);
-				if ((connectIds != null) && (!connectIds.isEmpty())) {
-					List<String> connectIdsForStatusOpenClosed = null;
-					if (status.equalsIgnoreCase(ConnectStatusType.OPEN
-							.toString())) { // If Status is open, check for
-						// connects which has no notes in notes_t table
-						connectIdsForStatusOpenClosed = connectRepository
-								.getAllConnectsForDashbaordStatusOpen(
-										connectIds, new Timestamp(new Date().getTime()),
-										endTimestamp);
-						pageConnects = retrieveConnectsByConnetId(
-								connectIdsForStatusOpenClosed, page, count, sortBy, order);
-						paginatedResponse.setTotalCount(pageConnects
-								.getTotalElements());
-						listOfConnects = pageConnects.getContent();
-
-					} else if (status.equalsIgnoreCase(ConnectStatusType.CLOSED
-							.toString())) { // If Status is closed, check for
-						// connects which has notes in notes_t table
-						connectIdsForStatusOpenClosed = notesRepository
-								.getAllConnectsForDashbaordStatusClosed(connectIds);
-						pageConnects = retrieveConnectsByConnetId(
-								connectIdsForStatusOpenClosed, page, count, sortBy, order);
-						paginatedResponse.setTotalCount(pageConnects
-								.getTotalElements());
-						listOfConnects = pageConnects.getContent();
-					} else if (status.equalsIgnoreCase(ConnectStatusType.ALL
-							.toString())) { // If status is ALL, get connects from connect_t
-						pageConnects = retrieveConnectsByConnetId(
-										connectIds, page, count, sortBy, order);
-						paginatedResponse.setTotalCount(pageConnects
-								.getTotalElements());
-						listOfConnects = pageConnects.getContent();
-					}
-				}
-			} else {
-				logger.error("BAD_REQUEST: Invalid Status Type");
-				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"Invalid Status Type");
-			}
-		} catch (Exception e) {
-			logger.error("INTERNAL_SERVER_ERROR: " + e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
+		if (StringUtils.isEmpty(financialYear)) {
+			financialYear = DateUtils.getCurrentFinancialYear();
 		}
+
+		Timestamp startTimestamp = new Timestamp(DateUtils
+				.getDateFromFinancialYear(financialYear, true).getTime());
+		Timestamp endTimestamp = new Timestamp(DateUtils
+				.getDateFromFinancialYear(financialYear, false).getTime()
+				+ Constants.ONE_DAY_IN_MILLIS - 1);
+
+		ConnectStatusType connectStatus = ConnectStatusType.getByName(status);
+
+		if (connectStatus != null) {
+			// Retrieve all connectIds present within the FY
+			connectIds = connectRepository.getAllConnectsForDashbaord(
+					startTimestamp, endTimestamp);
+
+			if(StringUtils.equals(type, "TEAM")) {
+				//filter connect id with primary owner and secondary owner
+				// Get all users under a supervisor
+				List<String> users = userRepository.getAllSubordinatesIdBySupervisorId(supervisorId);
+				connectIds = connectRepository.filterConnectWithUsers(users, connectIds);
+			}
+
+			if ((connectIds != null) && (!connectIds.isEmpty())) {
+				List<String> connectIdsForStatusOpenClosed = null;
+
+				switch (connectStatus) {
+				case OPEN:
+					// If Status is open, check for connects which has no notes in notes_t table
+					connectIdsForStatusOpenClosed = connectRepository
+									.getAllConnectsForDashbaordStatusOpen(connectIds, startTimestamp, endTimestamp);
+					pageConnects = retrieveConnectsByConnetId(connectIdsForStatusOpenClosed, page, count, sortBy, order);
+					paginatedResponse.setTotalCount(pageConnects
+							.getTotalElements());
+					listOfConnects = pageConnects.getContent();
+					break;
+				case CLOSED:
+					// If Status is closed, check for connects which has notes in notes_t table
+					connectIdsForStatusOpenClosed = notesRepository.getAllConnectsForDashbaordStatusClosed(connectIds);
+					pageConnects = retrieveConnectsByConnetId(connectIdsForStatusOpenClosed, page, count, sortBy, order);
+					paginatedResponse.setTotalCount(pageConnects
+							.getTotalElements());
+					listOfConnects = pageConnects.getContent();
+					break;
+				case ALL:
+					// If status is ALL, get connects from connect_t
+					pageConnects = retrieveConnectsByConnetId(connectIds, page, count, sortBy, order);
+					paginatedResponse.setTotalCount(pageConnects
+							.getTotalElements());
+					listOfConnects = pageConnects.getContent();
+					break;
+
+				default:
+					break;
+				}
+			}
+		} else {
+			logger.error("BAD_REQUEST: Invalid Status Type");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Invalid Status Type");
+		}
+
 		paginatedResponse.setConnectTs(listOfConnects);
 		prepareConnect(listOfConnects);
 		return paginatedResponse;
