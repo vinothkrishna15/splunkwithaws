@@ -3763,4 +3763,10 @@ public class OpportunityService {
 			}
 		}
 	}
+
+	public OpportunityDTO findById(String oppId, String mapId) throws Exception {
+		OpportunityT opportunity = findByOpportunityId(oppId, Lists.newArrayList(Constants.USD));
+		OpportunityDTO dto = beanMapper.map(opportunity, OpportunityDTO.class, mapId);
+		return dto;
+	}
 }

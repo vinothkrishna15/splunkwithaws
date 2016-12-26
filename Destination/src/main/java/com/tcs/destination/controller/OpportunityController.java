@@ -49,6 +49,7 @@ import com.tcs.destination.service.OpportunityReopenRequestService;
 import com.tcs.destination.service.OpportunityService;
 import com.tcs.destination.service.OpportunityUploadService;
 import com.tcs.destination.service.UploadErrorReport;
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PropertyUtil;
@@ -1045,6 +1046,28 @@ public class OpportunityController {
 		logger.info("Inside OpportunityController: End of /opportunity/all/privilege");
 		return opportunities;
 	}
+
+	@RequestMapping(value = "/id", method = RequestMethod.GET)
+	public @ResponseBody OpportunityDTO findById(
+			@RequestParam(value = "oppId", defaultValue = "") String oppId,
+			@RequestParam(value = "mapId", defaultValue = Constants.OPPORTUNITY_FULL) String mapId)
+					throws DestinationException {
+		logger.info("Start - Inside OpportunityController: findById");
+		OpportunityDTO opportunity;
+		try {
+			opportunity = opportunityService.findById(oppId, mapId);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(),e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the opportunity detail ");
+		}
+		logger.info("Ends - Inside OpportunityController: findById");
+		return opportunity;
+	}
+	
+	
 	
 	
 }
