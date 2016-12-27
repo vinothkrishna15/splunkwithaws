@@ -2278,9 +2278,6 @@ public class ConnectService {
 		List<ConnectDTO> dtos = Lists.newArrayList();
 		
 		List<ConnectT> connects = connectRepository.findAllConnectByDateAndSubSP(startDate, endDate, subSPType, category);
-		if(StringUtils.isEmpty(mapId)) {
-			mapId = Constants.CONNECT_CUSTOMER_CONTACT_BASE;
-		}
 		for (ConnectT connecT : connects) {
 			ConnectDTO custDto = beanMapper.map(connecT, ConnectDTO.class, mapId);
 			dtos.add(custDto);

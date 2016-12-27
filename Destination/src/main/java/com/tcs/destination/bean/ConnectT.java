@@ -198,7 +198,7 @@ public class ConnectT implements Serializable {
 	private List<UserTaggedFollowedT> userTaggedFollowedTs;
 	
 	@Column(name="cxo_flag")
-	private boolean cxoFlag;
+	private Boolean cxoFlag;
 
 	@Transient
 	private List<ConnectSubSpLinkT> connectSubLinkDeletionList;
@@ -878,12 +878,18 @@ public class ConnectT implements Serializable {
 		this.productId = productId;
 	}
 
-	public boolean isCxoFlag() {
+	public Boolean isCxoFlag() {
 		return cxoFlag;
 	}
 
-	public void setCxoFlag(boolean cxoFlag) {
+	public Boolean getCxoFlag() {
+		return cxoFlag;
+	}
+
+	public void setCxoFlag(Boolean cxoFlag) {
 		this.cxoFlag = cxoFlag;
 	}
+
+	
 	
 }

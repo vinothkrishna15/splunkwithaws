@@ -247,7 +247,8 @@
 		<field> <a>connectName</a> <b>connectName</b> </field>
 		<field> <a>startDatetimeOfConnect</a> <b>startDatetimeOfConnect</b> </field>
 		<field> <a>endDatetimeOfConnect</a> <b>endDatetimeOfConnect</b> </field>
-		<field map-id="customer-base-mapping"> <a>customerMasterT</a> <b>customerMasterT</b> </field>
+		<field> <a>cxoFlag</a> <b>cxoFlag</b> </field>
+		<field map-id="customer-only-mapping"> <a>customerMasterT</a> <b>customerMasterT</b> </field>
 	</mapping>
 	
 	<mapping map-id="connect-customer-contact-base" wildcard="false">
