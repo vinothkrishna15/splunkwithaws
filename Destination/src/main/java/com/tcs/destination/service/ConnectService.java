@@ -19,6 +19,7 @@ import javax.persistence.PersistenceContext;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.dozer.DozerBeanMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,7 @@ import com.tcs.destination.bean.ConnectSecondaryOwnerLinkT;
 import com.tcs.destination.bean.ConnectSubSpLinkT;
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.ConnectTcsAccountContactLinkT;
+import com.tcs.destination.bean.ContentDTO;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DashBoardConnectsResponse;
 import com.tcs.destination.bean.NotesT;
@@ -55,6 +57,7 @@ import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.TaskT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.UserTaggedFollowedT;
+import com.tcs.destination.bean.dto.ConnectDTO;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
 import com.tcs.destination.data.repository.CityMappingRepository;
@@ -244,7 +247,9 @@ public class ConnectService {
 
 	@Autowired
 	ProductContactLinkTRepository productContactLinkTRepository;
-
+	
+	@Autowired
+	private DozerBeanMapper beanMapper;
 
 	public ConnectT findConnectById(String connectId) throws Exception {
 		logger.debug("Inside findConnectById() service");
@@ -2304,4 +2309,26 @@ public class ConnectService {
 	}
 	
 
+	/**
+	 * fetch all customers and their connects between dates, and by type of subsp
+	 * @param cntDateFrom
+	 * @param cntDateTo
+	 * @param subSPType
+	 * @return
+	 */
+	public ContentDTO<ConnectDTO> getAllByConnect(Date cntDateFrom, Date cntDateTo, String subSPType, String category, String mapId) {
+		
+		Date startDate = cntDateFrom != null ? cntDateFrom : DateUtils.getFinancialYrStartDate();
+		Date endDate = cntDateTo != null ? cntDateTo : new Date();
+		
+		List<ConnectDTO> dtos = Lists.newArrayList();
+		
+		List<ConnectT> connects = connectRepository.findAllConnectByDateAndSubSP(startDate, endDate, subSPType, category);
+		for (ConnectT connecT : connects) {
+			ConnectDTO custDto = beanMapper.map(connecT, ConnectDTO.class, mapId);
+			dtos.add(custDto);
+		}
+		return new ContentDTO<ConnectDTO>(dtos);
+	}
+	
 }

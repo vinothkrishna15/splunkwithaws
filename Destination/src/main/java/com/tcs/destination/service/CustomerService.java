@@ -134,6 +134,9 @@ public class CustomerService {
 	
 	@Autowired @Lazy
 	private CustomerDao customerDao;
+	
+	@Autowired
+	WorkflowService workflowService;
 
 	Map<String, GeographyMappingT> mapOfGeographyMappingT = null;
 	Map<String, IouCustomerMappingT> mapOfIouCustomerMappingT = null;
@@ -1184,8 +1187,10 @@ public class CustomerService {
 
 		}
 		//group customer name 
-		if (!customerMaster.getGroupCustomerName().equals(oldCustomerObj.getGroupCustomerName())) {
-			oldCustomerObj.setGroupCustomerName(customerMaster.getGroupCustomerName());
+		String groupCustomerName = customerMaster.getGroupCustomerName();
+		if (!groupCustomerName.equals(oldCustomerObj.getGroupCustomerName())) {
+			workflowService.saveGroupCustomer(groupCustomerName);
+			oldCustomerObj.setGroupCustomerName(groupCustomerName);
 			isCustomerModifiedFlag =true;
 		}
 		//iou

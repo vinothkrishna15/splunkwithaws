@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.tcs.destination.bean.ConnectNameKeywordSearch;
 import com.tcs.destination.bean.ConnectT;
+import com.tcs.destination.bean.ContentDTO;
 import com.tcs.destination.bean.DashBoardConnectsResponse;
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
@@ -30,6 +31,7 @@ import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
+import com.tcs.destination.bean.dto.ConnectDTO;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.JobName;
 import com.tcs.destination.enums.OperationType;
@@ -39,6 +41,7 @@ import com.tcs.destination.service.ConnectDownloadService;
 import com.tcs.destination.service.ConnectService;
 import com.tcs.destination.service.ConnectUploadService;
 import com.tcs.destination.service.UploadErrorReport;
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PropertyUtil;
@@ -614,4 +617,36 @@ public class ConnectController {
 					"Backend error in retrieving connects details");
 		}
 	}
+	
+	/**
+	 * @param cntDateFrom
+	 * @param cntDateTo
+	 * @param salesType
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/allByType", method = RequestMethod.GET)
+	public @ResponseBody ContentDTO<ConnectDTO> getAllConnectsByType(
+			@RequestParam(value = "connectDateFrom", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date cntDateFrom,
+			@RequestParam(value = "connectDateTo", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date cntDateTo,
+			@RequestParam(value = "salesType", defaultValue = "All") String salesType,
+			@RequestParam(value = "category", defaultValue = "CUSTOMER") String category,
+			@RequestParam(value = "mapId", defaultValue = Constants.CONNECT_CUSTOMER_BASE) String mapId)
+					throws DestinationException {
+		logger.info("CustomerController: getAll");
+		ContentDTO<ConnectDTO> res = null;
+		try {
+			res = connectService.getAllByConnect(cntDateFrom, cntDateTo, salesType, category, mapId);
+			logger.info("CustomerController: End - getAll");
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error("Error on user smartSearch", e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while retrieving customer list");
+		}
+		
+		return res;
+	}
+	
 }

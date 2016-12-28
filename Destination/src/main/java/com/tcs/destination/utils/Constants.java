@@ -391,18 +391,29 @@ public class Constants {
 	
 	
 	//dozer mapper mapping id
-	public static final String OPPORTUNITY_WINLOSS = "opportunity-winloss";
 	public static final String COMPETITOR_OPPORTUNITY = "competitor-opportunity";
 	public static final String COMPETITOR_OPPORTUNITY_LINK = "competitor-opportunity-link";
+	
 	public static final String OPPORTUNITY_BASE = "opportunity-base";
+	public static final String OPPORTUNITY_WINLOSS = "opportunity-winloss";
 	public static final String OPPORTUNITY_CUSTOMER_BASE = "opportunity-customer-base";
 	public static final String OPPORTUNITY_FULL = "opportunity-full";
+	
 	public static final String CUSTOMER_MAPPING = "customer-mapping";
+	public static final String CUST_CONNECT_BASE = "cust-connect-base";
+
 	public static final String USER_MAP = "user-map";
 	public static final String USER_BASE = "user-base";
-	public static final String CONNECT_MAP = "connect-map";
+	
 	public static final String DELIVERY_UTILIZATION_MAP = "delivery-utilization-map";
 	public static final String DELIVERY_UNALLOCATION_MAP = "delivery-unallocation-map";
+	
 	public static final String DELIVERY_CENTRE_MAP = "delivery-centre-map";
 	public static final String DELIVERY_CLUSTER_MAP = "delivery-cluster-map";
+	
+	public static final String CONNECT_MAP = "connect-map";
+	public static final String CONNECT_CUSTOMER_BASE = "connect-customer-base";
+	public static final String CONNECT_CUSTOMER_CONTACT_BASE = "connect-customer-contact-base";
+	
+	
 }

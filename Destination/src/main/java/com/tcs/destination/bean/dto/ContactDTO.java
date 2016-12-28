@@ -25,7 +25,7 @@ public class ContactDTO implements Serializable, Cloneable {
 	private String contactType;
 	private String employeeNumber;
 	private String otherRole;
-	private boolean active;
+	private Boolean active;
 
 	private Timestamp createdDatetime;
 	private UserDTO createdByUser;
@@ -124,11 +124,11 @@ public class ContactDTO implements Serializable, Cloneable {
 		this.otherRole = otherRole;
 	}
 
-	public boolean isActive() {
+	public Boolean isActive() {
 		return active;
 	}
 
-	public void setActive(boolean active) {
+	public void setActive(Boolean active) {
 		this.active = active;
 	}
 

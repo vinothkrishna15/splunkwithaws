@@ -4,6 +4,7 @@ import static com.tcs.destination.utils.QueryConstants.CONNECT_REMINDER;
 
 import java.math.BigInteger;
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -852,5 +853,19 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 			+ " where CSLT.secondary_owner in (:userIds) ", nativeQuery=true)
 	List<ConnectT> getConnectByOwnersAndCustomer(@Param("userIds") List<String> userIds, @Param("custId") String custIds);
 	
+	
+	 @Query(value = "SELECT DISTINCT cont FROM ConnectT cont "
+	    		+ "JOIN cont.connectSubSpLinkTs cslt "
+	    		+ "WHERE ((:category = 'CUSTOMER' AND cont.connectCategory ='CUSTOMER') OR (:category = 'PARTNER' AND cont.connectCategory ='PARTNER')) "
+	    		+ "AND cont.startDatetimeOfConnect BETWEEN :startDate AND :endDate "
+	    		+ "AND "
+	    		+ "((:subSPType='All' AND UPPER(cslt.subSp) LIKE '%%') "
+	    		+ "OR (:subSPType='Consulting' AND UPPER(cslt.subSp) LIKE '%CONSULTING%') "
+	    		+ "OR (:subSPType='Sales' AND UPPER(cslt.subSp) NOT LIKE '%CONSULTING%'))")
+	    List<ConnectT> findAllConnectByDateAndSubSP(@Param("startDate") Date startDate, 
+	    		@Param("endDate") Date endDate, 
+	    		@Param("subSPType") String subSPType, 
+	    		@Param("category") String category);
+
 	
 }

@@ -31,6 +31,7 @@ public class ConnectDTO implements Serializable {
 	private String country;
 	private String location;
 	private String type;
+	private Boolean cxoFlag;
 
 	private CityMappingDTO cityMapping;
 	private TimeZoneMappingDTO timeZoneMappingT;
@@ -267,4 +268,13 @@ public class ConnectDTO implements Serializable {
 			List<ConnectTcsAccountContactLinkDTO> connectTcsAccountContactLinkTs) {
 		this.connectTcsAccountContactLinkTs = connectTcsAccountContactLinkTs;
 	}
+
+	public Boolean getCxoFlag() {
+		return cxoFlag;
+	}
+
+	public void setCxoFlag(Boolean cxoFlag) {
+		this.cxoFlag = cxoFlag;
+	}
+	
 }

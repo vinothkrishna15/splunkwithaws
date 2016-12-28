@@ -42,7 +42,9 @@ import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
 import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DeliveryCentreT;
+import com.tcs.destination.bean.DeliveryIntimatedCentreLinkT;
 import com.tcs.destination.bean.DeliveryIntimatedT;
+import com.tcs.destination.bean.DeliveryMasterT;
 import com.tcs.destination.bean.DeliveryOwnershipT;
 import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
@@ -949,7 +951,9 @@ public class OpportunityService {
 					isBfmRaied = true;
 				}
 			}
-
+			
+			setNullForDeliveryMaster(opportunity);
+			setNullForDeliveryIntimated(opportunity);
 			opportunity.setWorkflowBfmRaised(isBfmRaied);
 			return opportunity;
 		} else {
@@ -3731,5 +3735,38 @@ public class OpportunityService {
 		queryBuffer.append(QueryConstants.OPPORTUNITY_DEAL_CLOSURE_DATE_ORDER_BY);
 		return queryBuffer.toString();
 	}
+	
+	private void setNullForDeliveryMaster(OpportunityT opportunity) {
+		if(CollectionUtils.isNotEmpty(opportunity.getDeliveryIntimatedTs())) {
+			for(DeliveryIntimatedT deliveryItiIntimatedT : opportunity.getDeliveryIntimatedTs()) {
+				deliveryItiIntimatedT.setDeliveryMasterTs(null);
+				deliveryItiIntimatedT.getDeliveryStageMappingT().setDeliveryMasterTs(null);
+				for(DeliveryIntimatedCentreLinkT deliveryIntimatedCentreLinkT : deliveryItiIntimatedT.getDeliveryIntimatedCentreLinkTs()) {
+					deliveryIntimatedCentreLinkT.setDeliveryIntimatedT(null);
+					deliveryIntimatedCentreLinkT.getDeliveryCentreT().setDeliveryMasterTs(null);
+					deliveryIntimatedCentreLinkT.getDeliveryCentreT().getDeliveryClusterT().setDeliveryCentreTs(null);
+					deliveryIntimatedCentreLinkT.getDeliveryCentreT().setDeliveryIntimatedCentreLinkTs(null);
+				}
+			}
+		}
+	}
+	
+	private void setNullForDeliveryIntimated(OpportunityT opportunity) {
+		if(CollectionUtils.isNotEmpty(opportunity.getDeliveryMasterTs())) {
+			for (DeliveryMasterT deliveryMasterT : opportunity.getDeliveryMasterTs()) {
+				deliveryMasterT.setDeliveryIntimatedT(null);
+				deliveryMasterT.setDeliveryIntimatedId(null);
+				deliveryMasterT.getDeliveryCentreT().setDeliveryMasterTs(null);
+				deliveryMasterT.getDeliveryCentreT().getDeliveryClusterT().setDeliveryCentreTs(null);
+				deliveryMasterT.getDeliveryCentreT().setDeliveryIntimatedCentreLinkTs(null);
+				deliveryMasterT.getDeliveryStageMappingT().setDeliveryMasterTs(null);
+			}
+		}
+	}
 
+	public OpportunityDTO findById(String oppId, String mapId) throws Exception {
+		OpportunityT opportunity = findByOpportunityId(oppId, Lists.newArrayList(Constants.USD));
+		OpportunityDTO dto = beanMapper.map(opportunity, OpportunityDTO.class, mapId);
+		return dto;
+	}
 }

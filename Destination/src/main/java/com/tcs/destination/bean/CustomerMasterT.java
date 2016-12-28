@@ -17,6 +17,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
+
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
@@ -123,6 +124,11 @@ public class CustomerMasterT implements Serializable {
 	//bi-directional many-to-one association to CollaborationCommentT
 	@OneToMany(mappedBy="customerMasterT")
 	private List<CollaborationCommentT> collaborationCommentTs;
+	
+	//bi-directional many-to-one association to GroupCustomerT
+	@ManyToOne
+	@JoinColumn(name="group_customer_name", insertable = false, updatable = false)
+	private GroupCustomerT groupCustomerT;
 
 	public CustomerMasterT() {
 	}
@@ -479,5 +485,12 @@ public class CustomerMasterT implements Serializable {
 		return collaborationCommentT;
 	}
 
+	public GroupCustomerT getGroupCustomerT() {
+		return groupCustomerT;
+	}
 
+	public void setGroupCustomerT(GroupCustomerT groupCustomerT) {
+		this.groupCustomerT = groupCustomerT;
+	}
+	
 }
