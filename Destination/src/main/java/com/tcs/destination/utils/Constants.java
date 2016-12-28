@@ -411,7 +411,8 @@ public class Constants {
 	public static final String DELIVERY_CENTRE_MAP = "delivery-centre-map";
 	public static final String DELIVERY_CLUSTER_MAP = "delivery-cluster-map";
 	
-	public static final String CONNECT_MAP = "connect-map";
+	public static final String CONNECT_FULL_MAP = "connect-full-map";
+	public static final String CONNECT_LIST_MAP = "connect-list-map";
 	public static final String CONNECT_CUSTOMER_BASE = "connect-customer-base";
 	public static final String CONNECT_CUSTOMER_CONTACT_BASE = "connect-customer-contact-base";
 	

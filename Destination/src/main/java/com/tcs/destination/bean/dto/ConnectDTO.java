@@ -41,19 +41,14 @@ public class ConnectDTO implements Serializable {
 	private List<ConnectOpportunityLinkDTO> connectOpportunityLinkIdTs;
 	private List<ConnectSecondaryOwnerLinkDTO> connectSecondaryOwnerLinkTs;
 	private List<ConnectSubSpLinkDTO> connectSubSpLinkTs;
-
 	private CustomerMasterDTO customerMasterT;
-
 	//country
 	private GeographyCountryMappingDTO geographyCountryMappingT;
-
 	private PartnerMasterDTO partnerMasterT;
-
 	private ProductMasterDTO productMasterT;
-
 	private UserDTO primaryOwnerUser;
-
 	private List<ConnectTcsAccountContactLinkDTO> connectTcsAccountContactLinkTs;
+	private List<NotesDTO> notesTs;
 
 	public String getConnectId() {
 		return connectId;
@@ -275,6 +270,14 @@ public class ConnectDTO implements Serializable {
 
 	public void setCxoFlag(Boolean cxoFlag) {
 		this.cxoFlag = cxoFlag;
+	}
+
+	public List<NotesDTO> getNotesTs() {
+		return notesTs;
+	}
+
+	public void setNotesTs(List<NotesDTO> notesTs) {
+		this.notesTs = notesTs;
 	}
 	
 }

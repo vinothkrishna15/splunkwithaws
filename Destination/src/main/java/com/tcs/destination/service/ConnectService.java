@@ -2270,10 +2270,10 @@ public class ConnectService {
 	 * @param subSPType
 	 * @return
 	 */
-	public ContentDTO<ConnectDTO> getAllByConnect(Date cntDateFrom, Date cntDateTo, String subSPType, String category, String mapId) {
+	public ContentDTO<ConnectDTO> getAllByType(Date cntDateFrom, Date cntDateTo, String subSPType, String category, String mapId) {
 		
 		Date startDate = cntDateFrom != null ? cntDateFrom : DateUtils.getFinancialYrStartDate();
-		Date endDate = cntDateTo != null ? cntDateTo : new Date();
+		Date endDate = cntDateTo != null ? cntDateTo : DateUtils.getFinancialYrEndDate();
 		
 		List<ConnectDTO> dtos = Lists.newArrayList();
 		
@@ -2283,6 +2283,42 @@ public class ConnectService {
 			dtos.add(custDto);
 		}
 		return new ContentDTO<ConnectDTO>(dtos);
+	}
+
+	/**
+	 * fetch all connects of a group customer between dates
+	 * @param cntDateFrom
+	 * @param cntDateTo
+	 * @param subSPType
+	 * @return
+	 */
+	public ContentDTO<ConnectDTO> getAllByGrpCustomer(Date cntDateFrom, Date cntDateTo, String grpCustomer, String mapId) {
+		
+		Date startDate = cntDateFrom != null ? cntDateFrom : DateUtils.getFinancialYrStartDate();
+		Date endDate = cntDateTo != null ? cntDateTo : DateUtils.getFinancialYrEndDate();
+		
+		List<ConnectDTO> dtos = Lists.newArrayList();
+		
+		List<ConnectT> connects = connectRepository.findAllConnectByGrpCustomer(startDate, endDate, grpCustomer);
+		for (ConnectT connecT : connects) {
+			ConnectDTO custDto = beanMapper.map(connecT, ConnectDTO.class, mapId);
+			dtos.add(custDto);
+		}
+		return new ContentDTO<ConnectDTO>(dtos);
+	}
+
+	public ConnectDTO getById(String connectId, String mapId) {
+		logger.debug("Inside findConnectById() service");
+		ConnectDTO connectdto = null;
+		ConnectT connectT = connectRepository.findByConnectId(connectId);
+		if (connectT != null) {
+			connectdto = beanMapper.map(connectT, ConnectDTO.class, mapId);
+		} else {
+			logger.error("NOT_FOUND: Connect not found: {}", connectId);
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Connect not found: " + connectId);
+		}
+		return connectdto;
 	}
 	
 }

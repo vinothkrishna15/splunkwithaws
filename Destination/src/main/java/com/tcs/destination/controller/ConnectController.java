@@ -632,7 +632,7 @@ public class ConnectController {
 		logger.info("CustomerController: getAll");
 		ContentDTO<ConnectDTO> res = null;
 		try {
-			res = connectService.getAllByConnect(cntDateFrom, cntDateTo, salesType, category, mapId);
+			res = connectService.getAllByType(cntDateFrom, cntDateTo, salesType, category, mapId);
 			logger.info("CustomerController: End - getAll");
 		} catch (DestinationException e) {
 			throw e;
@@ -645,4 +645,61 @@ public class ConnectController {
 		return res;
 	}
 	
+	/**
+	 * @param cntDateFrom
+	 * @param cntDateTo
+	 * @param salesType
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/byGrpCustomer", method = RequestMethod.GET)
+	public @ResponseBody ContentDTO<ConnectDTO> getAllByGrpCustomer(
+			@RequestParam(value = "connectDateFrom", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date cntDateFrom,
+			@RequestParam(value = "connectDateTo", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date cntDateTo,
+			@RequestParam(value = "grpCustomer") String grpCustomer,
+			@RequestParam(value = "mapId", defaultValue = Constants.CONNECT_LIST_MAP) String mapId)
+					throws DestinationException {
+		logger.info("connect controller: getAllByGrpCustomer");
+		ContentDTO<ConnectDTO> res = null;
+		try {
+			res = connectService.getAllByGrpCustomer(cntDateFrom, cntDateTo, grpCustomer, mapId);
+			logger.info("connect controller: End - getAllByGrpCustomer");
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error("Error on user smartSearch", e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while retrieving connect list");
+		}
+		
+		return res;
+	}
+
+	/**
+	 * @param cntDateFrom
+	 * @param cntDateTo
+	 * @param salesType
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/id", method = RequestMethod.GET)
+	public @ResponseBody ConnectDTO getById(
+			@RequestParam(value = "connectId") String connectId,
+			@RequestParam(value = "mapId", defaultValue = Constants.CONNECT_FULL_MAP) String mapId)
+					throws DestinationException {
+		logger.info("connect controller: getAllByGrpCustomer");
+		ConnectDTO res = null;
+		try {
+			res = connectService.getById(connectId, mapId);
+			logger.info("connect controller: End - getAllByGrpCustomer");
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error("Error on user smartSearch", e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while retrieving connect list");
+		}
+		
+		return res;
+	}
 }
