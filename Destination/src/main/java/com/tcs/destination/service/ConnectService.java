@@ -24,6 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -47,7 +49,6 @@ import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
-import com.tcs.destination.bean.ProductContactLinkT;
 import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.TaskT;
@@ -2294,21 +2295,28 @@ public class ConnectService {
 	 * @param subSPType
 	 * @return
 	 */
-	public ContentDTO<ConnectDTO> getAllByGrpCustomer(Date cntDateFrom, Date cntDateTo, String grpCustomer, String mapId, int page, int count) {
+	public PageDTO<ConnectDTO> getAllByGrpCustomer(Date cntDateFrom, Date cntDateTo, String grpCustomer, String mapId, int page, int count) {
 		
 		Date startDate = cntDateFrom != null ? cntDateFrom : DateUtils.getFinancialYrStartDate();
 		Date endDate = cntDateTo != null ? cntDateTo : DateUtils.getFinancialYrEndDate();
 		
-		//TODO pagination
+		Sort sort = new Sort(Direction.DESC, "startDatetimeOfConnect");
+		Pageable pageable = new PageRequest(page, count, sort);
 		
 		List<ConnectDTO> dtos = Lists.newArrayList();
 		
-		List<ConnectT> connects = connectRepository.findAllConnectByGrpCustomer(startDate, endDate, grpCustomer);
-		for (ConnectT connecT : connects) {
-			ConnectDTO custDto = beanMapper.map(connecT, ConnectDTO.class, mapId);
-			dtos.add(custDto);
+		Page<ConnectT> connects = connectRepository.findAllConnectByGrpCustomer(startDate, endDate, grpCustomer, pageable);
+		List<ConnectT> connectList = connects.getContent();
+		if(CollectionUtils.isNotEmpty(connectList)) {
+			for (ConnectT connecT : connectList) {
+				ConnectDTO custDto = beanMapper.map(connecT, ConnectDTO.class, mapId);
+				dtos.add(custDto);
+			}
+		} else {
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Connects not found");
 		}
-		return new ContentDTO<ConnectDTO>(dtos);
+		return new PageDTO<ConnectDTO>(dtos, connects.getTotalElements());
 	}
 
 	public ConnectDTO getById(String connectId, String mapId) {

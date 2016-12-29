@@ -846,9 +846,9 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 			 + "JOIN cont.customerMasterT cmt "
 			 + "WHERE cmt.groupCustomerName = :grpCustomer "
 			 + "AND cont.startDatetimeOfConnect BETWEEN :startDate AND :endDate ")
-	 List<ConnectT> findAllConnectByGrpCustomer(@Param("startDate") Date startDate, 
+	 Page<ConnectT> findAllConnectByGrpCustomer(@Param("startDate") Date startDate, 
 			 @Param("endDate") Date endDate, 
-			 @Param("grpCustomer") String grpCustomer);
+			 @Param("grpCustomer") String grpCustomer, Pageable pageable);
 
 	
 }
