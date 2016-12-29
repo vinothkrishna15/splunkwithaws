@@ -45,6 +45,7 @@ import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryIntimatedCentreLinkT;
 import com.tcs.destination.bean.DeliveryIntimatedT;
+import com.tcs.destination.bean.DeliveryMasterManagerLinkT;
 import com.tcs.destination.bean.DeliveryMasterT;
 import com.tcs.destination.bean.DeliveryOwnershipT;
 import com.tcs.destination.bean.NotesT;
@@ -953,8 +954,7 @@ public class OpportunityService {
 				}
 			}
 			
-			setNullForDeliveryMaster(opportunity);
-			setNullForDeliveryIntimated(opportunity);
+			setNullForDeliveryMasterCyclic(opportunity);
 			opportunity.setWorkflowBfmRaised(isBfmRaied);
 			return opportunity;
 		} else {
@@ -3739,22 +3739,8 @@ public class OpportunityService {
 		return queryBuffer.toString();
 	}
 	
-	private void setNullForDeliveryMaster(OpportunityT opportunity) {
-		if(CollectionUtils.isNotEmpty(opportunity.getDeliveryIntimatedTs())) {
-			for(DeliveryIntimatedT deliveryItiIntimatedT : opportunity.getDeliveryIntimatedTs()) {
-				deliveryItiIntimatedT.setDeliveryMasterTs(null);
-				deliveryItiIntimatedT.getDeliveryStageMappingT().setDeliveryMasterTs(null);
-				for(DeliveryIntimatedCentreLinkT deliveryIntimatedCentreLinkT : deliveryItiIntimatedT.getDeliveryIntimatedCentreLinkTs()) {
-					deliveryIntimatedCentreLinkT.setDeliveryIntimatedT(null);
-					deliveryIntimatedCentreLinkT.getDeliveryCentreT().setDeliveryMasterTs(null);
-					deliveryIntimatedCentreLinkT.getDeliveryCentreT().getDeliveryClusterT().setDeliveryCentreTs(null);
-					deliveryIntimatedCentreLinkT.getDeliveryCentreT().setDeliveryIntimatedCentreLinkTs(null);
-				}
-			}
-		}
-	}
 	
-	private void setNullForDeliveryIntimated(OpportunityT opportunity) {
+	private void setNullForDeliveryMasterCyclic(OpportunityT opportunity) {
 		if(CollectionUtils.isNotEmpty(opportunity.getDeliveryMasterTs())) {
 			for (DeliveryMasterT deliveryMasterT : opportunity.getDeliveryMasterTs()) {
 				deliveryMasterT.setDeliveryIntimatedT(null);
