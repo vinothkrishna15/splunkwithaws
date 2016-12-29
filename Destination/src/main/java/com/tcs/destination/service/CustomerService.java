@@ -1,6 +1,9 @@
 package com.tcs.destination.service;
 
+import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +14,7 @@ import javax.persistence.Query;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.dozer.DozerBeanMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,11 +27,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
+import com.tcs.destination.bean.ActualRevenuesDataT;
 import com.tcs.destination.bean.BeaconCustomerMappingT;
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.ContactCustomerLinkT;
+import com.tcs.destination.bean.CustomerAssociateT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.GeographyMappingT;
+import com.tcs.destination.bean.GroupCustomerT;
 import com.tcs.destination.bean.IouBeaconMappingT;
 import com.tcs.destination.bean.IouCustomerMappingT;
 import com.tcs.destination.bean.OpportunityT;
@@ -39,6 +46,7 @@ import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.bean.dto.GroupCustomerDTO;
 import com.tcs.destination.data.repository.BeaconCustomerMappingRepository;
 import com.tcs.destination.data.repository.BeaconRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
@@ -47,12 +55,15 @@ import com.tcs.destination.data.repository.CustomerDao;
 import com.tcs.destination.data.repository.CustomerIOUMappingRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
+import com.tcs.destination.data.repository.GroupCustomerPagingRepository;
+import com.tcs.destination.data.repository.GroupCustomerRepository;
 import com.tcs.destination.data.repository.IouRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.PrivilegeType;
+import com.tcs.destination.enums.SalesStageCode;
 import com.tcs.destination.enums.SmartSearchType;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.UserRole;
@@ -137,6 +148,12 @@ public class CustomerService {
 	
 	@Autowired
 	WorkflowService workflowService;
+	
+	@Autowired
+	GroupCustomerRepository groupCustomerRepository;
+	
+	@Autowired
+	GroupCustomerPagingRepository groupCustomerPagingRepository;
 
 	Map<String, GeographyMappingT> mapOfGeographyMappingT = null;
 	Map<String, IouCustomerMappingT> mapOfIouCustomerMappingT = null;
@@ -147,6 +164,9 @@ public class CustomerService {
 
 	@Autowired
 	private ConnectService connectService;
+	
+	@Autowired
+	DozerBeanMapper beanMapper;
 
 
 	/**
@@ -1629,5 +1649,259 @@ public class CustomerService {
 		conRes.setSearchType(type);
 		conRes.setValues(records);
 		return conRes;
+	}
+
+	public PageDTO<GroupCustomerDTO> getGrpCustomersByType(
+			List<String> grpCustomerNames, String mapId, int page, int count,
+			Date fromDate, Date toDate, String type) throws Exception {
+		logger.info("Inside getGrpCustomersByType method");
+		PageDTO<GroupCustomerDTO> grpCustomerDto = new PageDTO<GroupCustomerDTO>();
+		Pageable pageable = new PageRequest(page, count);
+		String userId = DestinationUtils.getCurrentUserId();
+		boolean strategicInitiatives = false;
+		String userGroup = DestinationUtils.getCurrentUserDetails()
+				.getUserGroup();
+		List<String> privilegedCustomerNames = null;
+		if (userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
+			strategicInitiatives = true;
+		} else {
+			privilegedCustomerNames = customerDao
+					.getPrivilegedCustomers(userId);
+		}
+
+		Date startDate = fromDate != null ? fromDate : DateUtils
+				.getFinancialYrStartDate();
+		Date endDate = toDate != null ? toDate : new Date();
+		Page<GroupCustomerT> grpCustomersPage = null;
+		if (CollectionUtils.isNotEmpty(grpCustomerNames)) {
+			grpCustomersPage = groupCustomerRepository
+					.findByGroupCustomerNameIsIn(grpCustomerNames, pageable);
+		} else {
+			grpCustomersPage = groupCustomerPagingRepository.findAll(pageable);
+		}
+
+		if (grpCustomersPage == null) {
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Customer Details not found");
+		} else {
+			List<GroupCustomerT> grpCustomersList = grpCustomersPage
+					.getContent();
+
+			List<GroupCustomerDTO> grpCustDTOs = Lists.newArrayList();
+			if (CollectionUtils.isNotEmpty(grpCustomersList)) {
+				for (GroupCustomerT groupCustomerT : grpCustomersList) {
+					setCountForGrpCustomer(groupCustomerT, startDate, endDate,
+							type, privilegedCustomerNames, strategicInitiatives);
+					GroupCustomerDTO grpCustDTO = beanMapper.map(
+							groupCustomerT, GroupCustomerDTO.class,
+							"group-customer-count");
+					grpCustDTOs.add(grpCustDTO);
+				}
+			}
+			grpCustomerDto.setContent(grpCustDTOs);
+			grpCustomerDto.setTotalCount(grpCustDTOs.size());
+		}
+		return grpCustomerDto;
+	}
+	
+	private void setCountForGrpCustomer(GroupCustomerT groupCustomerT,
+			Date startDate, Date endDate, String type,
+			List<String> privilegedCustomerNames, boolean isStrategicInitiatives) {
+		int connectCount = 0, cxoCount = 0, othersCount = 0, associates = 0, deWons = 0, nonDeWons = 0, oppWins = 0, oppLoss = 0, prospecting = 0, pipeline = 0, opportunitiesCount = 0;
+		BigDecimal revenue = new BigDecimal(0);
+		BigDecimal consultingRevenue = new BigDecimal(0);
+		BigDecimal grossMargin = new BigDecimal(0);
+		BigDecimal cost = new BigDecimal(0);
+		BigDecimal winValue = new BigDecimal(0);
+		BigDecimal lossValue = new BigDecimal(0);
+		BigDecimal winRatio = new BigDecimal(0);
+		String financialYear = DateUtils.getCurrentFinancialYear();
+		List<CustomerMasterT> customerMasterTs = groupCustomerT
+				.getCustomerMasterTs();
+		for (CustomerMasterT customerMasterT : customerMasterTs) {
+			boolean privilegedCustomer = isPrivilegedCustomer(
+					privilegedCustomerNames, customerMasterT.getCustomerName(),
+					isStrategicInitiatives);
+			// Connects
+			if (type.equals(Constants.CUSTOMER_TYPE_CONNECTS) || type.equals("ALL")) {
+				List<ConnectT> connectTs = customerMasterT.getConnectTs();
+				for (ConnectT connectT : connectTs) {
+					Timestamp startDatetimeOfConnect = connectT
+							.getStartDatetimeOfConnect();
+					if (checkIfDateBetween(startDate, endDate,
+							startDatetimeOfConnect)) {
+						if (connectT.isCxoFlag()) {
+							cxoCount++;
+						} else {
+							othersCount++;
+						}
+					}
+				}
+			}
+
+			List<RevenueCustomerMappingT> revenueMapping = customerMasterT
+					.getRevenueCustomerMappingTs();
+			if (CollectionUtils.isNotEmpty(revenueMapping)) {
+				for (RevenueCustomerMappingT revenueCustomerMappingT : revenueMapping) {
+					// Associates
+					if (type.equals(Constants.CUSTOMER_TYPE_ASSOCIATES) || type.equals("ALL")) {
+						List<CustomerAssociateT> customerAssociates = revenueCustomerMappingT
+								.getCustomerAssociateTs();
+						associates = associates + customerAssociates.size();
+						for (CustomerAssociateT associate : customerAssociates) {
+							if (checkIfDateBetween(startDate, endDate,
+									associate.getCreatedDate())) {
+								if (associate.getAllocationCategory().equals(
+										"WON")) {
+									deWons++;
+								} else {
+									nonDeWons++;
+								}
+							}
+						}
+					}
+					// Consulting
+					if ((type.equals(Constants.CUSTOMER_TYPE_CONSULTING) || type.equals("ALL"))
+							&& (privilegedCustomer)) {
+						List<ActualRevenuesDataT> revenueData = revenueCustomerMappingT
+								.getActualRevenuesDataTs();
+						for (ActualRevenuesDataT actualRevenue : revenueData) {
+							if (StringUtils.equals(
+									actualRevenue.getFinancialYear(),
+									financialYear)) {
+								BigDecimal revenueInUSD = beaconConverterService
+										.convert("INR", "USD",
+												actualRevenue.getRevenue());
+								if (actualRevenue.getCategory().equals(
+										Constants.CATEGORY_REVENUE)) {
+									revenue = revenue.add(revenueInUSD);
+								} else if (actualRevenue.getCategory().equals(
+										Constants.CATEGORY_COST)) {
+									cost = revenue.add(revenueInUSD);
+								}
+								if (StringUtils.contains(
+										actualRevenue.getSubSp(), "Consulting")) {
+									consultingRevenue = consultingRevenue
+											.add(revenueInUSD);
+								}
+							}
+						}
+					}
+				}
+			}
+
+			if (type.equals(Constants.CUSTOMER_TYPE_OPPORTUNITIES) || type.equals("ALL")) {
+				List<OpportunityT> opportunities = customerMasterT
+						.getOpportunityTs();
+				for (OpportunityT opportunityT : opportunities) {
+					switch (SalesStageCode.valueOf(opportunityT
+							.getSalesStageCode())) {
+					case WIN:
+						if (checkIfDateBetween(startDate, endDate,
+								opportunityT.getDealClosureDate())) {
+							BigDecimal dealValueInUSD = beaconConverterService
+									.convert(opportunityT.getDealCurrency(),
+											"USD",
+											opportunityT.getDigitalDealValue());
+							winValue = winValue.add(dealValueInUSD);
+							oppWins++;
+						}
+						break;
+					case CLOSED_AND_DISQUALIFIED:
+					case CLOSED_AND_SCRAPPED:
+					case LOST:
+						if (checkIfDateBetween(startDate, endDate,
+								opportunityT.getDealClosureDate())) {
+							BigDecimal dealValueInUSD = beaconConverterService
+									.convert(opportunityT.getDealCurrency(),
+											"USD",
+											opportunityT.getDigitalDealValue());
+							lossValue = lossValue.add(dealValueInUSD);
+							oppLoss++;
+						}
+						break;
+					case CLOSED_AND_SHELVED:
+						break;
+					case PROSPECTING:
+					case SUSPECTING:
+					case RFI_SUBMITTED:
+					case RFI_IN_RESPONSE:
+						prospecting++;
+						break;
+					default:
+						pipeline++;
+						break;
+					}
+				}
+			}
+		}
+		winRatio = getWinRatio(oppWins, oppLoss);
+		grossMargin = getGrossMargin(revenue, cost);
+		connectCount = cxoCount + othersCount;
+		opportunitiesCount = pipeline + prospecting;
+		groupCustomerT.setTotalConnects(connectCount);
+		groupCustomerT.setCxoConnects(cxoCount);
+		groupCustomerT.setOtherConnects(othersCount);
+		groupCustomerT.setAssociates(associates);
+		groupCustomerT.setAssociatesDE(deWons);
+		groupCustomerT.setAssociatesNonDE(nonDeWons);
+		groupCustomerT.setConsultingRevenue(consultingRevenue);
+		groupCustomerT.setCost(cost);
+		groupCustomerT.setGrossMargin(grossMargin);
+		groupCustomerT.setOpportunities(opportunitiesCount);
+		groupCustomerT.setPipelineOpportunities(pipeline);
+		groupCustomerT.setProspectingOpportunities(prospecting);
+		groupCustomerT.setTotalLoss(oppLoss);
+		groupCustomerT.setTotalRevenue(revenue);
+		groupCustomerT.setTotalWins(oppWins);
+		groupCustomerT.setWinRatio(winRatio);
+		groupCustomerT.setWinValue(winValue);
+		groupCustomerT.setLossValue(lossValue);
+	}
+
+	private boolean isPrivilegedCustomer(List<String> privilegedCustomerNames,
+			String customerName, boolean isStrategicInitiatives) {
+		if ((isStrategicInitiatives)
+				|| (CollectionUtils.isNotEmpty(privilegedCustomerNames) && privilegedCustomerNames
+						.contains(customerName))
+				|| (CollectionUtils.isEmpty(privilegedCustomerNames))) {
+			return true;
+		}
+		return false;
+	}
+
+	private BigDecimal getGrossMargin(BigDecimal revenue, BigDecimal cost) {
+		BigDecimal grossMarginPercent = new BigDecimal(0);
+		if(cost.compareTo(new BigDecimal(0))==0) {
+			return grossMarginPercent;
+		} else {
+			BigDecimal grossMarginVal = revenue.subtract(cost).divide(cost, 4, BigDecimal.ROUND_HALF_UP);
+			grossMarginPercent = grossMarginVal.multiply(new BigDecimal(100));
+		}
+		return grossMarginPercent;
+	}
+
+	private BigDecimal getWinRatio(int oppWins, int oppLoss) {
+		BigDecimal winRatio = new BigDecimal(0);
+		BigDecimal wins = new BigDecimal(oppWins);
+		BigDecimal loss = new BigDecimal(oppLoss);
+		BigDecimal totalWinLosses = wins.add(loss);
+		if(totalWinLosses.compareTo(winRatio)==0) {
+			return winRatio;
+		} else {
+			BigDecimal dividedVal = wins.divide(totalWinLosses, 4, BigDecimal.ROUND_HALF_UP);
+			winRatio = dividedVal.multiply(new BigDecimal(100));
+		}
+		return winRatio;
+	}
+
+	private boolean checkIfDateBetween(Date startDate, Date endDate,
+			Date dateToCheck) {
+		if (dateToCheck.after(startDate)
+				&& dateToCheck
+						.before(endDate)) {
+			return true;
+		}
+		return false;
 	}
 }

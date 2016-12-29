@@ -557,4 +557,30 @@
 		<field> <a>ownership</a> <b>ownership</b> </field>
 	</mapping>
 
+	<!-- Group Customer -->	
+	<mapping map-id="group-customer-count" wildcard="false">
+		<class-a>com.tcs.destination.bean.GroupCustomerT</class-a>
+		<class-b>com.tcs.destination.bean.dto.GroupCustomerDTO</class-b>
+	
+		<field> <a>groupCustomerName</a> <b>groupCustomerName</b></field>
+		<field> <a>totalConnects</a> <b>totalConnects</b></field>
+		<field> <a>cxoConnects</a> <b>cxoConnects</b></field>
+		<field> <a>otherConnects</a> <b>otherConnects</b></field>
+		<field> <a>associates</a> <b>associates</b></field>
+		<field> <a>associatesDE</a> <b>associatesDE</b></field>
+		<field> <a>associatesNonDE</a> <b>associatesNonDE</b></field>
+		<field> <a>totalRevenue</a> <b>totalRevenue</b></field>
+		<field> <a>consultingRevenue</a> <b>consultingRevenue</b></field>
+		<field> <a>grossMargin</a> <b>grossMargin</b></field>
+		<field> <a>cost</a> <b>cost</b></field>
+		<field> <a>opportunities</a> <b>opportunities</b></field>
+		<field> <a>prospectingOpportunities</a> <b>prospectingOpportunities</b></field>
+		<field> <a>pipelineOpportunities</a> <b>pipelineOpportunities</b></field>
+		<field> <a>totalWins</a> <b>totalWins</b></field>
+		<field> <a>totalLoss</a> <b>totalLoss</b></field>
+		<field> <a>winValue</a> <b>winValue</b></field>
+		<field> <a>lossValue</a> <b>lossValue</b></field>
+		<field> <a>winRatio</a> <b>winRatio</b></field>
+	
+	</mapping>
 </mappings> 

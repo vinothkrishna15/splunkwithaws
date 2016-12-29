@@ -1,88 +1,63 @@
-package com.tcs.destination.bean;
+package com.tcs.destination.bean.dto;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 
-import javax.persistence.*;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import java.util.List;
 
+import javax.persistence.Transient;
 
-/**
- * The persistent class for the group_customer_t database table.
- * 
- */
-@Entity
-@Table(name="group_customer_t")
-@NamedQuery(name="GroupCustomerT.findAll", query="SELECT g FROM GroupCustomerT g")
-public class GroupCustomerT implements Serializable {
+
+@JsonInclude(Include.NON_NULL)
+public class GroupCustomerDTO implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	@Id
-	@Column(name="group_customer_name")
 	private String groupCustomerName;
 
 	private byte[] logo;
 
-	//bi-directional many-to-one association to CustomerMasterT
-	@OneToMany(mappedBy="groupCustomerT")
-	private List<CustomerMasterT> customerMasterTs;
+	private List<CustomerMasterDTO> customerMasterTs;
 	
-	@Transient
 	private int totalConnects;
 	
-	@Transient
 	private int cxoConnects;
 	
-	@Transient
 	private int otherConnects;
 	
-	@Transient
 	private int associates;
 	
-	@Transient
 	private int associatesDE;
 	
-	@Transient
 	private int associatesNonDE;
 	
-	@Transient
 	private BigDecimal totalRevenue;
 	
-	@Transient
 	private BigDecimal consultingRevenue;
 	
-	@Transient
 	private BigDecimal grossMargin;
 	
-	@Transient
 	private BigDecimal cost;
 	
-	@Transient
 	private int opportunities;
 	
-	@Transient
 	private int prospectingOpportunities;
 	
-	@Transient
 	private int pipelineOpportunities;
 	
-	@Transient
 	private BigDecimal winRatio;
 	
-	@Transient
 	private int totalWins;
 	
-	@Transient
 	private int totalLoss;
 	
-	@Transient
 	private BigDecimal winValue;
 	
-	@Transient
 	private BigDecimal lossValue;
 	
-	public GroupCustomerT() {
+	public GroupCustomerDTO() {
 	}
 
 	public String getGroupCustomerName() {
@@ -99,28 +74,6 @@ public class GroupCustomerT implements Serializable {
 
 	public void setLogo(byte[] logo) {
 		this.logo = logo;
-	}
-
-	public List<CustomerMasterT> getCustomerMasterTs() {
-		return this.customerMasterTs;
-	}
-
-	public void setCustomerMasterTs(List<CustomerMasterT> customerMasterTs) {
-		this.customerMasterTs = customerMasterTs;
-	}
-
-	public CustomerMasterT addCustomerMasterT(CustomerMasterT customerMasterT) {
-		getCustomerMasterTs().add(customerMasterT);
-		customerMasterT.setGroupCustomerT(this);
-
-		return customerMasterT;
-	}
-
-	public CustomerMasterT removeCustomerMasterT(CustomerMasterT customerMasterT) {
-		getCustomerMasterTs().remove(customerMasterT);
-		customerMasterT.setGroupCustomerT(null);
-
-		return customerMasterT;
 	}
 
 	public int getTotalConnects() {
@@ -195,6 +148,14 @@ public class GroupCustomerT implements Serializable {
 		this.grossMargin = grossMargin;
 	}
 
+	public List<CustomerMasterDTO> getCustomerMasterTs() {
+		return customerMasterTs;
+	}
+
+	public void setCustomerMasterTs(List<CustomerMasterDTO> customerMasterTs) {
+		this.customerMasterTs = customerMasterTs;
+	}
+
 	public int getOpportunities() {
 		return opportunities;
 	}
@@ -243,14 +204,6 @@ public class GroupCustomerT implements Serializable {
 		this.totalLoss = totalLoss;
 	}
 
-	public BigDecimal getCost() {
-		return cost;
-	}
-
-	public void setCost(BigDecimal cost) {
-		this.cost = cost;
-	}
-
 	public BigDecimal getWinValue() {
 		return winValue;
 	}
@@ -265,6 +218,14 @@ public class GroupCustomerT implements Serializable {
 
 	public void setLossValue(BigDecimal lossValue) {
 		this.lossValue = lossValue;
+	}
+
+	public BigDecimal getCost() {
+		return cost;
+	}
+
+	public void setCost(BigDecimal cost) {
+		this.cost = cost;
 	}
 	
 }

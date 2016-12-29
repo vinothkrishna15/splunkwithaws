@@ -79,6 +79,9 @@ public class RevenueCustomerMappingT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="finance_iou", insertable = false, updatable = false)
 	private IouCustomerMappingT iouCustomerMappingT;
+	
+	@OneToMany(mappedBy="revenueCustomerMappingT")
+	private List<CustomerAssociateT> customerAssociateTs;
 
 	public RevenueCustomerMappingT() {
 	}
@@ -202,4 +205,12 @@ public class RevenueCustomerMappingT implements Serializable {
 		this.active = active;
 	}
 
+	public List<CustomerAssociateT> getCustomerAssociateTs() {
+		return customerAssociateTs;
+	}
+
+	public void setCustomerAssociateTs(List<CustomerAssociateT> customerAssociateTs) {
+		this.customerAssociateTs = customerAssociateTs;
+	}
+	
 }
