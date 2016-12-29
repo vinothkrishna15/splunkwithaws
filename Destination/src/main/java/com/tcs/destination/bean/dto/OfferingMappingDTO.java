@@ -14,7 +14,7 @@ public class OfferingMappingDTO implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private String offering;
-	private boolean active;
+	private Boolean active;
 	private Integer offeringId;
 	private String subSp;
 
@@ -30,8 +30,12 @@ public class OfferingMappingDTO implements Serializable {
 		this.offering = offering;
 	}
 
-	public boolean isActive() {
+	public Boolean getActive() {
 		return active;
+	}
+
+	public void setActive(Boolean active) {
+		this.active = active;
 	}
 
 	public void setActive(boolean active) {

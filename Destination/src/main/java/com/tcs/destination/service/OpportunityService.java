@@ -29,6 +29,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -3694,9 +3695,6 @@ public class OpportunityService {
 		oppQuery.setParameter("toDate", endDate);
 		opportunityTs = oppQuery.getResultList();
 
-		if(StringUtils.isEmpty(mapId)) {
-			mapId = Constants.OPPORTUNITY_CUSTOMER_BASE;
-		}
 		List<OpportunityDTO> dtos = prepareWinRatioResposeDTO(opportunityTs, mapId);
 		response.setContent(dtos);
 		return response;
@@ -3708,8 +3706,8 @@ public class OpportunityService {
 		List<OpportunityDTO> dtos = Lists.newArrayList();
 		for (OpportunityT opportunityT : opportunityTs) {
 			OpportunityDTO dto = beanMapper.map(opportunityT, OpportunityDTO.class, mapId);
-			if(opportunityT.getDigitalDealValue()!=null) {
-				BigDecimal dealValueInUsd = beaconConverterService.convertCurrencyRate(opportunityT.getDealCurrency(), "USD", opportunityT.getDigitalDealValue());
+			if(opportunityT.getDigitalDealValue()!=null && opportunityT.getDealCurrency() != null && !Constants.USD.equals(opportunityT.getDealCurrency())) {
+				BigDecimal dealValueInUsd = beaconConverterService.convertCurrencyRate(opportunityT.getDealCurrency(), Constants.USD, opportunityT.getDigitalDealValue());
 				dto.setDigitalDealValue(dealValueInUsd.intValue());
 			}
 			dtos.add(dto);
@@ -3718,6 +3716,11 @@ public class OpportunityService {
 		return dtos;
 	}
 
+	/**
+	 * @param userId
+	 * @return
+	 * @throws Exception
+	 */
 	private String getOpportunityQueryByPrivilege(String userId)
 			throws Exception {
 		StringBuffer queryBuffer = new StringBuffer(
@@ -3768,5 +3771,45 @@ public class OpportunityService {
 		OpportunityT opportunity = findByOpportunityId(oppId, Lists.newArrayList(Constants.USD));
 		OpportunityDTO dto = beanMapper.map(opportunity, OpportunityDTO.class, mapId);
 		return dto;
+	}
+
+	/**
+	 * @param fromDate
+	 * @param toDate
+	 * @param grpCustomer
+	 * @param mapId
+	 * @param page
+	 * @param count
+	 * @return
+	 */
+	public PageDTO<OpportunityDTO> getAllByGrpCustomer(Date fromDate, Date toDate, String grpCustomer,
+			String mapId, int page, int count) {
+
+		Sort sort = new Sort(Direction.DESC, "dealClosureDate");
+		Pageable pageable = new PageRequest(page, count, sort);
+		
+		Date startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
+		Date endDate = toDate != null ? toDate : new Date();
+
+		Page<OpportunityT> oppTs = opportunityRepository.findByGrpCustomerAndDealDate(startDate, endDate, grpCustomer, pageable);
+
+		List<OpportunityDTO> dtos = Lists.newArrayList();
+		List<OpportunityT> oppList = oppTs.getContent();
+		if(CollectionUtils.isNotEmpty(oppList)) {
+			prepareOpportunity(oppList);
+			for (OpportunityT opportunityT : oppList) {
+				OpportunityDTO dto = beanMapper.map(opportunityT, OpportunityDTO.class, mapId);
+				if(opportunityT.getDigitalDealValue() != null && opportunityT.getDealCurrency() != null && !Constants.USD.equals(opportunityT.getDealCurrency())) {
+					BigDecimal dealValueInUsd = beaconConverterService.convertCurrencyRate(opportunityT.getDealCurrency(), Constants.USD, opportunityT.getDigitalDealValue());
+					dto.setDigitalDealValue(dealValueInUsd.intValue());
+				}
+				dtos.add(dto);
+			}
+		} else {
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Opportunities not found");
+		}
+
+		return new PageDTO<OpportunityDTO>(dtos, (int)oppTs.getTotalElements());
 	}
 }

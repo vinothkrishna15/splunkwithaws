@@ -2289,13 +2289,17 @@ public class ConnectService {
 	 * fetch all connects of a group customer between dates
 	 * @param cntDateFrom
 	 * @param cntDateTo
+	 * @param count 
+	 * @param page 
 	 * @param subSPType
 	 * @return
 	 */
-	public ContentDTO<ConnectDTO> getAllByGrpCustomer(Date cntDateFrom, Date cntDateTo, String grpCustomer, String mapId) {
+	public ContentDTO<ConnectDTO> getAllByGrpCustomer(Date cntDateFrom, Date cntDateTo, String grpCustomer, String mapId, int page, int count) {
 		
 		Date startDate = cntDateFrom != null ? cntDateFrom : DateUtils.getFinancialYrStartDate();
 		Date endDate = cntDateTo != null ? cntDateTo : DateUtils.getFinancialYrEndDate();
+		
+		//TODO pagination
 		
 		List<ConnectDTO> dtos = Lists.newArrayList();
 		

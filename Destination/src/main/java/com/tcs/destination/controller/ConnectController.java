@@ -657,12 +657,14 @@ public class ConnectController {
 			@RequestParam(value = "connectDateFrom", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date cntDateFrom,
 			@RequestParam(value = "connectDateTo", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date cntDateTo,
 			@RequestParam(value = "grpCustomer") String grpCustomer,
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "15") int count,
 			@RequestParam(value = "mapId", defaultValue = Constants.CONNECT_LIST_MAP) String mapId)
 					throws DestinationException {
 		logger.info("connect controller: getAllByGrpCustomer");
 		ContentDTO<ConnectDTO> res = null;
 		try {
-			res = connectService.getAllByGrpCustomer(cntDateFrom, cntDateTo, grpCustomer, mapId);
+			res = connectService.getAllByGrpCustomer(cntDateFrom, cntDateTo, grpCustomer, mapId, page, count);
 			logger.info("connect controller: End - getAllByGrpCustomer");
 		} catch (DestinationException e) {
 			throw e;

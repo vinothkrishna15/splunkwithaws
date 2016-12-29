@@ -398,6 +398,7 @@ public class Constants {
 	public static final String OPPORTUNITY_WINLOSS = "opportunity-winloss";
 	public static final String OPPORTUNITY_CUSTOMER_BASE = "opportunity-customer-base";
 	public static final String OPPORTUNITY_FULL = "opportunity-full";
+	public static final String OPPORTUNITY_LIST_MAP = "opportunity-list";
 	
 	public static final String CUSTOMER_MAPPING = "customer-mapping";
 	public static final String CUST_CONNECT_BASE = "cust-connect-base";
