@@ -1419,6 +1419,7 @@ public class DashBoardService {
 			case GEO_HEADS:
 			case IOU_HEADS:
 			case PRACTICE_HEAD:
+			case DELIVERY_CLUSTER_HEAD:	
 				users = userRepository.getSubordinatesIdBySupervisorId(userId, nameWith);
 				break;
 
