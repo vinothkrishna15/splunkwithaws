@@ -1,13 +1,11 @@
 package com.tcs.destination.controller;
 
-import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -29,9 +27,8 @@ import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
-import com.tcs.destination.bean.dto.CustomerMasterDTO;
+import com.tcs.destination.bean.dto.CustomerListDTO;
 import com.tcs.destination.bean.dto.GroupCustomerDTO;
-import com.tcs.destination.bean.dto.OpportunityDTO;
 import com.tcs.destination.enums.SmartSearchType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.CustomerDownloadService;
@@ -636,22 +633,15 @@ public class CustomerController {
 		
 	}
 	
-	@RequestMapping(value = "/list", method = RequestMethod.GET)
+	@RequestMapping(value = "/list", method = RequestMethod.POST)
 	public @ResponseBody PageDTO<GroupCustomerDTO> findListOfGrpCustomers(
-			@RequestParam(value = "page", defaultValue = "0") int page,
-			@RequestParam(value = "count", defaultValue = "15") int count,
-			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
-			@RequestParam(value = "toDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
-			@RequestParam(value = "groupCustomerNames", defaultValue = "") List<String> grpCustomerNames,
-			@RequestParam(value = "mapId", defaultValue = "") String mapId,
-			@RequestParam(value = "type", defaultValue = "ALL") String type)
+			@RequestBody CustomerListDTO customerListDTO)
 			throws DestinationException {
 		logger.info("Inside Customer Controller: Start of findListOfGrpCustomers");
 		PageDTO<GroupCustomerDTO> grpCustomers;
 		try {
 			grpCustomers = customerService.getGrpCustomersByType(
-					grpCustomerNames, mapId, page, count, fromDate, toDate,
-					type);
+					customerListDTO);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {

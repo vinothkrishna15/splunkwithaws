@@ -46,6 +46,7 @@ import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.bean.dto.CustomerListDTO;
 import com.tcs.destination.bean.dto.GroupCustomerDTO;
 import com.tcs.destination.data.repository.BeaconCustomerMappingRepository;
 import com.tcs.destination.data.repository.BeaconRepository;
@@ -1650,59 +1651,6 @@ public class CustomerService {
 		conRes.setValues(records);
 		return conRes;
 	}
-
-	public PageDTO<GroupCustomerDTO> getGrpCustomersByType(
-			List<String> grpCustomerNames, String mapId, int page, int count,
-			Date fromDate, Date toDate, String type) throws Exception {
-		logger.info("Inside getGrpCustomersByType method");
-		PageDTO<GroupCustomerDTO> grpCustomerDto = new PageDTO<GroupCustomerDTO>();
-		Pageable pageable = new PageRequest(page, count);
-		String userId = DestinationUtils.getCurrentUserId();
-		boolean strategicInitiatives = false;
-		String userGroup = DestinationUtils.getCurrentUserDetails()
-				.getUserGroup();
-		List<String> privilegedCustomerNames = null;
-		if (userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
-			strategicInitiatives = true;
-		} else {
-			privilegedCustomerNames = customerDao
-					.getPrivilegedCustomers(userId);
-		}
-
-		Date startDate = fromDate != null ? fromDate : DateUtils
-				.getFinancialYrStartDate();
-		Date endDate = toDate != null ? toDate : new Date();
-		Page<GroupCustomerT> grpCustomersPage = null;
-		if (CollectionUtils.isNotEmpty(grpCustomerNames)) {
-			grpCustomersPage = groupCustomerRepository
-					.findByGroupCustomerNameIsIn(grpCustomerNames, pageable);
-		} else {
-			grpCustomersPage = groupCustomerPagingRepository.findAll(pageable);
-		}
-
-		if (grpCustomersPage == null) {
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Customer Details not found");
-		} else {
-			List<GroupCustomerT> grpCustomersList = grpCustomersPage
-					.getContent();
-
-			List<GroupCustomerDTO> grpCustDTOs = Lists.newArrayList();
-			if (CollectionUtils.isNotEmpty(grpCustomersList)) {
-				for (GroupCustomerT groupCustomerT : grpCustomersList) {
-					setCountForGrpCustomer(groupCustomerT, startDate, endDate,
-							type, privilegedCustomerNames, strategicInitiatives);
-					GroupCustomerDTO grpCustDTO = beanMapper.map(
-							groupCustomerT, GroupCustomerDTO.class,
-							"group-customer-count");
-					grpCustDTOs.add(grpCustDTO);
-				}
-			}
-			grpCustomerDto.setContent(grpCustDTOs);
-			grpCustomerDto.setTotalCount(grpCustDTOs.size());
-		}
-		return grpCustomerDto;
-	}
 	
 	private void setCountForGrpCustomer(GroupCustomerT groupCustomerT,
 			Date startDate, Date endDate, String type,
@@ -1719,6 +1667,7 @@ public class CustomerService {
 		List<CustomerMasterT> customerMasterTs = groupCustomerT
 				.getCustomerMasterTs();
 		for (CustomerMasterT customerMasterT : customerMasterTs) {
+			//Checking if it is a privileged customer
 			boolean privilegedCustomer = isPrivilegedCustomer(
 					privilegedCustomerNames, customerMasterT.getCustomerName(),
 					isStrategicInitiatives);
@@ -1730,6 +1679,7 @@ public class CustomerService {
 							.getStartDatetimeOfConnect();
 					if (checkIfDateBetween(startDate, endDate,
 							startDatetimeOfConnect)) {
+						// if Cxo flag is true, then it is a cXo Connect
 						if (connectT.isCxoFlag()) {
 							cxoCount++;
 						} else {
@@ -1766,6 +1716,7 @@ public class CustomerService {
 						List<ActualRevenuesDataT> revenueData = revenueCustomerMappingT
 								.getActualRevenuesDataTs();
 						for (ActualRevenuesDataT actualRevenue : revenueData) {
+							//getting revenue data only for cuurent financial year
 							if (StringUtils.equals(
 									actualRevenue.getFinancialYear(),
 									financialYear)) {
@@ -1775,21 +1726,21 @@ public class CustomerService {
 								if (actualRevenue.getCategory().equals(
 										Constants.CATEGORY_REVENUE)) {
 									revenue = revenue.add(revenueInUSD);
+									if (StringUtils.contains(
+											actualRevenue.getSubSp(), "Consulting")) {
+										consultingRevenue = consultingRevenue
+												.add(revenueInUSD);
+									}
 								} else if (actualRevenue.getCategory().equals(
 										Constants.CATEGORY_COST)) {
-									cost = revenue.add(revenueInUSD);
-								}
-								if (StringUtils.contains(
-										actualRevenue.getSubSp(), "Consulting")) {
-									consultingRevenue = consultingRevenue
-											.add(revenueInUSD);
+									cost = cost.add(revenueInUSD);
 								}
 							}
 						}
 					}
 				}
 			}
-
+			//Opportunities
 			if (type.equals(Constants.CUSTOMER_TYPE_OPPORTUNITIES) || type.equals("ALL")) {
 				List<OpportunityT> opportunities = customerMasterT
 						.getOpportunityTs();
@@ -1797,6 +1748,7 @@ public class CustomerService {
 					switch (SalesStageCode.valueOf(opportunityT
 							.getSalesStageCode())) {
 					case WIN:
+						//Checking deal closure date till YTD
 						if (checkIfDateBetween(startDate, endDate,
 								opportunityT.getDealClosureDate())) {
 							BigDecimal dealValueInUSD = beaconConverterService
@@ -1835,9 +1787,13 @@ public class CustomerService {
 				}
 			}
 		}
+		//Calculating win ratio for a grp customer
 		winRatio = getWinRatio(oppWins, oppLoss);
+		//Calculating Gross Margin for a grp customer
 		grossMargin = getGrossMargin(revenue, cost);
+		//Total Connects count
 		connectCount = cxoCount + othersCount;
+		//Total Opportunities Count
 		opportunitiesCount = pipeline + prospecting;
 		groupCustomerT.setTotalConnects(connectCount);
 		groupCustomerT.setCxoConnects(cxoCount);
@@ -1859,6 +1815,13 @@ public class CustomerService {
 		groupCustomerT.setLossValue(lossValue);
 	}
 
+	/**
+	 * checks if the given customer name is present in the privileged customer names
+	 * @param privilegedCustomerNames
+	 * @param customerName
+	 * @param isStrategicInitiatives
+	 * @return
+	 */
 	private boolean isPrivilegedCustomer(List<String> privilegedCustomerNames,
 			String customerName, boolean isStrategicInitiatives) {
 		if ((isStrategicInitiatives)
@@ -1880,8 +1843,14 @@ public class CustomerService {
 		}
 		return grossMarginPercent;
 	}
-
+	/**
+	 * calculates the win ratio based on the number of wins and losses
+	 * @param oppWins
+	 * @param oppLoss
+	 * @return
+	 */
 	private BigDecimal getWinRatio(int oppWins, int oppLoss) {
+		logger.debug("Inside getWinRatio method");
 		BigDecimal winRatio = new BigDecimal(0);
 		BigDecimal wins = new BigDecimal(oppWins);
 		BigDecimal loss = new BigDecimal(oppLoss);
@@ -1894,7 +1863,13 @@ public class CustomerService {
 		}
 		return winRatio;
 	}
-
+	/**
+	 * Checks if the given date is in between the two dates provided.
+	 * @param startDate
+	 * @param endDate
+	 * @param dateToCheck
+	 * @return
+	 */
 	private boolean checkIfDateBetween(Date startDate, Date endDate,
 			Date dateToCheck) {
 		if (dateToCheck.after(startDate)
@@ -1903,5 +1878,67 @@ public class CustomerService {
 			return true;
 		}
 		return false;
+	}
+
+	public PageDTO<GroupCustomerDTO> getGrpCustomersByType(
+			CustomerListDTO customerListDTO) throws Exception {
+		logger.info("Inside getGrpCustomersByType method");
+		PageDTO<GroupCustomerDTO> grpCustomerDto = new PageDTO<GroupCustomerDTO>();
+		
+		List<String> grpCustomerNames = customerListDTO.getGroupCustomerNames();
+		int page = customerListDTO.getPage();
+		int count = customerListDTO.getCount()==0 ? 15 : customerListDTO.getCount();
+		//getting year to date (YTD) if date is not available
+		Date startDate = customerListDTO.getFromDate() !=null ? customerListDTO.getFromDate() : DateUtils
+				.getFinancialYrStartDate();
+		Date endDate = customerListDTO.getToDate() !=null ? customerListDTO.getToDate() : new Date();
+		String type = StringUtils.isEmpty(customerListDTO.getType()) ? "ALL" : customerListDTO.getType();
+		String mapId = StringUtils.isEmpty(customerListDTO.getMapId()) ? "" : customerListDTO.getMapId();
+		Pageable pageable = new PageRequest(page, count);
+		String userId = DestinationUtils.getCurrentUserId();
+		boolean strategicInitiatives = false;
+		String userGroup = DestinationUtils.getCurrentUserDetails()
+				.getUserGroup();
+		List<String> privilegedCustomerNames = null;
+		//Not getting privileges if the user group is Strategic Intiatives
+		if (userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
+			strategicInitiatives = true;
+		} else {
+			privilegedCustomerNames = customerDao
+					.getPrivilegedCustomers(userId);
+		}
+		Page<GroupCustomerT> grpCustomersPage = null;
+		if (CollectionUtils.isNotEmpty(grpCustomerNames)) {
+			grpCustomersPage = groupCustomerRepository
+					.findByGroupCustomerNameIsIn(grpCustomerNames, pageable);
+		} else {
+			grpCustomersPage = groupCustomerPagingRepository.findAll(pageable);
+		}
+
+		if (grpCustomersPage == null) {
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Customer Details not found");
+		} else {
+			List<GroupCustomerT> grpCustomersList = grpCustomersPage
+					.getContent();
+
+			List<GroupCustomerDTO> grpCustDTOs = Lists.newArrayList();
+			if(StringUtils.isEmpty(mapId)) {
+				mapId = "group-customer-count";
+			}
+			if (CollectionUtils.isNotEmpty(grpCustomersList)) {
+				for (GroupCustomerT groupCustomerT : grpCustomersList) {
+					setCountForGrpCustomer(groupCustomerT, startDate, endDate,
+							type, privilegedCustomerNames, strategicInitiatives);
+					GroupCustomerDTO grpCustDTO = beanMapper.map(
+							groupCustomerT, GroupCustomerDTO.class,
+							mapId);
+					grpCustDTOs.add(grpCustDTO);
+				}
+			}
+			grpCustomerDto.setContent(grpCustDTOs);
+			grpCustomerDto.setTotalCount(grpCustomersPage.getTotalElements());
+		}
+		return grpCustomerDto;
 	}
 }
