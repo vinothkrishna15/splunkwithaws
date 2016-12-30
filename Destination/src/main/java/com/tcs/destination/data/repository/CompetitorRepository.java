@@ -30,5 +30,7 @@ public interface CompetitorRepository extends
 	 		+ "OR (ot.salesStageCode in (9,10,11,13) AND ot.dealClosureDate between :startDate and :endDate))")
 	List<CompetitorMappingT> findByNameContainingAndDealDate(@Param("startDate") Date startDate, @Param("endDate") Date endDate);
 	 
+	@Query(value = "SELECT cmt.logo FROM CompetitorMappingT cmt WHERE cmt.competitorName=:id")
+	byte[] getLogo(@Param("id") String id);
 
 }

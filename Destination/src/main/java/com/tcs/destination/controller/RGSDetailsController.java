@@ -44,7 +44,7 @@ public class RGSDetailsController {
 	 * @throws DestinationException
 	 */
 	@RequestMapping(value = "/download", method = RequestMethod.GET)
-	public @ResponseBody ResponseEntity<InputStreamResource> downloadPartner
+	public @ResponseBody ResponseEntity<InputStreamResource> downloadRGS
 	(@RequestParam(value = "downloadRGS", defaultValue = "false") boolean dataFlag)
 					throws DestinationException {
 		try {

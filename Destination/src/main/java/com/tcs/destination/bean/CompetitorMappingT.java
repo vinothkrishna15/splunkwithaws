@@ -37,6 +37,8 @@ public class CompetitorMappingT implements Serializable {
 	private boolean active;
 
 	private String website;
+	
+	private byte[] logo;
 
 	//bi-directional many-to-one association to OpportunityCompetitorLinkT
 	@JsonIgnore
@@ -92,4 +94,11 @@ public class CompetitorMappingT implements Serializable {
 		this.website = website;
 	}
 
+	public byte[] getLogo() {
+		return logo;
+	}
+
+	public void setLogo(byte[] logo) {
+		this.logo = logo;
+	}
 }

@@ -124,4 +124,7 @@ CrudRepository<PartnerMasterT, String> {
 			String groupPartnerName, String unknownPartner, boolean b);	
 	
 	List<PartnerMasterT> findByActiveTrue();
+	
+	@Query(value = "SELECT pmt.logo FROM PartnerMasterT pmt WHERE pmt.partnerId=:id")
+	byte[] getLogo(@Param("id") String id);
 }
