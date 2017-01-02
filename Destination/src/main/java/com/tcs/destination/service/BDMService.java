@@ -247,7 +247,8 @@ public class BDMService {
 			    throw new DestinationException(HttpStatus.UNAUTHORIZED,  "User is not authorised to access this service");
 			case GEO_HEADS:
 			case IOU_HEADS:	
-			case PMO:	
+			case PMO:
+			case DELIVERY_CLUSTER_HEAD:	
 				if(financialYear.equals("")){
 					financialYear=DateUtils.getCurrentFinancialYear();
 					}
