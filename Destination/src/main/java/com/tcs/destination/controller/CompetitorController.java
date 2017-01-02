@@ -81,14 +81,48 @@ public class CompetitorController {
 	 */
 	@RequestMapping(value = "/opportunity", method = RequestMethod.GET)
 	public @ResponseBody ContentDTO<CompetitorMappingDTO> findByNameContainingAndDealDate(
-			@RequestParam(value = "nameWith", defaultValue = "") String chars,
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "10") int count,
+			@RequestParam(value = "competitors", defaultValue = "") List<String> competitors,
 			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
 			@RequestParam(value = "toDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate)
 			throws DestinationException {
 		logger.info("Inside CompetitorController : Start of retrieving the competitor list");
 		ContentDTO<CompetitorMappingDTO> compList;
 		try {
-			 compList = compService.findByNameContainingAndDealDate(chars, fromDate, toDate);
+			 compList = compService.findByNameContainingAndDealDate(competitors, fromDate, toDate, page, count);
+			logger.info("Inside CompetitorController : End of retrieving the competitor list");
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the competitor ");
+		}
+		return compList;
+
+	}
+
+	/**
+	 * This method is used to retrieve metrics of competitors whose name starts
+	 * with value mentioned in nameWith parameter
+	 * 
+	 * @param nameWith
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/vsOpportunity", method = RequestMethod.GET)
+	public @ResponseBody ContentDTO<CompetitorMappingDTO> findMetricsByNameContainingAndDealDate(
+			@RequestParam(value = "nameWith", defaultValue = "") String chars,
+			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
+			@RequestParam(value = "toDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate)
+					throws DestinationException {
+		logger.info("Inside CompetitorController : Start of retrieving the competitor list");
+		ContentDTO<CompetitorMappingDTO> compList;
+		try {
+			compList = compService.findMetricsByNameContainingAndDealDate(chars, fromDate, toDate);
 			logger.info("Inside CompetitorController : End of retrieving the competitor list");
 		} catch (DestinationException e) {
 			throw e;
@@ -99,7 +133,7 @@ public class CompetitorController {
 							+ chars);
 		}
 		return compList;
-
+		
 	}
 
 }
