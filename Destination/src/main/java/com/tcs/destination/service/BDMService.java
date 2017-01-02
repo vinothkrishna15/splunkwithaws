@@ -155,7 +155,7 @@ public class BDMService {
 				}
 			} else {
 				logger.error("NOT_FOUND: User is not BDM: {}", userId);
-				throw new DestinationException(HttpStatus.NOT_FOUND, "User is not BDM/Practice Owner/Delivery Manager: " + userId);
+				throw new DestinationException(HttpStatus.NOT_FOUND, "User is not BDM/Practice Owner/Delivery Partner: " + userId);
 			}
 		} else {
 			logger.error("NOT_FOUND: User not found: {}", userId);

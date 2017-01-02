@@ -784,7 +784,7 @@ public class BuildDeliveryReport {
 				"Primary Service Line", "Opportunity Description",
 				"Delivery Ownership", "Delivery Centre",
 				"Delivery Cluster Head", "Delivery Centre Head",
-				"Delivery Manager", "Delivery Partner Name",
+				"Delivery Partner", "Delivery Partner Name",
 				"Delivery Partner Emp ID", "WON", "Scheduled Start Date",
 				"Expected End Date", "Offshore Delivery Centre", "RGS ID(s)",
 				"Total Resources", "No of Resources Joined",
