@@ -90,7 +90,6 @@ public class BDMService {
 	private static final String IOU_COND_PREFIX = "ICMT.display_iou in (";
 	private static final String DEAL_CLOSURE_DATE_BETWEEN = " and deal_closure_date between '";
 	
-	private static final String  CUSTOMER_NAME = "RCMT.customer_name in (";
 	
 	private static final String  CUSTOMER_MAS_NAME = "CMT.customer_name in (";
 	
@@ -248,7 +247,6 @@ public class BDMService {
 			case GEO_HEADS:
 			case IOU_HEADS:	
 			case PMO:
-			case DELIVERY_CLUSTER_HEAD:	
 				if(financialYear.equals("")){
 					financialYear=DateUtils.getCurrentFinancialYear();
 					}
