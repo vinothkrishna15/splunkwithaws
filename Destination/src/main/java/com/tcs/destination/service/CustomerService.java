@@ -110,7 +110,7 @@ public class CustomerService {
 
 	@Autowired
 	BeaconRepository beaconRepository;
-
+	
 	@PersistenceContext
 	private EntityManager entityManager;
 
@@ -1849,7 +1849,7 @@ public class CustomerService {
 	 * @param oppLoss
 	 * @return
 	 */
-	private BigDecimal getWinRatio(int oppWins, int oppLoss) {
+	public BigDecimal getWinRatio(int oppWins, int oppLoss) {
 		logger.debug("Inside getWinRatio method");
 		BigDecimal winRatio = new BigDecimal(0);
 		BigDecimal wins = new BigDecimal(oppWins);
