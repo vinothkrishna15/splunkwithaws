@@ -14,15 +14,10 @@ public class SubSpMappingDTO implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private String subSp;
-
-	private boolean active;
-
+	private Boolean active;
 	private String displaySubSp;
-
 	private Integer spCode;
-
 	private Integer subSpId;
-
 	private String actualSubSp;
 
 	public SubSpMappingDTO() {
@@ -37,8 +32,12 @@ public class SubSpMappingDTO implements Serializable {
 		this.subSp = subSp;
 	}
 
-	public boolean isActive() {
+	public Boolean getActive() {
 		return active;
+	}
+
+	public void setActive(Boolean active) {
+		this.active = active;
 	}
 
 	public void setActive(boolean active) {

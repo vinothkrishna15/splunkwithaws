@@ -398,6 +398,7 @@ public class Constants {
 	public static final String OPPORTUNITY_WINLOSS = "opportunity-winloss";
 	public static final String OPPORTUNITY_CUSTOMER_BASE = "opportunity-customer-base";
 	public static final String OPPORTUNITY_FULL = "opportunity-full";
+	public static final String OPPORTUNITY_LIST_MAP = "opportunity-list";
 	
 	public static final String CUSTOMER_MAPPING = "customer-mapping";
 	public static final String CUST_CONNECT_BASE = "cust-connect-base";
@@ -411,9 +412,17 @@ public class Constants {
 	public static final String DELIVERY_CENTRE_MAP = "delivery-centre-map";
 	public static final String DELIVERY_CLUSTER_MAP = "delivery-cluster-map";
 	
-	public static final String CONNECT_MAP = "connect-map";
+	public static final String CONNECT_FULL_MAP = "connect-full-map";
+	public static final String CONNECT_LIST_MAP = "connect-list-map";
 	public static final String CONNECT_CUSTOMER_BASE = "connect-customer-base";
 	public static final String CONNECT_CUSTOMER_CONTACT_BASE = "connect-customer-contact-base";
+	
+	public static final String WHERE = " where ";
+	//Customer Type in DeCrypt
+	public static final String CUSTOMER_TYPE_CONSULTING = "CONSULTING";
+	public static final String CUSTOMER_TYPE_ASSOCIATES = "ASSOCIATES";
+	public static final String CUSTOMER_TYPE_CONNECTS = "CONNECTS";
+	public static final String CUSTOMER_TYPE_OPPORTUNITIES = "OPPORTUNITIES";
 	
 	
 }

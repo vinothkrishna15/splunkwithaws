@@ -15,7 +15,7 @@ public class IouCustomerMappingDTO implements Serializable {
 
 	private String iou;
 	private String displayIou;
-	private boolean active;
+	private Boolean active;
 
 	public IouCustomerMappingDTO() {
 		super();
@@ -37,11 +37,11 @@ public class IouCustomerMappingDTO implements Serializable {
 		this.displayIou = displayIou;
 	}
 
-	public boolean isActive() {
+	public Boolean getActive() {
 		return active;
 	}
 
-	public void setActive(boolean active) {
+	public void setActive(Boolean active) {
 		this.active = active;
 	}
 

@@ -1431,5 +1431,11 @@ public interface OpportunityRepository extends
 	List<OpportunityT> findAllDeliveryOpportunitiesByOwnersAndCustomer(String customerId, List<String> userIds);
 
 	List<OpportunityT> findByDealClosureDateBetween(Date fromDate, Date toDate);
+
+	@Query(value="SELECT ot FROM OpportunityT ot "
+			+ "JOIN ot.customerMasterT ct "
+			+ "WHERE ct.groupCustomerName = :grpCustomer "
+			+ "AND ot.dealClosureDate BETWEEN :fromDate AND :toDate")
+	Page<OpportunityT> findByGrpCustomerAndDealDate(@Param("fromDate") Date fromDate, @Param("toDate") Date toDate, @Param("grpCustomer") String grpCustomer, Pageable pageable);
 	
 }

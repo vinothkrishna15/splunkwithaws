@@ -2316,10 +2316,10 @@ public class ConnectService {
 	 * @param subSPType
 	 * @return
 	 */
-	public ContentDTO<ConnectDTO> getAllByConnect(Date cntDateFrom, Date cntDateTo, String subSPType, String category, String mapId) {
+	public ContentDTO<ConnectDTO> getAllByType(Date cntDateFrom, Date cntDateTo, String subSPType, String category, String mapId) {
 		
 		Date startDate = cntDateFrom != null ? cntDateFrom : DateUtils.getFinancialYrStartDate();
-		Date endDate = cntDateTo != null ? cntDateTo : new Date();
+		Date endDate = cntDateTo != null ? cntDateTo : DateUtils.getFinancialYrEndDate();
 		
 		List<ConnectDTO> dtos = Lists.newArrayList();
 		
@@ -2329,6 +2329,53 @@ public class ConnectService {
 			dtos.add(custDto);
 		}
 		return new ContentDTO<ConnectDTO>(dtos);
+	}
+
+	/**
+	 * fetch all connects of a group customer between dates
+	 * @param cntDateFrom
+	 * @param cntDateTo
+	 * @param count 
+	 * @param page 
+	 * @param subSPType
+	 * @return
+	 */
+	public PageDTO<ConnectDTO> getAllByGrpCustomer(Date cntDateFrom, Date cntDateTo, String grpCustomer, String mapId, int page, int count) {
+		
+		Date startDate = cntDateFrom != null ? cntDateFrom : DateUtils.getFinancialYrStartDate();
+		Date endDate = cntDateTo != null ? cntDateTo : DateUtils.getFinancialYrEndDate();
+		
+		Sort sort = new Sort(Direction.DESC, "startDatetimeOfConnect");
+		Pageable pageable = new PageRequest(page, count, sort);
+		
+		List<ConnectDTO> dtos = Lists.newArrayList();
+		
+		Page<ConnectT> connects = connectRepository.findAllConnectByGrpCustomer(startDate, endDate, grpCustomer, pageable);
+		List<ConnectT> connectList = connects.getContent();
+		if(CollectionUtils.isNotEmpty(connectList)) {
+			for (ConnectT connecT : connectList) {
+				ConnectDTO custDto = beanMapper.map(connecT, ConnectDTO.class, mapId);
+				dtos.add(custDto);
+			}
+		} else {
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Connects not found");
+		}
+		return new PageDTO<ConnectDTO>(dtos, connects.getTotalElements());
+	}
+
+	public ConnectDTO getById(String connectId, String mapId) {
+		logger.debug("Inside findConnectById() service");
+		ConnectDTO connectdto = null;
+		ConnectT connectT = connectRepository.findByConnectId(connectId);
+		if (connectT != null) {
+			connectdto = beanMapper.map(connectT, ConnectDTO.class, mapId);
+		} else {
+			logger.error("NOT_FOUND: Connect not found: {}", connectId);
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Connect not found: " + connectId);
+		}
+		return connectdto;
 	}
 	
 }

@@ -1088,7 +1088,7 @@ public class DeliveryMasterService {
 		EngagementDashboardDTO engagementDashboardDTO = new EngagementDashboardDTO();
 		PageDTO<DeliveryIntimatedT> deliveryMasterDTO = getDeliveryIntimated(sortBy, order, page, count, true);
 		if(deliveryMasterDTO!=null) {
-			int totalCount = deliveryMasterDTO.getTotalCount();
+			long totalCount = deliveryMasterDTO.getTotalCount();
 			engagementDashboardDTO.setEngagementCount(totalCount);
 			engagementDashboardDTO.setEngagementGroupedBy(DeliveryStage.INTIMATED.getStageName());
 		}

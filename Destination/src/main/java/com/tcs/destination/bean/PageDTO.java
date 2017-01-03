@@ -5,13 +5,13 @@ import java.util.List;
 public class PageDTO<T> {
 
 	private List<T> content;
-	private int totalCount;
+	private long totalCount;
 	
 	public PageDTO() {
 		super();
 	}
 	
-	public PageDTO(List<T> content, int totalCount) {
+	public PageDTO(List<T> content, long totalCount) {
 		super();
 		this.content = content;
 		this.totalCount = totalCount;
@@ -23,10 +23,10 @@ public class PageDTO<T> {
 	public void setContent(List<T> content) {
 		this.content = content;
 	}
-	public int getTotalCount() {
+	public long getTotalCount() {
 		return totalCount;
 	}
-	public void setTotalCount(int totalCount) {
+	public void setTotalCount(long totalCount) {
 		this.totalCount = totalCount;
 	}
 	

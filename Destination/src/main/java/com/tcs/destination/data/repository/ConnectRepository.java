@@ -867,5 +867,13 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 	    		@Param("subSPType") String subSPType, 
 	    		@Param("category") String category);
 
+	 @Query(value = "SELECT DISTINCT cont FROM ConnectT cont "
+			 + "JOIN cont.customerMasterT cmt "
+			 + "WHERE cmt.groupCustomerName = :grpCustomer "
+			 + "AND cont.startDatetimeOfConnect BETWEEN :startDate AND :endDate ")
+	 Page<ConnectT> findAllConnectByGrpCustomer(@Param("startDate") Date startDate, 
+			 @Param("endDate") Date endDate, 
+			 @Param("grpCustomer") String grpCustomer, Pageable pageable);
+
 	
 }

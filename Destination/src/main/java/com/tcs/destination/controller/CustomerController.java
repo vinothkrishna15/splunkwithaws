@@ -27,6 +27,8 @@ import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
+import com.tcs.destination.bean.dto.CustomerListDTO;
+import com.tcs.destination.bean.dto.GroupCustomerDTO;
 import com.tcs.destination.enums.SmartSearchType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.CustomerDownloadService;
@@ -630,5 +632,27 @@ public class CustomerController {
 		}
 		
 	}
+	
+	@RequestMapping(value = "/list", method = RequestMethod.POST)
+	public @ResponseBody PageDTO<GroupCustomerDTO> findListOfGrpCustomers(
+			@RequestBody CustomerListDTO customerListDTO)
+			throws DestinationException {
+		logger.info("Inside Customer Controller: Start of findListOfGrpCustomers");
+		PageDTO<GroupCustomerDTO> grpCustomers;
+		try {
+			grpCustomers = customerService.getGrpCustomersByType(
+					customerListDTO);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the ListOfGrpCustomers");
+		}
+		logger.info("Inside Customer Controller: end of findListOfGrpCustomers");
+		return grpCustomers;
+	}
+	
+	
 	
 }

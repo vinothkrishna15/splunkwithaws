@@ -1030,7 +1030,7 @@ public class OpportunityController {
 	public @ResponseBody PageDTO<OpportunityDTO> findOppByPrivilege(
 			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
 			@RequestParam(value = "toDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
-			@RequestParam(value = "mapId", defaultValue = "") String mapId)
+			@RequestParam(value = "mapId", defaultValue = Constants.OPPORTUNITY_CUSTOMER_BASE) String mapId)
 			throws DestinationException {
 		logger.info("Inside OpportunityController: Start of /opportunity/all/privilege");
 		PageDTO<OpportunityDTO> opportunities;
@@ -1066,8 +1066,28 @@ public class OpportunityController {
 		logger.info("Ends - Inside OpportunityController: findById");
 		return opportunity;
 	}
-	
-	
-	
-	
+
+	@RequestMapping(value = "/byGrpCustomer", method = RequestMethod.GET)
+	public @ResponseBody PageDTO<OpportunityDTO> getAllByGrpCustomer(
+			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
+			@RequestParam(value = "toDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
+			@RequestParam(value = "grpCustomer") String grpCustomer,
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "15") int count,
+			@RequestParam(value = "mapId", defaultValue = Constants.OPPORTUNITY_LIST_MAP) String mapId)
+					throws DestinationException {
+		logger.info("Start - Inside OpportunityController: getAllByGrpCustomer");
+		PageDTO<OpportunityDTO> opportunity;
+		try {
+			opportunity = opportunityService.getAllByGrpCustomer(fromDate, toDate, grpCustomer, mapId, page, count);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the opportunity list ");
+		}
+		logger.info("Ends - Inside OpportunityController: getAllByGrpCustomer");
+		return opportunity;
+	}
 }

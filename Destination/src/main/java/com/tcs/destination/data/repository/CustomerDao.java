@@ -8,17 +8,20 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import com.google.common.collect.Lists;
 import com.tcs.destination.bean.QueryBufferDTO;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.UserAccessPrivilegeQueryBuilder;
 import com.tcs.destination.service.CustomerService;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DestinationUtils;
+import com.tcs.destination.utils.QueryConstants;
 
 @Repository
 public class CustomerDao 
@@ -184,6 +187,34 @@ public class CustomerDao
 			queryBufferDTO.setParameterMap(null);
 		}
 	    return queryBufferDTO;
+	}
+	
+	private String getPrivilegedCustomerQuery(String userId)
+			throws Exception {
+		 StringBuffer queryBuffer = new StringBuffer(QueryConstants.CUSTOMER_NAME_FOR_REVENUE_QUERY_PREFIX);
+		 HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
+					.getQueryPrefixMap(QueryConstants.GEO_COND_PREFIX, QueryConstants.SUBSP_COND_PREFIX,
+							QueryConstants.IOU_COND_PREFIX, QueryConstants.CUSTOMER_COND_PREFIX);
+
+		String whereClause = userAccessPrivilegeQueryBuilder
+				.getUserAccessPrivilegeWhereConditionClause(userId,
+						queryPrefixMap);
+		if(StringUtils.isNotEmpty(whereClause)) {
+			queryBuffer.append(Constants.WHERE + whereClause);
+		} else {
+			return null;
+		}
+		return queryBuffer.toString();
+	}
+	
+	public List<String> getPrivilegedCustomers(String userId) throws Exception {
+		List<String> privilegedCustomers = Lists.newArrayList();
+		String queryStr = getPrivilegedCustomerQuery(userId);
+		if(queryStr!=null) {
+			Query query = entityManager.createNativeQuery(queryStr);
+			privilegedCustomers = (List<String>) query.getResultList();
+		}
+		return privilegedCustomers;
 	}
 
 }

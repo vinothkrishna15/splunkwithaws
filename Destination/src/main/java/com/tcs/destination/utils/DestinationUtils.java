@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -176,6 +177,10 @@ public class DestinationUtils {
 			}
 		}
 		return null;
+	}
+	
+	public static byte[] decodeBase64(String base64String) {
+		return Base64.decodeBase64(base64String);
 	}
 	
 }

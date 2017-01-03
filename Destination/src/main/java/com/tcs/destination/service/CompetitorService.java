@@ -4,10 +4,13 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.dozer.DozerBeanMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -52,14 +55,22 @@ public class CompetitorService {
 		return compList;
 	}
 
-	public ContentDTO<CompetitorMappingDTO> findByNameContainingAndDealDate(String chars, Date fromDate, Date toDate) throws Exception {
+	public ContentDTO<CompetitorMappingDTO> findByNameContainingAndDealDate(List<String> competitors, Date fromDate, Date toDate, int page, int count) throws Exception {
 		logger.debug("Begin:Inside findByNameContainingAndDealDate() of CompetitorService");
 		
 		Date startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
 		Date endDate = toDate != null ? toDate : new Date();
 
+		Pageable pageable = new PageRequest(page, count);
+		
 		List<CompetitorMappingDTO> dtos = Lists.newArrayList();
-		List<CompetitorMappingT> competitorList = compRepository.findByNameContainingAndDealDate(startDate, endDate);
+		List<CompetitorMappingT> competitorList;
+		if(CollectionUtils.isEmpty(competitors)) {
+			competitorList = compRepository.findByNameContainingAndDealDate(startDate, endDate, pageable);
+		} else {
+			competitorList = compRepository.findByNameContainingAndDealDate(startDate, endDate, competitors, pageable);
+		}
+		
 		for (CompetitorMappingT competitorMappingT : competitorList) {
 			for (OpportunityCompetitorLinkT oppLink : competitorMappingT.getOpportunityCompetitorLinkTs()) {
 				OpportunityT opportunityT = oppLink.getOpportunityT();
@@ -72,6 +83,21 @@ public class CompetitorService {
 		}
 		logger.info("End:Inside findByNameContainingAndDealDate() of CompetitorService");
 		return new ContentDTO<CompetitorMappingDTO>(dtos);
+	}
+
+	public ContentDTO<CompetitorMappingDTO> findMetricsByNameContainingAndDealDate(String chars, Date fromDate,
+			Date toDate) {
+		logger.debug("Begin:Inside findByNameContainingAndDealDate() of CompetitorService");
+		
+		Date startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
+		Date endDate = toDate != null ? toDate : new Date();
+
+//		compRepository
+		
+		
+		
+		logger.info("End:Inside findByNameContainingAndDealDate() of CompetitorService");
+		return null;//new ContentDTO<CompetitorMappingDTO>(dtos);
 	}
 
 }

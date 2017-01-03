@@ -239,5 +239,17 @@ public static final String TASK_TRGT_DT_POST_SUPERVISOR = "select distinct t.tas
     		+ "and OPP.sales_stage_code in (9,10,11,13)";
     
     public static final String OPPORTUNITY_DEAL_CLOSURE_DATE_ORDER_BY = " order by OPP.deal_closure_date ASC";
-
+    
+    public static final String CUSTOMER_NAME_FOR_REVENUE_QUERY_PREFIX = "select distinct(CMT.customer_name) from customer_master_t CMT "
+    		+ "join revenue_customer_mapping_t RCMT on RCMT.customer_id = CMT.customer_id "
+    		+ "join actual_revenues_data_t ARDT on ARDT.revenue_customer_map_id = RCMT.revenue_customer_map_id "
+    		+ "join geography_mapping_t GMT on RCMT.customer_geography = GMT.geography "
+			+ "join iou_customer_mapping_t ICMT on RCMT.finance_iou = ICMT.iou "
+			+ "join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp ";
+    
+    public static final String GEO_COND_PREFIX = "GMT.geography in (";
+    public static final String IOU_COND_PREFIX = "ICMT.display_iou in (";
+    public static final String SUBSP_COND_PREFIX = "SSMT.display_sub_sp in (";
+    public static final String CUSTOMER_COND_PREFIX = "CMT.customer_name in (";
+    
 }

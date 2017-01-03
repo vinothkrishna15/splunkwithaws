@@ -177,4 +177,7 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 	Set<UserT> findBySupervisorUserIdInAndUserGroupAndUserNameIgnoreCaseContaining(
 			List<String> deliveryHeads, String deliveryManager, String nameWith);
 	
+	
+	@Query(value = "SELECT ut.userPhoto FROM UserT ut WHERE ut.userId=:id")
+	byte[] getLogo(@Param("id") String id);
 }

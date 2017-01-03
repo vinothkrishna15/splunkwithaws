@@ -10,7 +10,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.tcs.destination.bean.CustomerMasterT;
-import com.tcs.destination.bean.PartnerMasterT;
 
 @Repository
 public interface CustomerRepository extends
@@ -156,6 +155,9 @@ public interface CustomerRepository extends
 	List<CustomerMasterT> getCustomersByIou(@Param("term") String term, @Param("getAll") boolean getAll);
     
     List<CustomerMasterT> findByActiveTrue();
+
+    @Query(value = "SELECT cmt.logo FROM CustomerMasterT cmt where cmt.customerId=:id")
+	byte[] getLogo(@Param("id") String id);
 
 	/* ---------- ends - repository methods for smart search --------- */
 }
