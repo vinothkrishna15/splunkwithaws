@@ -30,7 +30,7 @@ public interface CompetitorRepository extends
 	 		+ "JOIN cmt.opportunityCompetitorLinkTs oclt "
 	 		+ "JOIN oclt.opportunityT ot "
 	 		+ "WHERE (ot.salesStageCode in (4,5,6,7,8) "
-	 		+ "OR (ot.salesStageCode in (9,10,11,13) AND ot.dealClosureDate between :startDate and :endDate))"
+	 		+ "OR (ot.salesStageCode in (9,10) AND ot.dealClosureDate between :startDate and :endDate))"
 	 		+ "AND (cmt.competitorName in (:competitors))")
 	Page<CompetitorMappingT> findByNameContainingAndDealDate(@Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("competitors") List<String> competitors, Pageable pageable);
 
@@ -38,7 +38,7 @@ public interface CompetitorRepository extends
 			 + "JOIN cmt.opportunityCompetitorLinkTs oclt "
 			 + "JOIN oclt.opportunityT ot "
 			 + "WHERE (ot.salesStageCode in (4,5,6,7,8) "
-			 + "OR (ot.salesStageCode in (9,10,11,13) AND ot.dealClosureDate between :startDate and :endDate))")
+			 + "OR (ot.salesStageCode in (9,10) AND ot.dealClosureDate between :startDate and :endDate))")
 	 Page<CompetitorMappingT> findByNameContainingAndDealDate(@Param("startDate") Date startDate, @Param("endDate") Date endDate, Pageable pageable);
 	 
 	 
@@ -54,10 +54,14 @@ public interface CompetitorRepository extends
 	 		+ " JOIN (select cmtpipe.competitor_name, sum(deal_value_usd_converter(ot.digital_deal_value, ot.deal_currency)) as pipe_value, count(ot) as pipe_count from competitor_mapping_t cmtpipe"
 	 		+ " LEFT JOIN opportunity_competitor_link_t oclt on oclt.competitor_name = cmtpipe.competitor_name"
 	 		+ " LEFT JOIN opportunity_t ot on oclt.opportunity_id = ot.opportunity_id AND ot.sales_stage_code in (4,5,6,7,8)"
-	 		+ " group by cmtpipe.competitor_name) as pipe on pipe.competitor_name = cmt1.competitor_name", nativeQuery = true)
-	 List<Object[]> findOpportunityMetrics(@Param("startDate") Date startDate, @Param("endDate") Date endDate);
+	 		+ " group by cmtpipe.competitor_name) as pipe on pipe.competitor_name = cmt1.competitor_name"
+	 		+ " where cmt1.competitor_name in (:competitors) OR ('') in (:competitors)"
+	 		+ "order by wins.win_count DESC"
+	 		, nativeQuery = true)
+	 List<Object[]> findOpportunityMetrics(@Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("competitors") List<String> competitors);
 	 
 	@Query(value = "SELECT cmt.logo FROM CompetitorMappingT cmt WHERE cmt.competitorName=:id")
 	byte[] getLogo(@Param("id") String id);
 
+	
 }

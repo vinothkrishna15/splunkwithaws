@@ -93,15 +93,19 @@ public class CompetitorService {
 		return new PageDTO<CompetitorMappingDTO>(dtos, competitorList.getTotalElements());
 	}
 
-	public ContentDTO<CompetitorOpportunityWrapperDTO> findMetricsByNameContainingAndDealDate(String chars, Date fromDate,
+	public ContentDTO<CompetitorOpportunityWrapperDTO> findMetricsByNameContainingAndDealDate(List<String> competitors, Date fromDate,
 			Date toDate) {
 		logger.debug("Begin:Inside findByNameContainingAndDealDate() of CompetitorService");
 		
 		Date startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
 		Date endDate = toDate != null ? toDate : new Date();
 
+		if(CollectionUtils.isEmpty(competitors)) {
+			competitors = Lists.newArrayList("");
+		}
+		
 		List<CompetitorOpportunityWrapperDTO> dtoList = Lists.newArrayList();
-		List<Object[]> values = compRepository.findOpportunityMetrics(startDate, endDate);
+		List<Object[]> values = compRepository.findOpportunityMetrics(startDate, endDate, competitors);
 		if(CollectionUtils.isNotEmpty(values)) {
 			for (Object[] fieldArr : values) {
 				CompetitorOpportunityWrapperDTO dto = new CompetitorOpportunityWrapperDTO();

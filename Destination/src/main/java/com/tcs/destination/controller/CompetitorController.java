@@ -117,22 +117,21 @@ public class CompetitorController {
 	 */
 	@RequestMapping(value = "/vsOpportunity", method = RequestMethod.GET)
 	public @ResponseBody ContentDTO<CompetitorOpportunityWrapperDTO> findMetricsByNameContainingAndDealDate(
-			@RequestParam(value = "nameWith", defaultValue = "") String chars,
+			@RequestParam(value = "competitors", defaultValue = "") List<String> competitors,
 			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
 			@RequestParam(value = "toDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate)
 					throws DestinationException {
 		logger.info("Inside CompetitorController : Start of retrieving the competitor list");
 		ContentDTO<CompetitorOpportunityWrapperDTO> compList;
 		try {
-			compList = compService.findMetricsByNameContainingAndDealDate(chars, fromDate, toDate);
+			compList = compService.findMetricsByNameContainingAndDealDate(competitors, fromDate, toDate);
 			logger.info("Inside CompetitorController : End of retrieving the competitor list");
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					"Backend error in retrieving the competitor name for : "
-							+ chars);
+					"Backend error in retrieving the competitor list");
 		}
 		return compList;
 		
