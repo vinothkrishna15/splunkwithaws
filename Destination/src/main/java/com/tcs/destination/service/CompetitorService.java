@@ -1,6 +1,7 @@
 package com.tcs.destination.service;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
 
@@ -9,6 +10,7 @@ import org.dozer.DozerBeanMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -19,11 +21,14 @@ import com.tcs.destination.bean.CompetitorMappingT;
 import com.tcs.destination.bean.ContentDTO;
 import com.tcs.destination.bean.OpportunityCompetitorLinkT;
 import com.tcs.destination.bean.OpportunityT;
+import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.dto.CompetitorMappingDTO;
+import com.tcs.destination.bean.dto.CompetitorOpportunityWrapperDTO;
 import com.tcs.destination.data.repository.CompetitorRepository;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
+import com.tcs.destination.utils.DestinationUtils;
 
 /**
  * This service retrieves data from competitor repository
@@ -55,7 +60,7 @@ public class CompetitorService {
 		return compList;
 	}
 
-	public ContentDTO<CompetitorMappingDTO> findByNameContainingAndDealDate(List<String> competitors, Date fromDate, Date toDate, int page, int count) throws Exception {
+	public PageDTO<CompetitorMappingDTO> findByNameContainingAndDealDate(List<String> competitors, Date fromDate, Date toDate, int page, int count) throws Exception {
 		logger.debug("Begin:Inside findByNameContainingAndDealDate() of CompetitorService");
 		
 		Date startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
@@ -64,40 +69,58 @@ public class CompetitorService {
 		Pageable pageable = new PageRequest(page, count);
 		
 		List<CompetitorMappingDTO> dtos = Lists.newArrayList();
-		List<CompetitorMappingT> competitorList;
+		Page<CompetitorMappingT> competitorList;
 		if(CollectionUtils.isEmpty(competitors)) {
 			competitorList = compRepository.findByNameContainingAndDealDate(startDate, endDate, pageable);
 		} else {
 			competitorList = compRepository.findByNameContainingAndDealDate(startDate, endDate, competitors, pageable);
 		}
 		
-		for (CompetitorMappingT competitorMappingT : competitorList) {
-			for (OpportunityCompetitorLinkT oppLink : competitorMappingT.getOpportunityCompetitorLinkTs()) {
-				OpportunityT opportunityT = oppLink.getOpportunityT();
-				if(opportunityT != null && opportunityT.getDigitalDealValue() != null) {
-					BigDecimal convertedValue = converterService.convertCurrencyRate(opportunityT.getDealCurrency(), Constants.USD, opportunityT.getDigitalDealValue().doubleValue());
-					opportunityT.setDigitalDealValue(convertedValue.intValue());
+		
+		if(CollectionUtils.isNotEmpty(competitorList.getContent())) {
+			for (CompetitorMappingT competitorMappingT : competitorList.getContent()) {
+				for (OpportunityCompetitorLinkT oppLink : competitorMappingT.getOpportunityCompetitorLinkTs()) {
+					OpportunityT opportunityT = oppLink.getOpportunityT();
+					if(opportunityT != null && opportunityT.getDigitalDealValue() != null) {
+						BigDecimal convertedValue = converterService.convertCurrencyRate(opportunityT.getDealCurrency(), Constants.USD, opportunityT.getDigitalDealValue().doubleValue());
+						opportunityT.setDigitalDealValue(convertedValue.intValue());
+					}
 				}
+				dtos.add(beanMapper.map(competitorMappingT, CompetitorMappingDTO.class, Constants.COMPETITOR_OPPORTUNITY));
 			}
-			dtos.add(beanMapper.map(competitorMappingT, CompetitorMappingDTO.class, Constants.COMPETITOR_OPPORTUNITY));
 		}
 		logger.info("End:Inside findByNameContainingAndDealDate() of CompetitorService");
-		return new ContentDTO<CompetitorMappingDTO>(dtos);
+		return new PageDTO<CompetitorMappingDTO>(dtos, competitorList.getTotalElements());
 	}
 
-	public ContentDTO<CompetitorMappingDTO> findMetricsByNameContainingAndDealDate(String chars, Date fromDate,
+	public ContentDTO<CompetitorOpportunityWrapperDTO> findMetricsByNameContainingAndDealDate(String chars, Date fromDate,
 			Date toDate) {
 		logger.debug("Begin:Inside findByNameContainingAndDealDate() of CompetitorService");
 		
 		Date startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
 		Date endDate = toDate != null ? toDate : new Date();
 
-//		compRepository
-		
-		
+		List<CompetitorOpportunityWrapperDTO> dtoList = Lists.newArrayList();
+		List<Object[]> values = compRepository.findOpportunityMetrics(startDate, endDate);
+		if(CollectionUtils.isNotEmpty(values)) {
+			for (Object[] fieldArr : values) {
+				CompetitorOpportunityWrapperDTO dto = new CompetitorOpportunityWrapperDTO();
+				dto.setCompetitorName((String) fieldArr[0]);
+				dto.setWinCount((BigInteger) fieldArr[1]);
+				dto.setWinValue(DestinationUtils.scaleToTwoDecimal((BigDecimal) fieldArr[2], true));
+				dto.setLossCount((BigInteger) fieldArr[3]);
+				dto.setLossValue(DestinationUtils.scaleToTwoDecimal((BigDecimal)fieldArr[4], true));
+				dto.setPipelineCount((BigInteger) fieldArr[5]);
+				dto.setPiplineValue(DestinationUtils.scaleToTwoDecimal((BigDecimal)fieldArr[6], true));
+				
+				dtoList.add(dto);
+			}
+		} else {
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Competitor data is not available");
+		}
 		
 		logger.info("End:Inside findByNameContainingAndDealDate() of CompetitorService");
-		return null;//new ContentDTO<CompetitorMappingDTO>(dtos);
+		return new ContentDTO<CompetitorOpportunityWrapperDTO>(dtoList);//new ContentDTO<CompetitorMappingDTO>(dtos);
 	}
 
 }
