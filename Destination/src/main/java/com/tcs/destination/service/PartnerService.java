@@ -410,7 +410,7 @@ public class PartnerService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Partners found");
 		}
-		preparePartner(partnerList,true);
+		preparePartner(partnerList,false);
 		paginatedResponse.setPartnerMasterTs(partnerList);
 		logger.debug("End:Inside findByNameStarting method of PartnerService");
 		return paginatedResponse;
@@ -420,6 +420,7 @@ public class PartnerService {
 		for (PartnerMasterT partner : partners) {
 			preparePartner(partner, userT);
 			if(isAjax) {
+				partner.setPartnerMasterT(null);
 				partner.setPartnerMasterTs(null);
 			}
 		}

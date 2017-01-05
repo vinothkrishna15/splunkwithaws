@@ -1952,7 +1952,7 @@ public class OpportunityService {
 						.delete(opportunityPartnerLinkT
 								.getOpportunityPartnerLinkId());
 			}
-			opportunity.setOpportunityPartnerLinkTs(null);
+			opportunity.setDeleteOpportunityPartnerLinkTs(null);
 		}
 
 		if (opportunity.getDeleteOpportunityCompetitorLinkTs() != null
