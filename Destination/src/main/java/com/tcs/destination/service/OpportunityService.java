@@ -3847,8 +3847,12 @@ public class OpportunityService {
 		Page<OpportunityT> opportunities = opportunityRepository.findByOppNameAndIdsIn("%"+searchTerm+"%", oppIds, pageable);
 		List<OpportunityDTO> oppDtos = Lists.newArrayList();
 		if(CollectionUtils.isNotEmpty(opportunities.getContent())) {
-			for (OpportunityT opportunity : opportunities.getContent()) {
-				OpportunityDTO dto = beanMapper.map(opportunity, OpportunityDTO.class, mapId);
+			for (OpportunityT opportunityT : opportunities.getContent()) {
+				OpportunityDTO dto = beanMapper.map(opportunityT, OpportunityDTO.class, mapId);
+				if(opportunityT.getDigitalDealValue() != null && opportunityT.getDealCurrency() != null && !Constants.USD.equals(opportunityT.getDealCurrency())) {
+					BigDecimal dealValueInUsd = beaconConverterService.convertCurrencyRate(opportunityT.getDealCurrency(), Constants.USD, opportunityT.getDigitalDealValue());
+					dto.setDigitalDealValue(dealValueInUsd.intValue());
+				}
 				oppDtos.add(dto);
 			}
 		} else {
