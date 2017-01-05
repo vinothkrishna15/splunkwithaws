@@ -38,6 +38,8 @@ import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.dto.OpportunityDTO;
+import com.tcs.destination.bean.dto.QualifiedPipelineDTO;
+import com.tcs.destination.bean.dto.QualifiedPipelineDetails;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.JobName;
 import com.tcs.destination.enums.OperationType;
@@ -1118,5 +1120,42 @@ public class OpportunityController {
 		}
 		logger.info("Ends - Inside OpportunityController: getAllByParam");
 		return opportunity;
+	}
+	// Changes for Opportunities - Qualified
+	/**
+	 * Public method to fetch the counts of opportunities for qualified pipeline (4-8)
+	 * @param oppType
+	 * @param dispGeo
+	 * @return opportunity - Object of all the values.
+	 * @throws DestinationException
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@RequestMapping(value = "/qualified",method = RequestMethod.GET)
+	@ResponseBody
+	public QualifiedPipelineDetails<QualifiedPipelineDTO> retrieveQualifiedPipelineOpportunityDetails(
+			@RequestParam(value = "oppType", defaultValue = "ALL") String oppType,
+			@RequestParam(value = "dispGeo", defaultValue = "ALL") String dispGeo)
+			throws DestinationException {
+
+		logger.info("Inside Opportunities Qualified Controller: Start of fetching qualified details");
+
+		QualifiedPipelineDetails opportunity;
+		try {
+
+			opportunity = opportunityService
+					.findQualifiedPipelineOpportunityDetails(oppType, dispGeo);
+
+			logger.info("Inside Opportunities Qualified Controller: Exit");
+
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend Error while retrieving customer consulting details");
+		}
+
+		return opportunity;
+
 	}
 }
