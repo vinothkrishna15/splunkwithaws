@@ -416,6 +416,7 @@ public class Constants {
 	public static final String CONNECT_LIST_MAP = "connect-list-map";
 	public static final String CONNECT_CUSTOMER_BASE = "connect-customer-base";
 	public static final String CONNECT_CUSTOMER_CONTACT_BASE = "connect-customer-contact-base";
+	public static final String GEOGRAPHY_MAPPING = "geography-mapping";
 	
 	public static final String WHERE = " where ";
 	//Customer Type in DeCrypt

@@ -1,5 +1,6 @@
 package com.tcs.destination.data.repository;
 
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -154,10 +155,32 @@ public interface CustomerRepository extends
 			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
 	List<CustomerMasterT> getCustomersByIou(@Param("term") String term, @Param("getAll") boolean getAll);
     
+    /* ---------- ends - repository methods for smart search --------- */
+    
     List<CustomerMasterT> findByActiveTrue();
 
     @Query(value = "SELECT cmt.logo FROM CustomerMasterT cmt where cmt.customerId=:id")
 	byte[] getLogo(@Param("id") String id);
+    
+    
+  //***************** Start of carousel queries *************//
+    @Query(value = "SELECT COUNT(DISTINCT CMT.groupCustomerName) from CustomerMasterT CMT"
+    		+ " JOIN CMT.connectTs CNN where CNN.startDatetimeOfConnect BETWEEN"
+    		+ " (:startDate) and (:endDate)")
+	Integer getCountOfUniqueCustomersConnected(@Param("startDate") Date startDate,@Param("endDate") Date endDate);
 
-	/* ---------- ends - repository methods for smart search --------- */
+    @Query(value = "SELECT DISTINCT CMT.groupCustomerName, COUNT(CAT.customerAssociateId) from CustomerMasterT CMT"
+    		+ " JOIN CMT.revenueCustomerMappingTs RCMT"
+    		+ " JOIN RCMT.customerAssociateTs CAT GROUP BY CMT.groupCustomerName"
+    		+ " HAVING COUNT(CAT.customerAssociateId) >= (:associateCount)")
+	List<Object[]> getCountOfCustomersByAssociates(@Param("associateCount") Long associateCount);
+	
+	@Query(value = "SELECT COUNT(DISTINCT CMT.groupCustomerName) from CustomerMasterT CMT"
+			+ " JOIN CMT.revenueCustomerMappingTs RCMT"
+			+ " JOIN RCMT.actualRevenuesDataTs ARDT where"
+			+ " ARDT.subSp LIKE '%Consulting%' and ARDT.financialYear = (:financialYear)")
+	Integer getCountOfConsultingCustomers(@Param("financialYear") String financialYear);
+	
+	//***************** End of carousel queries *************//
+
 }

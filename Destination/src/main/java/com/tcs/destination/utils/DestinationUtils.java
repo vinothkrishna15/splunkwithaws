@@ -7,6 +7,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -182,5 +183,17 @@ public class DestinationUtils {
 	public static byte[] decodeBase64(String base64String) {
 		return Base64.decodeBase64(base64String);
 	}
+	
+	public static BigDecimal scaleToTwoDecimal(BigDecimal val, boolean zeroIfNull) {
+		BigDecimal returnValue = null; 
+		if(val != null) {
+			returnValue = val.setScale(2, BigDecimal.ROUND_HALF_UP);
+		} else if(zeroIfNull) {
+			 return new BigDecimal(0);
+		}
+		
+		return returnValue;
+	}
+	
 	
 }

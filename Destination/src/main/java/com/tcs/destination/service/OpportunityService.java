@@ -3725,16 +3725,6 @@ public class OpportunityService {
 			throws Exception {
 		StringBuffer queryBuffer = new StringBuffer(
 				QueryConstants.OPPORTUNITY_QUERY_PREFIX);
-		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
-				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, CUSTOMER_COND_PREFIX);
-
-		String whereClause = userAccessPrivilegeQueryBuilder
-				.getUserAccessPrivilegeWhereConditionClause(userId,
-						queryPrefixMap);
-		if (whereClause != null && !whereClause.isEmpty()) {
-			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
-		}
 		queryBuffer.append(QueryConstants.OPPORTUNITY_DEAL_CLOSURE_DATE_ORDER_BY);
 		return queryBuffer.toString();
 	}
