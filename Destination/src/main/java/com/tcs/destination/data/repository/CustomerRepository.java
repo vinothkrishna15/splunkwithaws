@@ -155,11 +155,15 @@ public interface CustomerRepository extends
 			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
 	List<CustomerMasterT> getCustomersByIou(@Param("term") String term, @Param("getAll") boolean getAll);
     
+    /* ---------- ends - repository methods for smart search --------- */
+    
     List<CustomerMasterT> findByActiveTrue();
 
     @Query(value = "SELECT cmt.logo FROM CustomerMasterT cmt where cmt.customerId=:id")
 	byte[] getLogo(@Param("id") String id);
-
+    
+    
+  //***************** Start of carousel queries *************//
     @Query(value = "SELECT COUNT(DISTINCT CMT.groupCustomerName) from CustomerMasterT CMT"
     		+ " JOIN CMT.connectTs CNN where CNN.startDatetimeOfConnect BETWEEN"
     		+ " (:startDate) and (:endDate)")
@@ -176,6 +180,7 @@ public interface CustomerRepository extends
 			+ " JOIN RCMT.actualRevenuesDataTs ARDT where"
 			+ " ARDT.subSp LIKE '%Consulting%' and ARDT.financialYear = (:financialYear)")
 	Integer getCountOfConsultingCustomers(@Param("financialYear") String financialYear);
+	
+	//***************** End of carousel queries *************//
 
-	/* ---------- ends - repository methods for smart search --------- */
 }

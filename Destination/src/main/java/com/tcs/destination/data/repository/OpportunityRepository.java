@@ -1438,31 +1438,24 @@ public interface OpportunityRepository extends
 			+ "AND ot.dealClosureDate BETWEEN :fromDate AND :toDate")
 	Page<OpportunityT> findByGrpCustomerAndDealDate(@Param("fromDate") Date fromDate, @Param("toDate") Date toDate, @Param("grpCustomer") String grpCustomer, Pageable pageable);
 
-	@Query(value = "select count(OPP.opportunity_id) , sum((OPP.digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t "
-			+ "where currency_name= OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t "
-			+ "where currency_name = ('USD'))) from opportunity_t OPP where OPP.sales_stage_code in (:salesStageCode) and "
+	//***************** Start of carousel queries *************//
+	@Query(value = "select count(OPP.opportunity_id) , sum(deal_value_usd_converter(OPP.digital_deal_value, OPP.deal_currency)) from opportunity_t OPP where OPP.sales_stage_code in (:salesStageCode) and "
 			+ "deal_closure_date between (:startDate) and (:endDate)", nativeQuery = true)
 	List<Object[]> getWinAndLossValue(@Param("startDate") Date startDate, @Param("endDate") Date endDate,
 			@Param("salesStageCode") ArrayList<Integer> salesStageCode);
 
-	@Query(value="select count(OPP.opportunity_id) , sum((OPP.digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t "
-			+ "where currency_name= OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t "
-			+ "where currency_name = ('USD'))) from opportunity_t OPP where OPP.sales_stage_code in (4,5,6,7,8)",nativeQuery = true)
+	@Query(value="select count(OPP.opportunity_id), sum(deal_value_usd_converter(OPP.digital_deal_value, OPP.deal_currency)) from opportunity_t OPP where OPP.sales_stage_code in (4,5,6,7,8)",nativeQuery = true)
 	List<Object[]> getQualifiedValues();
 
-	@Query(value = "select count(OPP.opportunity_id) , sum((OPP.digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t "
-			+ "where currency_name= OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t "
-			+ "where currency_name = ('USD'))) from opportunity_t OPP join "
+	@Query(value = "select count(OPP.opportunity_id) , sum(deal_value_usd_converter(OPP.digital_deal_value, OPP.deal_currency)) from opportunity_t OPP join "
 			+ "bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id "
 			+ "where OPP.sales_stage_code in (5,6,7,8,9,10,12) and BDT.bid_id = (select bid_id from bid_details_t "
 			+ "where opportunity_id = OPP.opportunity_id and actual_bid_submission_date "
 			+ "between (:startDate) and (:endDate) order by bid_id DESC limit 1) ", nativeQuery = true)
 	List<Object[]> getBidsSubmittedCountAndValues(@Param("startDate") Date startDate,@Param("endDate") Date endDate);
 
-	@Query(value = "select count(OPP.opportunity_id) , sum((OPP.digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t "
-			+ "where currency_name= OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t "
-			+ "where currency_name = ('USD'))) from opportunity_t OPP "
+	@Query(value = "select count(OPP.opportunity_id) , sum(deal_value_usd_converter(OPP.digital_deal_value, OPP.deal_currency)) from opportunity_t OPP "
 			+ "where OPP.opportunity_request_receive_date between (:startDate) and (:endDate) ", nativeQuery = true)
 	List<Object[]> getRequestReceivedCountAndValues(@Param("startDate") Date startDate,@Param("endDate") Date endDate);
-	
+	//***************** End of carousel queries *************//
 }

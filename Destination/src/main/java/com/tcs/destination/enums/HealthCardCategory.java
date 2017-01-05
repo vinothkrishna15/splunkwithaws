@@ -37,4 +37,13 @@ public enum HealthCardCategory {
 		}
 		return null;
 	}
+	
+	public static HealthCardCategory valueOfCategory(String category) {
+		for(HealthCardCategory h : HealthCardCategory.values()) {
+			if(h.getCategory().equals(category)) {
+				return h;
+			}
+		}
+		return null;
+	}
 }
