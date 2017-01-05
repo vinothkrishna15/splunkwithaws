@@ -90,6 +90,14 @@ public class RevenueUploadHelper {
 		String revenueAmount = data[7];
 		String clientCountryName = data[8];
 		String subSp = data[10];
+		String category = data[13];
+		
+		if(StringUtils.isEmpty(category)) {
+			error.setRowNumber(Integer.parseInt(data[0])+1);
+			errorMsg.append(" Category is empty ");
+		} else {
+			actualRevenueT.setCategory(category);
+		}
 
 					if (!StringUtils.isEmpty(month)) {
 
@@ -171,6 +179,7 @@ public class RevenueUploadHelper {
 				error.setRowNumber(Integer.parseInt(data[0]) + 1);
 				errorMsg.append(" Finance Iou is Empty ");
 		}
+		
         
 		//check if there are no errors
 		if(StringUtils.isEmpty(errorMsg.toString())){
