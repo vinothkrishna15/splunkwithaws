@@ -43,9 +43,7 @@ import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
 import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DeliveryCentreT;
-import com.tcs.destination.bean.DeliveryIntimatedCentreLinkT;
 import com.tcs.destination.bean.DeliveryIntimatedT;
-import com.tcs.destination.bean.DeliveryMasterManagerLinkT;
 import com.tcs.destination.bean.DeliveryMasterT;
 import com.tcs.destination.bean.DeliveryOwnershipT;
 import com.tcs.destination.bean.NotesT;
@@ -3758,7 +3756,7 @@ public class OpportunityService {
 	 * @param count
 	 * @return
 	 */
-	public PageDTO<OpportunityDTO> getAllByGrpCustomer(Date fromDate, Date toDate, String grpCustomer,
+	public PageDTO<OpportunityDTO> getAllByGrpCustomer(Date fromDate, Date toDate, String grpCustomer, List<Integer> stages,
 			String mapId, int page, int count) {
 
 		Sort sort = new Sort(Direction.DESC, "dealClosureDate");
@@ -3767,7 +3765,7 @@ public class OpportunityService {
 		Date startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
 		Date endDate = toDate != null ? toDate : new Date();
 
-		Page<OpportunityT> oppTs = opportunityRepository.findByGrpCustomerAndDealDate(startDate, endDate, grpCustomer, pageable);
+		Page<OpportunityT> oppTs = opportunityRepository.findByGrpCustomerAndDealDate(startDate, endDate, grpCustomer, stages, pageable);
 
 		List<OpportunityDTO> dtos = Lists.newArrayList();
 		List<OpportunityT> oppList = oppTs.getContent();
@@ -3787,5 +3785,17 @@ public class OpportunityService {
 		}
 
 		return new PageDTO<OpportunityDTO>(dtos, (int)oppTs.getTotalElements());
+	}
+
+	public PageDTO<OpportunityDTO> getAllByParam(List<Integer> stages, String oppType, String dispGeo, String category,
+			String searchTerm, Date fromDate, Date toDate, String mapId, int page, int count) {
+
+		/*Bid
+		5,6,7,8,9,10,12
+		
+		req
+		0,1,2,3,4,5,6,7,8,9,10,12
+		*/
+		return null;
 	}
 }

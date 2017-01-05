@@ -1072,6 +1072,7 @@ public class OpportunityController {
 			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
 			@RequestParam(value = "toDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
 			@RequestParam(value = "grpCustomer") String grpCustomer,
+			@RequestParam(value = "stages") List<Integer> stages,
 			@RequestParam(value = "page", defaultValue = "0") int page,
 			@RequestParam(value = "count", defaultValue = "15") int count,
 			@RequestParam(value = "mapId", defaultValue = Constants.OPPORTUNITY_LIST_MAP) String mapId)
@@ -1079,7 +1080,7 @@ public class OpportunityController {
 		logger.info("Start - Inside OpportunityController: getAllByGrpCustomer");
 		PageDTO<OpportunityDTO> opportunity;
 		try {
-			opportunity = opportunityService.getAllByGrpCustomer(fromDate, toDate, grpCustomer, mapId, page, count);
+			opportunity = opportunityService.getAllByGrpCustomer(fromDate, toDate, grpCustomer, stages, mapId, page, count);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -1088,6 +1089,34 @@ public class OpportunityController {
 					"Backend error in retrieving the opportunity list ");
 		}
 		logger.info("Ends - Inside OpportunityController: getAllByGrpCustomer");
+		return opportunity;
+	}
+	
+	@RequestMapping(value = "/listByParam", method = RequestMethod.GET)
+	public @ResponseBody PageDTO<OpportunityDTO> getAllByParam(
+			@RequestParam(value = "stages") List<Integer> stages,
+			@RequestParam(value = "oppType", defaultValue = "ALL") String oppType,
+			@RequestParam(value = "dispGeo", defaultValue = "ALL") String dispGeo,
+			@RequestParam(value = "category", defaultValue = "ALL") String category,
+			@RequestParam(value = "searchTerm", defaultValue = "ALL") String searchTerm,
+			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
+			@RequestParam(value = "toDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "15") int count,
+			@RequestParam(value = "mapId", defaultValue = Constants.OPPORTUNITY_LIST_MAP) String mapId)
+					throws DestinationException {
+		logger.info("Start - Inside OpportunityController: getAllByParam");
+		PageDTO<OpportunityDTO> opportunity;
+		try {
+			opportunity = opportunityService.getAllByParam(stages, oppType, dispGeo, category, searchTerm, fromDate, toDate, mapId, page, count);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the opportunity list ");
+		}
+		logger.info("Ends - Inside OpportunityController: getAllByParam");
 		return opportunity;
 	}
 }
