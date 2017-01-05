@@ -26,6 +26,7 @@ import com.google.common.collect.Maps;
 import com.tcs.destination.bean.SearchResult;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.controller.UserRepositoryUserDetailsService.UserRepositoryUserDetails;
+import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
 
 public class DestinationUtils {
@@ -194,6 +195,16 @@ public class DestinationUtils {
 		
 		return returnValue;
 	}
+
+	public static List<String> getSalesUserGroups() {
+		return Lists.newArrayList(UserGroup.BDM.getValue(), UserGroup.BDM_SUPERVISOR.getValue(), UserGroup.GEO_HEADS.getValue());
+	}
+
+	public static List<String> getConsultingUserGroups() {
+		return Lists.newArrayList(UserGroup.PRACTICE_HEAD.getValue(), UserGroup.PRACTICE_OWNER.getValue());
+	}
+	
+	
 	
 	
 }
