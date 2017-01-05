@@ -43,9 +43,7 @@ import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
 import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DeliveryCentreT;
-import com.tcs.destination.bean.DeliveryIntimatedCentreLinkT;
 import com.tcs.destination.bean.DeliveryIntimatedT;
-import com.tcs.destination.bean.DeliveryMasterManagerLinkT;
 import com.tcs.destination.bean.DeliveryMasterT;
 import com.tcs.destination.bean.DeliveryOwnershipT;
 import com.tcs.destination.bean.NotesT;
@@ -1769,6 +1767,9 @@ public class OpportunityService {
 			for (Integer id : storedCentres) {
 				opportunityDeliveryCentreMappingTRepository.delete(id);
 			}
+			
+			/* Delivery code might required later
+			 
 			// Creating Intimated Delivery if Opportunity Wins
 			if (opportunity.getSalesStageCode() != oldSalesStageCode
 					&& opportunity.getSalesStageCode() == SalesStageCode.WIN
@@ -1784,7 +1785,7 @@ public class OpportunityService {
 						.getDeliveryCentreForCluster(deliveryCentreIds);
 				deliveryMasterService.createDeliveryIntimated(opportunity,
 						deliveryCentreMap, userId);
-			}
+			}*/
 		}
 			
 		// return opportunityRepository.save(opportunity);
