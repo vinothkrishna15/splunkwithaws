@@ -1092,13 +1092,13 @@ public class OpportunityController {
 		return opportunity;
 	}
 	
-	@RequestMapping(value = "/listByParam", method = RequestMethod.GET)
+	@RequestMapping(value = "/listByCategory", method = RequestMethod.GET)
 	public @ResponseBody PageDTO<OpportunityDTO> getAllByParam(
-			@RequestParam(value = "stages") List<Integer> stages,
+			@RequestParam(value = "stages", defaultValue = "") List<Integer> stages,
 			@RequestParam(value = "oppType", defaultValue = "ALL") String oppType,
 			@RequestParam(value = "dispGeo", defaultValue = "ALL") String dispGeo,
 			@RequestParam(value = "category", defaultValue = "ALL") String category,
-			@RequestParam(value = "searchTerm", defaultValue = "ALL") String searchTerm,
+			@RequestParam(value = "searchTerm", defaultValue = "") String searchTerm,
 			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
 			@RequestParam(value = "toDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
 			@RequestParam(value = "page", defaultValue = "0") int page,

@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -3787,15 +3788,73 @@ public class OpportunityService {
 		return new PageDTO<OpportunityDTO>(dtos, (int)oppTs.getTotalElements());
 	}
 
+	@SuppressWarnings("unchecked")
 	public PageDTO<OpportunityDTO> getAllByParam(List<Integer> stages, String oppType, String dispGeo, String category,
 			String searchTerm, Date fromDate, Date toDate, String mapId, int page, int count) {
 
-		/*Bid
-		5,6,7,8,9,10,12
+		Sort sort = new Sort(Direction.DESC, "modifiedDatetime");
+		Pageable pageable = new PageRequest(page, count, sort);
 		
-		req
-		0,1,2,3,4,5,6,7,8,9,10,12
-		*/
-		return null;
+		Date startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
+		Date endDate = toDate != null ? toDate : new Date();
+		
+		//opp ids by category
+		List<String> oppIds = null;
+		if("QUALIFIED".equals(category)) {
+			if(CollectionUtils.isEmpty(stages)) {
+				stages = Lists.newArrayList(0,1,2,3,4,5,6,7,8);
+			}
+			oppIds = opportunityRepository.getOppIdsByStage(stages);
+		} else if("BID_SUBMITTED".equals(category)) {
+			if(CollectionUtils.isEmpty(stages)) {
+				stages = Lists.newArrayList(5,6,7,8,9,10,12);
+			}
+			oppIds = opportunityRepository.getOppIdsByStageAndBidDate(stages, startDate, endDate);
+		} else if("REQUEST_RECIEVED".equals(category)) {
+			if(CollectionUtils.isEmpty(stages)) {
+				stages = Lists.newArrayList(0,1,2,3,4,5,6,7,8,9,10,11,12,13);
+			}
+			oppIds = opportunityRepository.getOppIdsReqDate(stages, startDate, endDate);
+		} else {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid category");
+		}
+		
+		//apply geography filter
+		if(!StringUtils.equals(dispGeo, "ALL")) {
+			List<String> oppIdsByGeo = opportunityRepository.getOppIdsByGeo(dispGeo);
+			oppIds = (List<String>) CollectionUtils.intersection(oppIds, oppIdsByGeo);
+		}
+
+		//apply user grroup filter
+		if(!StringUtils.equals(oppType, "ALL")) {
+			List<String> userGroups = null;
+			if(StringUtils.equals(oppType, "SALES")) {
+				userGroups = DestinationUtils.getSalesUserGroups();
+			} else if(StringUtils.equals(oppType, "CONSULTING")) {
+				userGroups = DestinationUtils.getConsultingUserGroups();
+			} else {
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid opportunity type");
+			}
+			
+			List<String> oppIdsByGroup = opportunityRepository.getOppIdsByUserGroup(userGroups);
+			oppIds = (List<String>) CollectionUtils.intersection(oppIds, oppIdsByGroup);
+		}
+		
+		if(CollectionUtils.isEmpty(oppIds)) {
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Opportunities not found in this criteria");
+		}
+		
+		Page<OpportunityT> opportunities = opportunityRepository.findByOppNameAndIdsIn("%"+searchTerm+"%", oppIds, pageable);
+		List<OpportunityDTO> oppDtos = Lists.newArrayList();
+		if(CollectionUtils.isNotEmpty(opportunities.getContent())) {
+			for (OpportunityT opportunity : opportunities.getContent()) {
+				OpportunityDTO dto = beanMapper.map(opportunity, OpportunityDTO.class, mapId);
+				oppDtos.add(dto);
+			}
+		} else {
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Opportunities not found in this criteria");
+		}
+		
+		return new PageDTO<OpportunityDTO>(oppDtos, opportunities.getTotalElements());
 	}
 }

@@ -1461,4 +1461,40 @@ public interface OpportunityRepository extends
 			+ "where OPP.opportunity_request_receive_date between (:startDate) and (:endDate) ", nativeQuery = true)
 	List<Object[]> getRequestReceivedCountAndValues(@Param("startDate") Date startDate,@Param("endDate") Date endDate);
 	//***************** End of carousel queries *************//
+
+	
+	//************ Starts - Opportunity list by criterias *************//
+	
+	@Query(value="SELECT opp.opportunityId FROM OpportunityT opp where opp.salesStageCode in (:stages)")
+	List<String> getOppIdsByStage(@Param("stages") List<Integer> stages);
+
+	@Query(value = "SELECT OPP.opportunity_id from opportunity_t OPP join "
+			+ "bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id "
+			+ "where OPP.sales_stage_code in (:stages) and BDT.bid_id = (select bid_id from bid_details_t "
+			+ "where opportunity_id = OPP.opportunity_id and actual_bid_submission_date "
+			+ "between (:fromDate) and (:toDate) order by bid_id DESC LIMIT 1) ", nativeQuery=true)
+	List<String> getOppIdsByStageAndBidDate(@Param("stages") List<Integer> stages, @Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
+
+	@Query(value="SELECT opp.opportunityId FROM OpportunityT opp WHERE opp.salesStageCode in (:stages) AND opp.opportunityRequestReceiveDate BETWEEN (:fromDate) AND (:toDate)")
+	List<String> getOppIdsReqDate(@Param("stages") List<Integer> stages, @Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
+
+	@Query(value="SELECT opp.opportunityId FROM OpportunityT opp"
+			+ " JOIN opp.customerMasterT cmt"
+			+ " JOIN cmt.geographyMappingT gmt"
+			+ " WHERE gmt.displayGeography = :dispGeo")
+	List<String> getOppIdsByGeo(@Param("dispGeo") String dispGeo);
+
+	@Query(value="SELECT opp.opportunityId FROM OpportunityT opp"
+			+ " JOIN opp.primaryOwnerUser user"
+			+ " WHERE user.userGroup in :userGroups")
+	List<String> getOppIdsByUserGroup(@Param("userGroups") List<String> userGroups);
+
+	@Query(value = "SELECT opp from OpportunityT opp"
+			+ " WHERE opp.opportunityName LIKE :searchTerm"
+			+ " AND opp.opportunityId in (:oppIds)")
+	Page<OpportunityT> findByOppNameAndIdsIn(@Param("searchTerm") String searchTerm, @Param("oppIds") List<String> oppIds, Pageable pageable);
+	
+	
+	//************ Ends - Opportunity list by criterias *************//
+	
 }
