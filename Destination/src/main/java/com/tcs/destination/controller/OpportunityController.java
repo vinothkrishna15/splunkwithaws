@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tcs.destination.bean.AsyncJobRequest;
+import com.tcs.destination.bean.ContentDTO;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryOwnershipT;
 import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
@@ -38,6 +39,7 @@ import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.dto.OpportunityDTO;
+import com.tcs.destination.bean.dto.QualifiedPipelineDTO;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.JobName;
 import com.tcs.destination.enums.OperationType;
@@ -1072,6 +1074,7 @@ public class OpportunityController {
 			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
 			@RequestParam(value = "toDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
 			@RequestParam(value = "grpCustomer") String grpCustomer,
+			@RequestParam(value = "stages") List<Integer> stages,
 			@RequestParam(value = "page", defaultValue = "0") int page,
 			@RequestParam(value = "count", defaultValue = "15") int count,
 			@RequestParam(value = "mapId", defaultValue = Constants.OPPORTUNITY_LIST_MAP) String mapId)
@@ -1079,7 +1082,7 @@ public class OpportunityController {
 		logger.info("Start - Inside OpportunityController: getAllByGrpCustomer");
 		PageDTO<OpportunityDTO> opportunity;
 		try {
-			opportunity = opportunityService.getAllByGrpCustomer(fromDate, toDate, grpCustomer, mapId, page, count);
+			opportunity = opportunityService.getAllByGrpCustomer(fromDate, toDate, grpCustomer, stages, mapId, page, count);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -1088,6 +1091,58 @@ public class OpportunityController {
 					"Backend error in retrieving the opportunity list ");
 		}
 		logger.info("Ends - Inside OpportunityController: getAllByGrpCustomer");
+		return opportunity;
+	}
+	
+	@RequestMapping(value = "/listByCategory", method = RequestMethod.GET)
+	public @ResponseBody PageDTO<OpportunityDTO> getAllByParam(
+			@RequestParam(value = "stages", defaultValue = "") List<Integer> stages,
+			@RequestParam(value = "oppType", defaultValue = "ALL") String oppType,
+			@RequestParam(value = "dispGeo", defaultValue = "ALL") String dispGeo,
+			@RequestParam(value = "category", defaultValue = "ALL") String category,
+			@RequestParam(value = "searchTerm", defaultValue = "") String searchTerm,
+			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
+			@RequestParam(value = "toDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "15") int count,
+			@RequestParam(value = "mapId", defaultValue = Constants.OPPORTUNITY_LIST_MAP) String mapId)
+					throws DestinationException {
+		logger.info("Start - Inside OpportunityController: getAllByParam");
+		PageDTO<OpportunityDTO> opportunity;
+		try {
+			opportunity = opportunityService.getAllByParam(stages, oppType, dispGeo, category, searchTerm, fromDate, toDate, mapId, page, count);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the opportunity list ");
+		}
+		logger.info("Ends - Inside OpportunityController: getAllByParam");
+		return opportunity;
+	}
+
+	
+	@RequestMapping(value = "/metricsByCategory", method = RequestMethod.GET)
+	public @ResponseBody ContentDTO<QualifiedPipelineDTO> getBidRequestMetrics(
+			@RequestParam(value = "oppType", defaultValue = "ALL") String oppType,
+			@RequestParam(value = "dispGeo", defaultValue = "ALL") String dispGeo,
+			@RequestParam(value = "category", defaultValue = "ALL") String category,
+			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
+			@RequestParam(value = "toDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate)
+					throws DestinationException {
+		logger.info("Start - Inside OpportunityController: getBidRequestMetrics");
+		ContentDTO<QualifiedPipelineDTO> opportunity;
+		try {
+			opportunity = opportunityService.getBidRequestMetrics(oppType, dispGeo, category, fromDate, toDate);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the opportunity metrics ");
+		}
+		logger.info("Ends - Inside OpportunityController: getBidRequestMetrics");
 		return opportunity;
 	}
 }

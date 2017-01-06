@@ -3,6 +3,7 @@ package com.tcs.destination.service;
 import static com.tcs.destination.utils.ErrorConstants.ERR_INAC_01;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,6 +42,7 @@ import com.tcs.destination.bean.AuditOpportunityDeliveryCentreT;
 import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
 import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
+import com.tcs.destination.bean.ContentDTO;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryIntimatedT;
@@ -72,6 +74,7 @@ import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.WorkflowBfmT;
 import com.tcs.destination.bean.WorkflowRequestT;
 import com.tcs.destination.bean.dto.OpportunityDTO;
+import com.tcs.destination.bean.dto.QualifiedPipelineDTO;
 import com.tcs.destination.data.repository.AuditOpportunityDeliveryCenterRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
@@ -88,6 +91,7 @@ import com.tcs.destination.data.repository.DeliveryCentreRepository;
 import com.tcs.destination.data.repository.DeliveryIntimatedRepository;
 import com.tcs.destination.data.repository.DeliveryMasterRepository;
 import com.tcs.destination.data.repository.DeliveryOwnershipRepository;
+import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.NotesTRepository;
 import com.tcs.destination.data.repository.NotificationEventGroupMappingTRepository;
 import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
@@ -315,6 +319,9 @@ public class OpportunityService {
 	
 	@Autowired
 	DeliveryIntimatedRepository deliveryIntimatedRepository;
+	
+	@Autowired
+	GeographyRepository geographyRepository;
 	
 	private static final String GEO_COND_PREFIX = "GMT.geography in (";
 	private static final String SUBSP_COND_PREFIX = "SSMT.display_sub_sp in (";
@@ -3762,7 +3769,7 @@ public class OpportunityService {
 	 * @param count
 	 * @return
 	 */
-	public PageDTO<OpportunityDTO> getAllByGrpCustomer(Date fromDate, Date toDate, String grpCustomer,
+	public PageDTO<OpportunityDTO> getAllByGrpCustomer(Date fromDate, Date toDate, String grpCustomer, List<Integer> stages,
 			String mapId, int page, int count) {
 
 		Sort sort = new Sort(Direction.DESC, "dealClosureDate");
@@ -3771,7 +3778,7 @@ public class OpportunityService {
 		Date startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
 		Date endDate = toDate != null ? toDate : new Date();
 
-		Page<OpportunityT> oppTs = opportunityRepository.findByGrpCustomerAndDealDate(startDate, endDate, grpCustomer, pageable);
+		Page<OpportunityT> oppTs = opportunityRepository.findByGrpCustomerAndDealDate(startDate, endDate, grpCustomer, stages, pageable);
 
 		List<OpportunityDTO> dtos = Lists.newArrayList();
 		List<OpportunityT> oppList = oppTs.getContent();
@@ -3792,4 +3799,240 @@ public class OpportunityService {
 
 		return new PageDTO<OpportunityDTO>(dtos, (int)oppTs.getTotalElements());
 	}
+
+	@SuppressWarnings("unchecked")
+	public PageDTO<OpportunityDTO> getAllByParam(List<Integer> stages, String oppType, String dispGeo, String category,
+			String searchTerm, Date fromDate, Date toDate, String mapId, int page, int count) {
+
+		Sort sort = new Sort(Direction.DESC, "modifiedDatetime");
+		Pageable pageable = new PageRequest(page, count, sort);
+		
+		Date startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
+		Date endDate = toDate != null ? toDate : new Date();
+		
+		//opp ids by category
+		List<String> oppIds = null;
+		if("QUALIFIED".equals(category)) {
+			if(CollectionUtils.isEmpty(stages)) {
+				stages = DestinationUtils.getQualifiedStagess();
+			}
+			oppIds = opportunityRepository.getOppIdsByStage(stages);
+		} else if("BID_SUBMITTED".equals(category)) {
+			if(CollectionUtils.isEmpty(stages)) {
+				stages = DestinationUtils.getBidSubmittedStages();
+			}
+			oppIds = opportunityRepository.getOppIdsByStageAndBidDate(stages, startDate, endDate);
+		} else if("REQUEST_RECIEVED".equals(category)) {
+			if(CollectionUtils.isEmpty(stages)) {
+				stages = DestinationUtils.getRequestRecievedStages();
+			}
+			oppIds = opportunityRepository.getOppIdsReqDate(stages, startDate, endDate);
+		} else {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid category");
+		}
+		
+		//apply geography filter
+		if(!StringUtils.equals(dispGeo, "ALL")) {
+			List<String> oppIdsByGeo = opportunityRepository.getOppIdsByGeo(dispGeo);
+			oppIds = (List<String>) CollectionUtils.intersection(oppIds, oppIdsByGeo);
+		}
+
+		//apply user grroup filter
+		if(!StringUtils.equals(oppType, "ALL")) {
+			List<String> userGroups = null;
+			if(StringUtils.equals(oppType, "SALES")) {
+				userGroups = DestinationUtils.getSalesUserGroups();
+			} else if(StringUtils.equals(oppType, "CONSULTING")) {
+				userGroups = DestinationUtils.getConsultingUserGroups();
+			} else {
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid opportunity type");
+			}
+			
+			List<String> oppIdsByGroup = opportunityRepository.getOppIdsByUserGroup(userGroups);
+			oppIds = (List<String>) CollectionUtils.intersection(oppIds, oppIdsByGroup);
+		}
+		
+		if(CollectionUtils.isEmpty(oppIds)) {
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Opportunities not found in this criteria");
+		}
+		
+		Page<OpportunityT> opportunities = opportunityRepository.findByOppNameAndIdsIn("%"+searchTerm+"%", oppIds, pageable);
+		List<OpportunityDTO> oppDtos = Lists.newArrayList();
+		if(CollectionUtils.isNotEmpty(opportunities.getContent())) {
+			for (OpportunityT opportunityT : opportunities.getContent()) {
+				OpportunityDTO dto = beanMapper.map(opportunityT, OpportunityDTO.class, mapId);
+				if(opportunityT.getDigitalDealValue() != null && opportunityT.getDealCurrency() != null && !Constants.USD.equals(opportunityT.getDealCurrency())) {
+					BigDecimal dealValueInUsd = beaconConverterService.convertCurrencyRate(opportunityT.getDealCurrency(), Constants.USD, opportunityT.getDigitalDealValue());
+					dto.setDigitalDealValue(dealValueInUsd.intValue());
+				}
+				oppDtos.add(dto);
+			}
+		} else {
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Opportunities not found in this criteria");
+		}
+		
+		return new PageDTO<OpportunityDTO>(oppDtos, opportunities.getTotalElements());
+	}
+	
+	/**
+	 * Method to prepare the list of sales stage object.
+	 * @param qualifiedList
+	 * @param proactiveList
+	 * @param oneMillionList
+	 * @param master
+	 * @return 
+	 */
+	private List<QualifiedPipelineDTO> listOfQualifiedPipeline(List<Object[]> qualifiedList,
+			List<Object[]> proactiveList, List<Integer> definedStages) {
+		List<QualifiedPipelineDTO> resultSet = Lists.newArrayList();
+		List<Integer> salesStage = new ArrayList<Integer>();
+		if (CollectionUtils.isNotEmpty(qualifiedList)) {
+			for (Object[] qualified : qualifiedList) {
+				QualifiedPipelineDTO qualifiedPipelineDTO = new QualifiedPipelineDTO();
+				if (null != qualified) {
+					qualifiedPipelineDTO = setQualifiedPipelineDetails(
+							qualified, qualifiedPipelineDTO, proactiveList,
+							salesStage);
+				} else {
+					qualifiedPipelineDTO = null;
+				}
+				resultSet.add(qualifiedPipelineDTO);
+			}
+		} 
+		unavailableSalesStages(salesStage, resultSet, definedStages);
+		
+		return resultSet;
+	}
+
+	/** 
+	 * Void method to set empty response if sales stages does not exist.
+	 * @param salesStage
+	 * @param resultant
+	 * @param qualifiedPipelineDTO
+	 */
+	private void unavailableSalesStages(List<Integer> salesStage,
+			List<QualifiedPipelineDTO> resultant, List<Integer> definedlist) {
+		/*List<Integer> definedlist = new ArrayList<Integer>();
+		definedlist.add(4);
+		definedlist.add(5);
+		definedlist.add(6);
+		definedlist.add(7);
+		definedlist.add(8);*/
+		List<Integer> unavil = new ArrayList<Integer>(definedlist);
+		unavil.removeAll(salesStage);
+		for (Integer sales : unavil) {
+			QualifiedPipelineDTO qualifiedPipelineDTOUnail = new QualifiedPipelineDTO();
+			qualifiedPipelineDTOUnail.setSalesStageCode(sales);
+			qualifiedPipelineDTOUnail.setOpportunitiesCount(BigInteger.ZERO);
+			qualifiedPipelineDTOUnail.setDigitalDealValue(BigDecimal.ZERO);
+			qualifiedPipelineDTOUnail
+					.setOneMillionOpportunityCount(BigInteger.ZERO);
+			qualifiedPipelineDTOUnail.setProactiveCount(BigInteger.ZERO);
+			resultant.add(qualifiedPipelineDTOUnail);
+		}
+	}
+
+	/**
+	 * Method to set all the counts retrieved from database for list of sales
+	 * stages
+	 * 
+	 * @param QfdList
+	 * @return qualifiedPipelineDTO - List of qualifiedPipelineDTO based on
+	 *         sales stages
+	 */
+	private QualifiedPipelineDTO setQualifiedPipelineDetails(Object[] QfdList,
+			QualifiedPipelineDTO qualifiedPipelineDTO,
+			List<Object[]> proactList, List<Integer> salesStageDB) {
+
+		int salesStage = (int) QfdList[0];
+		qualifiedPipelineDTO.setSalesStageCode( salesStage);
+		qualifiedPipelineDTO.setOpportunitiesCount((BigInteger) QfdList[1]);
+		qualifiedPipelineDTO.setDigitalDealValue(DestinationUtils.scaleToTwoDecimal((BigDecimal) QfdList[2], true));
+		qualifiedPipelineDTO.setOneMillionOpportunityCount((BigInteger) QfdList[3]);
+		
+		for (Object[] proactive : proactList) {
+			if (proactive[0].equals(salesStage)) {
+				qualifiedPipelineDTO.setProactiveCount((BigInteger)proactive[1]);
+			}
+		}
+		
+		//set zero if null
+		if(qualifiedPipelineDTO.getProactiveCount() == null) {
+			qualifiedPipelineDTO.setProactiveCount(BigInteger.ZERO);
+		}
+
+		salesStageDB.add((int) salesStage);
+		return qualifiedPipelineDTO;
+	}
+
+	public ContentDTO<QualifiedPipelineDTO> getBidRequestMetrics(String oppType, String dispGeo, String category,
+			Date fromDate, Date toDate) {
+		
+		Date startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
+		Date endDate = toDate != null ? toDate : new Date();
+		
+		List<String> userGroup = null;
+		if ("SALES".equalsIgnoreCase(oppType)) {
+			userGroup = DestinationUtils.getSalesUserGroups();
+		} else if ("CONSULTING".equalsIgnoreCase(oppType)) {
+			userGroup = DestinationUtils.getConsultingUserGroups();
+		} else {
+			userGroup = opportunityRepository.findAllOppIdsForAllUserGroup();
+		}
+		
+		List<String> displayGeography = null;
+		if ("ALL".equalsIgnoreCase(dispGeo)) {
+			displayGeography = geographyRepository.findDisplayGeo();
+		} else {
+			displayGeography = Lists.newArrayList(dispGeo);
+		}
+
+		List<Object[]> oppValuesList = null;
+		List<Object[]> proactiveList = null;
+
+		List<Integer> stages = null; 
+		List<QualifiedPipelineDTO> resultSet = null;
+		if("QUALIFIED".equals(category)) {
+			stages = DestinationUtils.getQualifiedStagess();
+			oppValuesList = opportunityRepository.findQualifiedPipelineOpportunities(userGroup, displayGeography, stages);
+			proactiveList = opportunityRepository.findOpportunitiesCountByProactiveType(userGroup, displayGeography, stages);
+
+			resultSet = listOfQualifiedPipeline(oppValuesList, proactiveList, stages);
+		} else if("BID_SUBMITTED".equals(category)) {
+			stages = DestinationUtils.getBidSubmittedStages();
+			oppValuesList = opportunityRepository.findBidOpportunityMetric(userGroup, displayGeography, stages, startDate, endDate);
+			
+			resultSet = fillStageDtoList(oppValuesList);
+		} else if("REQUEST_RECIEVED".equals(category)) {
+			stages = DestinationUtils.getRequestRecievedStages();
+			oppValuesList = opportunityRepository.findReqOpportunityMetric(userGroup, displayGeography, stages, startDate, endDate);
+			proactiveList = opportunityRepository.findReqProactiveCount(userGroup, displayGeography, stages, startDate, endDate);
+			
+			resultSet = listOfQualifiedPipeline(oppValuesList, proactiveList, stages);
+		} else {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid category");
+		}
+
+		ContentDTO<QualifiedPipelineDTO> salesAndConsultingResult = new ContentDTO<QualifiedPipelineDTO>();
+		salesAndConsultingResult.setContent(resultSet);
+		return salesAndConsultingResult;
+	}
+
+	private List<QualifiedPipelineDTO> fillStageDtoList(List<Object[]> oppValuesList) {
+		List<QualifiedPipelineDTO> resultList = Lists.newArrayList();
+		if(CollectionUtils.isNotEmpty(oppValuesList)) {
+			for (Object[] objects : oppValuesList) {
+				QualifiedPipelineDTO dto = new QualifiedPipelineDTO();
+				dto.setSalesStageCode((int) objects[0]);
+				dto.setOpportunitiesCount((BigInteger) objects[1]);
+				dto.setDigitalDealValue(DestinationUtils.scaleToTwoDecimal((BigDecimal) objects[2], true));
+				dto.setOneMillionOpportunityCount((BigInteger) objects[3]);
+				dto.setProactiveCount((BigInteger) objects[4]);
+				resultList.add(dto);
+			}
+		}
+		
+		return resultList;
+	}
+	
 }
