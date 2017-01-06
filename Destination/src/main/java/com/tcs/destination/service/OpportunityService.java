@@ -3802,7 +3802,7 @@ public class OpportunityService {
 		List<String> oppIds = null;
 		if("QUALIFIED".equals(category)) {
 			if(CollectionUtils.isEmpty(stages)) {
-				stages = Lists.newArrayList(0,1,2,3,4,5,6,7,8);
+				stages = Lists.newArrayList(4,5,6,7,8);
 			}
 			oppIds = opportunityRepository.getOppIdsByStage(stages);
 		} else if("BID_SUBMITTED".equals(category)) {
