@@ -17,11 +17,9 @@ public interface DeliveryCentreUtilizationRepository extends CrudRepository<Deli
 	List<DeliveryCentreUtilizationT> findByDateBetween(Date startDate,
 			Date endDate);
 
-	@Query(value = "select avg(utilizationPercentage) from DeliveryCentreUtilizationT"
-			+ " where date between (:startDate) and (:endDate)"
-			+ " and categoryId = (:categoryId)")
-	BigDecimal getOverallPercentage(@Param("startDate") Date startDate,@Param("endDate") Date endDate,
-			@Param("categoryId") int categoryId);
+	@Query(value = "select sum(utilization_percentage) from delivery_centre_utilization_t "
+			+ "where category_id = (:categoryId) group by date order by date DESC limit 1", nativeQuery = true)
+	BigDecimal getOverallPercentage(@Param("categoryId") int categoryId);
 
 	List<DeliveryCentreUtilizationT> findByDateBetweenAndCategoryId(
 			Date startDate, Date endDate, int categoryId);

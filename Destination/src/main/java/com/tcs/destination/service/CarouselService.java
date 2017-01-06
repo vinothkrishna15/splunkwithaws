@@ -118,32 +118,23 @@ public class CarouselService {
 						true, healthCardMetrics);
 				break;
 			case UTILIZATION:
-				BigDecimal utilization = deliveryCentreUtilizationRepository
-						.getOverallPercentage(startDate, endDate,
-								HealthCardCategory.UTILIZATION.getCategoryId());
+				BigDecimal utilization = getOverallPercentage(HealthCardCategory.UTILIZATION);
 				healthCardMetrics.setUtilization(utilization);
 				break;
 			case UNALLOCATION:
-				BigDecimal unallocation = new BigDecimal(0);
-				healthCardMetrics.setUnallocation(unallocation);
-				//TODO calcualte unallocation
+				BigDecimal unallocation = deliveryCentreUnallocationRepository.getOverallPercentage();
+				healthCardMetrics.setUnallocation(scaletoTwoDecimal(unallocation,true));
 				break;
 			case BILABILITY:
-				BigDecimal bilability = deliveryCentreUtilizationRepository
-						.getOverallPercentage(startDate, endDate,
-								HealthCardCategory.BILABILITY.getCategoryId());
+				BigDecimal bilability = getOverallPercentage(HealthCardCategory.BILABILITY);
 				healthCardMetrics.setBilability(bilability);
 				break;
 			case ATTRITION:
-				BigDecimal attrition = deliveryCentreUtilizationRepository
-						.getOverallPercentage(startDate, endDate,
-								HealthCardCategory.ATTRITION.getCategoryId());
+				BigDecimal attrition = getOverallPercentage(HealthCardCategory.ATTRITION);
 				healthCardMetrics.setAttrition(attrition);
 				break;
 			case SENIOR_RATIO:
-				BigDecimal seniorRatio = deliveryCentreUtilizationRepository
-						.getOverallPercentage(startDate, endDate,
-								HealthCardCategory.SENIOR_RATIO.getCategoryId());
+				BigDecimal seniorRatio = getOverallPercentage(HealthCardCategory.SENIOR_RATIO);
 				healthCardMetrics.setSeniorRatio(seniorRatio);
 				break;
 			case SKILL_CATEGORY:
@@ -154,10 +145,7 @@ public class CarouselService {
 				// healthCardMetrics.setUtilization(utilization);
 				break;
 			case TRAINEE_PERCENTAGE:
-				BigDecimal trainee = deliveryCentreUtilizationRepository
-						.getOverallPercentage(startDate, endDate,
-								HealthCardCategory.TRAINEE_PERCENTAGE
-										.getCategoryId());
+				BigDecimal trainee = getOverallPercentage(HealthCardCategory.TRAINEE_PERCENTAGE);
 				healthCardMetrics.setTraineePercentage(trainee);
 				break;
 			default:
@@ -166,6 +154,16 @@ public class CarouselService {
 		}
 		carouselMetricsDTO.setHealthCardMetrics(healthCardMetrics);
 		logger.debug("End of setHealthCardMetrics method");
+	}
+
+	private BigDecimal scaletoTwoDecimal(BigDecimal unallocation, boolean zeroIfNull) {
+		return DestinationUtils.scaleToTwoDecimal(unallocation, zeroIfNull);
+	}
+
+	private BigDecimal getOverallPercentage(HealthCardCategory healthCardCategory) {
+		BigDecimal percentage = deliveryCentreUtilizationRepository
+				.getOverallPercentage(healthCardCategory.getCategoryId());
+		return scaletoTwoDecimal(percentage,true);
 	}
 
 	/**
@@ -203,12 +201,12 @@ public class CarouselService {
 			Integer noOfbidsSubmittedOpp, BigDecimal bidsSubmittedValue,
 			Integer requestReceivedOpp, BigDecimal requestReceivedValue) {
 		OpportunityMetrics opportunityMetrics = new OpportunityMetrics();
-		opportunityMetrics.setBidsSubmittedValue(bidsSubmittedValue);
+		opportunityMetrics.setBidsSubmittedValue(scaletoTwoDecimal(bidsSubmittedValue, true));
 		opportunityMetrics.setNoOfBidsSubmitted(noOfbidsSubmittedOpp);
 		opportunityMetrics.setNoOfQualified(noOfQualifiedOpp);
 		opportunityMetrics.setNoOfRequestReceived(requestReceivedOpp);
-		opportunityMetrics.setQualifiedValue(qualifiedValue);
-		opportunityMetrics.setRequestReceivedValue(requestReceivedValue);
+		opportunityMetrics.setQualifiedValue(scaletoTwoDecimal(qualifiedValue, true));
+		opportunityMetrics.setRequestReceivedValue(scaletoTwoDecimal(requestReceivedValue, true));
 		return opportunityMetrics;
 	}
 
@@ -270,13 +268,13 @@ public class CarouselService {
 		BigDecimal lossValue = (BigDecimal) lossObject[1];
 		BigDecimal winRatio = customerService.getWinRatio(wins, loss);
 		if (!forHealthCard) {
-			carouselMetricsDTO.setLossValue(lossValue);
+			carouselMetricsDTO.setLossValue(scaletoTwoDecimal(lossValue, true));
 			carouselMetricsDTO.setNoOfLoss(loss);
 			carouselMetricsDTO.setNoOfWins(wins);
-			carouselMetricsDTO.setWinValue(winValue);
-			carouselMetricsDTO.setWinsRatio(winRatio);
+			carouselMetricsDTO.setWinValue(scaletoTwoDecimal(winValue, true));
+			carouselMetricsDTO.setWinsRatio(scaletoTwoDecimal(winRatio, true));
 		} else {
-			healthCardMetrics.setWinsRatio(winRatio);
+			healthCardMetrics.setWinsRatio(scaletoTwoDecimal(winRatio, true));
 		}
 		logger.debug("End of setWinRatioMetrics method");
 	}
