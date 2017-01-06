@@ -43,6 +43,7 @@ import com.tcs.destination.bean.AuditOpportunityDeliveryCentreT;
 import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
 import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
+import com.tcs.destination.bean.ContentDTO;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryIntimatedT;
@@ -75,7 +76,6 @@ import com.tcs.destination.bean.WorkflowBfmT;
 import com.tcs.destination.bean.WorkflowRequestT;
 import com.tcs.destination.bean.dto.OpportunityDTO;
 import com.tcs.destination.bean.dto.QualifiedPipelineDTO;
-import com.tcs.destination.bean.dto.QualifiedPipelineDetails;
 import com.tcs.destination.data.repository.AuditOpportunityDeliveryCenterRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
@@ -3879,7 +3879,7 @@ public class OpportunityService {
 	 * @return
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public QualifiedPipelineDetails<QualifiedPipelineDetails> findQualifiedPipelineOpportunityDetails(
+	public ContentDTO<QualifiedPipelineDTO> findQualifiedPipelineOpportunityDetails(
 			String oppType, String dispGeo) {
 		List<String> userGroup = new ArrayList<String>();
 
@@ -3898,7 +3898,7 @@ public class OpportunityService {
 			displayGeography.add(dispGeo.toUpperCase());
 		}
 
-		QualifiedPipelineDetails salesAndConsultingResult = new QualifiedPipelineDetails();
+		ContentDTO<QualifiedPipelineDTO> salesAndConsultingResult = new ContentDTO<QualifiedPipelineDTO>();
 		List<Object[]> qualifiedList = opportunityRepository.findQualifiedPipelineOpportunities(userGroup, displayGeography);
 		
 		List<Object[]> proactiveList = opportunityRepository.findOpportunitiesCountByProactiveType(userGroup,
@@ -3907,11 +3907,9 @@ public class OpportunityService {
 		List<Object[]> oneMillionList = opportunityRepository.findOneMillionQualifiedPipelineOpportunities(userGroup,
 						displayGeography);
 		
-		List<Object> resultSet = new ArrayList<Object>();
-		listOfQualifiedPipeline(qualifiedList, proactiveList, oneMillionList,
-				resultSet);
+		List<QualifiedPipelineDTO> resultSet = listOfQualifiedPipeline(qualifiedList, proactiveList, oneMillionList);
 
-		salesAndConsultingResult.setQualifiedPipelineDTO(resultSet);
+		salesAndConsultingResult.setContent(resultSet);
 		return salesAndConsultingResult;
 
 	}
@@ -3922,10 +3920,11 @@ public class OpportunityService {
 	 * @param proactiveList
 	 * @param oneMillionList
 	 * @param master
+	 * @return 
 	 */
-	private void listOfQualifiedPipeline(List<Object[]> qualifiedList,
-			List<Object[]> proactiveList, List<Object[]> oneMillionList,
-			List<Object> resultant) {
+	private List<QualifiedPipelineDTO> listOfQualifiedPipeline(List<Object[]> qualifiedList,
+			List<Object[]> proactiveList, List<Object[]> oneMillionList) {
+		List<QualifiedPipelineDTO> resultSet = Lists.newArrayList();
 		List<Integer> salesStage = new ArrayList<Integer>();
 		if (qualifiedList != null && !qualifiedList.isEmpty()) {
 			for (Object[] qualified : qualifiedList) {
@@ -3939,13 +3938,14 @@ public class OpportunityService {
 
 					qualifiedPipelineDTO = null;
 				}
-				resultant.add(qualifiedPipelineDTO);
+				resultSet.add(qualifiedPipelineDTO);
 			}
-			unavailableSalesStages(salesStage, resultant);
+			unavailableSalesStages(salesStage, resultSet);
 		} else {
-			unavailableSalesStages(salesStage, resultant);
+			unavailableSalesStages(salesStage, resultSet);
 		}
-
+		
+		return resultSet;
 	}
 
 	/** 
@@ -3955,7 +3955,7 @@ public class OpportunityService {
 	 * @param qualifiedPipelineDTO
 	 */
 	private void unavailableSalesStages(List<Integer> salesStage,
-			List<Object> resultant) {
+			List<QualifiedPipelineDTO> resultant) {
 		List<Integer> definedlist = new ArrayList<Integer>();
 		definedlist.add(4);
 		definedlist.add(5);

@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tcs.destination.bean.AsyncJobRequest;
+import com.tcs.destination.bean.ContentDTO;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryOwnershipT;
 import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
@@ -39,7 +40,6 @@ import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.dto.OpportunityDTO;
 import com.tcs.destination.bean.dto.QualifiedPipelineDTO;
-import com.tcs.destination.bean.dto.QualifiedPipelineDetails;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.JobName;
 import com.tcs.destination.enums.OperationType;
@@ -1129,17 +1129,16 @@ public class OpportunityController {
 	 * @return opportunity - Object of all the values.
 	 * @throws DestinationException
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@RequestMapping(value = "/qualified",method = RequestMethod.GET)
 	@ResponseBody
-	public QualifiedPipelineDetails<QualifiedPipelineDTO> retrieveQualifiedPipelineOpportunityDetails(
+	public ContentDTO<QualifiedPipelineDTO> retrieveQualifiedPipelineOpportunityDetails(
 			@RequestParam(value = "oppType", defaultValue = "ALL") String oppType,
 			@RequestParam(value = "dispGeo", defaultValue = "ALL") String dispGeo)
 			throws DestinationException {
 
 		logger.info("Inside Opportunities Qualified Controller: Start of fetching qualified details");
 
-		QualifiedPipelineDetails opportunity;
+		ContentDTO<QualifiedPipelineDTO> opportunity;
 		try {
 
 			opportunity = opportunityService
@@ -1156,6 +1155,5 @@ public class OpportunityController {
 		}
 
 		return opportunity;
-
 	}
 }
