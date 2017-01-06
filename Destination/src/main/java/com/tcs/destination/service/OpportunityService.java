@@ -92,6 +92,7 @@ import com.tcs.destination.data.repository.DeliveryCentreRepository;
 import com.tcs.destination.data.repository.DeliveryIntimatedRepository;
 import com.tcs.destination.data.repository.DeliveryMasterRepository;
 import com.tcs.destination.data.repository.DeliveryOwnershipRepository;
+import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.NotesTRepository;
 import com.tcs.destination.data.repository.NotificationEventGroupMappingTRepository;
 import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
@@ -319,6 +320,9 @@ public class OpportunityService {
 	
 	@Autowired
 	DeliveryIntimatedRepository deliveryIntimatedRepository;
+	
+	@Autowired
+	GeographyRepository geographyRepository;
 	
 	private static final String GEO_COND_PREFIX = "GMT.geography in (";
 	private static final String SUBSP_COND_PREFIX = "SSMT.display_sub_sp in (";
@@ -3886,24 +3890,23 @@ public class OpportunityService {
 		} else {
 			userGroup = opportunityRepository.findAllOppIdsForAllUserGroup();
 		}
+		
 		List<String> displayGeography = new ArrayList<String>();
 		if ("ALL".equalsIgnoreCase(dispGeo)) {
-			displayGeography = opportunityRepository.findDisplayGeo();
+			displayGeography = geographyRepository.findDisplayGeo();
 		} else {
-
 			displayGeography.add(dispGeo.toUpperCase());
 		}
 
-		// TODO Auto-generated method stub
 		QualifiedPipelineDetails salesAndConsultingResult = new QualifiedPipelineDetails();
-		List<Object[]> qualifiedList = opportunityRepository
-				.findQualifiedPipelineOpportunities(userGroup, displayGeography);
-		List<Object[]> proactiveList = opportunityRepository
-				.findOpportunitiesCountByProactiveType(userGroup,
+		List<Object[]> qualifiedList = opportunityRepository.findQualifiedPipelineOpportunities(userGroup, displayGeography);
+		
+		List<Object[]> proactiveList = opportunityRepository.findOpportunitiesCountByProactiveType(userGroup,
 						displayGeography);
-		List<Object[]> oneMillionList = opportunityRepository
-				.findOneMillionQualifiedPipelineOpportunities(userGroup,
+		
+		List<Object[]> oneMillionList = opportunityRepository.findOneMillionQualifiedPipelineOpportunities(userGroup,
 						displayGeography);
+		
 		List<Object> resultSet = new ArrayList<Object>();
 		listOfQualifiedPipeline(qualifiedList, proactiveList, oneMillionList,
 				resultSet);
