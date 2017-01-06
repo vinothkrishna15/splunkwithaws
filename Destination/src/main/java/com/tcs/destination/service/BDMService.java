@@ -13,6 +13,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -335,8 +336,29 @@ public class BDMService {
 			
 			dashBoardBDMResponseList.add(dashBoardBDMResponse);
 		}
+		int totalProposalSupported = 0;
+		int totalTeamConnects = 0;
+		for(DashBoardBDMResponse bdmResponse : dashBoardBDMResponseList) {
+			List<BDMDashBoardResponse> bdmDashboard = bdmResponse.getBdmDashboard();
+			if (CollectionUtils.isNotEmpty(bdmDashboard)) {
+				BDMDashBoardResponse bdmDashBoardResponse = bdmDashboard.get(0);
+				totalOppOwnerWinValue = totalOppOwnerWinValue
+						.add(bdmDashBoardResponse.getTotalOppWinsAchieved());
+				totalProposalSupported = totalProposalSupported
+						+ bdmDashBoardResponse
+								.getPrimaryProposalSupportAchieved()
+						+ bdmDashBoardResponse
+								.getSalesProposalSupportAchieved();
+				totalTeamConnects = totalTeamConnects
+						+ bdmDashBoardResponse.getConnectPrimary()
+						+ bdmDashBoardResponse.getConnectSecondary();
+			}
+		}
+		bdmSupervisorDashboardDTO.setTotalOpportunityWinsAchieved(totalOppOwnerWinValue);
+		bdmSupervisorDashboardDTO.setTotalProposalSupportedAchieved(totalProposalSupported);
+		bdmSupervisorDashboardDTO.setTotalConnectSupportedAchieved(totalTeamConnects);
 		//total opportunity wins achieved 
-		totalOppOwnerWinValue = opportunityRepository.getTotalOpportunityWinsByUserIds(userIds, fromDate, toDate);
+		/*totalOppOwnerWinValue = opportunityRepository.getTotalOpportunityWinsByUserIds(userIds, fromDate, toDate);
 		bdmSupervisorDashboardDTO.setTotalOpportunityWinsAchieved(totalOppOwnerWinValue);
 		
 		//total proposal achieved
@@ -353,7 +375,7 @@ public class BDMService {
 		if(totalConnects!=null){
 		  totalConnectsSupportedValue = (totalConnects).intValue();
 		}
-		bdmSupervisorDashboardDTO.setTotalConnectSupportedAchieved(totalConnectsSupportedValue);
+		bdmSupervisorDashboardDTO.setTotalConnectSupportedAchieved(totalConnectsSupportedValue);*/
 		bdmSupervisorDashboardDTO.setBdmSupervisorDashboard(dashBoardBDMResponseList);
 		logger.debug("end:Inside getBDMSupervisorDashBoardByUser()");
 		return bdmSupervisorDashboardDTO;
