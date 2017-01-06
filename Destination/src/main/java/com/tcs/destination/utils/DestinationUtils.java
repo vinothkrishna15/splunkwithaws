@@ -204,6 +204,17 @@ public class DestinationUtils {
 		return Lists.newArrayList(UserGroup.PRACTICE_HEAD.getValue(), UserGroup.PRACTICE_OWNER.getValue());
 	}
 	
+	public static List<Integer> getBidSubmittedStages() {
+		return Lists.newArrayList(5,6,7,8,9,10,12);
+	}
+
+	public static List<Integer> getQualifiedStagess() {
+		return Lists.newArrayList(4,5,6,7,8);
+	}
+
+	public static List<Integer> getRequestRecievedStages() {
+		return Lists.newArrayList(0,1,2,3,4,5,6,7,8,9,10,11,12,13);
+	}
 	
 	
 	

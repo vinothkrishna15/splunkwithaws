@@ -24,6 +24,22 @@ public class QualifiedPipelineDTO implements Serializable {
 	private BigInteger oneMillionOpportunityCount;
 	private BigInteger proactiveCount;
 
+	
+	
+	public QualifiedPipelineDTO() {
+		super();
+	}
+
+	public QualifiedPipelineDTO(int salesStageCode, BigInteger opportunitiesCount, BigDecimal digitalDealValue,
+			BigInteger oneMillionOpportunityCount, BigInteger proactiveCount) {
+		super();
+		this.salesStageCode = salesStageCode;
+		this.opportunitiesCount = opportunitiesCount;
+		this.digitalDealValue = digitalDealValue;
+		this.oneMillionOpportunityCount = oneMillionOpportunityCount;
+		this.proactiveCount = proactiveCount;
+	}
+
 	/**
 	 * @return the salesStageCode
 	 */

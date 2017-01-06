@@ -1121,39 +1121,28 @@ public class OpportunityController {
 		logger.info("Ends - Inside OpportunityController: getAllByParam");
 		return opportunity;
 	}
-	// Changes for Opportunities - Qualified
-	/**
-	 * Public method to fetch the counts of opportunities for qualified pipeline (4-8)
-	 * @param oppType
-	 * @param dispGeo
-	 * @return opportunity - Object of all the values.
-	 * @throws DestinationException
-	 */
-	@RequestMapping(value = "/qualified",method = RequestMethod.GET)
-	@ResponseBody
-	public ContentDTO<QualifiedPipelineDTO> retrieveQualifiedPipelineOpportunityDetails(
+
+	
+	@RequestMapping(value = "/metricsByCategory", method = RequestMethod.GET)
+	public @ResponseBody ContentDTO<QualifiedPipelineDTO> getBidRequestMetrics(
 			@RequestParam(value = "oppType", defaultValue = "ALL") String oppType,
-			@RequestParam(value = "dispGeo", defaultValue = "ALL") String dispGeo)
-			throws DestinationException {
-
-		logger.info("Inside Opportunities Qualified Controller: Start of fetching qualified details");
-
+			@RequestParam(value = "dispGeo", defaultValue = "ALL") String dispGeo,
+			@RequestParam(value = "category", defaultValue = "ALL") String category,
+			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
+			@RequestParam(value = "toDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate)
+					throws DestinationException {
+		logger.info("Start - Inside OpportunityController: getBidRequestMetrics");
 		ContentDTO<QualifiedPipelineDTO> opportunity;
 		try {
-
-			opportunity = opportunityService
-					.findQualifiedPipelineOpportunityDetails(oppType, dispGeo);
-
-			logger.info("Inside Opportunities Qualified Controller: Exit");
-
+			opportunity = opportunityService.getBidRequestMetrics(oppType, dispGeo, category, fromDate, toDate);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					"Backend Error while retrieving customer consulting details");
+					"Backend error in retrieving the opportunity metrics ");
 		}
-
+		logger.info("Ends - Inside OpportunityController: getBidRequestMetrics");
 		return opportunity;
 	}
 }

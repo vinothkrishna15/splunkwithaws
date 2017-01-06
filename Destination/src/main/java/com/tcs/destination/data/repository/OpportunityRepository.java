@@ -1496,45 +1496,85 @@ public interface OpportunityRepository extends
 	//************ Ends - Opportunity list by criterias *************//
 	
 	
-	// Start of Opportunities - Qualified Changes
-	@Query(value = "select OPP.sales_stage_code,count(OPP.opportunity_id) as OpporCount, sum(deal_value_usd_converter(OPP.digital_deal_value, OPP.deal_currency)) "
+// ************* Start of Opportunities - Qualified Changes
+	@Query(value = "select OPP.sales_stage_code,count(OPP.opportunity_id) as OpporCount, sum(deal_value_usd_converter(OPP.digital_deal_value, OPP.deal_currency)), "
+			+ "sum(case when (deal_value_usd_converter(OPP.digital_deal_value, OPP.deal_currency) > 1000000) then 1 else 0 end) as oneMilCount "
 			+ "from opportunity_t OPP "
 			+ "join user_t USRT on USRT.user_id = OPP.opportunity_owner "
 			+ "join customer_master_t CMT on CMT.customer_id = OPP.customer_id "
 			+ "join geography_mapping_t GMT on GMT.geography= CMT.geography "
-			+ "where sales_stage_code in (4,5,6,7,8) AND USRT.user_group in (:userGroup) AND upper(GMT.display_geography) in (:displayGeography) "
+			+ "where sales_stage_code in (:stages) AND USRT.user_group in (:userGroup) AND GMT.display_geography in (:displayGeography) "
 			+ "group by sales_stage_code order by sales_stage_code ", nativeQuery = true)
 	List<Object[]> findQualifiedPipelineOpportunities(@Param("userGroup") List<String> userGroup,
-			@Param("displayGeography") List<String> displayGeography);
+			@Param("displayGeography") List<String> displayGeography, @Param("stages") List<Integer> stages);
 
 	@Query(value = "select OPP.sales_stage_code, count(distinct BDT.opportunity_id) from bid_details_t BDT "
 			+ "join opportunity_t OPP on OPP.opportunity_id = BDT.opportunity_id "
 			+ "join user_t USRT on USRT.user_id = OPP.opportunity_owner "
 			+ "join customer_master_t CMT on CMT.customer_id = OPP.customer_id "
 			+ "join geography_mapping_t GMT on GMT.geography= CMT.geography "
-			+ "where OPP.sales_stage_code in (4,5,6,7,8) AND BDT.bid_id = (select bid_id from bid_details_t where upper (bid_request_type) = upper('proactive') "
+			+ "where OPP.sales_stage_code in (:stages) AND BDT.bid_id = (select bid_id from bid_details_t where upper (bid_request_type) = upper('proactive') "
 			+ "and opportunity_id=OPP.opportunity_id order by modified_datetime DESC limit 1) "
-			+ "AND USRT.user_group in (:userGroup) AND upper(GMT.display_geography) in (:displayGeography) "
+			+ "AND USRT.user_group in (:userGroup) AND GMT.display_geography in (:displayGeography) "
 			+ "group By OPP.sales_stage_code order by OPP.sales_stage_code", nativeQuery = true)
 	List<Object[]> findOpportunitiesCountByProactiveType(
 			@Param("userGroup") List<String> userGroup,
-			@Param("displayGeography") List<String> displayGeography);
+			@Param("displayGeography") List<String> displayGeography, @Param("stages") List<Integer> stages);
+//****** End of Opportunities - Qualified Changes
 
-	@Query(value = "select OPP.sales_stage_code, count((deal_value_usd_converter(OPP.digital_deal_value, OPP.deal_currency) / '1000000') > '1.0') "
-			+ "as oneMillionCount from opportunity_t OPP "
+	// ************* Start of Opportunities - Bid submitter methods
+	@Query(value = "select OPP.sales_stage_code,count(OPP.opportunity_id) as OpporCount, sum(deal_value_usd_converter(OPP.digital_deal_value, OPP.deal_currency)) as dealValueSum, "
+			+ "sum(case when (deal_value_usd_converter(OPP.digital_deal_value, OPP.deal_currency) > 1000000) then 1 else 0 end) as oneMilCount, "
+			+ "sum(case when (BDT.bid_request_type = 'Proactive') then 1 else 0 end) as proactiveCount "
+			+ "from opportunity_t OPP "
+			+ "JOIN bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id "
 			+ "join user_t USRT on USRT.user_id = OPP.opportunity_owner "
 			+ "join customer_master_t CMT on CMT.customer_id = OPP.customer_id "
 			+ "join geography_mapping_t GMT on GMT.geography= CMT.geography "
-			+ "where sales_stage_code in (4,5,6,7,8) AND ((deal_value_usd_converter(OPP.digital_deal_value, OPP.deal_currency)) / '1000000' > '1.0') ='t' "
-			+ "AND USRT.user_group in (:userGroup) AND upper(GMT.display_geography) in (:displayGeography) "
+			+ "where sales_stage_code in (:stages) "
+			+ "AND USRT.user_group in (:userGroup) "
+			+ "AND GMT.display_geography in (:displayGeography) "
+			+ "AND BDT.bid_id = (select bid_id from bid_details_t "
+			+ "where opportunity_id = OPP.opportunity_id order by bid_id DESC LIMIT 1) "
+			+ "AND BDT.actual_bid_submission_date between (:fromDate) and (:toDate) "
 			+ "group by sales_stage_code order by sales_stage_code ", nativeQuery = true)
-	List<Object[]> findOneMillionQualifiedPipelineOpportunities(
-			@Param("userGroup") List<String> userGroup,
-			@Param("displayGeography") List<String> displayGeography);
-
+	List<Object[]> findBidOpportunityMetric(@Param("userGroup") List<String> userGroup,
+			@Param("displayGeography") List<String> displayGeography, @Param("stages") List<Integer> stages, @Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
 	
-	@Query(value = "select distinct user_group from opportunity_t OPP "
-			+ "join user_t USRT on USRT.user_id = OPP.opportunity_owner", nativeQuery = true)
+//****** End of Opportunities - Bid submitter methods
+
+// ************* Start of Opportunities - request recieved methods
+		@Query(value = "select OPP.sales_stage_code, count(OPP.opportunity_id) as OpporCount, sum(deal_value_usd_converter(OPP.digital_deal_value, OPP.deal_currency)), "
+				+ "sum(case when (deal_value_usd_converter(OPP.digital_deal_value, OPP.deal_currency) > 1000000) then 1 else 0 end) as oneMilCount "
+				+ "from opportunity_t OPP "
+				+ "join user_t USRT on USRT.user_id = OPP.opportunity_owner "
+				+ "join customer_master_t CMT on CMT.customer_id = OPP.customer_id "
+				+ "join geography_mapping_t GMT on GMT.geography= CMT.geography "
+				+ "where sales_stage_code in (:stages) AND USRT.user_group in (:userGroup) AND GMT.display_geography in (:displayGeography) "
+				+ "AND OPP.opportunity_request_receive_date between (:fromDate) and (:toDate) "
+				+ "group by sales_stage_code order by sales_stage_code ", nativeQuery = true)
+		List<Object[]> findReqOpportunityMetric(@Param("userGroup") List<String> userGroup,
+				@Param("displayGeography") List<String> displayGeography, @Param("stages") List<Integer> stages, @Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
+
+		@Query(value = "select OPP.sales_stage_code, count(distinct BDT.opportunity_id) from bid_details_t BDT "
+				+ "join opportunity_t OPP on OPP.opportunity_id = BDT.opportunity_id "
+				+ "join user_t USRT on USRT.user_id = OPP.opportunity_owner "
+				+ "join customer_master_t CMT on CMT.customer_id = OPP.customer_id "
+				+ "join geography_mapping_t GMT on GMT.geography= CMT.geography "
+				+ "where OPP.sales_stage_code in (:stages) AND BDT.bid_id = (select bid_id from bid_details_t where upper (bid_request_type) = upper('proactive') "
+				+ "and opportunity_id=OPP.opportunity_id order by modified_datetime DESC limit 1) "
+				+ "AND USRT.user_group in (:userGroup) AND GMT.display_geography in (:displayGeography) "
+				+ "AND OPP.opportunity_request_receive_date between (:fromDate) and (:toDate) "
+				+ "group By OPP.sales_stage_code order by OPP.sales_stage_code", nativeQuery = true)
+		List<Object[]> findReqProactiveCount(
+				@Param("userGroup") List<String> userGroup,
+				@Param("displayGeography") List<String> displayGeography, @Param("stages") List<Integer> stages, @Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
+
+	//****** End of Opportunities - request recieved methods
+	
+	
+	@Query(value = "select distinct USRT.userGroup from OpportunityT OPP "
+			+ "join OPP.primaryOwnerUser USRT")
 	List<String> findAllOppIdsForAllUserGroup();
 
 	// Change ends
