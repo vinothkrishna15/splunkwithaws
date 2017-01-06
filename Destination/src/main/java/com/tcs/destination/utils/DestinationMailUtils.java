@@ -3971,7 +3971,10 @@ public class DestinationMailUtils {
 		.getCustomerName()));
 		data.put("opportunityName", defaultIfEmpty(opportunity.getOpportunityName()));
 		data.put("engagementStartDate",	defaultIfEmpty(DateUtils.format(opportunity.getEngagementStartDate(), DateUtils.ACTUAL_FORMAT)));
-		data.put("engagementDuration", defaultIfEmpty(opportunity.getEngagementDuration()));
+		BigDecimal engagementDuration = opportunity.getEngagementDuration();
+		if(engagementDuration!=null) {
+			data.put("engagementDuration", defaultIfEmpty(engagementDuration.intValue()));
+		}
 		data.put("deliveryOwnership", defaultIfEmpty(opportunity.getDeliveryOwnershipT().getOwnership()));
 		data.put("crmId", defaultIfEmpty(opportunity.getCrmId()));
 		// Getting bid details
@@ -4043,7 +4046,6 @@ public class DestinationMailUtils {
 		logger.debug("End of getDeliveryManagers method");
 		return assignedManagers;
 	}
-	
 }
 
 

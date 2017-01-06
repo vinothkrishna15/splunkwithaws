@@ -31,6 +31,9 @@ public class ReportConstants {
 	public static final String CUSTOMERCONTACTROLE = "custContactRole";
 	public static final String PARTNERCONTACTNAME = "partnerContactName";
 	public static final String PARTNERCONTACTROLE = "partnerContactRole";
+	
+	public static final String LOCATION_OF_CONNECT = "locationOfConnect";
+	public static final String CONNECT_TYPE = "connectType";
 
 	public static final String LINKOPPORTUNITY = "linkOpportunity";
 	public static final String OPPORTUNITYDESCRIPTION = "opportunityDescription";

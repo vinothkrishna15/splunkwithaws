@@ -21,6 +21,9 @@ public class FieldsMap {
 		fieldsMap.put("modifiedBy", "Modified By");
 		fieldsMap.put("startDateOfConnect", "Start Date Of Connect");
 		fieldsMap.put("endDateOfConnect", "End Date Of Connect");
+		
+		fieldsMap.put("locationOfConnect", "Connect Location");
+		fieldsMap.put("connectType", "Connect Type");
 		fieldsMap.put("country", "Country");
 		fieldsMap.put("primaryOwner", "Primary Owner");
 		fieldsMap.put("secondaryOwner", "secondary Owner");

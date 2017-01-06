@@ -19,7 +19,7 @@
 		  		<td><b>Engagement Start Date</b></td><td>:</td><td>${engagementStartDate}</td> 
 		  	</tr>
 		  	<tr>
-		  		<td><b>Engagement Duration</b></td><td>:</td><td>${engagementDuration}</td> 
+		  		<td><b>Engagement Duration (months)</b></td><td>:</td><td>${engagementDuration}</td> 
 		  	</tr>
 		  	<tr>
 		  		<td><b>Delivery Ownership</b></td><td>:</td><td>${deliveryOwnership}</td> 
