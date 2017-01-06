@@ -3,10 +3,11 @@ package com.tcs.destination.service;
 import static com.tcs.destination.utils.ErrorConstants.ERR_INAC_01;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -73,6 +74,8 @@ import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.WorkflowBfmT;
 import com.tcs.destination.bean.WorkflowRequestT;
 import com.tcs.destination.bean.dto.OpportunityDTO;
+import com.tcs.destination.bean.dto.QualifiedPipelineDTO;
+import com.tcs.destination.bean.dto.QualifiedPipelineDetails;
 import com.tcs.destination.data.repository.AuditOpportunityDeliveryCenterRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
@@ -3860,5 +3863,149 @@ public class OpportunityService {
 		}
 		
 		return new PageDTO<OpportunityDTO>(oppDtos, opportunities.getTotalElements());
+	}
+	
+	// Changes for Opportunities Qualified
+	/**
+	 * Service call from the opportunity controller to retrieve all the values
+	 * from sales stages 4-8 based on the request parameters.
+	 * 
+	 * @param oppType
+	 * @param dispGeo
+	 * @return
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public QualifiedPipelineDetails<QualifiedPipelineDetails> findQualifiedPipelineOpportunityDetails(
+			String oppType, String dispGeo) {
+		List<String> userGroup = new ArrayList<String>();
+
+		if ("SALES".equalsIgnoreCase(oppType)) {
+			userGroup = DestinationUtils.getSalesUserGroups();
+		} else if ("CONSULTING".equalsIgnoreCase(oppType)) {
+			userGroup = DestinationUtils.getConsultingUserGroups();
+		} else {
+			userGroup = opportunityRepository.findAllOppIdsForAllUserGroup();
+		}
+		List<String> displayGeography = new ArrayList<String>();
+		if ("ALL".equalsIgnoreCase(dispGeo)) {
+			displayGeography = opportunityRepository.findDisplayGeo();
+		} else {
+
+			displayGeography.add(dispGeo.toUpperCase());
+		}
+
+		// TODO Auto-generated method stub
+		QualifiedPipelineDetails salesAndConsultingResult = new QualifiedPipelineDetails();
+		List<Object[]> qualifiedList = opportunityRepository
+				.findQualifiedPipelineOpportunities(userGroup, displayGeography);
+		List<Object[]> proactiveList = opportunityRepository
+				.findOpportunitiesCountByProactiveType(userGroup,
+						displayGeography);
+		List<Object[]> oneMillionList = opportunityRepository
+				.findOneMillionQualifiedPipelineOpportunities(userGroup,
+						displayGeography);
+		List<Object> resultSet = new ArrayList<Object>();
+		listOfQualifiedPipeline(qualifiedList, proactiveList, oneMillionList,
+				resultSet);
+
+		salesAndConsultingResult.setQualifiedPipelineDTO(resultSet);
+		return salesAndConsultingResult;
+
+	}
+
+	/**
+	 * Method to prepare the list of sales stage object.
+	 * @param qualifiedList
+	 * @param proactiveList
+	 * @param oneMillionList
+	 * @param master
+	 */
+	private void listOfQualifiedPipeline(List<Object[]> qualifiedList,
+			List<Object[]> proactiveList, List<Object[]> oneMillionList,
+			List<Object> resultant) {
+		List<Integer> salesStage = new ArrayList<Integer>();
+		if (qualifiedList != null && !qualifiedList.isEmpty()) {
+			for (Object[] qualified : qualifiedList) {
+				QualifiedPipelineDTO qualifiedPipelineDTO = new QualifiedPipelineDTO();
+				if (null != qualified) {
+
+					qualifiedPipelineDTO = setQualifiedPipelineDetails(
+							qualified, qualifiedPipelineDTO, proactiveList,
+							oneMillionList, salesStage);
+				} else {
+
+					qualifiedPipelineDTO = null;
+				}
+				resultant.add(qualifiedPipelineDTO);
+			}
+			unavailableSalesStages(salesStage, resultant);
+		} else {
+			unavailableSalesStages(salesStage, resultant);
+		}
+
+	}
+
+	/** 
+	 * Void method to set empty response if sales stages does not exist.
+	 * @param salesStage
+	 * @param resultant
+	 * @param qualifiedPipelineDTO
+	 */
+	private void unavailableSalesStages(List<Integer> salesStage,
+			List<Object> resultant) {
+		List<Integer> definedlist = new ArrayList<Integer>();
+		definedlist.add(4);
+		definedlist.add(5);
+		definedlist.add(6);
+		definedlist.add(7);
+		definedlist.add(8);
+		List<Integer> unavil = new ArrayList<Integer>(definedlist);
+		unavil.removeAll(salesStage);
+		for (Integer sales : unavil) {
+			QualifiedPipelineDTO qualifiedPipelineDTOUnail = new QualifiedPipelineDTO();
+			qualifiedPipelineDTOUnail.setSalesStageCode(sales);
+			qualifiedPipelineDTOUnail.setOpportunitiesCount(BigInteger.ZERO);
+			qualifiedPipelineDTOUnail.setDigitalDealValue(BigDecimal.ZERO);
+			qualifiedPipelineDTOUnail
+					.setOneMillionOpportunityCount(BigInteger.ZERO);
+			qualifiedPipelineDTOUnail.setProactiveCount(BigInteger.ZERO);
+			resultant.add(qualifiedPipelineDTOUnail);
+		}
+	}
+
+	/**
+	 * Method to set all the counts retrieved from database for list of sales
+	 * stages
+	 * 
+	 * @param QfdList
+	 * @return qualifiedPipelineDTO - List of qualifiedPipelineDTO based on
+	 *         sales stages
+	 */
+	private QualifiedPipelineDTO setQualifiedPipelineDetails(Object[] QfdList,
+			QualifiedPipelineDTO qualifiedPipelineDTO,
+			List<Object[]> proactList, List<Object[]> million,
+			List<Integer> salesStageDB) {
+
+		qualifiedPipelineDTO.setSalesStageCode((int) QfdList[0]);
+		qualifiedPipelineDTO.setOpportunitiesCount((BigInteger) QfdList[1]);
+		qualifiedPipelineDTO.setDigitalDealValue(((BigDecimal) QfdList[2])
+				.setScale(2, RoundingMode.HALF_UP));
+		for (Object[] oneMillion : million) {
+			if (oneMillion[0].equals(QfdList[0])) {
+				qualifiedPipelineDTO
+						.setOneMillionOpportunityCount((BigInteger) oneMillion[1]);
+			}
+		}
+		for (Object[] proactive : proactList) {
+
+			if (proactive[0].equals(QfdList[0])) {
+				qualifiedPipelineDTO
+						.setProactiveCount((BigInteger) (proactive[1]));
+			}
+
+		}
+
+		salesStageDB.add((int) QfdList[0]);
+		return qualifiedPipelineDTO;
 	}
 }

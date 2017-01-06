@@ -1496,5 +1496,51 @@ public interface OpportunityRepository extends
 	
 	
 	//************ Ends - Opportunity list by criterias *************//
-	
+	// Start of Opportunities - Qualified Changes
+	@Query(value = "select OPP.sales_stage_code,count(OPP.opportunity_id) as OpporCount, sum(digital_deal_value * (select conversion_rate "
+			+ "from beacon_convertor_mapping_t "
+			+ "where currency_name= OPP.deal_currency) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('USD')) ) "
+			+ "from opportunity_t OPP "
+			+ "join user_t USRT on USRT.user_id = OPP.opportunity_owner "
+			+ "join customer_master_t CMT on CMT.customer_id = OPP.customer_id "
+			+ "join geography_mapping_t GMT on GMT.geography= CMT.geography "
+			+ "where sales_stage_code in (4,5,6,7,8) AND USRT.user_group in ?1 AND upper(GMT.display_geography) in (?2) "
+			+ "group by sales_stage_code order by sales_stage_code ", nativeQuery = true)
+	List<Object[]> findQualifiedPipelineOpportunities(List<String> userGroup,
+			List<String> displayGeography);
+
+	@Query(value = "select OPP.sales_stage_code, count(distinct BDT.opportunity_id) from bid_details_t BDT "
+			+ "join opportunity_t OPP on OPP.opportunity_id = BDT.opportunity_id "
+			+ "join user_t USRT on USRT.user_id = OPP.opportunity_owner "
+			+ "join customer_master_t CMT on CMT.customer_id = OPP.customer_id "
+			+ "join geography_mapping_t GMT on GMT.geography= CMT.geography "
+			+ "where OPP.sales_stage_code between '4' and '8' AND BDT.bid_id = (select bid_id from bid_details_t where upper (bid_request_type) = upper('proactive') "
+			+ "and opportunity_id=OPP.opportunity_id order by modified_datetime DESC limit 1) "
+			+ "AND USRT.user_group in ?1 AND upper(GMT.display_geography) in (?2) "
+			+ "group By OPP.sales_stage_code order by OPP.sales_stage_code", nativeQuery = true)
+	List<Object[]> findOpportunitiesCountByProactiveType(
+			List<String> userGroup, List<String> displayGeography);
+
+	@Query(value = "select OPP.sales_stage_code,count (((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t "
+			+ "where currency_name= OPP.deal_currency) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('USD'))) / '1000000') > '1.0') "
+			+ "as oneMillionCount from opportunity_t OPP "
+			+ "join user_t USRT on USRT.user_id = OPP.opportunity_owner "
+			+ "join customer_master_t CMT on CMT.customer_id = OPP.customer_id "
+			+ "join geography_mapping_t GMT on GMT.geography= CMT.geography "
+			+ "where sales_stage_code in (4,5,6,7,8) AND ((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t "
+			+ "where currency_name= OPP.deal_currency) /  (select conversion_rate from beacon_convertor_mapping_t "
+			+ "where currency_name = ('USD'))) / '1000000' > '1.0') ='t' "
+			+ "AND USRT.user_group in ?1 AND upper(GMT.display_geography) in (?2) "
+			+ "group by sales_stage_code order by sales_stage_code ", nativeQuery = true)
+	List<Object[]> findOneMillionQualifiedPipelineOpportunities(
+			List<String> userGroup, List<String> displayGeography);
+
+	@Query(value = "select distinct user_group from opportunity_t OPP "
+			+ "join user_t USRT on USRT.user_id = OPP.opportunity_owner", nativeQuery = true)
+	List<String> findAllOppIdsForAllUserGroup();
+
+	@Query(value = "select distinct display_geography from geography_mapping_t", nativeQuery = true)
+	List<String> findDisplayGeo();
+
+	// Change ends
 }
