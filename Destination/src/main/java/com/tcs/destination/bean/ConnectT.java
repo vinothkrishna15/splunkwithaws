@@ -198,7 +198,7 @@ public class ConnectT implements Serializable {
 	private List<UserTaggedFollowedT> userTaggedFollowedTs;
 	
 	@Column(name="cxo_flag")
-	private Boolean cxoFlag;
+	private boolean cxoFlag;
 
 	@Transient
 	private List<ConnectSubSpLinkT> connectSubLinkDeletionList;
@@ -226,6 +226,10 @@ public class ConnectT implements Serializable {
 
 	@Transient	
 	private boolean enableEditAccess;	
+
+	//temp member for sorting
+	@Transient	
+	private String custName;
 
 	public String getConnectId() {
 		return this.connectId;
@@ -878,18 +882,19 @@ public class ConnectT implements Serializable {
 		this.productId = productId;
 	}
 
-	public Boolean isCxoFlag() {
+	public boolean isCxoFlag() {
 		return cxoFlag;
 	}
 
-	public Boolean getCxoFlag() {
-		return cxoFlag;
-	}
-
-	public void setCxoFlag(Boolean cxoFlag) {
+	public void setCxoFlag(boolean cxoFlag) {
 		this.cxoFlag = cxoFlag;
 	}
 
-	
-	
+	public String getCustName() {
+		return custName;
+	}
+
+	public void setCustName(String custName) {
+		this.custName = custName;
+	}
 }

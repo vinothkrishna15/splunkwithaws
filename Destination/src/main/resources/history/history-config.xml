@@ -149,7 +149,7 @@
 			repoMethod="findByDeliveryMasterId" modifiedByField="CreatedModifiedBy"
 			modifiedDateField="CreatedModifiedDatetime" isChildTable="true" operationTypeField="OperationType">
 			<fields>
-				<field name="DeliveryManagerId" type="USER_ID" label="Delivery Manager"/>
+				<field name="DeliveryManagerId" type="USER_ID" label="Delivery Partner"/>
 			</fields>
 		</auditHistoryTable>
 

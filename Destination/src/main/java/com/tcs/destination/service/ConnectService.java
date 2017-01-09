@@ -4,6 +4,8 @@ import static com.tcs.destination.utils.ErrorConstants.ERR_INAC_01;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -1179,9 +1182,11 @@ public class ConnectService {
 	 * @param connectT
 	 */
 	private void removeCyclicForLinkedPartnerMasterTs(ConnectT connectT) {
-		if (connectT != null)
-			if (connectT.getPartnerMasterT() != null)
+		if (connectT != null && connectT.getPartnerMasterT() != null) {
 				connectT.getPartnerMasterT().setConnectTs(null);
+				connectT.getPartnerMasterT().setPartnerMasterT(null);
+				connectT.getPartnerMasterT().setPartnerMasterTs(null);
+		}
 	}
 
 	/**
@@ -1192,8 +1197,9 @@ public class ConnectService {
 	 */
 	private void removeCyclicForLinkedCustomerMasterTs(ConnectT connectT) {
 		if (connectT != null)
-			if (connectT.getCustomerMasterT() != null)
+			if (connectT.getCustomerMasterT() != null) {
 				connectT.getCustomerMasterT().setConnectTs(null);
+			}
 
 	}
 
@@ -1438,75 +1444,75 @@ public class ConnectService {
 	 * @throws Exception
 	 */
 	public PaginatedResponse getAllConnectsForDashbaord(String status,
-			String financialYear, int page, int count) throws Exception {
-		Pageable pageable = new PageRequest(page, count);
+			String financialYear, String type, String supervisorId, int page, int count, String sortBy, String order) throws DestinationException {
+
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		Page<ConnectT> pageConnects = null;
 		List<ConnectT> listOfConnects = null;
 		List<String> connectIds = null;
-		try {
-			if (StringUtils.isEmpty(financialYear)) {
-				financialYear = DateUtils.getCurrentFinancialYear();
-			}
-
-			Timestamp startTimestamp = new Timestamp(DateUtils
-					.getDateFromFinancialYear(financialYear, true).getTime());
-			Timestamp endTimestamp = new Timestamp(DateUtils
-					.getDateFromFinancialYear(financialYear, false).getTime()
-					+ Constants.ONE_DAY_IN_MILLIS - 1);
-
-			if ((status != null) && (ConnectStatusType.contains(status))) {
-				// Retrieve all connectIds present within the FY
-				connectIds = connectRepository.getAllConnectsForDashbaord(
-						startTimestamp, endTimestamp);
-				if ((connectIds != null) && (!connectIds.isEmpty())) {
-					List<String> connectIdsForStatusOpenClosed = null;
-					if (status.equalsIgnoreCase(ConnectStatusType.OPEN
-							.toString())) { // If Status is open, check for
-						// connects which has no notes in
-						// notes_t table
-						connectIdsForStatusOpenClosed = connectRepository
-								.getAllConnectsForDashbaordStatusOpen(
-										connectIds, startTimestamp,
-										endTimestamp);
-						pageConnects = retrieveConnectsByConnetIdOrderByStartDateTime(
-								connectIdsForStatusOpenClosed, pageable);
-						paginatedResponse.setTotalCount(pageConnects
-								.getTotalElements());
-						listOfConnects = pageConnects.getContent();
-
-					} else if (status.equalsIgnoreCase(ConnectStatusType.CLOSED
-							.toString())) { // If Status is closed, check for
-						// connects which has notes in
-						// notes_t table
-						connectIdsForStatusOpenClosed = notesRepository
-								.getAllConnectsForDashbaordStatusClosed(connectIds);
-						pageConnects = retrieveConnectsByConnetIdOrderByStartDateTime(
-								connectIdsForStatusOpenClosed, pageable);
-						paginatedResponse.setTotalCount(pageConnects
-								.getTotalElements());
-						listOfConnects = pageConnects.getContent();
-					} else if (status.equalsIgnoreCase(ConnectStatusType.ALL
-							.toString())) { // If status is ALL, get connects
-						// from connect_t
-						pageConnects = connectRepository
-								.findByConnectIdInOrderByStartDatetimeOfConnectAsc(
-										connectIds, pageable);
-						paginatedResponse.setTotalCount(pageConnects
-								.getTotalElements());
-						listOfConnects = pageConnects.getContent();
-					}
-				}
-			} else {
-				logger.error("BAD_REQUEST: Invalid Status Type");
-				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"Invalid Status Type");
-			}
-		} catch (Exception e) {
-			logger.error("INTERNAL_SERVER_ERROR: " + e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
+		if (StringUtils.isEmpty(financialYear)) {
+			financialYear = DateUtils.getCurrentFinancialYear();
 		}
+
+		Timestamp startTimestamp = new Timestamp(DateUtils
+				.getDateFromFinancialYear(financialYear, true).getTime());
+		Timestamp endTimestamp = new Timestamp(DateUtils
+				.getDateFromFinancialYear(financialYear, false).getTime()
+				+ Constants.ONE_DAY_IN_MILLIS - 1);
+
+		ConnectStatusType connectStatus = ConnectStatusType.getByName(status);
+
+		if (connectStatus != null) {
+			// Retrieve all connectIds present within the FY
+			connectIds = connectRepository.getAllConnectsForDashbaord(
+					startTimestamp, endTimestamp);
+
+			if(StringUtils.equals(type, "TEAM")) {
+				//filter connect id with primary owner and secondary owner
+				// Get all users under a supervisor
+				List<String> users = userRepository.getAllSubordinatesIdBySupervisorId(supervisorId);
+				connectIds = connectRepository.filterConnectWithUsers(users, connectIds);
+			}
+
+			if ((connectIds != null) && (!connectIds.isEmpty())) {
+				List<String> connectIdsForStatusOpenClosed = null;
+
+				switch (connectStatus) {
+				case OPEN:
+					// If Status is open, check for connects which has no notes in notes_t table
+					connectIdsForStatusOpenClosed = connectRepository
+									.getAllConnectsForDashbaordStatusOpen(connectIds, startTimestamp, endTimestamp);
+					pageConnects = retrieveConnectsByConnetId(connectIdsForStatusOpenClosed, page, count, sortBy, order);
+					paginatedResponse.setTotalCount(pageConnects
+							.getTotalElements());
+					listOfConnects = pageConnects.getContent();
+					break;
+				case CLOSED:
+					// If Status is closed, check for connects which has notes in notes_t table
+					connectIdsForStatusOpenClosed = notesRepository.getAllConnectsForDashbaordStatusClosed(connectIds);
+					pageConnects = retrieveConnectsByConnetId(connectIdsForStatusOpenClosed, page, count, sortBy, order);
+					paginatedResponse.setTotalCount(pageConnects
+							.getTotalElements());
+					listOfConnects = pageConnects.getContent();
+					break;
+				case ALL:
+					// If status is ALL, get connects from connect_t
+					pageConnects = retrieveConnectsByConnetId(connectIds, page, count, sortBy, order);
+					paginatedResponse.setTotalCount(pageConnects
+							.getTotalElements());
+					listOfConnects = pageConnects.getContent();
+					break;
+
+				default:
+					break;
+				}
+			}
+		} else {
+			logger.error("BAD_REQUEST: Invalid Status Type");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Invalid Status Type");
+		}
+
 		paginatedResponse.setConnectTs(listOfConnects);
 		prepareConnect(listOfConnects);
 		return paginatedResponse;
@@ -1518,15 +1524,30 @@ public class ConnectService {
 	 * @param connectIds
 	 * @return List<ConnectT>
 	 */
-	private Page<ConnectT> retrieveConnectsByConnetIdOrderByStartDateTime(
-			List<String> connectIds, Pageable pageable) {
-
+	private Page<ConnectT> retrieveConnectsByConnetId(
+			List<String> connectIds, int page, int count, String sortBy, String order) {
+		
 		Page<ConnectT> listOfConnects = null;
 
-		if ((connectIds != null) && (!connectIds.isEmpty())) {
-			listOfConnects = connectRepository
-					.findByConnectIdInOrderByStartDatetimeOfConnectAsc(
-							connectIds, pageable);
+		if (CollectionUtils.isNotEmpty(connectIds)) {
+			if(!StringUtils.equalsIgnoreCase(sortBy,"customerName")) {
+				Sort sort = getSortFromOrder(order, sortBy);
+				Pageable pageable = new PageRequest(page, count, sort);
+				listOfConnects = connectRepository.findByConnectIdIn(connectIds, pageable);
+			} else {
+				List<ConnectT> fullList = connectRepository.findByConnectIdIn(connectIds);
+				//Sort list
+				for (ConnectT connectT : fullList) {
+					connectT.setCustName(connectT.getCustomerMasterT() != null ? connectT.getCustomerMasterT().getCustomerName() : connectT.getPartnerMasterT().getPartnerName());
+				}
+				if(order.equals("ASC")) {
+					Collections.sort(fullList, new ConnectCustomerNameComparator());
+				} else {
+					Collections.sort(fullList, Collections.reverseOrder(new ConnectCustomerNameComparator()));
+				}
+				List<ConnectT> paginateList = PaginationUtils.paginateList(page, count, fullList);
+				listOfConnects = new PageImpl<ConnectT>(paginateList, new PageRequest(page, count), fullList.size());
+			}
 		}
 
 		return listOfConnects;
@@ -2263,6 +2284,30 @@ public class ConnectService {
 						fromTimestamp, customerId, "%"+ term.toUpperCase() +"%");
 		return connects;
 	}
+	
+	/**
+	 * returns the sort object for given order by column and the order direction
+	 * @param order
+	 * @param orderBy
+	 * @return
+	 */
+	private Sort getSortFromOrder(String order, String... orderBy) {
+		Sort sort = null;
+		if (order.equalsIgnoreCase("DESC")) {
+			sort = new Sort(Direction.DESC, orderBy);
+		} else {
+			sort = new Sort(Direction.ASC, orderBy);
+		}
+		return sort;
+	}
+	
+	class ConnectCustomerNameComparator implements Comparator<ConnectT> {
+		@Override
+		public int compare(ConnectT o1, ConnectT o2) {
+			return o1.getCustName().compareTo(o2.getCustName());
+		}
+	}
+	
 
 	/**
 	 * fetch all customers and their connects between dates, and by type of subsp

@@ -391,13 +391,17 @@ public class ConnectController {
 			@RequestParam(value = "fields", defaultValue = "") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view,
 			@RequestParam(value = "status", defaultValue = "ALL") String status,
+			@RequestParam(value = "sortBy", defaultValue = "startDatetimeOfConnect") String sortBy,
+			@RequestParam(value = "order", defaultValue = "DESC") String order,
+			@RequestParam(value = "type", defaultValue = "ALL") String type,
+			@RequestParam(value = "supervisorId", defaultValue = "") String supervisorId,
 			@RequestParam("fy") String financialYear)
 			throws DestinationException {
 		logger.info("Inside ConnectController: Start of retrieving all Connects for Dashboard");
 		PaginatedResponse pageConnects = null;
 		try {
 			pageConnects = connectService.getAllConnectsForDashbaord(status,
-					financialYear, page, count);
+					financialYear, type, supervisorId, page, count, sortBy, order);
 			if (pageConnects == null) {
 				logger.error(
 						"NOT_FOUND : No Connects found for the status {} and FY {}",
@@ -413,7 +417,7 @@ public class ConnectController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while retrieving connect details");
 		}

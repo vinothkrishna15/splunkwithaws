@@ -370,7 +370,7 @@ public class PartnerService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Partners found");
 		}
-		preparePartner(partners);
+		preparePartner(partners,true);
 		paginatedResponse.setPartnerMasterTs(partners);
 		logger.debug("End:Inside findByNameContaining method of PartnerService");
 		return paginatedResponse;
@@ -410,15 +410,19 @@ public class PartnerService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Partners found");
 		}
-		preparePartner(partnerList);
+		preparePartner(partnerList,false);
 		paginatedResponse.setPartnerMasterTs(partnerList);
 		logger.debug("End:Inside findByNameStarting method of PartnerService");
 		return paginatedResponse;
 	}
-	private void preparePartner(List<PartnerMasterT> partners) {
+	private void preparePartner(List<PartnerMasterT> partners, boolean isAjax) {
 		UserT userT= DestinationUtils.getCurrentUserDetails();
 		for (PartnerMasterT partner : partners) {
 			preparePartner(partner, userT);
+			if(isAjax) {
+				partner.setPartnerMasterT(null);
+				partner.setPartnerMasterTs(null);
+			}
 		}
 	}
 
@@ -521,7 +525,7 @@ public class PartnerService {
 			int toIndex = PaginationUtils.getEndIndex(page, count,
 					partnerMasterTs.size()) + 1;
 			partnerMasterTs = partnerMasterTs.subList(fromIndex, toIndex);
-			preparePartner(partnerMasterTs);
+			preparePartner(partnerMasterTs,false);
 			paginatedResponse.setPartnerMasterTs(partnerMasterTs);
 		} else {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
@@ -934,7 +938,7 @@ public class PartnerService {
 					List<PartnerMasterT> values = searchResultDTO.getValues();
 					List<PartnerMasterT> records = PaginationUtils.paginateList(page, count, values);
 					if(CollectionUtils.isNotEmpty(records)) {
-						preparePartner(records);
+						preparePartner(records,false);
 					}
 					searchResultDTO.setValues(records);
 					res.setTotalCount(values.size());

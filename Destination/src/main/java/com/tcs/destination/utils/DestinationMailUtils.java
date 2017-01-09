@@ -49,6 +49,7 @@ import com.tcs.destination.bean.DestinationMailMessage;
 import com.tcs.destination.bean.DocumentsT;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.OpportunityCompetitorLinkT;
+import com.tcs.destination.bean.OpportunityDeliveryCentreMappingT;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
 import com.tcs.destination.bean.OpportunitySubSpLinkT;
@@ -67,11 +68,13 @@ import com.tcs.destination.data.repository.BidDetailsTRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.DeliveryCentreRepository;
+import com.tcs.destination.data.repository.DeliveryClusterRepository;
 import com.tcs.destination.data.repository.DeliveryIntimatedRepository;
 import com.tcs.destination.data.repository.DeliveryMasterManagerLinkRepository;
 import com.tcs.destination.data.repository.DeliveryMasterRepository;
 import com.tcs.destination.data.repository.DocumentsTRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
+import com.tcs.destination.data.repository.OpportunityDeliveryCentreMappingTRepository;
 import com.tcs.destination.data.repository.OpportunityReopenRequestRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.OpportunitySalesSupportLinkTRepository;
@@ -98,6 +101,7 @@ import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.enums.WorkflowStatus;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.WeeklyReportHelper;
+import com.tcs.destination.service.DeliveryMasterService;
 import com.tcs.destination.service.NumericUtil;
 import com.tcs.destination.service.OpportunityDownloadService;
 import com.tcs.destination.service.OpportunityService;
@@ -352,6 +356,15 @@ public class DestinationMailUtils {
 	
 	@Autowired
 	DocumentsTRepository documentsRepository;
+	
+	@Autowired
+	OpportunityDeliveryCentreMappingTRepository opportunityDeliveryCentreMappingTRepository;
+	
+	@Autowired
+	DeliveryClusterRepository deliveryClusterRepository;
+	
+	@Autowired
+	DeliveryMasterService deliveryMasterService;
 	
 	@Autowired
 	WeeklyReportHelper weeklyReportHelper;
@@ -3671,7 +3684,9 @@ public class DestinationMailUtils {
 			Integer deliveryCenterId) throws Exception {
 		DestinationMailMessage message = getDeliveryMailDetails(entityId,
 				entityType, deliveryCenterId);
-		destMailSender.send(message);
+		if(message!=null) {
+			destMailSender.send(message);
+		}
 		logger.info("Mail Sent for Engagement "+entityId);
 
 	}
@@ -3682,9 +3697,10 @@ public class DestinationMailUtils {
 	 * @param entityType
 	 * @param deliveryCenterId
 	 * @return
+	 * @throws Exception 
 	 */
 	private DestinationMailMessage getDeliveryMailDetails(
-             String entityId,String entityType, Integer deliveryCenterId) {
+             String entityId,String entityType, Integer deliveryCenterId) throws Exception {
 		logger.info("Inside getDeliveryMailDetails Method");
 		DestinationMailMessage message = new DestinationMailMessage();
 		Map<String, Object> data = Maps.newHashMap();
@@ -3801,7 +3817,37 @@ public class DestinationMailUtils {
 		// Entity Type -> Delivery Intimated : Intimating cluster head of delivery
 		// centres tagged to Opportunity prior win
 		case DELIVERY_INTIMATED:
-			List<String> deliveryCentres = Lists.newArrayList();
+			List<Integer> deliveryCentreIds = Lists.newArrayList();
+			OpportunityT opportunityT = opportunityRepository.findOne(entityId);
+			CustomerMasterT customerMasterT = opportunityT.getCustomerMasterT();
+			List<OpportunityDeliveryCentreMappingT> opportunityDeliveryCentreMappingTs = opportunityDeliveryCentreMappingTRepository
+					.findByOpportunityId(entityId);
+			for (OpportunityDeliveryCentreMappingT opportunityDeliveryCentreMappingT : opportunityDeliveryCentreMappingTs) {
+				deliveryCentreIds.add(opportunityDeliveryCentreMappingT
+						.getDeliveryCentreId());
+			}
+			Map<Integer, List<Integer>> deliveryCentreMap = deliveryMasterService
+					.getDeliveryCentreForCluster(deliveryCentreIds);
+			String[] replacementList = { mailSubjectAppendEnvName,
+					customerMasterT.getCustomerName(),
+					entityId};
+			subject = StringUtils.replaceEach(deliveryIntimatedSubject,
+					deliveryIntimatedSubjectSearchList, replacementList);
+			templateLoc = deliveryIntimatedTemplateLoc;
+			for (Integer clusterId : deliveryCentreMap.keySet()) {
+				Map<String, Object> dataIntimated = Maps.newHashMap();
+				List<String> recipientIdsForIntimated = Lists.newArrayList();
+				List<String> deliveryCentreNames = getDeliveryCentreNamesFromIds(deliveryCentreMap.get(clusterId));
+				dataIntimated.put("deliveryCenter", defaultIfEmpty(StringUtils.join(deliveryCentreNames, ",")));
+				dataIntimated.putAll(getDataForOpportunityDelivery(opportunityT));
+				recipientIdsForIntimated.add(deliveryClusterRepository.findOne(clusterId).getDeliveryClusterHead());
+				DestinationMailMessage messageForIntimated = constructMailMessage(recipientIdsForIntimated, ccIds, null, subject,
+						templateLoc, dataIntimated);
+				destMailSender.send(messageForIntimated);
+			}
+			return null;
+			
+			/*List<String> deliveryCentres = Lists.newArrayList();
 			DeliveryIntimatedT deliveryIntimatedT = deliveryIntimatedRepository.findOne(entityId);
 			CustomerMasterT customerMasterT = deliveryIntimatedT.getOpportunityT().getCustomerMasterT();
 			String[] replacementList = { mailSubjectAppendEnvName,
@@ -3845,8 +3891,8 @@ public class DestinationMailUtils {
 						.getDeliveryCentreT().getDeliveryClusterT()
 						.getDeliveryClusterHead());
 				templateLoc = deliveryIntimatedTemplateLoc;
-			}
-			break;
+			}*/
+			
 		default:
 			break;
 		}
@@ -3854,6 +3900,14 @@ public class DestinationMailUtils {
 				templateLoc, data);
 
 		return message;
+	}
+
+	private List<String> getDeliveryCentreNamesFromIds(List<Integer> deliveryCentreIds) {
+		List<String> deliveryCentreNames = Lists.newArrayList();
+			if(CollectionUtils.isNotEmpty(deliveryCentreIds)) {
+				deliveryCentreNames = deliveryCentreRepository.findDeliveryCentreNamesByIds(deliveryCentreIds);
+			}
+		return deliveryCentreNames;
 	}
 
 	private Map<String,Object> getDataForDeliveryintimated(
@@ -3917,7 +3971,10 @@ public class DestinationMailUtils {
 		.getCustomerName()));
 		data.put("opportunityName", defaultIfEmpty(opportunity.getOpportunityName()));
 		data.put("engagementStartDate",	defaultIfEmpty(DateUtils.format(opportunity.getEngagementStartDate(), DateUtils.ACTUAL_FORMAT)));
-		data.put("engagementDuration", defaultIfEmpty(opportunity.getEngagementDuration()));
+		BigDecimal engagementDuration = opportunity.getEngagementDuration();
+		if(engagementDuration!=null) {
+			data.put("engagementDuration", defaultIfEmpty(engagementDuration.intValue()));
+		}
 		data.put("deliveryOwnership", defaultIfEmpty(opportunity.getDeliveryOwnershipT().getOwnership()));
 		data.put("crmId", defaultIfEmpty(opportunity.getCrmId()));
 		// Getting bid details
@@ -3989,7 +4046,6 @@ public class DestinationMailUtils {
 		logger.debug("End of getDeliveryManagers method");
 		return assignedManagers;
 	}
-	
 }
 
 

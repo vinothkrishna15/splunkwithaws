@@ -1226,10 +1226,8 @@ public class DashBoardService {
 						sumOfDealValueWon = sumOfDealValueWon + 
 								beaconConverterService.convertCurrencyRateUsingBeaconConverterMap(opp.getDealCurrency(), "USD", opp.getDigitalDealValue(), beaconConverterMap).doubleValue();
 					}
-				} else if ((opp.getSalesStageCode() == 10)
-						|| (opp.getSalesStageCode() == 11)
-						|| (opp.getSalesStageCode() == 13)) { // For Lost
-					// 10,11,13
+				} else if (opp.getSalesStageCode() == 10) { // For Lost
+					// 10
 					opportunitiesLost.add(opp);
 					if (opp.getDigitalDealValue() != null) {
 						sumOfDealValueLost = sumOfDealValueLost + 
@@ -1419,7 +1417,6 @@ public class DashBoardService {
 			case GEO_HEADS:
 			case IOU_HEADS:
 			case PRACTICE_HEAD:
-			case DELIVERY_CLUSTER_HEAD:	
 				users = userRepository.getSubordinatesIdBySupervisorId(userId, nameWith);
 				break;
 

@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -221,7 +222,7 @@ public class ConnectDetailedReportService {
 		CellStyle headerStyle = ExcelUtils.createRowStyle(workbook,
 				ReportConstants.REPORTHEADER);
 		List<String> orderedFields = Arrays.asList("iou", "geography", "country", "subSp", "offering", "tcsAccountContact",
-				"tcsAccountRole", "custContactName", "custContactRole","partnerContactName","partnerContactRole","startDateOfConnect", "endDateOfConnect", "primaryOwner",
+				"tcsAccountRole", "custContactName", "custContactRole","locationOfConnect","connectType","partnerContactName","partnerContactRole","startDateOfConnect", "endDateOfConnect", "primaryOwner",
 				"secondaryOwner", "connectNotes", "linkOpportunity", "connectCategory", "customerOrPartnerName", "createdDate",
 				"createdBy", "modifiedDate", "modifiedBy");
 		boolean isTimeZone = true;
@@ -342,6 +343,8 @@ public class ConnectDetailedReportService {
 		boolean tcsContactRoleFlag = fields.contains(ReportConstants.TCSACCOUNTROLE);
 		boolean custContactNameFlag = fields.contains(ReportConstants.CUSTOMERCONTACTNAME);
 		boolean custContactRoleFlag = fields.contains(ReportConstants.CUSTOMERCONTACTROLE);
+		boolean locationOfConnectFlag = fields.contains(ReportConstants.LOCATION_OF_CONNECT);
+		boolean connectTypeFlag = fields.contains(ReportConstants.CONNECT_TYPE);
 		boolean partnerContactNameFlag = fields.contains(ReportConstants.PARTNERCONTACTNAME);
 		boolean partnerContactRoleFlag = fields.contains(ReportConstants.PARTNERCONTACTROLE);
 		boolean linkOppFlag = fields.contains(ReportConstants.LINKOPPORTUNITY);
@@ -471,6 +474,22 @@ public class ConnectDetailedReportService {
 					cusContactNamesList.add(i+"-"+cusContactRole.get(i-1));
 				}
 				customerContactRoleCell.setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(cusContactNamesList));
+				colValue++;
+			}
+			
+			if(locationOfConnectFlag) {
+				SXSSFCell connectLocationCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
+				if(StringUtils.isNotEmpty(connect.getLocation())) {
+					connectLocationCell.setCellValue(connect.getLocation());
+				}
+				colValue++;
+			}
+			
+			if(connectTypeFlag) {
+				SXSSFCell connectTypeCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
+				if(StringUtils.isNotEmpty(connect.getType())) {
+					connectTypeCell.setCellValue(connect.getType());
+				}
 				colValue++;
 			}
 			

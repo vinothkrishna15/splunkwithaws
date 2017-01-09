@@ -13,6 +13,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,7 +91,6 @@ public class BDMService {
 	private static final String IOU_COND_PREFIX = "ICMT.display_iou in (";
 	private static final String DEAL_CLOSURE_DATE_BETWEEN = " and deal_closure_date between '";
 	
-	private static final String  CUSTOMER_NAME = "RCMT.customer_name in (";
 	
 	private static final String  CUSTOMER_MAS_NAME = "CMT.customer_name in (";
 	
@@ -155,7 +155,7 @@ public class BDMService {
 				}
 			} else {
 				logger.error("NOT_FOUND: User is not BDM: {}", userId);
-				throw new DestinationException(HttpStatus.NOT_FOUND, "User is not BDM/Practice Owner/Delivery Manager: " + userId);
+				throw new DestinationException(HttpStatus.NOT_FOUND, "User is not BDM/Practice Owner/Delivery Partner: " + userId);
 			}
 		} else {
 			logger.error("NOT_FOUND: User not found: {}", userId);
@@ -247,7 +247,7 @@ public class BDMService {
 			    throw new DestinationException(HttpStatus.UNAUTHORIZED,  "User is not authorised to access this service");
 			case GEO_HEADS:
 			case IOU_HEADS:	
-			case PMO:	
+			case PMO:
 				if(financialYear.equals("")){
 					financialYear=DateUtils.getCurrentFinancialYear();
 					}
@@ -336,8 +336,29 @@ public class BDMService {
 			
 			dashBoardBDMResponseList.add(dashBoardBDMResponse);
 		}
+		int totalProposalSupported = 0;
+		int totalTeamConnects = 0;
+		for(DashBoardBDMResponse bdmResponse : dashBoardBDMResponseList) {
+			List<BDMDashBoardResponse> bdmDashboard = bdmResponse.getBdmDashboard();
+			if (CollectionUtils.isNotEmpty(bdmDashboard)) {
+				BDMDashBoardResponse bdmDashBoardResponse = bdmDashboard.get(0);
+				totalOppOwnerWinValue = totalOppOwnerWinValue
+						.add(bdmDashBoardResponse.getTotalOppWinsAchieved());
+				totalProposalSupported = totalProposalSupported
+						+ bdmDashBoardResponse
+								.getPrimaryProposalSupportAchieved()
+						+ bdmDashBoardResponse
+								.getSalesProposalSupportAchieved();
+				totalTeamConnects = totalTeamConnects
+						+ bdmDashBoardResponse.getConnectPrimary()
+						+ bdmDashBoardResponse.getConnectSecondary();
+			}
+		}
+		bdmSupervisorDashboardDTO.setTotalOpportunityWinsAchieved(totalOppOwnerWinValue);
+		bdmSupervisorDashboardDTO.setTotalProposalSupportedAchieved(totalProposalSupported);
+		bdmSupervisorDashboardDTO.setTotalConnectSupportedAchieved(totalTeamConnects);
 		//total opportunity wins achieved 
-		totalOppOwnerWinValue = opportunityRepository.getTotalOpportunityWinsByUserIds(userIds, fromDate, toDate);
+		/*totalOppOwnerWinValue = opportunityRepository.getTotalOpportunityWinsByUserIds(userIds, fromDate, toDate);
 		bdmSupervisorDashboardDTO.setTotalOpportunityWinsAchieved(totalOppOwnerWinValue);
 		
 		//total proposal achieved
@@ -354,7 +375,7 @@ public class BDMService {
 		if(totalConnects!=null){
 		  totalConnectsSupportedValue = (totalConnects).intValue();
 		}
-		bdmSupervisorDashboardDTO.setTotalConnectSupportedAchieved(totalConnectsSupportedValue);
+		bdmSupervisorDashboardDTO.setTotalConnectSupportedAchieved(totalConnectsSupportedValue);*/
 		bdmSupervisorDashboardDTO.setBdmSupervisorDashboard(dashBoardBDMResponseList);
 		logger.debug("end:Inside getBDMSupervisorDashBoardByUser()");
 		return bdmSupervisorDashboardDTO;

@@ -1774,6 +1774,9 @@ public class OpportunityService {
 			for (Integer id : storedCentres) {
 				opportunityDeliveryCentreMappingTRepository.delete(id);
 			}
+			
+			/* Delivery code might required later
+			 
 			// Creating Intimated Delivery if Opportunity Wins
 			if (opportunity.getSalesStageCode() != oldSalesStageCode
 					&& opportunity.getSalesStageCode() == SalesStageCode.WIN
@@ -1789,7 +1792,7 @@ public class OpportunityService {
 						.getDeliveryCentreForCluster(deliveryCentreIds);
 				deliveryMasterService.createDeliveryIntimated(opportunity,
 						deliveryCentreMap, userId);
-			}
+			}*/
 		}
 			
 		// return opportunityRepository.save(opportunity);
@@ -1956,7 +1959,7 @@ public class OpportunityService {
 						.delete(opportunityPartnerLinkT
 								.getOpportunityPartnerLinkId());
 			}
-			opportunity.setOpportunityPartnerLinkTs(null);
+			opportunity.setDeleteOpportunityPartnerLinkTs(null);
 		}
 
 		if (opportunity.getDeleteOpportunityCompetitorLinkTs() != null
@@ -3619,13 +3622,16 @@ public class OpportunityService {
 			emailJobRequired = true;
 			
 			if(newSalesStageCode == SalesStageCode.WIN.getCodeValue()) {
-				List<DeliveryIntimatedT> deliveriesIntimated = deliveryIntimatedRepository.findByOpportunityId(opportunity.getOpportunityId());
+				
+				asyncJobRequests.add(constructAsyncJobRequest(opportunity.getOpportunityId(), 
+						EntityType.DELIVERY_INTIMATED, JobName.deliveryEmailNotification, null,null));
+				/*List<DeliveryIntimatedT> deliveriesIntimated = deliveryIntimatedRepository.findByOpportunityId(opportunity.getOpportunityId());
 				if(CollectionUtils.isNotEmpty(deliveriesIntimated)) {
 				for (DeliveryIntimatedT deliveryIntimated : deliveriesIntimated) {
 				asyncJobRequests.add(constructAsyncJobRequest(deliveryIntimated.getDeliveryIntimatedId(), 
 				EntityType.DELIVERY_INTIMATED, JobName.deliveryEmailNotification, null,null));
 				}
-			}
+			}*/
 		}
 			
 		} else if (newDealValue != null
