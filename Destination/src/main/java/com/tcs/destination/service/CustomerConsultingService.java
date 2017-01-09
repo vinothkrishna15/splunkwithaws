@@ -4,7 +4,6 @@
 package com.tcs.destination.service;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Date;
@@ -19,7 +18,6 @@ import com.tcs.destination.bean.dto.ConsultingMonthlyRevenue;
 import com.tcs.destination.bean.dto.CustomerConsultingDTO;
 import com.tcs.destination.data.repository.CustomerConsultingRepository;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 
 /**
@@ -42,7 +40,7 @@ public class CustomerConsultingService {
 
 	public CustomerConsultingDTO findRevenueDetailsOfConsultedCustomers(
 			String financialYear) {
-		
+
 		logger.debug("Entry for findRevenueDetailsOfConsultedCustomers() service");
 
 		BigDecimal revenueByCustomerInINR = BigDecimal.ZERO;
@@ -53,8 +51,8 @@ public class CustomerConsultingService {
 		List<String> groupCustomerList = new ArrayList<String>();
 		List<String> groupCustomerListCost = new ArrayList<String>();
 
-		List<BigDecimal> customerRevenueList = new ArrayList<BigDecimal>();
-		List<BigDecimal> customerRevenueListBasedOnCost = new ArrayList<BigDecimal>();
+		BigDecimal customerRevenueList = BigDecimal.ZERO;
+		BigDecimal customerRevenueListBasedOnCost = BigDecimal.ZERO;
 
 		Date fromDate = DateUtils.getDateFromFinancialYear(financialYear, true);
 		Date toDate = DateUtils.getDateFromFinancialYear(financialYear, false);
@@ -85,9 +83,7 @@ public class CustomerConsultingService {
 				.findSumOfDealvalueWithGroupCustomerByQualified(fromDate,
 						toDate);
 
-		BigDecimal totalDealPriceInUSDQualified = calculateDealValueForWinsAndQualified(
-
-		totalRevenueAndCustomerListByQualified);
+		BigDecimal totalDealPriceInUSDQualified = calculateDealValueForWinsAndQualified(totalRevenueAndCustomerListByQualified);
 
 		custConsulting
 				.setNumberOfConsultedQualifiedPipeline(totalRevenueAndCustomerListByQualified
@@ -103,16 +99,15 @@ public class CustomerConsultingService {
 
 		List<Object[]> monthlyRevenueDetails = customerConsultingRepository
 				.findMonthwiseRevenueForConsulting(financialYear);
-		BigDecimal monthlyRevenueUSD = BigDecimal.ZERO;
+
 		List<ConsultingMonthlyRevenue> newList = new ArrayList<ConsultingMonthlyRevenue>();
 		for (Object[] revenue : monthlyRevenueDetails) {
 			ConsultingMonthlyRevenue consultingMonthlyRevenue = new ConsultingMonthlyRevenue();
 			if (null != revenue[0] && null != revenue[0]) {
-				BigDecimal monthlyRevenueINR = (BigDecimal) revenue[1];
-				monthlyRevenueUSD = beaconConverterService.convert("INR",
-						"USD", monthlyRevenueINR);
+				BigDecimal monthlyRevenueUSD = (BigDecimal) revenue[1];
 				consultingMonthlyRevenue.setMonth(revenue[0].toString());
-				consultingMonthlyRevenue.setRevenue(monthlyRevenueUSD);
+				consultingMonthlyRevenue.setRevenue(monthlyRevenueUSD.setScale(
+						2, RoundingMode.HALF_UP));
 				newList.add(consultingMonthlyRevenue);
 			}
 		}
@@ -136,19 +131,15 @@ public class CustomerConsultingService {
 
 	List<Object[]> totalDealValueAndCustomerList) throws DestinationException {
 		BigDecimal totalDealPriceInUSD = BigDecimal.ZERO;
-		BigDecimal dealPriceByWinsInUSD = BigDecimal.ZERO;
-		for (int i = 0; i < totalDealValueAndCustomerList.size(); i++) {
+		for (Object[] dealValueAndCustomer : totalDealValueAndCustomerList) {
 
-			Object[] dealValueAndCustomer = totalDealValueAndCustomerList
-					.get(i);
 			if (null != (dealValueAndCustomer[1])
 					&& (null != dealValueAndCustomer[0])) {
-				String dealCurrency = dealValueAndCustomer[1].toString();
-				BigInteger dealValue = (BigInteger) dealValueAndCustomer[0];
-				dealPriceByWinsInUSD = beaconConverterService.convert(
-						dealCurrency, "USD", dealValue.doubleValue());
-				totalDealPriceInUSD = totalDealPriceInUSD
-						.add(dealPriceByWinsInUSD);
+
+				BigDecimal dealValue = (BigDecimal) dealValueAndCustomer[0];
+
+				totalDealPriceInUSD = totalDealPriceInUSD.add(dealValue
+						.setScale(2, RoundingMode.HALF_UP));
 			}
 		}
 		return totalDealPriceInUSD;
@@ -166,35 +157,33 @@ public class CustomerConsultingService {
 	 * @param customerRevenueListBasedOnCost
 	 * @throws DestinationException
 	 */
-	private void calculateRevenueAndGrossMargin(BigDecimal revenueInINR,
-			BigDecimal costInINR, CustomerConsultingDTO custConsulting,
-			List<String> groupCustomerList,
-			List<BigDecimal> customerRevenueList,
-			List<BigDecimal> customerRevenueListBasedOnCost,
-			String financialYear, List<String> groupCustomerListCost)
-			throws DestinationException {
+	private void calculateRevenueAndGrossMargin(BigDecimal revenueInUSD,
+			BigDecimal costInUSD, CustomerConsultingDTO custConsulting,
+			List<String> groupCustomerList, BigDecimal customerRevenueList,
+			BigDecimal customerRevenueListBasedOnCost, String financialYear,
+			List<String> groupCustomerListCost) throws DestinationException {
 		BigDecimal totalGrossAmount = BigDecimal.ZERO;
 		// Call to Database to fetch the list of group_customers and revenue
 		List<Object[]> totalRevenueAndCustomerList = customerConsultingRepository
 				.findSumOfRevenueWithGroupCustomerByRevenue(financialYear);
 
-		revenueInINR = calculateCustomersConsultedDetails(revenueInINR,
+		revenueInUSD = calculateCustomersConsultedDetails(revenueInUSD,
 				groupCustomerList, customerRevenueList,
 				totalRevenueAndCustomerList, financialYear);
-		BigDecimal revenueInUSD = beaconConverterService.convert("INR", "USD",
-				revenueInINR);
+
 		custConsulting.setNumberOfCustomersConsulted(groupCustomerList);
-		custConsulting.setTotalConsultedRevenueInUSD(revenueInUSD);
+		custConsulting.setTotalConsultedRevenueInUSD(revenueInUSD.setScale(2,
+				RoundingMode.HALF_UP));
 
 		// Need to write logic to calculate the
 		List<Object[]> totalRevenueBycostWithCustomer = customerConsultingRepository
 				.findSumOfRevenueWithGroupCustomerByCost(financialYear);
 
-		costInINR = calculateCustomersConsultedDetails(costInINR,
+		costInUSD = (calculateCustomersConsultedDetails(costInUSD,
 				groupCustomerListCost, customerRevenueListBasedOnCost,
-				totalRevenueBycostWithCustomer, financialYear);
-		BigDecimal costInUSD = beaconConverterService.convert("INR", "USD",
-				costInINR);
+				totalRevenueBycostWithCustomer, financialYear).setScale(2,
+				RoundingMode.HALF_UP));
+
 		if (revenueInUSD.compareTo(BigDecimal.ZERO) != 0) {
 			totalGrossAmount = ((revenueInUSD.subtract(costInUSD)).divide(
 					revenueInUSD, 4, RoundingMode.HALF_UP))
@@ -209,33 +198,32 @@ public class CustomerConsultingService {
 	 * 
 	 * @param revenueInINR
 	 * @param groupCustomerList
-	 * @param customerRevenueList
+	 * @param customerRevenue
 	 * @param totalRevenueAndCustomerList
 	 * @return
 	 * @throws DestinationException
 	 */
 	private BigDecimal calculateCustomersConsultedDetails(
-			BigDecimal revenueInINR, List<String> groupCustomerList,
-			List<BigDecimal> customerRevenueList,
+			BigDecimal revenueInUSD, List<String> groupCustomerList,
+			BigDecimal customerRevenue,
 			List<Object[]> totalRevenueAndCustomerList, String financialYear) {
 		if (!totalRevenueAndCustomerList.isEmpty()
 				&& totalRevenueAndCustomerList != null) {
-			for (int i = 0; i < totalRevenueAndCustomerList.size(); i++) {
-				Object[] revenueAndCustomer = totalRevenueAndCustomerList
-						.get(i);
+			for (Object[] revenueAndCustomer : totalRevenueAndCustomerList) {
+
 				if (null != (revenueAndCustomer[1])
 						&& (null != revenueAndCustomer[0])) {
 					groupCustomerList.add(revenueAndCustomer[1].toString());
-					customerRevenueList.add((BigDecimal) revenueAndCustomer[0]);
-					revenueInINR = revenueInINR.add(customerRevenueList.get(i));
+					customerRevenue = (BigDecimal) revenueAndCustomer[0];
+					revenueInUSD = revenueInUSD.add(customerRevenue);
 				}
 			}
 
 		} else {
-			revenueInINR = BigDecimal.ZERO;
+			revenueInUSD = BigDecimal.ZERO;
 
 		}
-		return revenueInINR;
+		return revenueInUSD;
 	}
 
 }
