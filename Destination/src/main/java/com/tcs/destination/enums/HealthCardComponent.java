@@ -1,7 +1,7 @@
 package com.tcs.destination.enums;
 
 
-public enum HealthCardCategory {
+public enum HealthCardComponent {
 
 	WINS_RATIO(1,"Wins Ratio"),
 	UTILIZATION(2,"Utilization"),
@@ -16,7 +16,7 @@ public enum HealthCardCategory {
 	private final String category;
 
 
-	private HealthCardCategory(int categoryId, String category) {
+	private HealthCardComponent(int categoryId, String category) {
 		this.categoryId = categoryId;
 		this.category = category;
 	}
@@ -29,8 +29,8 @@ public enum HealthCardCategory {
 		return categoryId;
 	}
 
-	public static HealthCardCategory valueOfCategory(int categoryId) {
-		for(HealthCardCategory h : HealthCardCategory.values()) {
+	public static HealthCardComponent valueOfCategory(int categoryId) {
+		for(HealthCardComponent h : HealthCardComponent.values()) {
 			if(h.getCategoryId()==categoryId) {
 				return h;
 			}
@@ -38,8 +38,8 @@ public enum HealthCardCategory {
 		return null;
 	}
 	
-	public static HealthCardCategory valueOfCategory(String category) {
-		for(HealthCardCategory h : HealthCardCategory.values()) {
+	public static HealthCardComponent valueOfCategory(String category) {
+		for(HealthCardComponent h : HealthCardComponent.values()) {
 			if(h.getCategory().equals(category)) {
 				return h;
 			}

@@ -20,11 +20,9 @@ import com.tcs.destination.data.repository.DeliveryCentreUnallocationRepository;
 import com.tcs.destination.data.repository.DeliveryCentreUtilizationRepository;
 import com.tcs.destination.data.repository.MobileDashboardRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
-import com.tcs.destination.enums.HealthCardCategory;
+import com.tcs.destination.enums.HealthCardComponent;
 
 import static com.tcs.destination.enums.SalesStageCode.WIN;
-import static com.tcs.destination.enums.SalesStageCode.CLOSED_AND_DISQUALIFIED;
-import static com.tcs.destination.enums.SalesStageCode.CLOSED_AND_SCRAPPED;
 import static com.tcs.destination.enums.SalesStageCode.LOST;
 
 import com.tcs.destination.utils.DateUtils;
@@ -109,16 +107,16 @@ public class CarouselService {
 			Date startDate, Date endDate, String userId) {
 		logger.debug("Start of setHealthCardMetrics method");
 		List<Integer> categories = mobileDashboardRepository
-				.getFirstThreeCategoriesInHealthCard(userId);
+				.getFirstThreeComponentsInHealthCard(userId);
 		HealthCardMetrics healthCardMetrics = new HealthCardMetrics();
 		for (Integer category : categories) {
-			switch (HealthCardCategory.valueOfCategory(category)) {
+			switch (HealthCardComponent.valueOfCategory(category)) {
 			case WINS_RATIO:
 				setWinRatioMetrics(carouselMetricsDTO, startDate, endDate,
 						true, healthCardMetrics);
 				break;
 			case UTILIZATION:
-				BigDecimal utilization = getOverallPercentage(HealthCardCategory.UTILIZATION);
+				BigDecimal utilization = getOverallPercentage(HealthCardComponent.UTILIZATION);
 				healthCardMetrics.setUtilization(utilization);
 				break;
 			case UNALLOCATION:
@@ -126,15 +124,15 @@ public class CarouselService {
 				healthCardMetrics.setUnallocation(scaletoTwoDecimal(unallocation,true));
 				break;
 			case BILABILITY:
-				BigDecimal bilability = getOverallPercentage(HealthCardCategory.BILABILITY);
+				BigDecimal bilability = getOverallPercentage(HealthCardComponent.BILABILITY);
 				healthCardMetrics.setBilability(bilability);
 				break;
 			case ATTRITION:
-				BigDecimal attrition = getOverallPercentage(HealthCardCategory.ATTRITION);
+				BigDecimal attrition = getOverallPercentage(HealthCardComponent.ATTRITION);
 				healthCardMetrics.setAttrition(attrition);
 				break;
 			case SENIOR_RATIO:
-				BigDecimal seniorRatio = getOverallPercentage(HealthCardCategory.SENIOR_RATIO);
+				BigDecimal seniorRatio = getOverallPercentage(HealthCardComponent.SENIOR_RATIO);
 				healthCardMetrics.setSeniorRatio(seniorRatio);
 				break;
 			case SKILL_CATEGORY:
@@ -145,7 +143,7 @@ public class CarouselService {
 				// healthCardMetrics.setUtilization(utilization);
 				break;
 			case TRAINEE_PERCENTAGE:
-				BigDecimal trainee = getOverallPercentage(HealthCardCategory.TRAINEE_PERCENTAGE);
+				BigDecimal trainee = getOverallPercentage(HealthCardComponent.TRAINEE_PERCENTAGE);
 				healthCardMetrics.setTraineePercentage(trainee);
 				break;
 			default:
@@ -160,7 +158,7 @@ public class CarouselService {
 		return DestinationUtils.scaleToTwoDecimal(unallocation, zeroIfNull);
 	}
 
-	private BigDecimal getOverallPercentage(HealthCardCategory healthCardCategory) {
+	private BigDecimal getOverallPercentage(HealthCardComponent healthCardCategory) {
 		BigDecimal percentage = deliveryCentreUtilizationRepository
 				.getOverallPercentage(healthCardCategory.getCategoryId());
 		return scaletoTwoDecimal(percentage,true);

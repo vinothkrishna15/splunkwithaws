@@ -17,7 +17,7 @@ import com.tcs.destination.bean.dto.DeliveryCentreUnallocationDTO;
 import com.tcs.destination.bean.dto.DeliveryCentreUtilizationDTO;
 import com.tcs.destination.data.repository.DeliveryCentreUnallocationRepository;
 import com.tcs.destination.data.repository.DeliveryCentreUtilizationRepository;
-import com.tcs.destination.enums.HealthCardCategory;
+import com.tcs.destination.enums.HealthCardComponent;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
@@ -64,7 +64,7 @@ public class HealthCardService {
 				.getFinancialYrStartDate();
 		Date endDate = toDate != null ? toDate : new Date();
 		List<DeliveryCentreUtilizationT> utilizationTs = deliveryCentreUtilizationRepository
-				.findByDateBetweenAndCategoryId(startDate, endDate,HealthCardCategory.UTILIZATION.getCategoryId());
+				.findByDateBetweenAndCategoryId(startDate, endDate,HealthCardComponent.UTILIZATION.getCategoryId());
 		for (DeliveryCentreUtilizationT deliveryCentreUtilizationT : utilizationTs) {
 			DeliveryCentreUtilizationDTO dto = beanMapper.map(deliveryCentreUtilizationT, DeliveryCentreUtilizationDTO.class, Constants.DELIVERY_UTILIZATION_MAP);
 			dtos.add(dto);

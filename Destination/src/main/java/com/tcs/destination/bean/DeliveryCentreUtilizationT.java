@@ -45,7 +45,7 @@ public class DeliveryCentreUtilizationT implements Serializable {
 	//bi-directional many-to-one association to DeliveryCentreT
 	@ManyToOne
 	@JoinColumn(name="category_id", insertable = false, updatable = false)
-	private MobileDashboardCategory mobileDashboardCategory;
+	private MobileDashboardComponentT mobileDashboardComponentT;
 
 	public DeliveryCentreUtilizationT() {
 	}
@@ -106,13 +106,12 @@ public class DeliveryCentreUtilizationT implements Serializable {
 		this.categoryId = categoryId;
 	}
 
-	public MobileDashboardCategory getMobileDashboardCategory() {
-		return mobileDashboardCategory;
+	public MobileDashboardComponentT getMobileDashboardComponentT() {
+		return mobileDashboardComponentT;
 	}
 
-	public void setMobileDashboardCategory(
-			MobileDashboardCategory mobileDashboardCategory) {
-		this.mobileDashboardCategory = mobileDashboardCategory;
+	public void setMobileDashboardComponentT(
+			MobileDashboardComponentT mobileDashboardComponentT) {
+		this.mobileDashboardComponentT = mobileDashboardComponentT;
 	}
-	
 }
