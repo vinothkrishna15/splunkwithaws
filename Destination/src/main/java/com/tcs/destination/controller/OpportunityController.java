@@ -1127,7 +1127,7 @@ public class OpportunityController {
 	public @ResponseBody ContentDTO<QualifiedPipelineDTO> getBidRequestMetrics(
 			@RequestParam(value = "oppType", defaultValue = "ALL") String oppType,
 			@RequestParam(value = "dispGeo", defaultValue = "ALL") String dispGeo,
-			@RequestParam(value = "category", defaultValue = "ALL") String category,
+			@RequestParam(value = "category") String category,
 			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
 			@RequestParam(value = "toDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate)
 					throws DestinationException {
