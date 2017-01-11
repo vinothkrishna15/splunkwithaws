@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tcs.destination.bean.UserPreferencesT;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.UserPreferencesService;
 
@@ -32,12 +33,17 @@ public class UserPreferencesController {
 	@RequestMapping(value = "/add", method = RequestMethod.POST)
 	public String insertCustomerOrCompetitor(
 			@RequestParam(value = "moduleType") String moduleType,
-			@RequestParam(value = "customerID") String customerID) {
+			@RequestParam(value = "name") String name) {
+		UserPreferencesT userPreferencesT = null;
 		String response = null;
 		try {
-			userPreferencesService.insertNewCustomerByuserID(moduleType,
-					customerID);
-			response = "success";
+			userPreferencesT = userPreferencesService
+					.insertNewCustomerByuserID(moduleType, name);
+			if (userPreferencesT != null) {
+				response = "successfully updated";
+			} else {
+				response = "Data already exist";
+			}
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -53,11 +59,14 @@ public class UserPreferencesController {
 	public String deleteFromCustomerOrCompetitor(
 			@RequestParam(value = "moduleType") String moduleType,
 			@RequestParam(value = "customerID") String customerID) {
+		UserPreferencesT userPreferencesT = null;
 		String response = null;
 		try {
 
-			/*userPreferencesService.removeCustomerIDForUserID(moduleType,
-					customerID);*/
+			/*
+			 * userPreferencesService.removeCustomerIDForUserID(moduleType,
+			 * customerID);
+			 */
 			response = "Success";
 		} catch (DestinationException e) {
 			throw e;

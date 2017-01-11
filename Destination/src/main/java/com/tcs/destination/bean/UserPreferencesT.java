@@ -4,50 +4,49 @@ import java.io.Serializable;
 import javax.persistence.*;
 import java.sql.Timestamp;
 
-
 /**
  * The persistent class for the user_preferences_t database table.
  * 
  */
 @Entity
-@Table(name="user_preferences_t")
-@NamedQuery(name="UserPreferencesT.findAll", query="SELECT u FROM UserPreferencesT u")
+@Table(name = "user_preferences_t")
+@NamedQuery(name = "UserPreferencesT.findAll", query = "SELECT u FROM UserPreferencesT u")
 public class UserPreferencesT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="preferences_id", unique=true, nullable=false, length=20)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "preferences_id", unique = true, nullable = false, length = 20)
 	private String preferencesId;
 
-	@Column(name="modified_timestamp")
+	@Column(name = "modified_timestamp", updatable = false, insertable = false)
 	private Timestamp modifiedTimestamp;
 
-	@Column(name="module_type", length=25)
+	@Column(name = "module_type", length = 25)
 	private String moduleType;
-	
-	@Column(name="competitor_name", length=25)
+
+	@Column(name = "competitor_name", length = 25)
 	private String competitorName;
-	
-	@Column(name="user_id", length=25)
+
+	@Column(name = "user_id", length = 25)
 	private String userId;
-	
-	@Column(name="group_customer_name", length=25)
+
+	@Column(name = "group_customer_name", length = 25)
 	private String groupCustomerName;
 
-	//bi-directional many-to-one association to CompetitorMappingT
+	// bi-directional many-to-one association to CompetitorMappingT
 	@ManyToOne
-	@JoinColumn(name="competitor_name", updatable=false, insertable=false)
+	@JoinColumn(name = "competitor_name", updatable = false, insertable = false)
 	private CompetitorMappingT competitorMappingT;
 
-	//bi-directional many-to-one association to UserT
+	// bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="user_id",updatable=false, insertable=false)
+	@JoinColumn(name = "user_id", updatable = false, insertable = false)
 	private UserT userT;
 
-	//bi-directional many-to-one association to GroupCustomerT
+	// bi-directional many-to-one association to GroupCustomerT
 	@ManyToOne
-	@JoinColumn(name="group_customer_name",updatable=false, insertable=false)
+	@JoinColumn(name = "group_customer_name", updatable = false, insertable = false)
 	private GroupCustomerT groupCustomerT;
 
 	public UserPreferencesT() {
@@ -85,7 +84,8 @@ public class UserPreferencesT implements Serializable {
 	}
 
 	/**
-	 * @param competitorName the competitorName to set
+	 * @param competitorName
+	 *            the competitorName to set
 	 */
 	public void setCompetitorName(String competitorName) {
 		this.competitorName = competitorName;
@@ -99,7 +99,8 @@ public class UserPreferencesT implements Serializable {
 	}
 
 	/**
-	 * @param userId the userId to set
+	 * @param userId
+	 *            the userId to set
 	 */
 	public void setUserId(String userId) {
 		this.userId = userId;
@@ -113,7 +114,8 @@ public class UserPreferencesT implements Serializable {
 	}
 
 	/**
-	 * @param groupCustomerName the groupCustomerName to set
+	 * @param groupCustomerName
+	 *            the groupCustomerName to set
 	 */
 	public void setGroupCustomerName(String groupCustomerName) {
 		this.groupCustomerName = groupCustomerName;

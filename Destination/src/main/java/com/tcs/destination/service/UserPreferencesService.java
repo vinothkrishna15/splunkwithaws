@@ -30,26 +30,24 @@ public class UserPreferencesService {
 	UserPreferencesRepository userPreferencesRepository;
 
 	public UserPreferencesT insertNewCustomerByuserID(String moduleType,
-			String customerID) throws Exception {
+			String customerOrCompetitorName) throws Exception {
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 
 		List<String> competitorList = userPreferencesRepository
 				.getCompetitorList(userId);
 		List<String> customerList = userPreferencesRepository
 				.getCustomerList(userId);
-
 		UserPreferencesT response = null;
 		UserPreferencesT userPreferencesT = new UserPreferencesT();
-		userPreferencesT.setPreferencesId(null);
 		userPreferencesT.setModuleType(moduleType);
 		userPreferencesT.setUserId(userId);
 		if (moduleType.equalsIgnoreCase("COMPETITOR")) {
-			response = validateCompetitor(customerID, competitorList, response,
-					userPreferencesT);
+			response = validateCompetitor(customerOrCompetitorName,
+					competitorList, response, userPreferencesT);
 
 		} else if (moduleType.equalsIgnoreCase("CUSTOMER")) {
-			response = validateCustomer(customerID, customerList, response,
-					userPreferencesT);
+			response = validateCustomer(customerOrCompetitorName, customerList,
+					response, userPreferencesT);
 		} else {
 			// throw DestinationException e;
 		}
@@ -59,47 +57,45 @@ public class UserPreferencesService {
 	}
 
 	/**
-	 * @param customerID
+	 * @param customerOrCompetitorName
 	 * @param customerList
 	 * @param response
 	 * @param userPreferencesT
 	 * @return
 	 */
-	private UserPreferencesT validateCustomer(String customerID,
+	private UserPreferencesT validateCustomer(String customerOrCompetitorName,
 			List<String> customerList, UserPreferencesT response,
 			UserPreferencesT userPreferencesT) {
 		if (customerList.isEmpty()) {
-			userPreferencesT.setGroupCustomerName(customerID);
-			userPreferencesT.setCompetitorName(null);
+			userPreferencesT.setGroupCustomerName(customerOrCompetitorName);
 			response = userPreferencesRepository.save(userPreferencesT);
-		} else if (!customerList.contains(customerID.toString())) {
-			userPreferencesT.setGroupCustomerName(customerID);
-			userPreferencesT.setCompetitorName(null);
+		} else if (!customerList.contains(customerOrCompetitorName.toString())) {
+			userPreferencesT.setGroupCustomerName(customerOrCompetitorName);
 			response = userPreferencesRepository.save(userPreferencesT);
 		}
 		return response;
 	}
 
 	/**
-	 * @param customerID
+	 * @param customerOrCompetitorName
 	 * @param competitorList
 	 * @param response
 	 * @param userPreferencesT
 	 * @return
 	 */
-	private UserPreferencesT validateCompetitor(String customerID,
-			List<String> competitorList, UserPreferencesT response,
-			UserPreferencesT userPreferencesT) {
+	private UserPreferencesT validateCompetitor(
+			String customerOrCompetitorName, List<String> competitorList,
+			UserPreferencesT response, UserPreferencesT userPreferencesT) {
 		if (competitorList.isEmpty()) {
-			userPreferencesT.setCompetitorName(customerID);
-			userPreferencesT.setGroupCustomerName(null);
+			userPreferencesT.setCompetitorName(customerOrCompetitorName);
 			response = userPreferencesRepository.save(userPreferencesT);
-		} else if (!competitorList.contains(customerID.toString())) {
-			userPreferencesT.setCompetitorName(customerID);
-			userPreferencesT.setGroupCustomerName(null);
+		} else if (!competitorList
+				.contains(customerOrCompetitorName.toString())) {
+			userPreferencesT.setCompetitorName(customerOrCompetitorName);
 			response = userPreferencesRepository.save(userPreferencesT);
+
 		}
 		return response;
 	}
 
-	}
+}

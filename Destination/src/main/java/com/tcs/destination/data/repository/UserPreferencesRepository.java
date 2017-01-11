@@ -21,9 +21,8 @@ public interface UserPreferencesRepository extends
 
 	@Query(value = "select competitor_name from user_preferences_t where user_id=(:userId) ", nativeQuery = true)
 	List<String> getCompetitorList(@Param("userId") String userId);
-	
+
 	@Query(value = "select group_customer_name from user_preferences_t where user_id=?1", nativeQuery = true)
 	List<String> getCustomerList(String userId);
-
 
 }
