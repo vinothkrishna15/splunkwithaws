@@ -3,6 +3,9 @@
  */
 package com.tcs.destination.controller;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.UserPreferencesT;
+import com.tcs.destination.bean.dto.UserFavouritesDTO;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.UserPreferencesService;
 
@@ -34,6 +38,7 @@ public class UserPreferencesController {
 	public String insertCustomerOrCompetitor(
 			@RequestParam(value = "moduleType") String moduleType,
 			@RequestParam(value = "name") String name) {
+		logger.info("Inside UserPreferencesController for insertCustomerOrCompetitor method: start");
 		UserPreferencesT userPreferencesT = null;
 		String response = null;
 		try {
@@ -44,6 +49,7 @@ public class UserPreferencesController {
 			} else {
 				response = "Data already exist";
 			}
+			logger.info("Inside UserPreferencesController for insertCustomerOrCompetitor method: exit");
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -77,5 +83,25 @@ public class UserPreferencesController {
 		}
 
 		return response;
+	}
+
+	@RequestMapping(value = "/retrieveFavouriteList", method = RequestMethod.GET)
+	public UserFavouritesDTO retrieveFavouriteCustomerOrCompetitor(
+			@RequestParam(value = "moduleType") String moduleType) {
+		logger.info("Inside UserPreferencesController for retrieveFavouriteCustomerOrCompetitor method: start");
+		UserFavouritesDTO CustomerOrCompetitorlist = new UserFavouritesDTO();
+		try {
+			CustomerOrCompetitorlist = userPreferencesService
+					.findAvailableFavouriteList(moduleType);
+			
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend Error while retrieving customer consulting details");
+		}
+		logger.info("Inside UserPreferencesController for retrieveFavouriteCustomerOrCompetitor method: exit");
+		return CustomerOrCompetitorlist;
 	}
 }

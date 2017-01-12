@@ -4,14 +4,17 @@
 package com.tcs.destination.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.UserPreferencesT;
+import com.tcs.destination.bean.dto.UserFavouritesDTO;
 import com.tcs.destination.data.repository.UserPreferencesRepository;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.DestinationUtils;
@@ -96,6 +99,38 @@ public class UserPreferencesService {
 
 		}
 		return response;
+	}
+
+	public UserFavouritesDTO findAvailableFavouriteList(String moduleType) {
+		// TODO Auto-generated method stub
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		List<String> availableCustOrCompList = new ArrayList<String>();
+		UserFavouritesDTO userFavouritesDTO = new UserFavouritesDTO();
+		if (moduleType.equalsIgnoreCase("COMPETITOR")) {
+			availableCustOrCompList = userPreferencesRepository
+					.getCompetitorList(userId);
+
+		} else if (moduleType.equalsIgnoreCase("CUSTOMER")) {
+			availableCustOrCompList = userPreferencesRepository
+					.getCustomerList(userId);
+		} else {
+
+			logger.error("BAD_REQUEST: URL Needs to be rephrased");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"The Request URL does not meet the required parameters");
+		}
+		if (availableCustOrCompList.isEmpty()) {
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Available favourite list");
+
+		} else if (availableCustOrCompList.contains(null)) {
+			availableCustOrCompList.removeAll(Collections.singleton(null));
+			userFavouritesDTO.setFavouriteList(availableCustOrCompList);
+		} else {
+			userFavouritesDTO.setFavouriteList(availableCustOrCompList);
+		}
+
+		return userFavouritesDTO;
 	}
 
 }
