@@ -93,8 +93,11 @@ public class CustomerConsultingService {
 
 		Date modifiedDate = customerConsultingRepository
 				.findLastModifiedDate(financialYear);
-		custConsulting.setLastModifiedDate(modifiedDate.getTime());
-
+		if (null != modifiedDate) {
+			custConsulting.setLastModifiedDate(modifiedDate.getTime());
+		} else {
+			custConsulting.setLastModifiedDate(0L);
+		}
 		// Db call to fetch the list of revenue and month
 
 		List<Object[]> monthlyRevenueDetails = customerConsultingRepository
