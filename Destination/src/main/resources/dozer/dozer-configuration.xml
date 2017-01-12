@@ -364,6 +364,23 @@
 		<field map-id="user-base"> <a>deliveryClusterHeadUser</a> <b>deliveryClusterHeadUser</b> </field>
 	</mapping>
 
+	<mapping map-id="cluster-unallocation-map" wildcard="false">
+		<class-a>com.tcs.destination.bean.DeliveryClusterT</class-a>
+		<class-b>com.tcs.destination.bean.dto.DeliveryClusterDTO</class-b>
+		
+		<field>	<a>deliveryClusterId</a> <b>deliveryClusterId</b> </field>
+		<field>	<a>deliveryCluster</a> <b>deliveryCluster</b> </field>
+		<field map-id="centre-unallocation-map"> <a>deliveryCentreTs</a> <b>deliveryCentreTs</b> </field>
+	</mapping>
+
+	<mapping map-id="centre-unallocation-map" wildcard="false">
+		<class-a>com.tcs.destination.bean.DeliveryCentreT</class-a>
+		<class-b>com.tcs.destination.bean.dto.DeliveryCentreDTO</class-b>
+		
+		<field>	<a>deliveryCentreId</a> <b>deliveryCentreId</b> </field>
+		<field>	<a>deliveryCentre</a> <b>deliveryCentre</b> </field>
+		<field map-id="delivery-unallocation-map"> <a>unallocationTs</a> <b>unallocationTs</b> </field>
+	</mapping>
 
 <!-- Utilization and Unallocation -->
 	<mapping map-id="delivery-utilization-map" wildcard="false">
@@ -385,10 +402,8 @@
 		<field>	<a>juniorPercentage</a> <b>juniorPercentage</b> </field>
 		<field>	<a>seniorPercentage</a> <b>seniorPercentage</b> </field>
 		<field>	<a>traineePercentage</a> <b>traineePercentage</b> </field>
-		<field>	<a>deliveryCentreId</a> <b>deliveryCentreId</b> </field>
-		<field map-id="delivery-centre-map"> <a>deliveryCentreT</a> <b>deliveryCentreT</b> </field>
+		<!--  <field map-id="delivery-centre-map"> <a>deliveryCentreT</a> <b>deliveryCentreT</b> </field> -->
 	</mapping>
-	
 	
 <!-- Customer -->
 	<mapping map-id="customer-base-mapping" wildcard="false">

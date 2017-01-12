@@ -84,6 +84,11 @@ public class DeliveryCentreT implements Serializable {
 	//bi-directional many-to-one association to DeliveryIntimatedCentreLinkT
 	@OneToMany(mappedBy="deliveryCentreT")
 	private List<DeliveryIntimatedCentreLinkT> deliveryIntimatedCentreLinkTs;
+	
+	// bi-directional many-to-one association to DeliveryMasterT
+	@OneToMany(mappedBy = "deliveryCentreT")
+	private List<DeliveryCentreUnallocationT> unallocationTs;
+	
 	public DeliveryCentreT() {
 	}
 
@@ -228,6 +233,13 @@ public class DeliveryCentreT implements Serializable {
 	public void setDeliveryIntimatedCentreLinkTs(List<DeliveryIntimatedCentreLinkT> deliveryIntimatedCentreLinkTs) {
 		this.deliveryIntimatedCentreLinkTs = deliveryIntimatedCentreLinkTs;
 	}
-	
+
+	public List<DeliveryCentreUnallocationT> getUnallocationTs() {
+		return unallocationTs;
+	}
+
+	public void setUnallocationTs(List<DeliveryCentreUnallocationT> unallocationTs) {
+		this.unallocationTs = unallocationTs;
+	}
 	
 }

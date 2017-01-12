@@ -2,6 +2,7 @@ package com.tcs.destination.bean.dto;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -26,6 +27,8 @@ public class DeliveryClusterDTO implements Serializable {
 	private Timestamp modifiedDatetime;
 	private UserDTO createdByUser;
 	private UserDTO modifiedByUser;
+	
+	private List<DeliveryCentreDTO> deliveryCentreTs;
 	
 	public DeliveryClusterDTO() {
 		super();
@@ -102,5 +105,12 @@ public class DeliveryClusterDTO implements Serializable {
 	public void setModifiedByUser(UserDTO modifiedByUser) {
 		this.modifiedByUser = modifiedByUser;
 	}
-	
+
+	public List<DeliveryCentreDTO> getDeliveryCentreTs() {
+		return deliveryCentreTs;
+	}
+
+	public void setDeliveryCentreTs(List<DeliveryCentreDTO> deliveryCentreTs) {
+		this.deliveryCentreTs = deliveryCentreTs;
+	}
 }

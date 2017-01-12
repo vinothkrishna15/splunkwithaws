@@ -424,6 +424,7 @@ public class Constants {
 	public static final String CUSTOMER_TYPE_ASSOCIATES = "ASSOCIATES";
 	public static final String CUSTOMER_TYPE_CONNECTS = "CONNECTS";
 	public static final String CUSTOMER_TYPE_OPPORTUNITIES = "OPPORTUNITIES";
+	public static final String CLUSTER_UNALLOCATION_MAP = "cluster-unallocation-map";
 	
 	
 }

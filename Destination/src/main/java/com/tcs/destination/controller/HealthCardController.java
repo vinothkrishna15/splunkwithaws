@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.ContentDTO;
-import com.tcs.destination.bean.dto.DeliveryCentreUnallocationDTO;
 import com.tcs.destination.bean.dto.DeliveryCentreUtilizationDTO;
+import com.tcs.destination.bean.dto.DeliveryClusterDTO;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.HealthCardService;
 import com.tcs.destination.utils.ResponseConstructors;
@@ -39,20 +39,18 @@ public class HealthCardController {
 	 * @throws DestinationException
 	 */
 	@RequestMapping(value = "/unallocation", method = RequestMethod.GET)
-	public @ResponseBody String findUnallocation(
+	public @ResponseBody ContentDTO<DeliveryClusterDTO> findUnallocation(
 			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
 			@RequestParam(value = "toDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
 			@RequestParam(value = "fields", defaultValue = "all", required = false) String fields,
 			@RequestParam(value = "view", defaultValue = "", required = false) String view)
 			throws DestinationException {
 		logger.info("Start of retrieving unallocation details");
-		String response = null;
-		ContentDTO<DeliveryCentreUnallocationDTO> content;
+		ContentDTO<DeliveryClusterDTO> content;
 		try {
 			content = healthCardService.getDeliveryCentreUnallocation(fromDate,toDate);
-			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
-					view, content);
 			logger.info("End of retrieving unallocation details");
+			
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -60,7 +58,7 @@ public class HealthCardController {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in retrieving unallocation details");
 		}
-		return response;
+		return content;
 	}
 	
 	

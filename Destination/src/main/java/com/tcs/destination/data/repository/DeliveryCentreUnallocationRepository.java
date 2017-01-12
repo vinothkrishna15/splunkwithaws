@@ -16,6 +16,9 @@ public interface DeliveryCentreUnallocationRepository extends CrudRepository<Del
 	List<DeliveryCentreUnallocationT> findByDateBetween(Date startDate,
 			Date endDate);
 
+	List<DeliveryCentreUnallocationT> findByDeliveryCentreIdAndDateBetween(Integer deliveryCentreId, Date startDate,
+			Date endDate);
+
 	@Query(value="select sum(COALESCE(trainee_percentage,0) + COALESCE(senior_percentage,0) + COALESCE(junior_percentage,0))"
 			+ " from delivery_centre_unallocation_t group by date order by date DESC limit 1", nativeQuery = true)
 	BigDecimal getOverallPercentage();

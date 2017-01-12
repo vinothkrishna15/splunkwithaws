@@ -2,6 +2,7 @@ package com.tcs.destination.bean.dto;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -31,6 +32,8 @@ public class DeliveryCentreDTO implements Serializable {
 	private UserDTO deliveryCentreHeadUser;
 
 	private DeliveryClusterDTO deliveryClusterT;
+	
+	private List<DeliveryCentreUnallocationDTO> unallocationTs;
 
 	public DeliveryCentreDTO() {
 		super();
@@ -122,6 +125,14 @@ public class DeliveryCentreDTO implements Serializable {
 
 	public void setDeliveryClusterT(DeliveryClusterDTO deliveryClusterT) {
 		this.deliveryClusterT = deliveryClusterT;
+	}
+
+	public List<DeliveryCentreUnallocationDTO> getUnallocationTs() {
+		return unallocationTs;
+	}
+
+	public void setUnallocationTs(List<DeliveryCentreUnallocationDTO> unallocationTs) {
+		this.unallocationTs = unallocationTs;
 	}
 	
 }
