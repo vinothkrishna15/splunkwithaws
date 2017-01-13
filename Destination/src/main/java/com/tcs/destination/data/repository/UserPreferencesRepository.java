@@ -25,4 +25,10 @@ public interface UserPreferencesRepository extends
 	@Query(value = "select group_customer_name from user_preferences_t where user_id=?1", nativeQuery = true)
 	List<String> getCustomerList(String userId);
 
+	UserPreferencesT findByUserIdAndCompetitorName(String userId,
+			String competitorName);
+
+	UserPreferencesT findByGroupCustomerNameAndUserId(String groupCustomerName,
+			String userId);
+
 }

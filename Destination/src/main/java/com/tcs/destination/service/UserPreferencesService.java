@@ -13,8 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import com.tcs.destination.bean.ContentDTO;
 import com.tcs.destination.bean.UserPreferencesT;
-import com.tcs.destination.bean.dto.UserFavouritesDTO;
 import com.tcs.destination.data.repository.UserPreferencesRepository;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.DestinationUtils;
@@ -52,7 +52,9 @@ public class UserPreferencesService {
 			response = validateCustomer(customerOrCompetitorName, customerList,
 					response, userPreferencesT);
 		} else {
-			// throw DestinationException e;
+			logger.error("BAD_REQUEST: URL Needs to be rephrased");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"The Request URL does not meet the required parameters");
 		}
 
 		return response;
@@ -101,11 +103,12 @@ public class UserPreferencesService {
 		return response;
 	}
 
-	public UserFavouritesDTO findAvailableFavouriteList(String moduleType) {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public ContentDTO findAvailableFavouriteList(String moduleType) {
 		// TODO Auto-generated method stub
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		List<String> availableCustOrCompList = new ArrayList<String>();
-		UserFavouritesDTO userFavouritesDTO = new UserFavouritesDTO();
+		ContentDTO userFavouritesDTO = new ContentDTO();
 		if (moduleType.equalsIgnoreCase("COMPETITOR")) {
 			availableCustOrCompList = userPreferencesRepository
 					.getCompetitorList(userId);
@@ -125,12 +128,35 @@ public class UserPreferencesService {
 
 		} else if (availableCustOrCompList.contains(null)) {
 			availableCustOrCompList.removeAll(Collections.singleton(null));
-			userFavouritesDTO.setFavouriteList(availableCustOrCompList);
+			userFavouritesDTO.setContent(availableCustOrCompList);
 		} else {
-			userFavouritesDTO.setFavouriteList(availableCustOrCompList);
+			userFavouritesDTO.setContent(availableCustOrCompList);
 		}
 
 		return userFavouritesDTO;
+	}
+
+	public void removePreferencesForUserID(String moduleType, String customerID) {
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+
+		UserPreferencesT userPreferencesT = new UserPreferencesT();
+
+		if (moduleType.equalsIgnoreCase("COMPETITOR")) {
+			userPreferencesT = userPreferencesRepository
+					.findByUserIdAndCompetitorName(userId, customerID);
+			userPreferencesRepository.delete(userPreferencesT);
+
+		} else if (moduleType.equalsIgnoreCase("CUSTOMER")) {
+			userPreferencesT = userPreferencesRepository
+					.findByGroupCustomerNameAndUserId(customerID, userId);
+			userPreferencesRepository.delete(userPreferencesT);
+			;
+		} else {
+			logger.error("BAD_REQUEST: URL Needs to be rephrased");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"The Request URL does not meet the required parameters");
+		}
+
 	}
 
 }
