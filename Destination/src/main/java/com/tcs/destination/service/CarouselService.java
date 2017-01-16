@@ -111,7 +111,7 @@ public class CarouselService {
 		HealthCardMetrics healthCardMetrics = new HealthCardMetrics();
 		for (Integer category : categories) {
 			switch (HealthCardComponent.valueOfCategory(category)) {
-			case WINS_RATIO:
+			case WIN_RATIO:
 				setWinRatioMetrics(carouselMetricsDTO, startDate, endDate,
 						true, healthCardMetrics);
 				break;
@@ -135,15 +135,8 @@ public class CarouselService {
 				BigDecimal seniorRatio = getOverallPercentage(HealthCardComponent.SENIOR_RATIO);
 				healthCardMetrics.setSeniorRatio(seniorRatio);
 				break;
-			case SKILL_CATEGORY:
-				// BigDecimal skillCategory =
-				// deliveryCentreUtilizationRepository
-				// .getOverallUtilizationPercentage(startDate, endDate,
-				// HealthCardCategory.UTILIZATION.getCategoryId());
-				// healthCardMetrics.setUtilization(utilization);
-				break;
-			case TRAINEE_PERCENTAGE:
-				BigDecimal trainee = getOverallPercentage(HealthCardComponent.TRAINEE_PERCENTAGE);
+			case TRAINEE:
+				BigDecimal trainee = getOverallPercentage(HealthCardComponent.TRAINEE);
 				healthCardMetrics.setTraineePercentage(trainee);
 				break;
 			default:

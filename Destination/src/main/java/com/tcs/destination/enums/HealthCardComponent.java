@@ -3,14 +3,13 @@ package com.tcs.destination.enums;
 
 public enum HealthCardComponent {
 
-	WINS_RATIO(1,"Wins Ratio"),
+	WIN_RATIO(1,"Win Ratio"),
 	UTILIZATION(2,"Utilization"),
 	UNALLOCATION(3,"Unallocation"),
 	BILABILITY(4,"Bilability"),
 	ATTRITION(5,"Attrition"),
-	SKILL_CATEGORY(6,"Skill Category"),
-	SENIOR_RATIO(7,"Senior Ratio"),
-	TRAINEE_PERCENTAGE(8,"Trainee Percentage");
+	SENIOR_RATIO(6,"Senior Ratio"),
+	TRAINEE(7,"Trainee");
 	
 	private final int categoryId;
 	private final String category;
