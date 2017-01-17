@@ -21,6 +21,7 @@ import com.tcs.destination.bean.DeliveryFulfillment;
 import com.tcs.destination.bean.LeadershipConnectsDTO;
 import com.tcs.destination.bean.LeadershipOpportunitiesDTO;
 import com.tcs.destination.bean.LeadershipOverallWinsDTO;
+import com.tcs.destination.bean.MobileDashboardComponentT;
 import com.tcs.destination.bean.MobileDashboardT;
 import com.tcs.destination.bean.PerformaceChartBean;
 import com.tcs.destination.bean.Status;
@@ -355,16 +356,42 @@ public class DashboardController {
 	 */
 	
 	@RequestMapping(value = "/mobile", method = RequestMethod.GET)
-	public String mobiledashboard(	
+	public String mobiledashboardFavourList(	
 			@RequestParam(value = "dashboardCategory") int dashboardCategory)
 				throws DestinationException {
 		ContentDTO<MobileDashboardT> mobiledashboardValues;
 			logger.info("Start of retrieving the mobile dashboard values");
 		try {
-			mobiledashboardValues = dashboardService.getMobileDashboardValues(dashboardCategory);
+			mobiledashboardValues = dashboardService.getFavourMobileDashboardValues(dashboardCategory);
 			logger.info("End of retrieving the mobile dashboard values");
 			return ResponseConstructors.filterJsonForFieldAndViews("",
 					"", mobiledashboardValues);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(),e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the mobile dashboard values");
+		}
+	}
+	
+	/**
+	 * 
+	 * @param dashboardCategory
+	 * @return
+	 * @throws DestinationException
+	 */
+	
+	@RequestMapping(value = "/mobile/all", method = RequestMethod.GET)
+	public ContentDTO<MobileDashboardComponentT> mobiledashboardList(	
+			@RequestParam(value = "dashboardCategory") int dashboardCategory)
+					throws DestinationException {
+		ContentDTO<MobileDashboardComponentT> mobiledashboardValues;
+		logger.info("Start of retrieving the mobile dashboard values");
+		try {
+			mobiledashboardValues = dashboardService.getAllMobileDashboardValues(dashboardCategory);
+			logger.info("End of retrieving the mobile dashboard values");
+			return mobiledashboardValues;
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {

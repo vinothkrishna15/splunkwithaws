@@ -45,7 +45,6 @@ import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
 import com.tcs.destination.bean.ContentDTO;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DeliveryCentreT;
-import com.tcs.destination.bean.DeliveryIntimatedT;
 import com.tcs.destination.bean.DeliveryMasterT;
 import com.tcs.destination.bean.DeliveryOwnershipT;
 import com.tcs.destination.bean.NotesT;
@@ -75,6 +74,7 @@ import com.tcs.destination.bean.WorkflowBfmT;
 import com.tcs.destination.bean.WorkflowRequestT;
 import com.tcs.destination.bean.dto.OpportunityDTO;
 import com.tcs.destination.bean.dto.QualifiedPipelineDTO;
+import com.tcs.destination.bean.dto.WinLossFactorCountDTO;
 import com.tcs.destination.data.repository.AuditOpportunityDeliveryCenterRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
@@ -315,19 +315,11 @@ public class OpportunityService {
 	AuditOpportunityDeliveryCenterRepository auditOpportunityDeliveryCenterRepository;
 
 	@Autowired
-	private DeliveryMasterService deliveryMasterService;
-	
-	@Autowired
 	DeliveryIntimatedRepository deliveryIntimatedRepository;
 	
 	@Autowired
 	GeographyRepository geographyRepository;
 	
-	private static final String GEO_COND_PREFIX = "GMT.geography in (";
-	private static final String SUBSP_COND_PREFIX = "SSMT.display_sub_sp in (";
-	private static final String IOU_COND_PREFIX = "ICMT.display_iou in (";
-	private static final String CUSTOMER_COND_PREFIX = "CMT.customer_name in (";
-
 	/**
 	 * Fetch opportunities by opportunity name
 	 * 
@@ -4033,6 +4025,59 @@ public class OpportunityService {
 		}
 		
 		return resultList;
+	}
+
+	public ContentDTO<WinLossFactorCountDTO> getTopWinlossFactor(Date fromDate, Date toDate, Integer count) {
+
+		Date startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
+		Date endDate = toDate != null ? toDate : new Date();
+		
+		List<Object[]> winlossFactors = opportunityRepository.getTopWinlossFactor(startDate, endDate, count);
+		List<WinLossFactorCountDTO> list = Lists.newArrayList();
+		if(CollectionUtils.isNotEmpty(winlossFactors)) {
+			for (Object[] objects : winlossFactors) {
+				WinLossFactorCountDTO dto = new WinLossFactorCountDTO((String)objects[0], (BigInteger) objects[1]);
+				list.add(dto);
+			}
+		}
+		
+		return new ContentDTO<WinLossFactorCountDTO>(list);
+	}
+	
+/*	public ContentDTO<QualifiedPipelineDTO> getWinratioByGeoCustomer(Date fromDate, Date toDate) {
+
+		Date startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
+		Date endDate = toDate != null ? toDate : new Date();
+		
+
+		
+		for (Integer[] bucket : Constants.MONEY_BUCKETS) {
+			
+			Integer minVal = bucket[0];
+			Integer maxVal = bucket[1];
+			List<Object[]> geosWinLoss = opportunityRepository.getGeoWinRatio(minVal, maxVal, startDate, endDate);
+			
+			for (Object[] geoWinLoss : geosWinLoss) {
+				String geography = (String) geoWinLoss[0];
+				int winCount = (int) geoWinLoss[1];
+				int lossCount = (int) geoWinLoss[2];
+				
+				getWinRatio(winCount, lossCount);
+			}
+		}
+		
+		
+		List<Object[]> customerWinRatio = opportunityRepository.getCustomerWinRatio(startDate, endDate, null);//TODO customer pref list
+		
+		return null;
+	}*/
+
+	private double getWinRatio(int winCount, int lossCount) {
+		double winRatio = 0;
+		if(winCount > 0 || lossCount > 0) {
+			winRatio = winCount/(winCount + lossCount) * 100;
+		}
+		return winRatio;
 	}
 	
 }

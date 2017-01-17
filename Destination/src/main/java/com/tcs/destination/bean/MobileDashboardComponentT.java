@@ -4,6 +4,9 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 import java.util.List;
 
 
@@ -11,6 +14,7 @@ import java.util.List;
  * The persistent class for the mobile_dashboard_component_t database table.
  * 
  */
+@JsonInclude(Include.NON_NULL)
 @Entity
 @Table(name="mobile_dashboard_component_t")
 @NamedQuery(name="MobileDashboardComponentT.findAll", query="SELECT m FROM MobileDashboardComponentT m")
@@ -25,9 +29,17 @@ public class MobileDashboardComponentT implements Serializable {
 	@Column(name="component_name")
 	private String componentName;
 
+	@Column(name="category_id")
+	private Integer categoryId;
+
 	//bi-directional many-to-one association to MobileDashboardT
 	@OneToMany(mappedBy="mobileDashboardComponentT")
 	private List<MobileDashboardT> mobileDashboardTs;
+	
+	//bi-directional many-to-one association to MobileDashboardCategory
+	@ManyToOne
+	@JoinColumn(name="category_id", insertable=false, updatable=false)
+	private MobileDashboardCategory category;
 
 	public MobileDashboardComponentT() {
 	}
@@ -69,5 +81,23 @@ public class MobileDashboardComponentT implements Serializable {
 
 		return mobileDashboardT;
 	}
+
+	public Integer getCategoryId() {
+		return categoryId;
+	}
+
+	public void setCategoryId(Integer categoryId) {
+		this.categoryId = categoryId;
+	}
+
+	public MobileDashboardCategory getCategory() {
+		return category;
+	}
+
+	public void setCategory(MobileDashboardCategory category) {
+		this.category = category;
+	}
+	
+	
 
 }

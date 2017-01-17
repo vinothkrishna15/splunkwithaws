@@ -1,5 +1,26 @@
 package com.tcs.destination.service;
 
+import static com.tcs.destination.utils.LeadershipQueryConstants.TEAM_CONNECTS_CUSTOMER_COND_PREFIX;
+import static com.tcs.destination.utils.LeadershipQueryConstants.TEAM_CONNECTS_GEO_COND_PREFIX;
+import static com.tcs.destination.utils.LeadershipQueryConstants.TEAM_CONNECTS_IOU_COND_PREFIX;
+import static com.tcs.destination.utils.LeadershipQueryConstants.TEAM_CONNECTS_QUERY_CUSTOMER;
+import static com.tcs.destination.utils.LeadershipQueryConstants.TEAM_CONNECTS_QUERY_PART1;
+import static com.tcs.destination.utils.LeadershipQueryConstants.TEAM_CONNECTS_QUERY_PART2;
+import static com.tcs.destination.utils.LeadershipQueryConstants.TEAM_CONNECTS_QUERY_PARTNER;
+import static com.tcs.destination.utils.LeadershipQueryConstants.TEAM_CONNECTS_SUBSP_COND_PREFIX;
+import static com.tcs.destination.utils.LeadershipQueryConstants.TEAM_OPPORTUNITY_QUERY_PART1;
+import static com.tcs.destination.utils.LeadershipQueryConstants.TEAM_OPPORTUNITY_QUERY_PART1a;
+import static com.tcs.destination.utils.LeadershipQueryConstants.TEAM_OPPORTUNITY_QUERY_PART2;
+import static com.tcs.destination.utils.LeadershipQueryConstants.TEAM_OPPORTUNITY_QUERY_PART3;
+import static com.tcs.destination.utils.LeadershipQueryConstants.TEAM_OPPORTUNITY_QUERY_PART4;
+import static com.tcs.destination.utils.LeadershipQueryConstants.TEAM_OPPORTUNITY_QUERY_PART5;
+import static com.tcs.destination.utils.LeadershipQueryConstants.TEAM_OPPORTUNITY_QUERY_SUFFIX;
+import static com.tcs.destination.utils.LeadershipQueryConstants.TEAM_OPPORTUNITY_WIN_QUERY_PART1;
+import static com.tcs.destination.utils.LeadershipQueryConstants.TEAM_OPPORTUNITY_WIN_QUERY_PART1a;
+import static com.tcs.destination.utils.LeadershipQueryConstants.TEAM_OPPORTUNITY_WIN_QUERY_PART2;
+import static com.tcs.destination.utils.LeadershipQueryConstants.TEAM_OPPORTUNITY_WIN_QUERY_PART3;
+import static com.tcs.destination.utils.LeadershipQueryConstants.TEAM_OPPORTUNITY_WIN_QUERY_PART4;
+
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
@@ -28,18 +49,20 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.ContentDTO;
-import com.tcs.destination.bean.LeadershipAllOpportunityDTO;
 import com.tcs.destination.bean.LeadershipConnectsDTO;
 import com.tcs.destination.bean.LeadershipOpportunitiesDTO;
 import com.tcs.destination.bean.LeadershipOpportunityBySalesStageCodeDTO;
 import com.tcs.destination.bean.LeadershipOverallWinsDTO;
 import com.tcs.destination.bean.LeadershipWinsDTO;
+import com.tcs.destination.bean.MobileDashboardComponentT;
 import com.tcs.destination.bean.MobileDashboardT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PerformaceChartBean;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BdmTargetTRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
+import com.tcs.destination.data.repository.MobileDashboardComponentRepository;
+import com.tcs.destination.data.repository.MobileDashboardRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.UserGroup;
@@ -49,9 +72,6 @@ import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.StringUtils;
-import com.tcs.destination.data.repository.MobileDashboardRepository;
-
-import static com.tcs.destination.utils.LeadershipQueryConstants.*;
 
 /**
  * This service is used to fetch leadership dash board connects,wins and team connects
@@ -92,6 +112,9 @@ public class DashBoardService {
 	
 	@Autowired
 	MobileDashboardRepository mobileDashboardRepository;
+
+	@Autowired
+	private MobileDashboardComponentRepository mobileDashboardComponentRepo;
 
 	private static Map<String, BigDecimal> beaconConverterMap = null;
 
@@ -1440,10 +1463,33 @@ public class DashBoardService {
 	 * @return
 	 * @throws Exception
 	 */
+	public ContentDTO<MobileDashboardComponentT> getAllMobileDashboardValues(
+			int dashboardCategory) throws Exception {
+		ContentDTO<MobileDashboardComponentT> content = new ContentDTO<MobileDashboardComponentT>();
+		logger.info("Start: Inside getMobileDashboardValues() of DashBoardService");
+		List<MobileDashboardComponentT> mobileDashboardValues = mobileDashboardComponentRepo.findByCategoryId(dashboardCategory);
+		prepareMobileComponentLists(mobileDashboardValues);
+		content.setContent(mobileDashboardValues);
+		logger.info("End getMobileDashboardValues() of DashBoardService");
+		return content;
+	}
 
-	
+	private void prepareMobileComponentLists(List<MobileDashboardComponentT> mobileDashboardValues) {
+		if(CollectionUtils.isNotEmpty(mobileDashboardValues)) {
+			for (MobileDashboardComponentT mobileDashboardComponentT : mobileDashboardValues) {
+				mobileDashboardComponentT.setMobileDashboardTs(null);
+				mobileDashboardComponentT.setCategory(null);
+			}
+		}
+	}
 
-	public ContentDTO<MobileDashboardT> getMobileDashboardValues(
+	/**
+	 * this service is used to get the mobile dashboard values
+	 * @param dashboardCategory
+	 * @return
+	 * @throws Exception
+	 */
+	public ContentDTO<MobileDashboardT> getFavourMobileDashboardValues(
 			int dashboardCategory) throws Exception {
 		ContentDTO<MobileDashboardT> content = new ContentDTO<MobileDashboardT>();
 		logger.info("Start: Inside getMobileDashboardValues() of DashBoardService");

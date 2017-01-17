@@ -40,6 +40,7 @@ import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.dto.OpportunityDTO;
 import com.tcs.destination.bean.dto.QualifiedPipelineDTO;
+import com.tcs.destination.bean.dto.WinLossFactorCountDTO;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.JobName;
 import com.tcs.destination.enums.OperationType;
@@ -1145,4 +1146,28 @@ public class OpportunityController {
 		logger.info("Ends - Inside OpportunityController: getBidRequestMetrics");
 		return opportunity;
 	}
+	
+	@RequestMapping(value = "/winlossfactor", method = RequestMethod.GET)
+	public @ResponseBody ContentDTO<WinLossFactorCountDTO> getTopWinlossFactor(
+			@RequestParam(value = "count", defaultValue = "3") Integer count,
+			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
+			@RequestParam(value = "toDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate)
+					throws DestinationException {
+		logger.info("Start - Inside OpportunityController: getWinratioByGeoCustomer");
+		ContentDTO<WinLossFactorCountDTO> opportunity;
+		try {
+			opportunity = opportunityService.getTopWinlossFactor(fromDate, toDate, count);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the opportunity winratio ");
+		}
+		logger.info("Ends - Inside OpportunityController: getWinratioByGeoCustomer");
+		return opportunity;
+	}
+	
+	
+	
 }

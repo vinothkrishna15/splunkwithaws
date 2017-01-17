@@ -1577,5 +1577,34 @@ public interface OpportunityRepository extends
 			+ "join OPP.primaryOwnerUser USRT")
 	List<String> findAllOppIdsForAllUserGroup();
 
+	@Query(value = "SELECT distinct wlf.win_loss_factor, count(ot) as count FROM opportunity_t ot"
+			+ " join opportunity_win_loss_factors_t wlf on ot.opportunity_id = wlf.opportunity_id"
+			+ " WHERE ot.sales_stage_code in (9,10) AND ot.deal_closure_date BETWEEN :fromDate AND :toDate"
+			+ " group by wlf.win_loss_factor"
+			+ " order by count DESC limit :count", nativeQuery=true)
+	List<Object[]> getTopWinlossFactor( @Param("fromDate") Date fromDate, @Param("toDate") Date toDate, @Param("count") Integer count);
+
+
+/*	@Query(value = "SELECT gmt.display_geography, "
+		+ " SUM(case when opp.sales_stage_code = 9 then 1 else 0 end) as win,"
+		+ " SUM(case when opp.sales_stage_code = 10 then 1 else 0 end) as loss "
+		+ " FROM opportunity_t opp"
+		+ " JOIN customer_master_t cmt ON cmt.customer_id = opp.customer_id"
+		+ " JOIN geography_mapping_t gmt on cmt.geography = gmt.geography"
+		+ " WHERE deal_value_usd_converter(opp.digital_deal_value, opp.deal_currency) BETWEEN :minVal AND :maxVal"
+		+ " AND opp.deal_closure_date BETWEEN :fromDate AND :toDate"
+		+ " GROUP BY gmt.display_geography")
+	List<Object[]> getGeoWinRatio(@Param("minVal") double minVal, @Param("maxVal") double maxVal, @Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
+
+	@Query(value = "SELECT cmt.group_customer_name, "
+		+ " SUM(case when opp.sales_stage_code = 9 then 1 else 0 end) as win,"
+		+ " SUM(case when opp.sales_stage_code = 10 then 1 else 0 end) as loss "
+		+ " FROM opportunity_t opp"
+		+ " JOIN customer_master_t cmt ON cmt.customer_id = opp.customer_id AND cmt.group_customer_name in (:customers)"
+		+ " WHERE opp.deal_closure_date BETWEEN :fromDate AND :toDate"
+		+ " GROUP BY cmt.group_customer_name")
+	List<Object[]> getCustomerWinRatio( @Param("fromDate") Date fromDate, @Param("toDate") Date toDate, @Param("customers") List<String> customers);
+*/
+	
 	// Change ends
 }
