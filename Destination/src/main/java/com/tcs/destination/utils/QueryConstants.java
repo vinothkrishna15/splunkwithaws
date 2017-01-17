@@ -234,9 +234,19 @@ public static final String TASK_TRGT_DT_POST_SUPERVISOR = "select distinct t.tas
     		+ "join iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou "
     		+ "join opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
     		+ "join sub_sp_mapping_t SSMT on SSMT.sub_sp = OSSL.sub_sp "
-    		+ "join opportunity_sales_support_link_t OSLT on OSLT.opportunity_id = OPP.opportunity_id "
     		+ "where OPP.deal_closure_date between (:fromDate) and (:toDate) "
     		+ "and OPP.sales_stage_code in (9,10)";
+    
+    public static final String OPPORTUNITY_QUERY_BY_USER_GROUP_PREFIX = "select distinct(OPP.*) from opportunity_t OPP join "
+    		+ "customer_master_t CMT on CMT.customer_id = OPP.customer_id "
+    		+ "join geography_mapping_t GMT on CMT.geography = GMT.geography "
+    		+ "join iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou "
+    		+ "join opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
+    		+ "join sub_sp_mapping_t SSMT on SSMT.sub_sp = OSSL.sub_sp "
+    		+ "join user_t UT on UT.user_id = OPP.opportunity_owner "
+    		+ "where OPP.deal_closure_date between (:fromDate) and (:toDate) "
+    		+ "and OPP.sales_stage_code in (9,10) "
+    		+ "and UT.user_group in (:userGroups)";
     
     public static final String OPPORTUNITY_DEAL_CLOSURE_DATE_ORDER_BY = " order by OPP.deal_closure_date ASC";
     
