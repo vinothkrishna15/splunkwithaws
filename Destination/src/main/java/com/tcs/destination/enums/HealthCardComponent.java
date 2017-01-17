@@ -45,4 +45,13 @@ public enum HealthCardComponent {
 		}
 		return null;
 	}
+	
+	public static String getCategoryName(int categoryId) {
+		for(HealthCardComponent h : HealthCardComponent.values()) {
+			if(h.getCategoryId()==categoryId) {
+				return h.getCategory();
+			}
+		}
+		return null;
+	}
 }
