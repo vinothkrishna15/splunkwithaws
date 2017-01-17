@@ -32,8 +32,17 @@ public class UserPreferencesService {
 	@Autowired
 	UserPreferencesRepository userPreferencesRepository;
 
+	/**
+	 * Main method called to add new record into data base based on the module
+	 * type and values.
+	 * 
+	 * @param moduleType
+	 * @param customerOrCompetitorName
+	 * @return UserPreferencesT - object with all the added values
+	 * @throws Exception
+	 */
 	public UserPreferencesT insertNewCustomerByuserID(String moduleType,
-			String customerOrCompetitorName) throws Exception {
+			List<String> customerOrCompetitorName) throws Exception {
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 
 		List<String> competitorList = userPreferencesRepository
@@ -41,16 +50,14 @@ public class UserPreferencesService {
 		List<String> customerList = userPreferencesRepository
 				.getCustomerList(userId);
 		UserPreferencesT response = null;
-		UserPreferencesT userPreferencesT = new UserPreferencesT();
-		userPreferencesT.setModuleType(moduleType);
-		userPreferencesT.setUserId(userId);
+
 		if (moduleType.equalsIgnoreCase("COMPETITOR")) {
 			response = validateCompetitor(customerOrCompetitorName,
-					competitorList, response, userPreferencesT);
+					competitorList, response, userId, moduleType);
 
 		} else if (moduleType.equalsIgnoreCase("CUSTOMER")) {
 			response = validateCustomer(customerOrCompetitorName, customerList,
-					response, userPreferencesT);
+					response, userId, moduleType);
 		} else {
 			logger.error("BAD_REQUEST: URL Needs to be rephrased");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -62,47 +69,98 @@ public class UserPreferencesService {
 	}
 
 	/**
+	 * Method to validate module type customer
+	 * 
 	 * @param customerOrCompetitorName
 	 * @param customerList
 	 * @param response
 	 * @param userPreferencesT
 	 * @return
 	 */
-	private UserPreferencesT validateCustomer(String customerOrCompetitorName,
-			List<String> customerList, UserPreferencesT response,
-			UserPreferencesT userPreferencesT) {
-		if (customerList.isEmpty()) {
-			userPreferencesT.setGroupCustomerName(customerOrCompetitorName);
-			response = userPreferencesRepository.save(userPreferencesT);
-		} else if (!customerList.contains(customerOrCompetitorName.toString())) {
-			userPreferencesT.setGroupCustomerName(customerOrCompetitorName);
-			response = userPreferencesRepository.save(userPreferencesT);
+	private UserPreferencesT validateCustomer(
+			List<String> customerOrCompetitorName, List<String> customerList,
+			UserPreferencesT response, String userId, String moduleType) {
+		for (String names : customerOrCompetitorName) {
+			if (customerList.isEmpty()) {
+				response = setUserPrefsForCustomer(userId, moduleType, names);
+			} else if (names != null
+					&& !customerList.contains(names.toString())) {
+				response = setUserPrefsForCustomer(userId, moduleType, names);
+			}
 		}
 		return response;
 	}
 
 	/**
-	 * @param customerOrCompetitorName
-	 * @param competitorList
-	 * @param response
-	 * @param userPreferencesT
+	 * Method to set all the values for customer
+	 * 
+	 * @param userId
+	 * @param moduleType
+	 * @param names
 	 * @return
 	 */
-	private UserPreferencesT validateCompetitor(
-			String customerOrCompetitorName, List<String> competitorList,
-			UserPreferencesT response, UserPreferencesT userPreferencesT) {
-		if (competitorList.isEmpty()) {
-			userPreferencesT.setCompetitorName(customerOrCompetitorName);
-			response = userPreferencesRepository.save(userPreferencesT);
-		} else if (!competitorList
-				.contains(customerOrCompetitorName.toString())) {
-			userPreferencesT.setCompetitorName(customerOrCompetitorName);
-			response = userPreferencesRepository.save(userPreferencesT);
-
-		}
+	private UserPreferencesT setUserPrefsForCustomer(String userId,
+			String moduleType, String names) {
+		UserPreferencesT response;
+		UserPreferencesT userPrefDTO = new UserPreferencesT();
+		userPrefDTO.setModuleType(moduleType);
+		userPrefDTO.setUserId(userId);
+		userPrefDTO.setGroupCustomerName(names);
+		response = userPreferencesRepository.save(userPrefDTO);
 		return response;
 	}
 
+	/**
+	 * Method to validate module type competitor
+	 * 
+	 * @param customerOrCompetitorName
+	 * @param competitorList
+	 * @param response
+	 * @param moduleType
+	 * @param userId
+	 * @return
+	 */
+	private UserPreferencesT validateCompetitor(
+			List<String> customerOrCompetitorName, List<String> competitorList,
+			UserPreferencesT response, String userId, String moduleType) {
+		for (String names : customerOrCompetitorName) {
+			if (competitorList.isEmpty()) {
+				response = setUserPrefsForCompetitor(userId, moduleType, names);
+			} else if (names != null
+					&& !competitorList.contains(names.toString())) {
+				response = setUserPrefsForCompetitor(userId, moduleType, names);
+			}
+		}
+
+		return response;
+	}
+
+	/**
+	 * Method to set all the required values for competitor.
+	 * 
+	 * @param userId
+	 * @param moduleType
+	 * @param names
+	 * @return UserPreferencesT
+	 */
+	private UserPreferencesT setUserPrefsForCompetitor(String userId,
+			String moduleType, String names) {
+		UserPreferencesT response;
+		UserPreferencesT userPrefDTO = new UserPreferencesT();
+		userPrefDTO.setModuleType(moduleType);
+		userPrefDTO.setUserId(userId);
+		userPrefDTO.setCompetitorName(names);
+		response = userPreferencesRepository.save(userPrefDTO);
+		return response;
+	}
+
+	/**
+	 * Main method called from controller to fetch all the customers /
+	 * competitors available in data base for the accessing user.
+	 * 
+	 * @param moduleType
+	 * @return
+	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public ContentDTO findAvailableFavouriteList(String moduleType) {
 		// TODO Auto-generated method stub
@@ -136,6 +194,13 @@ public class UserPreferencesService {
 		return userFavouritesDTO;
 	}
 
+	/**
+	 * Main method called from controller to delete the record which user opts
+	 * out.
+	 * 
+	 * @param moduleType
+	 * @param customerID
+	 */
 	public void removePreferencesForUserID(String moduleType, String customerID) {
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 

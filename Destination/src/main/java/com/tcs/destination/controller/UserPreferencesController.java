@@ -3,6 +3,8 @@
  */
 package com.tcs.destination.controller;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +46,7 @@ public class UserPreferencesController {
 	@RequestMapping(value = "/add", method = RequestMethod.GET)
 	public String insertCustomerOrCompetitor(
 			@RequestParam(value = "moduleType") String moduleType,
-			@RequestParam(value = "name") String name) {
+			@RequestParam(value = "name") List<String> name) {
 		logger.info("Inside UserPreferencesController for insertCustomerOrCompetitor method: start");
 		UserPreferencesT userPreferencesT = null;
 		Status status = new Status();
@@ -56,7 +58,8 @@ public class UserPreferencesController {
 				status.setStatus(Status.SUCCESS, "Data Successfully added");
 
 			} else {
-				status.setStatus(Status.FAILED, "Data already exist");
+				status.setStatus(Status.FAILED,
+						"Data Partially added - Duplicates avoided");
 			}
 			response = ResponseConstructors.filterJsonForFieldAndViews("all",
 					"", status);
