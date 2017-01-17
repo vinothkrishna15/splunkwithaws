@@ -48,19 +48,12 @@ public class UserPreferencesController {
 			@RequestParam(value = "moduleType") String moduleType,
 			@RequestParam(value = "name") List<String> name) {
 		logger.info("Inside UserPreferencesController for insertCustomerOrCompetitor method: start");
-		UserPreferencesT userPreferencesT = null;
 		Status status = new Status();
 		String response = null;
 		try {
-			userPreferencesT = userPreferencesService
+			userPreferencesService
 					.insertNewCustomerByuserID(moduleType, name);
-			if (userPreferencesT != null) {
 				status.setStatus(Status.SUCCESS, "Data Successfully added");
-
-			} else {
-				status.setStatus(Status.FAILED,
-						"Data Partially added - Duplicates avoided");
-			}
 			response = ResponseConstructors.filterJsonForFieldAndViews("all",
 					"", status);
 			logger.info("Inside UserPreferencesController for insertCustomerOrCompetitor method: exit");

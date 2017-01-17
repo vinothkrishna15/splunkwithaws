@@ -9,22 +9,29 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+
+
+
 import com.google.common.collect.Lists;
 import com.tcs.destination.bean.ContentDTO;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryCentreUnallocationT;
 import com.tcs.destination.bean.DeliveryCentreUtilizationT;
 import com.tcs.destination.bean.DeliveryClusterT;
+import com.tcs.destination.bean.MobileDashboardT;
+import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.dto.DeliveryCentreUnallocationDTO;
 import com.tcs.destination.bean.dto.DeliveryCentreUtilizationDTO;
 import com.tcs.destination.bean.dto.DeliveryClusterDTO;
 import com.tcs.destination.data.repository.DeliveryCentreUnallocationRepository;
 import com.tcs.destination.data.repository.DeliveryCentreUtilizationRepository;
 import com.tcs.destination.data.repository.DeliveryClusterRepository;
+import com.tcs.destination.data.repository.MobileDashboardRepository;
 import com.tcs.destination.enums.HealthCardComponent;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
+import com.tcs.destination.utils.DestinationUtils;
 
 
 @Service
@@ -35,6 +42,9 @@ public class HealthCardService {
 	
 	@Autowired
 	DeliveryCentreUtilizationRepository deliveryCentreUtilizationRepository;
+	
+	@Autowired
+	MobileDashboardRepository mobileDashboardRepository;
 	
 	@Autowired
 	DeliveryClusterRepository clusterRepo;
@@ -86,5 +96,47 @@ public class HealthCardService {
 					"Utilization Details not found");
 		}
 		return contentDTO;
+	}
+
+	/**
+	 * Main method called to insert new component into the health card for
+	 * mobile dashboard
+	 * 
+	 * @param componentId
+	 * @return status - containing status and description
+	 */
+	public Status insertNewComponentByuserID(int componentId) {
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		Status status = new Status();
+		Long orderNumer = mobileDashboardRepository.countByUserId(userId);
+		List<Integer> availableComponentsByUserId = mobileDashboardRepository
+				.getComponentsByUserId(userId);
+		if (availableComponentsByUserId.isEmpty()
+				|| !(availableComponentsByUserId.toString().contains(Integer
+						.toString(componentId).toString()))) {
+			setMobileDashboardValues(componentId, userId, orderNumer);
+			status.setStatus(Status.SUCCESS, "Component Successfully added");
+		} else {
+			status.setStatus(Status.FAILED, "Component Already Exist");
+
+		}
+		return status;
+	}
+
+	/**
+	 * 
+	 * Refactored method to set the table values.
+	 * @param componentId
+	 * @param userId
+	 * @param orderNumer
+	 */
+	private void setMobileDashboardValues(int componentId, String userId,
+			Long orderNumer) {
+		MobileDashboardT mobileDashboardT = new MobileDashboardT();
+		mobileDashboardT.setUserId(userId);
+		mobileDashboardT.setComponentId(componentId);
+		mobileDashboardT.setDashboardCategory(1);
+		mobileDashboardT.setOrderNumber(orderNumer.intValue() + 1);
+		mobileDashboardRepository.save(mobileDashboardT);
 	}
 }
