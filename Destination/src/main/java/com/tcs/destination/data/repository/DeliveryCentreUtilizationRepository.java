@@ -24,4 +24,10 @@ public interface DeliveryCentreUtilizationRepository extends CrudRepository<Deli
 	List<DeliveryCentreUtilizationT> findByDateBetweenAndCategoryId(
 			Date startDate, Date endDate, int categoryId);
 
+	List<DeliveryCentreUtilizationT> findByClusterIdAndOverallPercentageId(
+			Integer deliveryClusterId, Integer overallPercentageId);
+
+	List<DeliveryCentreUtilizationT> findBydeliveryCentreIdAndOverallPercentageId(
+			Integer deliveryCentreId, Integer overallPercentageId);
+
 }

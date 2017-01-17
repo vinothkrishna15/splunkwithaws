@@ -1,7 +1,9 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
+
 import javax.persistence.*;
+
 import java.math.BigDecimal;
 import java.util.Date;
 import java.sql.Timestamp;
@@ -39,11 +41,27 @@ public class DeliveryCentreUnallocationT implements Serializable {
 
 	@Column(name="delivery_centre_id")
 	private Integer deliveryCentreId;
+	
+	@Column(name="overall_percentage_id")
+	private Integer overallPercentageId;
+	
+	@Column(name="cluster_id")
+	private Integer clusterId;
 
 	//bi-directional many-to-one association to DeliveryCentreT
 	@ManyToOne
 	@JoinColumn(name="delivery_centre_id", insertable=false, updatable=false)
 	private DeliveryCentreT deliveryCentreT;
+	
+	//bi-directional many-to-one association to HealthCardOverallPercentage
+	@ManyToOne
+	@JoinColumn(name="overall_percentage_id", insertable = false, updatable = false)
+	private HealthCardOverallPercentage healthCardOverallPercentage;
+	
+	//bi-directional many-to-one association to DeliveryClusterT
+	@ManyToOne
+	@JoinColumn(name="cluster_id", insertable = false, updatable = false)
+	private DeliveryClusterT deliveryClusterT;
 
 	public DeliveryCentreUnallocationT() {
 	}
@@ -110,5 +128,38 @@ public class DeliveryCentreUnallocationT implements Serializable {
 
 	public void setDeliveryCentreId(Integer deliveryCentreId) {
 		this.deliveryCentreId = deliveryCentreId;
+	}
+
+	public Integer getOverallPercentageId() {
+		return overallPercentageId;
+	}
+
+	public void setOverallPercentageId(Integer overallPercentageId) {
+		this.overallPercentageId = overallPercentageId;
+	}
+
+	public Integer getClusterId() {
+		return clusterId;
+	}
+
+	public void setClusterId(Integer clusterId) {
+		this.clusterId = clusterId;
+	}
+
+	public HealthCardOverallPercentage getHealthCardOverallPercentage() {
+		return healthCardOverallPercentage;
+	}
+
+	public void setHealthCardOverallPercentage(
+			HealthCardOverallPercentage healthCardOverallPercentage) {
+		this.healthCardOverallPercentage = healthCardOverallPercentage;
+	}
+
+	public DeliveryClusterT getDeliveryClusterT() {
+		return deliveryClusterT;
+	}
+
+	public void setDeliveryClusterT(DeliveryClusterT deliveryClusterT) {
+		this.deliveryClusterT = deliveryClusterT;
 	}
 }

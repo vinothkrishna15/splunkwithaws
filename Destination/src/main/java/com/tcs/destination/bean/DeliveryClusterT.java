@@ -4,6 +4,8 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+
+
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
@@ -68,6 +70,14 @@ public class DeliveryClusterT implements Serializable {
 	// bi-directional many-to-one association to DeliveryCentreT
 	@OneToMany(mappedBy = "deliveryClusterT")
 	private List<DeliveryCentreT> deliveryCentreTs;
+	
+	//bi-directional many-to-one association to DeliveryCentreUtilizationT
+	@OneToMany(mappedBy="deliveryClusterT")
+	private List<DeliveryCentreUtilizationT> deliveryCentreUtilizationTs;
+	
+	//bi-directional many-to-one association to DeliveryCentreUtilizationT
+	@OneToMany(mappedBy="deliveryClusterT")
+	private List<DeliveryCentreUnallocationT> deliveryCentreUnallocationTs;
 
 	public DeliveryClusterT() {
 	}
@@ -168,4 +178,22 @@ public class DeliveryClusterT implements Serializable {
 		this.deliveryCentreTs = deliveryCentreTs;
 	}
 
+	public List<DeliveryCentreUtilizationT> getDeliveryCentreUtilizationTs() {
+		return deliveryCentreUtilizationTs;
+	}
+
+	public void setDeliveryCentreUtilizationTs(
+			List<DeliveryCentreUtilizationT> deliveryCentreUtilizationTs) {
+		this.deliveryCentreUtilizationTs = deliveryCentreUtilizationTs;
+	}
+
+	public List<DeliveryCentreUnallocationT> getDeliveryCentreUnallocationTs() {
+		return deliveryCentreUnallocationTs;
+	}
+
+	public void setDeliveryCentreUnallocationTs(
+			List<DeliveryCentreUnallocationT> deliveryCentreUnallocationTs) {
+		this.deliveryCentreUnallocationTs = deliveryCentreUnallocationTs;
+	}
+	
 }

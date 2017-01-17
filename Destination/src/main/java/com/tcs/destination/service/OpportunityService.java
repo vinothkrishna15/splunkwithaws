@@ -3680,22 +3680,30 @@ public class OpportunityService {
 			return asyncJobRequest;
 		}
 	
-	public PageDTO<OpportunityDTO> getOpportunitiesBasedOnPrivileges(Date fromDate, Date toDate, String mapId) throws Exception {
+	public PageDTO<OpportunityDTO> getOpportunitiesBasedOnPrivileges(Date fromDate, Date toDate, String mapId, String oppType) throws Exception {
 		PageDTO<OpportunityDTO> response = new PageDTO<OpportunityDTO>();
 		List<OpportunityT> opportunityTs = Lists.newArrayList();
 		UserT currentUser = DestinationUtils.getCurrentUserDetails();
 		String userId = currentUser.getUserId();
-		String userGroup = currentUser.getUserGroup();
 		List<String> owners = Lists.newArrayList();
 		owners.add(userId);
 
 		Date startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
 		Date endDate = toDate != null ? toDate : new Date();
 
-		String oppQueryString = getOpportunityQueryByPrivilege(userId);
+		String oppQueryString = getOpportunityQueryByPrivilege(userId,oppType);
 		Query oppQuery = entityManager.createNativeQuery(oppQueryString, OpportunityT.class);
+		List<String> userGroups = Lists.newArrayList();
+		if(oppType.equals("SALES")) {
+			userGroups = DestinationUtils.getSalesUserGroups();
+		} else if (oppType.equals("CONSULTING")) {
+			userGroups = DestinationUtils.getConsultingUserGroups();
+		}
 		oppQuery.setParameter("fromDate", startDate);
 		oppQuery.setParameter("toDate", endDate);
+		if(CollectionUtils.isNotEmpty(userGroups)) {
+			oppQuery.setParameter("userGroups", userGroups);
+		}
 		opportunityTs = oppQuery.getResultList();
 
 		List<OpportunityDTO> dtos = prepareWinRatioResposeDTO(opportunityTs, mapId);
@@ -3721,15 +3729,23 @@ public class OpportunityService {
 
 	/**
 	 * @param userId
+	 * @param oppType 
 	 * @return
 	 * @throws Exception
 	 */
-	private String getOpportunityQueryByPrivilege(String userId)
+	private String getOpportunityQueryByPrivilege(String userId, String oppType)
 			throws Exception {
-		StringBuffer queryBuffer = new StringBuffer(
-				QueryConstants.OPPORTUNITY_QUERY_PREFIX);
-		queryBuffer.append(QueryConstants.OPPORTUNITY_DEAL_CLOSURE_DATE_ORDER_BY);
-		return queryBuffer.toString();
+		if(oppType.equals("ALL")) {
+			StringBuffer queryBuffer = new StringBuffer(
+					QueryConstants.OPPORTUNITY_QUERY_PREFIX);
+			queryBuffer.append(QueryConstants.OPPORTUNITY_DEAL_CLOSURE_DATE_ORDER_BY);
+			return queryBuffer.toString();
+		} else {
+			StringBuffer queryBuffer = new StringBuffer(
+					QueryConstants.OPPORTUNITY_QUERY_BY_USER_GROUP_PREFIX);
+			queryBuffer.append(QueryConstants.OPPORTUNITY_DEAL_CLOSURE_DATE_ORDER_BY);
+			return queryBuffer.toString();
+		}
 	}
 	
 	

@@ -27,4 +27,9 @@ public interface MobileDashboardRepository extends
 			+ "order by order_number ASC limit 3", nativeQuery = true)
 	List<Integer> getFirstThreeComponentsInHealthCard(@Param("userId") String userId);
 
+	long countByUserId(String userId);
+
+	@Query(value = "select component_id from mobile_dashboard_t where user_id = (:userId) ", nativeQuery = true)
+	List<Integer> getComponentsByUserId(@Param("userId") String userId);
 }
+

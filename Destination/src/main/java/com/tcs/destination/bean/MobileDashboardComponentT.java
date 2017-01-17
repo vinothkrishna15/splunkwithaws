@@ -40,6 +40,13 @@ public class MobileDashboardComponentT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="category_id", insertable=false, updatable=false)
 	private MobileDashboardCategory category;
+	//bi-directional many-to-one association to DeliveryCentreUtilizationT
+	@OneToMany(mappedBy="mobileDashboardComponentT")
+	private List<DeliveryCentreUtilizationT> deliveryCentreUtilizationTs;
+	
+	//bi-directional many-to-one association to HealthCardOverallPercentage
+	@OneToMany(mappedBy="mobileDashboardComponentT")
+	private List<HealthCardOverallPercentage> healthCardOverallPercentages;
 
 	public MobileDashboardComponentT() {
 	}
@@ -100,4 +107,22 @@ public class MobileDashboardComponentT implements Serializable {
 	
 	
 
+	public List<DeliveryCentreUtilizationT> getDeliveryCentreUtilizationTs() {
+		return deliveryCentreUtilizationTs;
+	}
+
+	public void setDeliveryCentreUtilizationTs(
+			List<DeliveryCentreUtilizationT> deliveryCentreUtilizationTs) {
+		this.deliveryCentreUtilizationTs = deliveryCentreUtilizationTs;
+	}
+
+	public List<HealthCardOverallPercentage> getHealthCardOverallPercentages() {
+		return healthCardOverallPercentages;
+	}
+
+	public void setHealthCardOverallPercentages(
+			List<HealthCardOverallPercentage> healthCardOverallPercentages) {
+		this.healthCardOverallPercentages = healthCardOverallPercentages;
+	}
+	
 }

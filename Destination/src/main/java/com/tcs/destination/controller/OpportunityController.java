@@ -1033,12 +1033,13 @@ public class OpportunityController {
 	public @ResponseBody PageDTO<OpportunityDTO> findOppByPrivilege(
 			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
 			@RequestParam(value = "toDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
-			@RequestParam(value = "mapId", defaultValue = Constants.OPPORTUNITY_CUSTOMER_BASE) String mapId)
+			@RequestParam(value = "mapId", defaultValue = Constants.OPPORTUNITY_CUSTOMER_BASE) String mapId,
+			@RequestParam(value = "oppType", defaultValue = "ALL") String oppType)
 			throws DestinationException {
 		logger.info("Inside OpportunityController: Start of /opportunity/all/privilege");
 		PageDTO<OpportunityDTO> opportunities;
 		try {
-			opportunities = opportunityService.getOpportunitiesBasedOnPrivileges(fromDate,toDate, mapId);
+			opportunities = opportunityService.getOpportunitiesBasedOnPrivileges(fromDate,toDate, mapId,oppType);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
