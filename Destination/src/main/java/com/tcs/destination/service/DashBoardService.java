@@ -1506,9 +1506,11 @@ public class DashBoardService {
 	private void removeCyclicForMobileDashboard(
 			List<MobileDashboardT> mobiledashboardvalues) {
 		for (MobileDashboardT mobileDashboardT : mobiledashboardvalues) {
-			mobileDashboardT.getMobileDashboardCategory().setMobileDashboardTs(
-					null);
+			mobileDashboardT.setMobileDashboardCategory(null);
 			mobileDashboardT.getMobileDashboardComponentT().setMobileDashboardTs(null);
+			mobileDashboardT.getMobileDashboardComponentT().setCategory(null);
+			mobileDashboardT.getMobileDashboardComponentT().setDeliveryCentreUtilizationTs(null);
+			mobileDashboardT.getMobileDashboardComponentT().setHealthCardOverallPercentages(null);
 		}
 	}
 

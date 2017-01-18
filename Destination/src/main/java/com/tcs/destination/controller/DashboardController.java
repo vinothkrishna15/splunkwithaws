@@ -356,7 +356,7 @@ public class DashboardController {
 	 */
 	
 	@RequestMapping(value = "/mobile", method = RequestMethod.GET)
-	public String mobiledashboardFavourList(	
+	public ContentDTO<MobileDashboardT> mobiledashboardFavourList(	
 			@RequestParam(value = "dashboardCategory") int dashboardCategory)
 				throws DestinationException {
 		ContentDTO<MobileDashboardT> mobiledashboardValues;
@@ -364,12 +364,11 @@ public class DashboardController {
 		try {
 			mobiledashboardValues = dashboardService.getFavourMobileDashboardValues(dashboardCategory);
 			logger.info("End of retrieving the mobile dashboard values");
-			return ResponseConstructors.filterJsonForFieldAndViews("",
-					"", mobiledashboardValues);
+			return mobiledashboardValues;
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage(),e);
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in retrieving the mobile dashboard values");
 		}

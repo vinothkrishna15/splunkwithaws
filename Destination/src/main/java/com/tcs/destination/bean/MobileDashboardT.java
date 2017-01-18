@@ -12,12 +12,16 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 
 
 /**
  * The persistent class for the mobile_dashboard_t database table.
  * 
  */
+@JsonInclude(Include.NON_NULL)
 @Entity
 @Table(name="mobile_dashboard_t")
 @NamedQuery(name="MobileDashboardT.findAll", query="SELECT m FROM MobileDashboardT m")
