@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 public class CentreList {
 	private Integer deliveryCentreId;
 	private String deliveryCentre;
+	private String deliveryCentreHead;
 	private BigDecimal deliveryCentrePercentage;
 	private UnallocationAssociate unallocationAssociate;
 	public Integer getDeliveryCentreId() {
@@ -34,5 +35,11 @@ public class CentreList {
 	}
 	public void setUnallocationAssociate(UnallocationAssociate unallocationAssociate) {
 		this.unallocationAssociate = unallocationAssociate;
+	}
+	public String getDeliveryCentreHead() {
+		return deliveryCentreHead;
+	}
+	public void setDeliveryCentreHead(String deliveryCentreHead) {
+		this.deliveryCentreHead = deliveryCentreHead;
 	}
 }
