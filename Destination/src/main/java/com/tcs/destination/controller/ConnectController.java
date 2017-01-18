@@ -32,6 +32,7 @@ import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.bean.dto.ConnectDTO;
+import com.tcs.destination.bean.dto.CustomerConnectDetails;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.JobName;
 import com.tcs.destination.enums.OperationType;
@@ -708,4 +709,35 @@ public class ConnectController {
 		
 		return res;
 	}
+	
+	/**
+	 * @param cntDateFrom
+	 * @param cntDateTo
+	 * @param salesType
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/allByPeriod", method = RequestMethod.GET)
+	public @ResponseBody CustomerConnectDetails getAllConnectsByPeriod(
+			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
+			@RequestParam(value = "toDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
+			@RequestParam(value = "period", defaultValue = "") String period)
+			
+					throws DestinationException {
+		logger.info("CustomerController: getAllConnectsByPeriod");
+		CustomerConnectDetails res = null;
+		try {
+			res = connectService.getAllByPeriod(fromDate, toDate, period);
+			logger.info("CustomerController: End - getAllConnectsByPeriod");
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error("Error on user smartSearch", e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while retrieving customer list");
+		}
+		
+		return res;
+	}
+	
 }

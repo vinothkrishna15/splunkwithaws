@@ -4,6 +4,7 @@ import static com.tcs.destination.utils.ErrorConstants.ERR_INAC_01;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -19,6 +20,7 @@ import javax.persistence.PersistenceContext;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.xalan.xsltc.compiler.sym;
 import org.dozer.DozerBeanMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +35,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import scala.Array;
 
 import com.google.common.collect.Lists;
 import com.tcs.destination.bean.CityMapping;
@@ -58,6 +62,7 @@ import com.tcs.destination.bean.TaskT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.UserTaggedFollowedT;
 import com.tcs.destination.bean.dto.ConnectDTO;
+import com.tcs.destination.bean.dto.CustomerConnectDetails;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
 import com.tcs.destination.data.repository.CityMappingRepository;
@@ -2376,6 +2381,22 @@ public class ConnectService {
 					"Connect not found: " + connectId);
 		}
 		return connectdto;
+	}
+
+	public CustomerConnectDetails getAllByPeriod(Date fromDate, Date toDate,
+			String period) {
+		// TODO Auto-generated method stub
+		Date startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
+		Date endDate = toDate != null ? toDate : DateUtils.getFinancialYrEndDate();
+		Collection<String> totalConnects = connectRepository.findTotalCustomersConnected(startDate,endDate);
+		Collection<String> cxoCounts = connectRepository.findTotalCxoCustomers(startDate,endDate);
+
+		CustomerConnectDetails customerConnectDetails = new CustomerConnectDetails();
+		customerConnectDetails.setCxoCount(cxoCounts.size());
+		customerConnectDetails.setNumberOfCustomersConnected(totalConnects.size());
+		customerConnectDetails.setOthersCount(totalConnects.size()-cxoCounts.size());
+		
+		return customerConnectDetails;
 	}
 	
 }

@@ -875,5 +875,16 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 			 @Param("endDate") Date endDate, 
 			 @Param("grpCustomer") String grpCustomer, Pageable pageable);
 
+	@Query(value = "select distinct group_customer_name from connect_t cont "
+			+ "join customer_master_t cmt on cmt.customer_id = cont.customer_id "
+			+ "where cont.start_datetime_of_connect BETWEEN (:fromDate) AND (:toDate) ", nativeQuery = true)
+	List<String> findTotalCustomersConnected(@Param("fromDate") Date fromDate,
+			@Param("toDate") Date toDate);
 	
+	@Query(value = "select distinct group_customer_name from connect_t cont "
+			+ "join customer_master_t cmt on cmt.customer_id = cont.customer_id "
+			+ "where cont.start_datetime_of_connect BETWEEN (:fromDate) AND (:toDate) "
+			+ "AND cont.cxo_flag=true", nativeQuery = true)
+	List<String> findTotalCxoCustomers(@Param("fromDate") Date fromDate,
+			@Param("toDate") Date toDate);
 }

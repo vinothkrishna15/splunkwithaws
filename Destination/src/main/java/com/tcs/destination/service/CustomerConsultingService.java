@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.tcs.destination.bean.dto.ConsultingMonthlyRevenue;
+import com.tcs.destination.bean.dto.ConsultingMonthlyCustomer;
 import com.tcs.destination.bean.dto.CustomerConsultingDTO;
 import com.tcs.destination.data.repository.CustomerConsultingRepository;
 import com.tcs.destination.exception.DestinationException;
@@ -103,18 +103,16 @@ public class CustomerConsultingService {
 		List<Object[]> monthlyRevenueDetails = customerConsultingRepository
 				.findMonthwiseRevenueForConsulting(financialYear);
 
-		List<ConsultingMonthlyRevenue> newList = new ArrayList<ConsultingMonthlyRevenue>();
+		List<ConsultingMonthlyCustomer> newList = new ArrayList<ConsultingMonthlyCustomer>();
 		for (Object[] revenue : monthlyRevenueDetails) {
-			ConsultingMonthlyRevenue consultingMonthlyRevenue = new ConsultingMonthlyRevenue();
+			ConsultingMonthlyCustomer consultingMonthlyCustomer = new ConsultingMonthlyCustomer();
 			if (null != revenue[0] && null != revenue[0]) {
-				BigDecimal monthlyRevenueUSD = (BigDecimal) revenue[1];
-				consultingMonthlyRevenue.setMonth(revenue[0].toString());
-				consultingMonthlyRevenue.setRevenue(monthlyRevenueUSD.setScale(
-						2, RoundingMode.HALF_UP));
-				newList.add(consultingMonthlyRevenue);
+				consultingMonthlyCustomer.setMonth(revenue[0].toString());
+				consultingMonthlyCustomer.setCustomerCount(Integer.valueOf(revenue[1].toString()));
+				newList.add(consultingMonthlyCustomer);
 			}
 		}
-		custConsulting.setConsultingMonthlyRevenue(newList);
+		custConsulting.setConsultingMonthlyCustomer(newList);
 		logger.debug("Exit for findRevenueDetailsOfConsultedCustomers() service");
 		return custConsulting;
 
@@ -175,8 +173,8 @@ public class CustomerConsultingService {
 				totalRevenueAndCustomerList, financialYear);
 
 		custConsulting.setNumberOfCustomersConsulted(groupCustomerList);
-		custConsulting.setTotalConsultedRevenueInUSD(revenueInUSD.setScale(2,
-				RoundingMode.HALF_UP));
+/*		custConsulting.setTotalConsultedRevenueInUSD(revenueInUSD.setScale(2,
+				RoundingMode.HALF_UP));*/
 
 		// Need to write logic to calculate the
 		List<Object[]> totalRevenueBycostWithCustomer = customerConsultingRepository
@@ -192,7 +190,7 @@ public class CustomerConsultingService {
 					revenueInUSD, 4, RoundingMode.HALF_UP))
 					.multiply(ONE_HUNDRED);
 		}
-		custConsulting.setTotalGrossMargin(totalGrossAmount);
+		//custConsulting.setTotalGrossMargin(totalGrossAmount);
 	}
 
 	/**

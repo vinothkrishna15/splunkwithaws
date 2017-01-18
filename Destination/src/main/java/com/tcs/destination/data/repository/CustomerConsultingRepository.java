@@ -39,9 +39,7 @@ public interface CustomerConsultingRepository extends
 			+ "group by group_customer_name", nativeQuery = true)
 	List<Object[]> findSumOfRevenueWithGroupCustomerByCost(String financialYear);
 
-	@Query(value = "select month, sum(revenue * (select conversion_rate from beacon_convertor_mapping_t "
-			+ "where currency_name= 'INR') /  (select conversion_rate from beacon_convertor_mapping_t "
-			+ "where currency_name = ('USD')) ) from actual_revenues_data_t ardt "
+	@Query(value = "select month, count(distinct group_customer_name) from actual_revenues_data_t ardt "
 			+ "join revenue_customer_mapping_t rcmt on ardt.revenue_customer_map_id = rcmt.revenue_customer_map_id "
 			+ "join customer_master_t cmt on rcmt.customer_id = cmt.customer_id "
 			+ "where upper(ardt.sub_sp) like upper('%Consulting%') AND upper(ardt.category) like upper('%revenue%') AND ardt.financial_Year = ?1 "

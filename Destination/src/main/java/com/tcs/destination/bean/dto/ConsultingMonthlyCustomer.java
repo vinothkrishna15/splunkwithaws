@@ -15,12 +15,12 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  *
  */
 @JsonInclude(Include.NON_NULL)
-public class ConsultingMonthlyRevenue implements Serializable {
+public class ConsultingMonthlyCustomer implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
 	private String month;
-	private BigDecimal revenue;
+	private Integer customerCount;
 
 
 
@@ -40,18 +40,17 @@ public class ConsultingMonthlyRevenue implements Serializable {
 	}
 
 	/**
-	 * @return the revenue
+	 * @return the customerCount
 	 */
-	public BigDecimal getRevenue() {
-		return revenue;
+	public Integer getCustomerCount() {
+		return customerCount;
 	}
 
 	/**
-	 * @param revenue
-	 *            the revenue to set
+	 * @param customerCount the customerCount to set
 	 */
-	public void setRevenue(BigDecimal revenue) {
-		this.revenue = revenue;
+	public void setCustomerCount(Integer customerCount) {
+		this.customerCount = customerCount;
 	}
 
 }

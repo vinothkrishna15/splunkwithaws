@@ -18,14 +18,14 @@ public class CustomerConsultingDTO implements Serializable {
 
 	private List<String> numberOfCustomersConsulted;
 
-	private BigDecimal totalConsultedRevenueInUSD;
-	private BigDecimal totalGrossMargin;
+/*	private BigDecimal totalConsultedRevenueInUSD;
+	private BigDecimal totalGrossMargin;*/
 	private int numberOfConsultedWins;
 	private BigDecimal totalConsultedWinsRevenue;
 	private int numberOfConsultedQualifiedPipeline;
 	private BigDecimal totalConsultedQualifiedRevenue;
 
-	private List<ConsultingMonthlyRevenue> consultingMonthlyRevenue;
+	private List<ConsultingMonthlyCustomer> consultingMonthlyCustomer;
 	private Long lastModifiedDate;
 
 	/**
@@ -46,35 +46,35 @@ public class CustomerConsultingDTO implements Serializable {
 
 	/**
 	 * @return the totalConsultedRevenueInUSD
-	 */
+	 *//*
 	public BigDecimal getTotalConsultedRevenueInUSD() {
 		return totalConsultedRevenueInUSD;
 	}
 
-	/**
+	*//**
 	 * @param totalConsultedRevenueInUSD
 	 *            the totalConsultedRevenueInUSD to set
-	 */
+	 *//*
 	public void setTotalConsultedRevenueInUSD(
 			BigDecimal totalConsultedRevenueInUSD) {
 		this.totalConsultedRevenueInUSD = totalConsultedRevenueInUSD;
 	}
 
-	/**
+	*//**
 	 * @return the totalGrossMargin
-	 */
+	 *//*
 	public BigDecimal getTotalGrossMargin() {
 		return totalGrossMargin;
 	}
 
-	/**
+	*//**
 	 * @param totalGrossMargin
 	 *            the totalGrossMargin to set
-	 */
+	 *//*
 	public void setTotalGrossMargin(BigDecimal totalGrossMargin) {
 		this.totalGrossMargin = totalGrossMargin;
 	}
-
+*/
 	/**
 	 * @return the numberOfConsultedWins
 	 */
@@ -141,17 +141,17 @@ public class CustomerConsultingDTO implements Serializable {
 	/**
 	 * @return the consultingMonthlyRevenue
 	 */
-	public List<ConsultingMonthlyRevenue> getConsultingMonthlyRevenue() {
-		return consultingMonthlyRevenue;
+	public List<ConsultingMonthlyCustomer> getConsultingMonthlyCustomer() {
+		return consultingMonthlyCustomer;
 	}
 
 	/**
 	 * @param consultingMonthlyRevenue
 	 *            the consultingMonthlyRevenue to set
 	 */
-	public void setConsultingMonthlyRevenue(
-			List<ConsultingMonthlyRevenue> consultingMonthlyRevenue) {
-		this.consultingMonthlyRevenue = consultingMonthlyRevenue;
+	public void setConsultingMonthlyCustomer(
+			List<ConsultingMonthlyCustomer> consultingMonthlyCustomer) {
+		this.consultingMonthlyCustomer = consultingMonthlyCustomer;
 	}
 
 	/**
