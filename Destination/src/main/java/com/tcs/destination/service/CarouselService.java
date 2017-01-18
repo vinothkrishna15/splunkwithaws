@@ -18,6 +18,7 @@ import com.tcs.destination.bean.dto.OpportunityMetrics;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.DeliveryCentreUnallocationRepository;
 import com.tcs.destination.data.repository.DeliveryCentreUtilizationRepository;
+import com.tcs.destination.data.repository.HealthCardOverallPercentageRepository;
 import com.tcs.destination.data.repository.MobileDashboardRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.enums.HealthCardComponent;
@@ -57,6 +58,9 @@ public class CarouselService {
 
 	@Autowired
 	DeliveryCentreUnallocationRepository deliveryCentreUnallocationRepository;
+	
+	@Autowired
+	HealthCardOverallPercentageRepository healthCardOverallPercentageRepository;
 
 	/**
 	 * gets the carousel metrics values
@@ -120,11 +124,11 @@ public class CarouselService {
 				healthCardMetrics.setUtilization(utilization);
 				break;
 			case UNALLOCATION:
-				BigDecimal unallocation = deliveryCentreUnallocationRepository.getOverallPercentage();
+				BigDecimal unallocation = getOverallPercentage(HealthCardComponent.UNALLOCATION);
 				healthCardMetrics.setUnallocation(scaletoTwoDecimal(unallocation,true));
 				break;
-			case BILABILITY:
-				BigDecimal bilability = getOverallPercentage(HealthCardComponent.BILABILITY);
+			case BILLABILITY:
+				BigDecimal bilability = getOverallPercentage(HealthCardComponent.BILLABILITY);
 				healthCardMetrics.setBilability(bilability);
 				break;
 			case ATTRITION:
@@ -152,9 +156,8 @@ public class CarouselService {
 	}
 
 	private BigDecimal getOverallPercentage(HealthCardComponent healthCardCategory) {
-		BigDecimal percentage = deliveryCentreUtilizationRepository
-				.getOverallPercentage(healthCardCategory.getCategoryId());
-		return scaletoTwoDecimal(percentage,true);
+		BigDecimal percentage = healthCardOverallPercentageRepository.getOverallPercentage(healthCardCategory.getCategoryId());
+		return DestinationUtils.scaleToTwoDigits(percentage,true);
 	}
 
 	/**
@@ -263,9 +266,9 @@ public class CarouselService {
 			carouselMetricsDTO.setNoOfLoss(loss);
 			carouselMetricsDTO.setNoOfWins(wins);
 			carouselMetricsDTO.setWinValue(scaletoTwoDecimal(winValue, true));
-			carouselMetricsDTO.setWinsRatio(scaletoTwoDecimal(winRatio, true));
+			carouselMetricsDTO.setWinsRatio(DestinationUtils.scaleToTwoDigits(winRatio, true));
 		} else {
-			healthCardMetrics.setWinsRatio(scaletoTwoDecimal(winRatio, true));
+			healthCardMetrics.setWinsRatio(DestinationUtils.scaleToTwoDigits(winRatio, true));
 		}
 		logger.debug("End of setWinRatioMetrics method");
 	}

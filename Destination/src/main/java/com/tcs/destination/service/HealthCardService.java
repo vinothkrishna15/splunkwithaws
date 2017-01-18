@@ -8,6 +8,7 @@ import org.dozer.DozerBeanMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+
 import com.google.common.collect.Lists;
 import com.tcs.destination.bean.CentreList;
 import com.tcs.destination.bean.ClusterList;
@@ -21,6 +22,7 @@ import com.tcs.destination.bean.HealthCardValues;
 import com.tcs.destination.bean.MobileDashboardT;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UnallocationAssociate;
+import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.dto.DeliveryCentreUtilizationDTO;
 import com.tcs.destination.bean.dto.DeliveryClusterDTO;
 import com.tcs.destination.data.repository.DeliveryCentreUnallocationRepository;
@@ -154,10 +156,8 @@ public class HealthCardService {
 		Date endDate = toDate != null ? toDate : new Date();
 		List<HealthCardOverallPercentage> overallPercentages = healthCardOverallPercentageRepository
 				.findByDateBetweenAndComponentIdOrderByDateDesc(startDate, endDate,type);
-		if(CollectionUtils.isEmpty(overallPercentages)) {
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Data not found");
-		}
 		List<DeliveryClusterT> clusterTs = clusterRepo.findAllExceptOpen();
+		
 		for (HealthCardOverallPercentage healthCardOverallPercentage : overallPercentages) {
 			healthCardValues.add(constructHealthCardValues(healthCardOverallPercentage,type,clusterTs));
 		}
@@ -165,11 +165,15 @@ public class HealthCardService {
 		return content;
 	}
 
+
+
+
 	private HealthCardValues constructHealthCardValues(
 			HealthCardOverallPercentage healthCardOverallPercentage, int type, List<DeliveryClusterT> clusterTs) {
 		HealthCardValues healthCardValues= new HealthCardValues();
 		healthCardValues.setDate(healthCardOverallPercentage.getDate());
-		healthCardValues.setOverallPercentage(healthCardOverallPercentage.getOverallPercentage());
+		healthCardValues.setOverallPercentage(DestinationUtils.
+				scaleToTwoDigits(healthCardOverallPercentage.getOverallPercentage(), true));
 		healthCardValues.setCategory(HealthCardComponent.getCategoryName(type));
 		List<ClusterList> clusterPercentage = Lists.newArrayList();
 		for(DeliveryClusterT deliveryCluster : clusterTs) {
@@ -196,8 +200,10 @@ public class HealthCardService {
 	private ClusterList constructClusterPercentage(
 			DeliveryCentreUtilizationT deliveryCentreUtilizationT, int type, DeliveryClusterT deliveryCluster, List<CentreList> centrePercentages) {
 		ClusterList clusterPercentage = new ClusterList();
-		clusterPercentage.setClusterPercentage(deliveryCentreUtilizationT.getUtilizationPercentage());
+		clusterPercentage.setClusterPercentage(DestinationUtils.
+				scaleToTwoDigits(deliveryCentreUtilizationT.getUtilizationPercentage(), true));
 		clusterPercentage.setDeliveryCluster(deliveryCluster.getDeliveryCluster());
+		clusterPercentage.setDeliveryClusterHead(deliveryCluster.getDeliveryClusterHeadUser().getUserName());
 		clusterPercentage.setCentreList(centrePercentages);
 		if(type==HealthCardComponent.UNALLOCATION.getCategoryId()) {
 			clusterPercentage.setUnallocationAssociate(constructUnallocationAsssociate(deliveryCentreUtilizationT));
@@ -209,8 +215,10 @@ public class HealthCardService {
 			DeliveryCentreUtilizationT deliveryCentreUtilizationT, int type) {
 		CentreList centrePercentage = new CentreList();
 		centrePercentage.setDeliveryCentreId(deliveryCentreUtilizationT.getDeliveryCentreId());
-		centrePercentage.setDeliveryCentre(DeliveryCentre.getCentreNameCentreId(deliveryCentreUtilizationT.getDeliveryCentreId()));
-		centrePercentage.setDeliveryCentrePercentage(deliveryCentreUtilizationT.getUtilizationPercentage());
+		centrePercentage.setDeliveryCentre(DeliveryCentre.getCentreNameFromCentreId(deliveryCentreUtilizationT.getDeliveryCentreId()));
+		UserT deliveryCentreHeadUser = deliveryCentreUtilizationT.getDeliveryCentreT().getDeliveryCentreHeadUser();
+		centrePercentage.setDeliveryCentreHead(deliveryCentreHeadUser!=null ? deliveryCentreHeadUser.getUserName(): null);
+		centrePercentage.setDeliveryCentrePercentage(DestinationUtils.scaleToTwoDigits(deliveryCentreUtilizationT.getUtilizationPercentage(),true));
 		if(type==HealthCardComponent.UNALLOCATION.getCategoryId()) {
 			centrePercentage.setUnallocationAssociate(constructUnallocationAsssociate(deliveryCentreUtilizationT));
 		}
@@ -220,9 +228,9 @@ public class HealthCardService {
 	private UnallocationAssociate constructUnallocationAsssociate(
 			DeliveryCentreUtilizationT deliveCentreUtilizationT) {
 		UnallocationAssociate unallocationAssociatePercentage = new UnallocationAssociate();
-		unallocationAssociatePercentage.setJuniorPercentage(deliveCentreUtilizationT.getJuniorPercentage());
-		unallocationAssociatePercentage.setSeniorPercentage(deliveCentreUtilizationT.getSeniorPercentage());
-		unallocationAssociatePercentage.setTraineePercentage(deliveCentreUtilizationT.getTraineePercentage());
+		unallocationAssociatePercentage.setJuniorPercentage(DestinationUtils.scaleToTwoDigits(deliveCentreUtilizationT.getJuniorPercentage(), true));
+		unallocationAssociatePercentage.setSeniorPercentage(DestinationUtils.scaleToTwoDigits(deliveCentreUtilizationT.getSeniorPercentage(), true));
+		unallocationAssociatePercentage.setTraineePercentage(DestinationUtils.scaleToTwoDigits(deliveCentreUtilizationT.getTraineePercentage(), true));
 		return unallocationAssociatePercentage;
 	}	
 }

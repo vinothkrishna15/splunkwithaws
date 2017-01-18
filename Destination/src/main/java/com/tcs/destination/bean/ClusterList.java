@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 public class ClusterList {
 	private String deliveryCluster;
 	private BigDecimal clusterPercentage;
+	private String deliveryClusterHead;
 	private List<CentreList> centreList;
 	private UnallocationAssociate unallocationAssociate;
 	
@@ -36,5 +37,11 @@ public class ClusterList {
 	}
 	public void setUnallocationAssociate(UnallocationAssociate unallocationAssociate) {
 		this.unallocationAssociate = unallocationAssociate;
+	}
+	public String getDeliveryClusterHead() {
+		return deliveryClusterHead;
+	}
+	public void setDeliveryClusterHead(String deliveryClusterHead) {
+		this.deliveryClusterHead = deliveryClusterHead;
 	}
 }

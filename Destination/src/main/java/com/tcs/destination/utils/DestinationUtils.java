@@ -197,12 +197,12 @@ public class DestinationUtils {
 	}
 	
 	public static BigDecimal scaleToTwoDigits(BigDecimal val, boolean zeroIfNull) {
-		System.out.println(val);
 		BigDecimal returnValue = null; 
 		if(val != null && val != BigDecimal.ZERO) {
 			if(val.doubleValue() < 10) {
 				
-				if(val.remainder(val.setScale(0, BigDecimal.ROUND_DOWN)).doubleValue() > 0) {
+				BigDecimal roundVal = val.setScale(0, BigDecimal.ROUND_DOWN);
+				if(roundVal.equals(BigDecimal.ZERO) || val.remainder(roundVal).doubleValue() > 0) {
 					returnValue = val.setScale(1, BigDecimal.ROUND_HALF_UP);
 				} else {
 					returnValue = val.setScale(0, BigDecimal.ROUND_HALF_UP);

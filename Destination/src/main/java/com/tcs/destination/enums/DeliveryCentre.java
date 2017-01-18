@@ -29,7 +29,7 @@ public enum DeliveryCentre {
 		return null;
 	}
 	
-	public static String getCentreNameCentreId(Integer deliveryCentreId) {
+	public static String getCentreNameFromCentreId(Integer deliveryCentreId) {
 		for (DeliveryCentre centre : DeliveryCentre.values()) {
 			if(centre.getDeliveryCentreId().equals(deliveryCentreId)) {
 				return centre.getDeliveryCentre();
