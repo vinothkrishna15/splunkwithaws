@@ -6,7 +6,7 @@ public enum HealthCardComponent {
 	WIN_RATIO(1,"Win Ratio"),
 	UTILIZATION(2,"Utilization"),
 	UNALLOCATION(3,"Unallocation"),
-	BILABILITY(4,"Bilability"),
+	BILLABILITY(4,"Billability"),
 	ATTRITION(5,"Attrition"),
 	SENIOR_RATIO(6,"Senior Ratio"),
 	TRAINEE(7,"Trainee");

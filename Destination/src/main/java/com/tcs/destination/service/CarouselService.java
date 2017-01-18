@@ -127,8 +127,8 @@ public class CarouselService {
 				BigDecimal unallocation = getOverallPercentage(HealthCardComponent.UNALLOCATION);
 				healthCardMetrics.setUnallocation(scaletoTwoDecimal(unallocation,true));
 				break;
-			case BILABILITY:
-				BigDecimal bilability = getOverallPercentage(HealthCardComponent.BILABILITY);
+			case BILLABILITY:
+				BigDecimal bilability = getOverallPercentage(HealthCardComponent.BILLABILITY);
 				healthCardMetrics.setBilability(bilability);
 				break;
 			case ATTRITION:
