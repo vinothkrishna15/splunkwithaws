@@ -20,7 +20,6 @@ import javax.persistence.PersistenceContext;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.xalan.xsltc.compiler.sym;
 import org.dozer.DozerBeanMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,8 +34,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import scala.Array;
 
 import com.google.common.collect.Lists;
 import com.tcs.destination.bean.CityMapping;
