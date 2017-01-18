@@ -1068,4 +1068,11 @@ public class DateUtils {
 		return periods;
 	}
 	
+	public static boolean isDateBetweeen(Date start, Date end, Date compareDate) {
+		if(start != null && end != null && compareDate != null) {
+			return compareDate.compareTo(start) >= 0 && compareDate.compareTo(end) <= 0;
+		}
+		
+		return false;
+	}
 }

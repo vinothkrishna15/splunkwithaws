@@ -22,6 +22,12 @@ import javax.persistence.Query;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.dozer.DozerBeanMapper;
+import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
+import org.joda.time.Months;
+import org.joda.time.Period;
+import org.joda.time.Weeks;
+import org.joda.time.YearMonth;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,9 +78,12 @@ import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.WorkflowBfmT;
 import com.tcs.destination.bean.WorkflowRequestT;
+import com.tcs.destination.bean.dto.MoneyBucketDTO;
 import com.tcs.destination.bean.dto.OpportunityDTO;
 import com.tcs.destination.bean.dto.QualifiedPipelineDTO;
+import com.tcs.destination.bean.dto.WinLossCountDTO;
 import com.tcs.destination.bean.dto.WinLossFactorCountDTO;
+import com.tcs.destination.bean.dto.GeoWinRatioDTO;
 import com.tcs.destination.data.repository.AuditOpportunityDeliveryCenterRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
@@ -141,6 +150,8 @@ import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
 import com.tcs.destination.utils.PropertyUtil;
 import com.tcs.destination.utils.QueryConstants;
+
+import net.wimpi.telnetd.io.terminal.ansi;
 
 @Service
 public class OpportunityService {
@@ -4060,40 +4071,96 @@ public class OpportunityService {
 		return new ContentDTO<WinLossFactorCountDTO>(list);
 	}
 	
-/*	public ContentDTO<QualifiedPipelineDTO> getWinratioByGeoCustomer(Date fromDate, Date toDate) {
+	public ContentDTO<QualifiedPipelineDTO> getWinratioByGeoCustomer(Date fromDate, Date toDate) {
 
 		Date startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
 		Date endDate = toDate != null ? toDate : new Date();
-		
 
+		List<String> displayGeos = geographyRepository.findDisplayGeo();
 		
-		for (Integer[] bucket : Constants.MONEY_BUCKETS) {
+		List<GeoWinRatioDTO> geoWinRatioDTO = Lists.newArrayList();
+		for (String geo : displayGeos) {
+			GeoWinRatioDTO winratioDto = new GeoWinRatioDTO();
+			winratioDto.setGeoName(geo);
+			List<MoneyBucketDTO> moneyBuckets = Lists.newArrayList();
+			winratioDto.setBuckets(moneyBuckets);
 			
-			Integer minVal = bucket[0];
-			Integer maxVal = bucket[1];
-			List<Object[]> geosWinLoss = opportunityRepository.getGeoWinRatio(minVal, maxVal, startDate, endDate);
-			
-			for (Object[] geoWinLoss : geosWinLoss) {
-				String geography = (String) geoWinLoss[0];
-				int winCount = (int) geoWinLoss[1];
-				int lossCount = (int) geoWinLoss[2];
-				
-				getWinRatio(winCount, lossCount);
+			for (Integer[] bucket : Constants.MONEY_BUCKETS) {
+				Integer minVal = bucket[0];
+				Integer maxVal = bucket[1];
+				List<Object[]> geosWinLoss = opportunityRepository.getGeoWinRatio(minVal, maxVal, startDate, endDate, geo);
+				for (Object[] geoWinLoss : geosWinLoss) {
+					int winCount = (int) geoWinLoss[0];
+					int lossCount = (int) geoWinLoss[1];
+					
+					MoneyBucketDTO moneyBucket = getMoneyBucket(minVal, maxVal, winCount, lossCount);
+					moneyBuckets.add(moneyBucket);
+				}
 			}
+			geoWinRatioDTO.add(winratioDto);
 		}
 		
 		
-		List<Object[]> customerWinRatio = opportunityRepository.getCustomerWinRatio(startDate, endDate, null);//TODO customer pref list
+		
+		List<WinLossCountDTO> winloss = getWinLossCountMonthly(startDate, endDate);
+		
+		//List<Object[]> customerWinRatio = opportunityRepository.getCustomerWinRatio(startDate, endDate, null);//TODO customer pref list
 		
 		return null;
-	}*/
+	}
 
-	private double getWinRatio(int winCount, int lossCount) {
-		double winRatio = 0;
-		if(winCount > 0 || lossCount > 0) {
-			winRatio = winCount/(winCount + lossCount) * 100;
+	private List<WinLossCountDTO> getWinLossCountMonthly(Date startDate, Date endDate) {
+		List<WinLossCountDTO> winlossDtos = Lists.newArrayList();
+		List<Object[]> oppList = opportunityRepository.getWinLossOpportunity(startDate, endDate);
+		if(CollectionUtils.isNotEmpty(oppList)) {
+			List<Map<String, Date>> monthPeriods = DateUtils.getMonthPeriod(startDate, endDate);
+			
+			for (Map<String, Date> map : monthPeriods) {
+				Date monthStartDate = map.get(DateUtils.START_DATE);
+				Date monthEndDate = map.get(DateUtils.END_DATE);
+				WinLossCountDTO winLossDto = new WinLossCountDTO();
+				int winCount = 0;
+				int lossCount = 0;
+				for (Object[] opp : oppList) {
+					int stageCode = ((Integer) opp[0]).intValue();
+					Date dealDate = (Date) opp[1];
+					if(DateUtils.isDateBetweeen(monthStartDate, monthEndDate, dealDate)) {
+						if(stageCode == 9) {
+							winCount++;
+						} else if(stageCode == 10) {
+							lossCount++;
+						}
+					}
+				}
+				
+				winLossDto.setFromDate(monthStartDate);
+				winLossDto.setToDate(monthEndDate);
+				winLossDto.setWinCount(winCount);
+				winLossDto.setLossCount(lossCount);
+				winlossDtos.add(winLossDto);
+			}
 		}
-		return winRatio;
+		return winlossDtos;
+		
+	}
+
+	private MoneyBucketDTO getMoneyBucket(Integer minVal, Integer maxVal, int winCount, int lossCount) {
+		MoneyBucketDTO dto = new MoneyBucketDTO();
+		dto.setLossCount(lossCount);
+		dto.setWinCount(winCount);
+		dto.setWinRatio(DestinationUtils.getWinRatio(winCount, lossCount));
+		dto.setMinValue(minVal);
+		dto.setMaxValue(maxVal);
+		return dto;
+	}
+
+	public static void main(String[] args) {
+		Period p = Period.months(4);
+		System.out.println(p.getMonths());
+		YearMonth y = YearMonth.fromDateFields(new Date());
+		
+		
+		
 	}
 	
 }

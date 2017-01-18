@@ -1,8 +1,7 @@
 package com.tcs.destination.bean.dto;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.Map;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -12,13 +11,13 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  * 
  */
 @JsonInclude(Include.NON_NULL)
-public class WinRatioDTO implements Serializable {
+public class GeoWinRatioDTO implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private String geoName;
-	private Map<String, BigDecimal> ratio;
+	private List<MoneyBucketDTO> buckets;
 
-	public WinRatioDTO() {
+	public GeoWinRatioDTO() {
 		super();
 	}
 
@@ -30,14 +29,12 @@ public class WinRatioDTO implements Serializable {
 		this.geoName = geoName;
 	}
 
-	public Map<String, BigDecimal> getRatio() {
-		return ratio;
+	public List<MoneyBucketDTO> getBuckets() {
+		return buckets;
 	}
 
-	public void setRatio(Map<String, BigDecimal> ratio) {
-		this.ratio = ratio;
+	public void setBuckets(List<MoneyBucketDTO> buckets) {
+		this.buckets = buckets;
 	}
 	
-	
-
 }

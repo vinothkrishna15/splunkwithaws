@@ -1585,26 +1585,34 @@ public interface OpportunityRepository extends
 	List<Object[]> getTopWinlossFactor( @Param("fromDate") Date fromDate, @Param("toDate") Date toDate, @Param("count") Integer count);
 
 
-/*	@Query(value = "SELECT gmt.display_geography, "
-		+ " SUM(case when opp.sales_stage_code = 9 then 1 else 0 end) as win,"
+	
+	// --------- win ratio repo methods ----------//
+	@Query(value = "SELECT SUM(case when opp.sales_stage_code = 9 then 1 else 0 end) as win,"
 		+ " SUM(case when opp.sales_stage_code = 10 then 1 else 0 end) as loss "
 		+ " FROM opportunity_t opp"
-		+ " JOIN customer_master_t cmt ON cmt.customer_id = opp.customer_id"
+		+ " JOIN customer_master_t cmt on cmt.customer_id = opp.customer_id"
 		+ " JOIN geography_mapping_t gmt on cmt.geography = gmt.geography"
 		+ " WHERE deal_value_usd_converter(opp.digital_deal_value, opp.deal_currency) BETWEEN :minVal AND :maxVal"
 		+ " AND opp.deal_closure_date BETWEEN :fromDate AND :toDate"
-		+ " GROUP BY gmt.display_geography")
-	List<Object[]> getGeoWinRatio(@Param("minVal") double minVal, @Param("maxVal") double maxVal, @Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
+		+ " AND gmt.display_geography = :geo", nativeQuery=true)
+	List<Object[]> getGeoWinRatio(@Param("minVal") double minVal, @Param("maxVal") double maxVal, @Param("fromDate") Date fromDate, @Param("toDate") Date toDate, @Param("geo") String geo);
 
-	@Query(value = "SELECT cmt.group_customer_name, "
+/*	@Query(value = "SELECT cmt.group_customer_name, "
 		+ " SUM(case when opp.sales_stage_code = 9 then 1 else 0 end) as win,"
 		+ " SUM(case when opp.sales_stage_code = 10 then 1 else 0 end) as loss "
 		+ " FROM opportunity_t opp"
 		+ " JOIN customer_master_t cmt ON cmt.customer_id = opp.customer_id AND cmt.group_customer_name in (:customers)"
 		+ " WHERE opp.deal_closure_date BETWEEN :fromDate AND :toDate"
-		+ " GROUP BY cmt.group_customer_name")
+		+ " GROUP BY cmt.group_customer_name", nativeQuery=true)
 	List<Object[]> getCustomerWinRatio( @Param("fromDate") Date fromDate, @Param("toDate") Date toDate, @Param("customers") List<String> customers);
 */
+	
+	@Query(value = "SELECT opp.salesStageCode, opp.dealClosureDate"
+			+ " FROM OpportunityT opp"
+			+ " WHERE opp.dealClosureDate BETWEEN :fromDate AND :toDate"
+			+ " ORDER BY opp.dealClosureDate")
+	List<Object[]> getWinLossOpportunity(@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
+	// --------- win ratio repo methods : ENDS ----------//
 	
 	// Change ends
 }
