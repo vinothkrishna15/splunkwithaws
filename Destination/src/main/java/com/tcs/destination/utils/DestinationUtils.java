@@ -195,6 +195,28 @@ public class DestinationUtils {
 		
 		return returnValue;
 	}
+	
+	public static BigDecimal scaleToTwoDigits(BigDecimal val, boolean zeroIfNull) {
+		System.out.println(val);
+		BigDecimal returnValue = null; 
+		if(val != null && val != BigDecimal.ZERO) {
+			if(val.doubleValue() < 10) {
+				
+				if(val.remainder(val.setScale(0, BigDecimal.ROUND_DOWN)).doubleValue() > 0) {
+					returnValue = val.setScale(1, BigDecimal.ROUND_HALF_UP);
+				} else {
+					returnValue = val.setScale(0, BigDecimal.ROUND_HALF_UP);
+				}
+			} else {
+				returnValue = val.setScale(0, BigDecimal.ROUND_HALF_UP);
+			}
+		}
+		
+		if(returnValue == null && zeroIfNull) {
+			 return new BigDecimal(0);
+		}
+		return returnValue;
+	}
 
 	public static List<String> getSalesUserGroups() {
 		return Lists.newArrayList(UserGroup.BDM.getValue(), UserGroup.BDM_SUPERVISOR.getValue(), UserGroup.GEO_HEADS.getValue());
@@ -215,6 +237,7 @@ public class DestinationUtils {
 	public static List<Integer> getRequestRecievedStages() {
 		return Lists.newArrayList(0,1,2,3,4,5,6,7,8,9,10,11,12,13);
 	}
+
 	
 	
 	
