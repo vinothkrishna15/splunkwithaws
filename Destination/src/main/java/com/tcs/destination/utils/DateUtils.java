@@ -20,11 +20,13 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
+import org.joda.time.Period;
 import org.joda.time.Weeks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.tcs.destination.exception.DestinationException;
 
@@ -106,6 +108,11 @@ public class DateUtils {
 
 	public static final String WEEK_END_DATE = "WEEK_END_DATE";
 	public static final String WEEK_START_DATE = "WEEK_START_DATE";
+
+	public static final String END_DATE = "END_DATE";
+	public static final String START_DATE = "START_DATE";
+	
+	
 	
 	static {
 		monthMap.put("JAN", Calendar.JANUARY);
@@ -1010,5 +1017,55 @@ public class DateUtils {
 	   
 		return dateMap;
 	}
+	
+	
+	public static List<Map<String, Date>> getMonthPeriod(Date startDate, Date endDate) {
+		List<Map<String, Date>> periods = Lists.newArrayList();
+		LocalDate date1 = new LocalDate(startDate);
+		LocalDate date2 = new LocalDate(endDate); 
 
+		while(date1.isBefore(date2)){
+			System.out.println(date1.toString("MMM/yyyy"));
+			Map<String, Date> map = Maps.newHashMap();
+			map.put(START_DATE, date1.toDate());
+			
+			date1 = date1.dayOfMonth().withMaximumValue().plus(Period.days(1));
+			
+			LocalDate monthEndDate = date1.minus(Period.days(1));
+			if(monthEndDate.isAfter(date2)) {
+				map.put(END_DATE, date2.toDate());
+			} else {
+				map.put(END_DATE, monthEndDate.toDate());
+			}
+			
+			periods.add(map);
+		}
+		
+		return periods;
+	}
+
+	public static List<Map<String, Date>> getWeekPeriod(Date startDate, Date endDate) {
+		List<Map<String, Date>> periods = Lists.newArrayList();
+		LocalDate date1 = new LocalDate(startDate);
+		LocalDate date2 = new LocalDate(endDate); 
+		
+		while(date1.isBefore(date2)){
+			Map<String, Date> map = Maps.newHashMap();
+			map.put(START_DATE, date1.toDate());
+			
+			date1 = date1.dayOfWeek().withMaximumValue().plus(Period.days(1));
+			
+			LocalDate monthEndDate = date1.minus(Period.days(1));
+			if(monthEndDate.isAfter(date2)) {
+				map.put(END_DATE, date2.toDate());
+			} else {
+				map.put(END_DATE, monthEndDate.toDate());
+			}
+			
+			periods.add(map);
+		}
+		
+		return periods;
+	}
+	
 }

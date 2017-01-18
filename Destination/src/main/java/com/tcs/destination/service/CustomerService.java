@@ -1788,7 +1788,7 @@ public class CustomerService {
 			}
 		}
 		//Calculating win ratio for a grp customer
-		winRatio = getWinRatio(oppWins, oppLoss);
+		winRatio = DestinationUtils.getWinRatio(oppWins, oppLoss);
 		//Calculating Gross Margin for a grp customer
 		grossMargin = getGrossMargin(revenue, cost);
 		//Total Connects count
@@ -1843,26 +1843,7 @@ public class CustomerService {
 		}
 		return grossMarginPercent;
 	}
-	/**
-	 * calculates the win ratio based on the number of wins and losses
-	 * @param oppWins
-	 * @param oppLoss
-	 * @return
-	 */
-	public BigDecimal getWinRatio(int oppWins, int oppLoss) {
-		logger.debug("Inside getWinRatio method");
-		BigDecimal winRatio = new BigDecimal(0);
-		BigDecimal wins = new BigDecimal(oppWins);
-		BigDecimal loss = new BigDecimal(oppLoss);
-		BigDecimal totalWinLosses = wins.add(loss);
-		if(totalWinLosses.compareTo(winRatio)==0) {
-			return winRatio;
-		} else {
-			BigDecimal dividedVal = wins.divide(totalWinLosses, 4, BigDecimal.ROUND_HALF_UP);
-			winRatio = dividedVal.multiply(new BigDecimal(100));
-		}
-		return winRatio;
-	}
+	
 	/**
 	 * Checks if the given date is in between the two dates provided.
 	 * @param startDate

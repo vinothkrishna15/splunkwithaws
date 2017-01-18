@@ -257,7 +257,7 @@ public class CarouselService {
 		Object[] lossObject = getWinLossValue(startDate, endDate, Lists.newArrayList(LOST.getCode()));
 		Integer loss = ((BigInteger) lossObject[0]).intValue();
 		BigDecimal lossValue = (BigDecimal) lossObject[1];
-		BigDecimal winRatio = customerService.getWinRatio(wins, loss);
+		BigDecimal winRatio = DestinationUtils.getWinRatio(wins, loss);
 		if (!forHealthCard) {
 			carouselMetricsDTO.setLossValue(scaletoTwoDecimal(lossValue, true));
 			carouselMetricsDTO.setNoOfLoss(loss);

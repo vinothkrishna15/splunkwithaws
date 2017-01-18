@@ -217,6 +217,27 @@ public class DestinationUtils {
 		}
 		return returnValue;
 	}
+	
+	/**
+	 * calculates the win ratio based on the number of wins and losses
+	 * @param oppWins
+	 * @param oppLoss
+	 * @return
+	 */
+	public static BigDecimal getWinRatio(int oppWins, int oppLoss) {
+		logger.debug("Inside getWinRatio method");
+		BigDecimal winRatio = new BigDecimal(0);
+		BigDecimal wins = new BigDecimal(oppWins);
+		BigDecimal loss = new BigDecimal(oppLoss);
+		BigDecimal totalWinLosses = wins.add(loss);
+		if(totalWinLosses == BigDecimal.ZERO) {
+			return winRatio;
+		} else {
+			BigDecimal dividedVal = wins.divide(totalWinLosses, 4, BigDecimal.ROUND_HALF_UP);
+			winRatio = dividedVal.multiply(new BigDecimal(100));
+		}
+		return DestinationUtils.scaleToTwoDigits(winRatio, true);
+	}
 
 	public static List<String> getSalesUserGroups() {
 		return Lists.newArrayList(UserGroup.BDM.getValue(), UserGroup.BDM_SUPERVISOR.getValue(), UserGroup.GEO_HEADS.getValue());
