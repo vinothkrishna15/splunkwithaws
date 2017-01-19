@@ -1025,7 +1025,6 @@ public class DateUtils {
 		LocalDate date2 = new LocalDate(endDate); 
 
 		while(date1.isBefore(date2)){
-			System.out.println(date1.toString("MMM/yyyy"));
 			Map<String, Date> map = Maps.newHashMap();
 			map.put(START_DATE, date1.toDate());
 			

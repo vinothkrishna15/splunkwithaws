@@ -4084,27 +4084,13 @@ public class OpportunityService {
 		List<String> displayGeos = geographyRepository.findDisplayGeo();
 		
 		List<GeoWinRatioDTO> geoWinRatioDTOs = Lists.newArrayList();
+		//add OverAll Geo Buckets
+		GeoWinRatioDTO overAllRatio = getWinratioForGeo(startDate, endDate, Lists.newArrayList(displayGeos), "OVER ALL");
+		geoWinRatioDTOs.add(overAllRatio);
+		
+		//add Buckets for each geo
 		for (String geo : displayGeos) {
-			GeoWinRatioDTO winratioDto = new GeoWinRatioDTO();
-			winratioDto.setGeoName(geo);
-			List<MoneyBucketDTO> moneyBuckets = Lists.newArrayList();
-			winratioDto.setBuckets(moneyBuckets);
-			
-			//loop money bucket 
-			for (MoneyBucket bucket : MoneyBucket.values()) {
-				Integer minVal = bucket.getMinValue();
-				Integer maxVal = bucket.getMaxValue();
-				
-				List<Object[]> geosWinLoss = opportunityRepository.getGeoWinRatio(minVal, maxVal, startDate, endDate, geo);
-				//loop opportunities for each money bucket
-				for (Object[] geoWinLoss : geosWinLoss) {
-					BigInteger winCount = (BigInteger) geoWinLoss[0];
-					BigInteger lossCount = (BigInteger) geoWinLoss[1];
-					
-					MoneyBucketDTO moneyBucket = getMoneyBucket(bucket, winCount, lossCount);
-					moneyBuckets.add(moneyBucket);
-				}
-			}
+			GeoWinRatioDTO winratioDto = getWinratioForGeo(startDate, endDate, Lists.newArrayList(geo), geo);
 			geoWinRatioDTOs.add(winratioDto);
 		}
 		
@@ -4121,6 +4107,35 @@ public class OpportunityService {
 		}
 		
 		return wrapperDto;
+	}
+
+	private GeoWinRatioDTO getWinratioForGeo(Date startDate, Date endDate, List<String> geo, String geoName) {
+		GeoWinRatioDTO winratioDto = new GeoWinRatioDTO();
+		winratioDto.setGeoName(geoName);
+
+		List<MoneyBucketDTO> moneyBuckets = getMoneyBucketsForGeo(startDate, endDate, geo);
+		winratioDto.setBuckets(moneyBuckets);
+		return winratioDto;
+	}
+
+	private List<MoneyBucketDTO> getMoneyBucketsForGeo(Date startDate, Date endDate, List<String> geos) {
+		List<MoneyBucketDTO> moneyBuckets = Lists.newArrayList();
+		//loop money bucket 
+		for (MoneyBucket bucket : MoneyBucket.values()) {
+			Integer minVal = bucket.getMinValue();
+			Integer maxVal = bucket.getMaxValue();
+			
+			List<Object[]> geosWinLoss = opportunityRepository.getGeoWinRatio(minVal, maxVal, startDate, endDate, geos);
+			//loop opportunities for each money bucket
+			for (Object[] geoWinLoss : geosWinLoss) {
+				BigInteger winCount = (BigInteger) geoWinLoss[0];
+				BigInteger lossCount = (BigInteger) geoWinLoss[1];
+				
+				MoneyBucketDTO moneyBucket = getMoneyBucket(bucket, winCount, lossCount);
+				moneyBuckets.add(moneyBucket);
+			}
+		}
+		return moneyBuckets;
 	}
 	
 	public WinRatioWrapperDTO getWinratioByCustomer(Date fromDate, Date toDate) {

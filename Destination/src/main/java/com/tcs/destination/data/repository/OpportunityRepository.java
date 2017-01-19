@@ -1594,8 +1594,8 @@ public interface OpportunityRepository extends
 		+ " JOIN geography_mapping_t gmt on cmt.geography = gmt.geography"
 		+ " WHERE deal_value_usd_converter(opp.digital_deal_value, opp.deal_currency) BETWEEN :minVal AND :maxVal"
 		+ " AND opp.deal_closure_date BETWEEN :fromDate AND :toDate"
-		+ " AND gmt.display_geography = :geo", nativeQuery=true)
-	List<Object[]> getGeoWinRatio(@Param("minVal") double minVal, @Param("maxVal") double maxVal, @Param("fromDate") Date fromDate, @Param("toDate") Date toDate, @Param("geo") String geo);
+		+ " AND gmt.display_geography in (:geo)", nativeQuery=true)
+	List<Object[]> getGeoWinRatio(@Param("minVal") double minVal, @Param("maxVal") double maxVal, @Param("fromDate") Date fromDate, @Param("toDate") Date toDate, @Param("geo") List<String> geo);
 
 	@Query(value = "SELECT cmt.group_customer_name, "
 		+ " SUM(case when opp.sales_stage_code = 9 then 1 else 0 end) as win,"
