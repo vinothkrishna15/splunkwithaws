@@ -22,10 +22,10 @@ public interface MobileDashboardRepository extends
 			+ "dashboardCategory = (:category) and userId = (:userId)")
 	void deleteByDashboardCategoryAndUserId(@Param("category") Integer category,@Param("userId") String userId);
 
-	@Query(value = "select component_id from mobile_dashboard_t "
+	@Query(value = "select * from mobile_dashboard_t "
 			+ "where user_id = (:userId) and dashboard_category = 1 "
 			+ "order by order_number ASC limit 3", nativeQuery = true)
-	List<Integer> getFirstThreeComponentsInHealthCard(@Param("userId") String userId);
+	List<MobileDashboardT> getFirstThreeComponentsInHealthCard(@Param("userId") String userId);
 
 	long countByUserId(String userId);
 

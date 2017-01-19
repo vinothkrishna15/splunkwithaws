@@ -8,76 +8,34 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_NULL)
 public class HealthCardMetrics {
 	
-	private BigDecimal winsRatio;
-	private BigDecimal utilization;
-	private BigDecimal unallocation;
-	private BigDecimal bilability;
-	private BigDecimal attrition;
-	private BigDecimal skillCategory;
-	private BigDecimal seniorRatio;
-	private BigDecimal traineePercentage;
+	private BigDecimal value;
+	private String componentName;
+	private Integer orderNumber;
 
-	public BigDecimal getWinsRatio() {
-		return winsRatio;
+	public BigDecimal getValue() {
+		return value;
 	}
 
-	public void setWinsRatio(BigDecimal winsRatio) {
-		this.winsRatio = winsRatio;
+	public void setValue(BigDecimal value) {
+		this.value = value;
 	}
 
-	public BigDecimal getUtilization() {
-		return utilization;
+	public Integer getOrderNumber() {
+		return orderNumber;
 	}
 
-	public void setUtilization(BigDecimal utilization) {
-		this.utilization = utilization;
+	public void setOrderNumber(Integer orderNumber) {
+		this.orderNumber = orderNumber;
 	}
 
-	public BigDecimal getUnallocation() {
-		return unallocation;
+	public String getComponentName() {
+		return componentName;
 	}
 
-	public void setUnallocation(BigDecimal unallocation) {
-		this.unallocation = unallocation;
+	public void setComponentName(String componentName) {
+		this.componentName = componentName;
 	}
-
-	public BigDecimal getBilability() {
-		return bilability;
-	}
-
-	public void setBilability(BigDecimal bilability) {
-		this.bilability = bilability;
-	}
-
-	public BigDecimal getAttrition() {
-		return attrition;
-	}
-
-	public void setAttrition(BigDecimal attrition) {
-		this.attrition = attrition;
-	}
-
-	public BigDecimal getSkillCategory() {
-		return skillCategory;
-	}
-
-	public void setSkillCategory(BigDecimal skillCategory) {
-		this.skillCategory = skillCategory;
-	}
-
-	public BigDecimal getSeniorRatio() {
-		return seniorRatio;
-	}
-
-	public void setSeniorRatio(BigDecimal seniorRatio) {
-		this.seniorRatio = seniorRatio;
-	}
-
-	public BigDecimal getTraineePercentage() {
-		return traineePercentage;
-	}
-
-	public void setTraineePercentage(BigDecimal traineePercentage) {
-		this.traineePercentage = traineePercentage;
-	}
+	
+	
+	
 }
