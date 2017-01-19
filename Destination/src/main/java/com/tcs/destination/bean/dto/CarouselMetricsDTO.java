@@ -1,6 +1,7 @@
 package com.tcs.destination.bean.dto;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -8,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_NULL)
 public class CarouselMetricsDTO {
 	//Health Card Metrics
-	private HealthCardMetrics healthCardMetrics;
+	private List<HealthCardMetrics> healthCardMetrics;
 	
 	//Win Ratio Metrics
 	private BigDecimal winsRatio;
@@ -25,11 +26,11 @@ public class CarouselMetricsDTO {
 	//Opportunity Metrics
 	private OpportunityMetrics opportunityMetrics;
 
-	public HealthCardMetrics getHealthCardMetrics() {
+	public List<HealthCardMetrics> getHealthCardMetrics() {
 		return healthCardMetrics;
 	}
 
-	public void setHealthCardMetrics(HealthCardMetrics healthCardMetrics) {
+	public void setHealthCardMetrics(List<HealthCardMetrics> healthCardMetrics) {
 		this.healthCardMetrics = healthCardMetrics;
 	}
 

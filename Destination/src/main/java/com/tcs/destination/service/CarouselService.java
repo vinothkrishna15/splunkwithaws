@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Lists;
+import com.tcs.destination.bean.MobileDashboardT;
 import com.tcs.destination.bean.dto.CarouselMetricsDTO;
 import com.tcs.destination.bean.dto.HealthCardMetrics;
 import com.tcs.destination.bean.dto.OpportunityMetrics;
@@ -94,7 +95,7 @@ public class CarouselService {
 
 		if (type.equals(WIN_RATIO.getType()) || type.equals(ALL.getType())) {
 			setWinRatioMetrics(carouselMetricsDTO, startDate, endDate, false,
-					null);
+					null, null, null);
 		}
 		logger.info("End of getCarouselMetrics");
 		return carouselMetricsDTO;
@@ -110,38 +111,39 @@ public class CarouselService {
 	private void setHealthCardMetrics(CarouselMetricsDTO carouselMetricsDTO,
 			Date startDate, Date endDate, String userId) {
 		logger.debug("Start of setHealthCardMetrics method");
-		List<Integer> categories = mobileDashboardRepository
+		List<MobileDashboardT> dashboardTs = mobileDashboardRepository
 				.getFirstThreeComponentsInHealthCard(userId);
-		HealthCardMetrics healthCardMetrics = new HealthCardMetrics();
-		for (Integer category : categories) {
-			switch (HealthCardComponent.valueOfCategory(category)) {
+		List<HealthCardMetrics> healthCardMetrics = Lists.newArrayList();
+		for (MobileDashboardT dashboard : dashboardTs) {
+			Integer orderNumber = dashboard.getOrderNumber();
+			switch (HealthCardComponent.valueOfCategory(dashboard.getComponentId())) {
 			case WIN_RATIO:
 				setWinRatioMetrics(carouselMetricsDTO, startDate, endDate,
-						true, healthCardMetrics);
+						true, healthCardMetrics,HealthCardComponent.WIN_RATIO,orderNumber);
 				break;
 			case UTILIZATION:
 				BigDecimal utilization = getOverallPercentage(HealthCardComponent.UTILIZATION);
-				healthCardMetrics.setUtilization(utilization);
+				healthCardMetrics.add(constructHealthCardMetrics(HealthCardComponent.UTILIZATION, utilization, orderNumber));
 				break;
 			case UNALLOCATION:
 				BigDecimal unallocation = getOverallPercentage(HealthCardComponent.UNALLOCATION);
-				healthCardMetrics.setUnallocation(scaletoTwoDecimal(unallocation,true));
+				healthCardMetrics.add(constructHealthCardMetrics(HealthCardComponent.UNALLOCATION, unallocation, orderNumber));
 				break;
 			case BILLABILITY:
 				BigDecimal bilability = getOverallPercentage(HealthCardComponent.BILLABILITY);
-				healthCardMetrics.setBilability(bilability);
+				healthCardMetrics.add(constructHealthCardMetrics(HealthCardComponent.BILLABILITY, bilability, orderNumber));
 				break;
 			case ATTRITION:
 				BigDecimal attrition = getOverallPercentage(HealthCardComponent.ATTRITION);
-				healthCardMetrics.setAttrition(attrition);
+				healthCardMetrics.add(constructHealthCardMetrics(HealthCardComponent.ATTRITION, attrition, orderNumber));
 				break;
 			case SENIOR_RATIO:
 				BigDecimal seniorRatio = getOverallPercentage(HealthCardComponent.SENIOR_RATIO);
-				healthCardMetrics.setSeniorRatio(seniorRatio);
+				healthCardMetrics.add(constructHealthCardMetrics(HealthCardComponent.SENIOR_RATIO, seniorRatio, orderNumber));
 				break;
 			case TRAINEE:
 				BigDecimal trainee = getOverallPercentage(HealthCardComponent.TRAINEE);
-				healthCardMetrics.setTraineePercentage(trainee);
+				healthCardMetrics.add(constructHealthCardMetrics(HealthCardComponent.TRAINEE, trainee, orderNumber));
 				break;
 			default:
 				break;
@@ -248,10 +250,12 @@ public class CarouselService {
 	 * @param endDate
 	 * @param forHealthCard
 	 * @param healthCardMetrics
+	 * @param healthCardComponent 
+	 * @param orderNumber 
 	 */
 	private void setWinRatioMetrics(CarouselMetricsDTO carouselMetricsDTO,
 			Date startDate, Date endDate, Boolean forHealthCard,
-			HealthCardMetrics healthCardMetrics) {
+			List<HealthCardMetrics> healthCardMetrics, HealthCardComponent healthCardComponent, Integer orderNumber) {
 		logger.debug("Start of setWinRatioMetrics method");
 		Object[] winObject = getWinLossValue(startDate, endDate,
 				Lists.newArrayList(WIN.getCode()));
@@ -261,16 +265,27 @@ public class CarouselService {
 		Integer loss = ((BigInteger) lossObject[0]).intValue();
 		BigDecimal lossValue = (BigDecimal) lossObject[1];
 		BigDecimal winRatio = DestinationUtils.getWinRatio(wins, loss);
+		BigDecimal winRatioScale = DestinationUtils.scaleToTwoDigits(winRatio, true);
 		if (!forHealthCard) {
 			carouselMetricsDTO.setLossValue(scaletoTwoDecimal(lossValue, true));
 			carouselMetricsDTO.setNoOfLoss(loss);
 			carouselMetricsDTO.setNoOfWins(wins);
 			carouselMetricsDTO.setWinValue(scaletoTwoDecimal(winValue, true));
-			carouselMetricsDTO.setWinsRatio(DestinationUtils.scaleToTwoDigits(winRatio, true));
+			carouselMetricsDTO.setWinsRatio(winRatioScale);
 		} else {
-			healthCardMetrics.setWinsRatio(DestinationUtils.scaleToTwoDigits(winRatio, true));
+			healthCardMetrics.add(constructHealthCardMetrics(healthCardComponent,winRatioScale,orderNumber));
 		}
 		logger.debug("End of setWinRatioMetrics method");
+	}
+
+	private HealthCardMetrics constructHealthCardMetrics(
+			HealthCardComponent healthCardComponent, BigDecimal value,
+			Integer orderNumber) {
+		HealthCardMetrics healthCardMetrics = new HealthCardMetrics();
+		healthCardMetrics.setValue(value);
+		healthCardMetrics.setComponentName(healthCardComponent.getCategory());
+		healthCardMetrics.setOrderNumber(orderNumber);
+		return healthCardMetrics;
 	}
 
 	private Object[] getWinLossValue(Date startDate, Date endDate,
