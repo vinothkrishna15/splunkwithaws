@@ -1611,6 +1611,11 @@ public interface OpportunityRepository extends
 			+ " WHERE opp.dealClosureDate BETWEEN :fromDate AND :toDate"
 			+ " ORDER BY opp.dealClosureDate")
 	List<Object[]> getWinLossOpportunity(@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
+	
+	@Query(value="SELECT SUM(case when opp.sales_stage_code = 9 then 1 else 0 end) as win,"
+			+ " SUM(case when opp.sales_stage_code = 10 then 1 else 0 end) as loss "
+			+ " FROM opportunity_t opp where opp.deal_closure_date between (:startDate) and (:endDate)", nativeQuery = true)
+	List<Object[]> getNumberOfWinsAndLosses(@Param("startDate") Date startDate,@Param("endDate") Date endDate);
 	// --------- win ratio repo methods : ENDS ----------//
 	
 	// Change ends

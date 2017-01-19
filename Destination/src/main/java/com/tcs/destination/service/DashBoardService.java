@@ -22,6 +22,7 @@ import static com.tcs.destination.utils.LeadershipQueryConstants.TEAM_OPPORTUNIT
 import static com.tcs.destination.utils.LeadershipQueryConstants.TEAM_OPPORTUNITY_WIN_QUERY_PART4;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -49,6 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.ContentDTO;
+import com.tcs.destination.bean.HealthCardOverallPercentage;
 import com.tcs.destination.bean.LeadershipConnectsDTO;
 import com.tcs.destination.bean.LeadershipOpportunitiesDTO;
 import com.tcs.destination.bean.LeadershipOpportunityBySalesStageCodeDTO;
@@ -61,10 +63,12 @@ import com.tcs.destination.bean.PerformaceChartBean;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BdmTargetTRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
+import com.tcs.destination.data.repository.HealthCardOverallPercentageRepository;
 import com.tcs.destination.data.repository.MobileDashboardComponentRepository;
 import com.tcs.destination.data.repository.MobileDashboardRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.enums.HealthCardComponent;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.UserAccessPrivilegeQueryBuilder;
@@ -112,6 +116,9 @@ public class DashBoardService {
 	
 	@Autowired
 	MobileDashboardRepository mobileDashboardRepository;
+	
+	@Autowired
+	HealthCardOverallPercentageRepository healthCardOverallPercentageRepository;
 
 	@Autowired
 	private MobileDashboardComponentRepository mobileDashboardComponentRepo;
@@ -1505,12 +1512,30 @@ public class DashBoardService {
 
 	private void removeCyclicForMobileDashboard(
 			List<MobileDashboardT> mobiledashboardvalues) {
+		Date startDate = DateUtils
+				.getFinancialYrStartDate();
+		Date endDate = new Date();
 		for (MobileDashboardT mobileDashboardT : mobiledashboardvalues) {
 			mobileDashboardT.setMobileDashboardCategory(null);
 			mobileDashboardT.getMobileDashboardComponentT().setMobileDashboardTs(null);
 			mobileDashboardT.getMobileDashboardComponentT().setCategory(null);
 			mobileDashboardT.getMobileDashboardComponentT().setDeliveryCentreUtilizationTs(null);
 			mobileDashboardT.getMobileDashboardComponentT().setHealthCardOverallPercentages(null);
+			if(HealthCardComponent.WIN_RATIO.getCategoryId()==mobileDashboardT.getComponentId()) {
+				List<Object[]> winLoss = opportunityRepository.getNumberOfWinsAndLosses(startDate,endDate);
+				if(CollectionUtils.isNotEmpty(winLoss)) {
+					Object[] winLossObj = winLoss.get(0);
+					Integer noOfWins = ((BigInteger) winLossObj[0]).intValue();
+					Integer noOfLoss = ((BigInteger) winLossObj[1]).intValue();
+					BigDecimal winRatio = DestinationUtils.getWinRatio(noOfWins, noOfLoss);
+					mobileDashboardT.setValue(winRatio);
+				} else {
+					mobileDashboardT.setValue(BigDecimal.ZERO);
+				}
+			} else {
+				BigDecimal overallPercentage = healthCardOverallPercentageRepository.getOverallPercentage(mobileDashboardT.getComponentId());
+				mobileDashboardT.setValue(DestinationUtils.scaleToTwoDigits(overallPercentage,true));
+			}
 		}
 	}
 
