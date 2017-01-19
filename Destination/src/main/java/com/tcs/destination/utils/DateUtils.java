@@ -1074,4 +1074,31 @@ public class DateUtils {
 		
 		return false;
 	}
+	
+	public static List<Map<String, Date>> getQuarterPeriod(Date startDate,
+			Date endDate) {
+		List<Map<String, Date>> periods = Lists.newArrayList();
+		LocalDate date1 = new LocalDate(startDate);
+		LocalDate date2 = new LocalDate(endDate);
+
+		while (date1.isBefore(date2)) {
+			Map<String, Date> map = Maps.newHashMap();
+			map.put(START_DATE, date1.toDate());
+
+			date1 = date1.plusMonths(2).dayOfMonth().withMaximumValue()
+					.plus(Period.days(1));
+
+			LocalDate monthEndDate = date1.minus(Period.days(1));
+			if (monthEndDate.isAfter(date2)) {
+				map.put(END_DATE, date2.toDate());
+			} else {
+				map.put(END_DATE, monthEndDate.toDate());
+			}
+
+			periods.add(map);
+		}
+
+		return periods;
+	}
+	
 }

@@ -2442,6 +2442,8 @@ public class ConnectService {
 			statisticalData = DateUtils.getWeekPeriod(startDate, endDate);
 		} else if ("MONTHLY".equalsIgnoreCase(period)) {
 			statisticalData = DateUtils.getMonthPeriod(startDate, endDate);
+		} else if ("QUARTERLY".equalsIgnoreCase(period)) {
+			statisticalData = DateUtils.getQuarterPeriod(startDate, endDate);
 		}
 		int count = 0;
 		Set<String> customerList = null;
