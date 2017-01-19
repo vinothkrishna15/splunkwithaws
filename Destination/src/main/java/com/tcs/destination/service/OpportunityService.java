@@ -22,11 +22,7 @@ import javax.persistence.Query;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.dozer.DozerBeanMapper;
-import org.joda.time.DateTime;
-import org.joda.time.LocalDate;
-import org.joda.time.Months;
 import org.joda.time.Period;
-import org.joda.time.Weeks;
 import org.joda.time.YearMonth;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,12 +74,12 @@ import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.WorkflowBfmT;
 import com.tcs.destination.bean.WorkflowRequestT;
+import com.tcs.destination.bean.dto.GeoWinRatioDTO;
 import com.tcs.destination.bean.dto.MoneyBucketDTO;
 import com.tcs.destination.bean.dto.OpportunityDTO;
 import com.tcs.destination.bean.dto.QualifiedPipelineDTO;
 import com.tcs.destination.bean.dto.WinLossCountDTO;
 import com.tcs.destination.bean.dto.WinLossFactorCountDTO;
-import com.tcs.destination.bean.dto.GeoWinRatioDTO;
 import com.tcs.destination.data.repository.AuditOpportunityDeliveryCenterRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
@@ -150,8 +146,6 @@ import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
 import com.tcs.destination.utils.PropertyUtil;
 import com.tcs.destination.utils.QueryConstants;
-
-import net.wimpi.telnetd.io.terminal.ansi;
 
 @Service
 public class OpportunityService {
