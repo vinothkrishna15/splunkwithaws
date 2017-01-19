@@ -1525,8 +1525,8 @@ public class DashBoardService {
 				List<Object[]> winLoss = opportunityRepository.getNumberOfWinsAndLosses(startDate,endDate);
 				if(CollectionUtils.isNotEmpty(winLoss)) {
 					Object[] winLossObj = winLoss.get(0);
-					Integer noOfWins = ((BigInteger) winLossObj[0]).intValue();
-					Integer noOfLoss = ((BigInteger) winLossObj[1]).intValue();
+					Integer noOfWins = winLossObj[0]!=null ? ((BigInteger) winLossObj[0]).intValue() : 0;
+					Integer noOfLoss = winLossObj[1]!=null ? ((BigInteger) winLossObj[1]).intValue() : 0;
 					BigDecimal winRatio = DestinationUtils.getWinRatio(noOfWins, noOfLoss);
 					mobileDashboardT.setValue(winRatio);
 				} else {
