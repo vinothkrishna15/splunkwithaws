@@ -1597,7 +1597,7 @@ public interface OpportunityRepository extends
 		+ " AND gmt.display_geography = :geo", nativeQuery=true)
 	List<Object[]> getGeoWinRatio(@Param("minVal") double minVal, @Param("maxVal") double maxVal, @Param("fromDate") Date fromDate, @Param("toDate") Date toDate, @Param("geo") String geo);
 
-/*	@Query(value = "SELECT cmt.group_customer_name, "
+	@Query(value = "SELECT cmt.group_customer_name, "
 		+ " SUM(case when opp.sales_stage_code = 9 then 1 else 0 end) as win,"
 		+ " SUM(case when opp.sales_stage_code = 10 then 1 else 0 end) as loss "
 		+ " FROM opportunity_t opp"
@@ -1605,7 +1605,6 @@ public interface OpportunityRepository extends
 		+ " WHERE opp.deal_closure_date BETWEEN :fromDate AND :toDate"
 		+ " GROUP BY cmt.group_customer_name", nativeQuery=true)
 	List<Object[]> getCustomerWinRatio( @Param("fromDate") Date fromDate, @Param("toDate") Date toDate, @Param("customers") List<String> customers);
-*/
 	
 	@Query(value = "SELECT opp.salesStageCode, opp.dealClosureDate"
 			+ " FROM OpportunityT opp"

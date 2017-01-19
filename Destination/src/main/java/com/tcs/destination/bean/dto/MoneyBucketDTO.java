@@ -2,9 +2,11 @@ package com.tcs.destination.bean.dto;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.tcs.destination.enums.MoneyBucket;
 
 @JsonInclude(Include.NON_NULL)
 public class MoneyBucketDTO  implements Serializable {
@@ -12,8 +14,9 @@ public class MoneyBucketDTO  implements Serializable {
 	
 	private Integer minValue;
 	private Integer maxValue;
-	private Integer winCount;
-	private Integer lossCount;
+	private String bucketLabel;
+	private BigInteger winCount;
+	private BigInteger lossCount;
 	private BigDecimal winValue;
 	private BigDecimal lossValue;
 	private BigDecimal winRatio;
@@ -30,16 +33,16 @@ public class MoneyBucketDTO  implements Serializable {
 	public void setMaxValue(Integer maxValue) {
 		this.maxValue = maxValue;
 	}
-	public Integer getWinCount() {
+	public BigInteger getWinCount() {
 		return winCount;
 	}
-	public void setWinCount(Integer winCount) {
+	public void setWinCount(BigInteger winCount) {
 		this.winCount = winCount;
 	}
-	public Integer getLossCount() {
+	public BigInteger getLossCount() {
 		return lossCount;
 	}
-	public void setLossCount(Integer lossCount) {
+	public void setLossCount(BigInteger lossCount) {
 		this.lossCount = lossCount;
 	}
 	public BigDecimal getWinRatio() {
@@ -60,5 +63,10 @@ public class MoneyBucketDTO  implements Serializable {
 	public void setLossValue(BigDecimal lossValue) {
 		this.lossValue = lossValue;
 	}
-	
+	public String getBucketLabel() {
+		return bucketLabel;
+	}
+	public void setBucketLabel(String bucketLabel) {
+		this.bucketLabel = bucketLabel;
+	}
 }
