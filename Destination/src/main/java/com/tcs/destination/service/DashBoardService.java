@@ -1520,7 +1520,7 @@ public class DashBoardService {
 		Integer category = mobileDashboardTs.get(0).getDashboardCategory();
 		String userId = DestinationUtils.getCurrentUserId();
 		deleteMobileDashboardList(category,userId);
-		saveMobileDashboardList(mobileDashboardTs);
+		saveMobileDashboardList(mobileDashboardTs,userId);
 	}
 
 	private void deleteMobileDashboardList(Integer category, String userId) {
@@ -1528,8 +1528,12 @@ public class DashBoardService {
 	}
 
 	private void saveMobileDashboardList(
-			List<MobileDashboardT> mobileDashboardTs) {
-		mobileDashboardRepository.save(mobileDashboardTs);
+			List<MobileDashboardT> mobileDashboardTs, String userId) {
+		for(MobileDashboardT dashboardT : mobileDashboardTs) {
+			dashboardT.setUserId(userId);
+			mobileDashboardRepository.save(dashboardT);
+		}
+		
 	}
 
 	private void deleteMobileDashboardList(List<MobileDashboardT> mobileDashboardTs) {
