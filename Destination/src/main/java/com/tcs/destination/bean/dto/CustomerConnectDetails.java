@@ -4,6 +4,7 @@
 package com.tcs.destination.bean.dto;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @author tcs2
@@ -15,10 +16,13 @@ public class CustomerConnectDetails implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-
+	
+	private List<String> connectedCustomerList;
 	private int numberOfCustomersConnected;
 	private int cxoCount;
 	private int othersCount;
+	private List<Periodicaldata> periodicaldata;
+	
 	/**
 	 * @return the numberOfCustomersConnected
 	 */
@@ -54,5 +58,30 @@ public class CustomerConnectDetails implements Serializable {
 	 */
 	public void setOthersCount(int othersCount) {
 		this.othersCount = othersCount;
+	}
+	
+	/**
+	 * @return the periodicaldata
+	 */
+	public List<Periodicaldata> getPeriodicaldata() {
+		return periodicaldata;
+	}
+	/**
+	 * @param periodicaldata the periodicaldata to set
+	 */
+	public void setPeriodicaldata(List<Periodicaldata> periodicaldata) {
+		this.periodicaldata = periodicaldata;
+	}
+	/**
+	 * @return the connectedCustomerList
+	 */
+	public List<String> getConnectedCustomerList() {
+		return connectedCustomerList;
+	}
+	/**
+	 * @param connectedCustomerList the connectedCustomerList to set
+	 */
+	public void setConnectedCustomerList(List<String> connectedCustomerList) {
+		this.connectedCustomerList = connectedCustomerList;
 	}
 }

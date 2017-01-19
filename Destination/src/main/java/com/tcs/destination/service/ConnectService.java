@@ -3,8 +3,8 @@ package com.tcs.destination.service;
 import static com.tcs.destination.utils.ErrorConstants.ERR_INAC_01;
 
 import java.sql.Timestamp;
+import java.text.DateFormatSymbols;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -21,6 +21,7 @@ import javax.persistence.PersistenceContext;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.dozer.DozerBeanMapper;
+import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +61,7 @@ import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.UserTaggedFollowedT;
 import com.tcs.destination.bean.dto.ConnectDTO;
 import com.tcs.destination.bean.dto.CustomerConnectDetails;
+import com.tcs.destination.bean.dto.Periodicaldata;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
 import com.tcs.destination.data.repository.CityMappingRepository;
@@ -2380,20 +2382,148 @@ public class ConnectService {
 		return connectdto;
 	}
 
+	// changes for customer connect details - starts
+	/**
+	 * Main method called from controller to get the details of the connected
+	 * customers.
+	 * 
+	 * @param fromDate
+	 * @param toDate
+	 * @param period
+	 * @return customerConnectDetails - all required connect values.
+	 */
 	public CustomerConnectDetails getAllByPeriod(Date fromDate, Date toDate,
 			String period) {
 		// TODO Auto-generated method stub
-		Date startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
-		Date endDate = toDate != null ? toDate : DateUtils.getFinancialYrEndDate();
-		Collection<String> totalConnects = connectRepository.findTotalCustomersConnected(startDate,endDate);
-		Collection<String> cxoCounts = connectRepository.findTotalCxoCustomers(startDate,endDate);
+		Date startDate = fromDate != null ? fromDate : DateUtils
+				.getFinancialYrStartDate();
+		Date endDate = toDate != null ? toDate : DateUtils
+				.getFinancialYrEndDate();
+		List<String> totalConnects = connectRepository
+				.findTotalCustomersConnected(startDate, endDate);
+		List<String> cxoCounts = connectRepository.findTotalCxoCustomers(
+				startDate, endDate);
+		Date startDateWeek = new Date();
+		Date endDateWeek = new Date();
 
 		CustomerConnectDetails customerConnectDetails = new CustomerConnectDetails();
+		customerConnectDetails.setConnectedCustomerList(totalConnects);
 		customerConnectDetails.setCxoCount(cxoCounts.size());
-		customerConnectDetails.setNumberOfCustomersConnected(totalConnects.size());
-		customerConnectDetails.setOthersCount(totalConnects.size()-cxoCounts.size());
-		
+		customerConnectDetails.setNumberOfCustomersConnected(totalConnects
+				.size());
+		customerConnectDetails.setOthersCount(totalConnects.size()
+				- cxoCounts.size());
+		List<Object[]> customerNameWithStartDate = connectRepository
+				.getCustomerWithStartDate(startDate, endDate);
+		getStatisticalConnectDetails(startDate, endDate, startDateWeek,
+				endDateWeek, customerConnectDetails, customerNameWithStartDate,
+				period);
 		return customerConnectDetails;
 	}
-	
+
+	/**
+	 * Method to get the statistical data for week, month and quarter based on
+	 * the URL request.
+	 * 
+	 * @param startDate
+	 * @param endDate
+	 * @param startDateWeek
+	 * @param endDateWeek
+	 * @param customerConnectDetails
+	 * @param customerNameWithStartDate
+	 * @param period
+	 */
+	private void getStatisticalConnectDetails(Date startDate, Date endDate,
+			Date startDateWeek, Date endDateWeek,
+			CustomerConnectDetails customerConnectDetails,
+			List<Object[]> customerNameWithStartDate, String period) {
+		List<Map<String, Date>> statisticalData = new ArrayList<Map<String, Date>>();
+		if ("WEEKLY".equalsIgnoreCase(period)) {
+			statisticalData = DateUtils.getWeekPeriod(startDate, endDate);
+		} else if ("MONTHLY".equalsIgnoreCase(period)) {
+			statisticalData = DateUtils.getMonthPeriod(startDate, endDate);
+		}
+		int count = 0;
+		Set<String> customerList = null;
+		List<Periodicaldata> statisticalList = new ArrayList<Periodicaldata>();
+		for (Map<String, Date> map : statisticalData) {
+			Periodicaldata weeklyConnectDetails = new Periodicaldata();
+			customerList = new HashSet<String>();
+			for (Map.Entry<String, Date> entry : map.entrySet()) {
+				String key = entry.getKey();
+				if ("START_DATE".equalsIgnoreCase(key)) {
+					startDateWeek = entry.getValue();
+				} else {
+					endDateWeek = entry.getValue();
+				}
+			}
+			for (Object[] dateAndName : customerNameWithStartDate) {
+				generateStatisticalCustomerList(startDateWeek, endDateWeek,
+						customerList, dateAndName);
+			}
+			weeklyConnectDetails.setCustomerCount(customerList.size());
+			count = findRangeTypeBasedOnDate(endDateWeek, period, count,
+					weeklyConnectDetails);
+			weeklyConnectDetails.setCustomerList(customerList);
+			statisticalList.add(weeklyConnectDetails);
+		}
+		customerConnectDetails.setPeriodicaldata(statisticalList);
+	}
+
+	/**
+	 * method to set the Range type based on the period of the request URL.
+	 * 
+	 * @param endDateWeek
+	 * @param period
+	 * @param count
+	 * @param weeklyConnectDetails
+	 * @return count - count of the execution.
+	 * @throws DestinationException
+	 */
+	private int findRangeTypeBasedOnDate(Date endDateWeek, String period,
+			int count, Periodicaldata weeklyConnectDetails)
+			throws DestinationException {
+		String version = null;
+		if ("WEEKLY".equalsIgnoreCase(period)) {
+			count++;
+			version = "W" + count;
+			weeklyConnectDetails.setRange(version);
+		} else if ("MONTHLY".equalsIgnoreCase(period)) {
+			int month = new LocalDate(endDateWeek).getMonthOfYear();
+			String monthName = new DateFormatSymbols().getMonths()[month - 1];
+			int year = new LocalDate(endDateWeek).getYear();
+			version = monthName + "-" + year;
+			weeklyConnectDetails.setRange(version);
+		} else if ("QUARTERLY".equalsIgnoreCase(period)) {
+			count++;
+			version = "Q" + count;
+			weeklyConnectDetails.setRange(version);
+		} else {
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Request does not meet the required params");
+		}
+		return count;
+	}
+
+	/**
+	 * method to generate the list of customers based on from and to date based
+	 * on type.
+	 * 
+	 * @param startDateWeek
+	 * @param endDateWeek
+	 * @param customerList
+	 * @param dateAndName
+	 */
+	private void generateStatisticalCustomerList(Date startDateWeek,
+			Date endDateWeek, Set<String> customerList, Object[] dateAndName) {
+		if (dateAndName[0] != null
+				&& !(new LocalDate(dateAndName[0]).toDate().before(
+						startDateWeek) || new LocalDate(dateAndName[0])
+						.toDate().after(endDateWeek))) {
+			if (dateAndName[1] != null) {
+				customerList.add(dateAndName[1].toString());
+			}
+		}
+	}
+	// changes for customer connect details - ends
 }

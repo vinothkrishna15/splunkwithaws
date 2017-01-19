@@ -6,6 +6,7 @@ import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -886,5 +887,12 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 			+ "where cont.start_datetime_of_connect BETWEEN (:fromDate) AND (:toDate) "
 			+ "AND cont.cxo_flag=true", nativeQuery = true)
 	List<String> findTotalCxoCustomers(@Param("fromDate") Date fromDate,
+			@Param("toDate") Date toDate);
+	
+	@Query(value="select start_datetime_of_connect,group_customer_name from connect_t cont "
+			+ "join customer_master_t cmt on cmt.customer_id = cont.customer_id "
+			+" where cont.start_datetime_of_connect BETWEEN (:fromDate) AND (:toDate) "
+			+ "order by start_datetime_of_connect asc", nativeQuery=true)
+	List<Object[]> getCustomerWithStartDate(@Param("fromDate") Date fromDate,
 			@Param("toDate") Date toDate);
 }
