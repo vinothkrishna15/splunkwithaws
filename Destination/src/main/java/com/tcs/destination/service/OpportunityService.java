@@ -20,6 +20,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.dozer.DozerBeanMapper;
 import org.slf4j.Logger;
@@ -4216,6 +4217,10 @@ public class OpportunityService {
 
 	private MoneyBucketDTO getMoneyBucket(MoneyBucket bucket, BigInteger winCount, BigInteger lossCount) {
 		MoneyBucketDTO dto = new MoneyBucketDTO();
+		
+		winCount = winCount != null ? winCount : BigInteger.ZERO;
+		lossCount = lossCount != null ? lossCount : BigInteger.ZERO;
+		
 		dto.setLossCount(lossCount);
 		dto.setWinCount(winCount);
 		dto.setWinRatio(DestinationUtils.getWinRatio(winCount.intValue(), lossCount.intValue()));
