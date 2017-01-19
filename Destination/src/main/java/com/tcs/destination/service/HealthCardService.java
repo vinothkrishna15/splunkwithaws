@@ -175,6 +175,7 @@ public class HealthCardService {
 		healthCardValues.setOverallPercentage(DestinationUtils.
 				scaleToTwoDigits(healthCardOverallPercentage.getOverallPercentage(), true));
 		healthCardValues.setCategory(HealthCardComponent.getCategoryName(type));
+		healthCardValues.setUploadedDate(healthCardOverallPercentage.getCreatedDatetime());
 		List<ClusterList> clusterPercentage = Lists.newArrayList();
 		for(DeliveryClusterT deliveryCluster : clusterTs) {
 			List<DeliveryCentreUtilizationT> utilizationClusters = deliveryCentreUtilizationRepository.

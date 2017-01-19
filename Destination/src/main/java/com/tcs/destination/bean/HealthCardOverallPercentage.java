@@ -5,6 +5,7 @@ import java.io.Serializable;
 import javax.persistence.*;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
@@ -32,6 +33,9 @@ public class HealthCardOverallPercentage implements Serializable {
 	
 	@Column(name="component_id")
 	private Integer componentId;
+	
+	@Column(name = "created_datetime", updatable = false)
+	private Timestamp createdDatetime;
 
 	//bi-directional many-to-one association to DeliveryCentreUtilizationT
 	@OneToMany(mappedBy="healthCardOverallPercentage")
@@ -118,6 +122,14 @@ public class HealthCardOverallPercentage implements Serializable {
 	public void setDeliveryCentreUnallocationTs(
 			List<DeliveryCentreUnallocationT> deliveryCentreUnallocationTs) {
 		this.deliveryCentreUnallocationTs = deliveryCentreUnallocationTs;
+	}
+
+	public Timestamp getCreatedDatetime() {
+		return createdDatetime;
+	}
+
+	public void setCreatedDatetime(Timestamp createdDatetime) {
+		this.createdDatetime = createdDatetime;
 	}
 	
 }

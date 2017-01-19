@@ -1,6 +1,7 @@
 package com.tcs.destination.bean;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
@@ -15,6 +16,7 @@ public class HealthCardValues {
 	private BigDecimal overallPercentage;
 	private String category;
 	private List<ClusterList> clusterList;
+	private Timestamp uploadedDate;
 	public Date getDate() {
 		return date;
 	}
@@ -38,5 +40,11 @@ public class HealthCardValues {
 	}
 	public void setClusterList(List<ClusterList> clusterList) {
 		this.clusterList = clusterList;
+	}
+	public Timestamp getUploadedDate() {
+		return uploadedDate;
+	}
+	public void setUploadedDate(Timestamp uploadedDate) {
+		this.uploadedDate = uploadedDate;
 	}
 }
