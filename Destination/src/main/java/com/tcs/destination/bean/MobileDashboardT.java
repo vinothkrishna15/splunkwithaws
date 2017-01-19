@@ -1,6 +1,7 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -11,6 +12,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -54,6 +56,9 @@ public class MobileDashboardT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="component_id", insertable=false, updatable=false)
 	private MobileDashboardComponentT mobileDashboardComponentT;
+	
+	@Transient
+	private BigDecimal value;
 
 	public MobileDashboardT() {
 		super();
@@ -116,4 +121,12 @@ public class MobileDashboardT implements Serializable {
 		this.mobileDashboardComponentT = mobileDashboardComponentT;
 	}
 
+	public BigDecimal getValue() {
+		return value;
+	}
+
+	public void setValue(BigDecimal value) {
+		this.value = value;
+	}
+	
 }
