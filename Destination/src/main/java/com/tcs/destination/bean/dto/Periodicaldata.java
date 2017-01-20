@@ -4,14 +4,13 @@
 package com.tcs.destination.bean.dto;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Set;
 
 /**
  * @author tcs2
  *
  */
-public class Periodicaldata implements Serializable {
+public class PeriodicalData implements Serializable {
 
 	/**
 	 * 

@@ -711,17 +711,18 @@ public class ConnectController {
 	}
 	
 	/**
+	 * Controller to get all the connect details for available customers.
 	 * @param cntDateFrom
 	 * @param cntDateTo
 	 * @param salesType
-	 * @return
+	 * @return res - formatted json response with required details.
 	 * @throws DestinationException
 	 */
 	@RequestMapping(value = "/allByPeriod", method = RequestMethod.GET)
 	public @ResponseBody CustomerConnectDetails getAllConnectsByPeriod(
 			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
 			@RequestParam(value = "toDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
-			@RequestParam(value = "period", defaultValue = "") String period)
+			@RequestParam(value = "period") String period)
 			
 					throws DestinationException {
 		logger.info("CustomerController: getAllConnectsByPeriod");
@@ -734,7 +735,7 @@ public class ConnectController {
 		} catch (Exception e) {
 			logger.error("Error on user smartSearch", e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					"Backend error while retrieving customer list");
+					"Backend error while retrieving customer connect list");
 		}
 		
 		return res;

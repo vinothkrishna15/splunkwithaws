@@ -21,7 +21,7 @@ public class CustomerConnectDetails implements Serializable {
 	private int numberOfCustomersConnected;
 	private int cxoCount;
 	private int othersCount;
-	private List<Periodicaldata> periodicaldata;
+	private List<PeriodicalData> periodicalData;
 	
 	/**
 	 * @return the numberOfCustomersConnected
@@ -59,18 +59,18 @@ public class CustomerConnectDetails implements Serializable {
 	public void setOthersCount(int othersCount) {
 		this.othersCount = othersCount;
 	}
-	
+
 	/**
-	 * @return the periodicaldata
+	 * @return the periodicalData
 	 */
-	public List<Periodicaldata> getPeriodicaldata() {
-		return periodicaldata;
+	public List<PeriodicalData> getPeriodicalData() {
+		return periodicalData;
 	}
 	/**
-	 * @param periodicaldata the periodicaldata to set
+	 * @param periodicalData the periodicalData to set
 	 */
-	public void setPeriodicaldata(List<Periodicaldata> periodicaldata) {
-		this.periodicaldata = periodicaldata;
+	public void setPeriodicalData(List<PeriodicalData> periodicalData) {
+		this.periodicalData = periodicalData;
 	}
 	/**
 	 * @return the connectedCustomerList

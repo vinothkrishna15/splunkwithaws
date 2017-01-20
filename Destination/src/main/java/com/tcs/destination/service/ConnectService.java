@@ -61,7 +61,7 @@ import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.UserTaggedFollowedT;
 import com.tcs.destination.bean.dto.ConnectDTO;
 import com.tcs.destination.bean.dto.CustomerConnectDetails;
-import com.tcs.destination.bean.dto.Periodicaldata;
+import com.tcs.destination.bean.dto.PeriodicalData;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
 import com.tcs.destination.data.repository.CityMappingRepository;
@@ -2447,9 +2447,9 @@ public class ConnectService {
 		}
 		int count = 0;
 		Set<String> customerList = null;
-		List<Periodicaldata> statisticalList = new ArrayList<Periodicaldata>();
+		List<PeriodicalData> statisticalList = new ArrayList<PeriodicalData>();
 		for (Map<String, Date> map : statisticalData) {
-			Periodicaldata weeklyConnectDetails = new Periodicaldata();
+			PeriodicalData weeklyConnectDetails = new PeriodicalData();
 			customerList = new HashSet<String>();
 			for (Map.Entry<String, Date> entry : map.entrySet()) {
 				String key = entry.getKey();
@@ -2469,7 +2469,7 @@ public class ConnectService {
 			weeklyConnectDetails.setCustomerList(customerList);
 			statisticalList.add(weeklyConnectDetails);
 		}
-		customerConnectDetails.setPeriodicaldata(statisticalList);
+		customerConnectDetails.setPeriodicalData(statisticalList);
 	}
 
 	/**
@@ -2483,7 +2483,7 @@ public class ConnectService {
 	 * @throws DestinationException
 	 */
 	private int findRangeTypeBasedOnDate(Date endDateWeek, String period,
-			int count, Periodicaldata weeklyConnectDetails)
+			int count, PeriodicalData weeklyConnectDetails)
 			throws DestinationException {
 		String version = null;
 		if ("WEEKLY".equalsIgnoreCase(period)) {
