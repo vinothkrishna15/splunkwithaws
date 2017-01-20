@@ -8,6 +8,7 @@ import org.dozer.DozerBeanMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 import com.tcs.destination.bean.CentreList;
@@ -58,6 +59,9 @@ public class HealthCardService {
 	
 	@Autowired
 	HealthCardOverallPercentageRepository healthCardOverallPercentageRepository;
+
+	@Autowired
+	private DashBoardService dashBoardService;
 
 	public ContentDTO<DeliveryClusterDTO> getDeliveryCentreUnallocation(Date fromDate,
 			Date toDate) {
@@ -165,9 +169,6 @@ public class HealthCardService {
 		return content;
 	}
 
-
-
-
 	private HealthCardValues constructHealthCardValues(
 			HealthCardOverallPercentage healthCardOverallPercentage, int type, List<DeliveryClusterT> clusterTs) {
 		HealthCardValues healthCardValues= new HealthCardValues();
@@ -233,5 +234,36 @@ public class HealthCardService {
 		unallocationAssociatePercentage.setSeniorPercentage(DestinationUtils.scaleToTwoDigits(deliveCentreUtilizationT.getSeniorPercentage(), true));
 		unallocationAssociatePercentage.setTraineePercentage(DestinationUtils.scaleToTwoDigits(deliveCentreUtilizationT.getTraineePercentage(), true));
 		return unallocationAssociatePercentage;
+	}
+
+	@Transactional
+	public Status removeComponentInHealthCard(int componentId) {
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		Status status = new Status();
+		List<MobileDashboardT> list = mobileDashboardRepository.findByUserIdAndDashboardCategoryOrderByOrderNumberAsc(userId, 1);
+		List<MobileDashboardT> updatedList = Lists.newArrayList();
+		
+		int orderNumber = 1;
+		for (MobileDashboardT mobileDashboardT : list) {
+			// collect all component except the removing component
+			if(mobileDashboardT.getComponentId().intValue() != componentId) { 
+				MobileDashboardT updatedComp = new MobileDashboardT();
+				updatedComp.setComponentId(mobileDashboardT.getComponentId());
+				updatedComp.setDashboardCategory(mobileDashboardT.getDashboardCategory());
+				updatedComp.setOrderNumber(orderNumber);
+				updatedComp.setUserId(userId);
+				updatedList.add(updatedComp);
+				orderNumber++;
+			}
+		}
+		
+		if(CollectionUtils.isNotEmpty(updatedList)) {
+			dashBoardService.updateMobileDashboard(new ContentDTO<MobileDashboardT>(updatedList));
+			status.setStatus(Status.SUCCESS, "Component Successfully added");
+		} else {
+			status.setStatus(Status.FAILED, "Component Already Exist");
+		}
+		
+		return status;
 	}	
 }

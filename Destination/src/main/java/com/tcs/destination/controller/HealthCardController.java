@@ -127,6 +127,36 @@ public class HealthCardController {
 
 		return response;
 	}
+
+	/**
+	 * Method to insert new component from the total list of components to add
+	 * into componentId.
+	 * 
+	 * @param componentId
+	 * @return response - status and the description.
+	 */
+	@RequestMapping(value = "/remove", method = RequestMethod.GET)
+	public String removeComponentInHealthCard(
+			@RequestParam(value = "componentId") int componentId) {
+		logger.info("Inside HealthCardController for removeComponentInHealthCard method: start");
+		Status status = new Status();
+		String response = null;
+		try {
+			status = healthCardService.removeComponentInHealthCard(componentId);
+			
+			response = ResponseConstructors.filterJsonForFieldAndViews("all",
+					"", status);
+			logger.info("Inside HealthCardController for removeComponentInHealthCard method: exit");
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend Error while adding the details for user preferences");
+		}
+		
+		return response;
+	}
 	
 	/**
 	 * This method is used to retrieve health card values

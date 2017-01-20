@@ -25,6 +25,7 @@ import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.dto.CompetitorMappingDTO;
 import com.tcs.destination.bean.dto.CompetitorOpportunityWrapperDTO;
 import com.tcs.destination.data.repository.CompetitorRepository;
+import com.tcs.destination.data.repository.UserPreferencesRepository;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
@@ -46,6 +47,9 @@ public class CompetitorService {
 
 	@Autowired
 	DozerBeanMapper beanMapper;
+	
+	@Autowired
+	private UserPreferencesRepository userPrefRepo;
 	
 	public List<CompetitorMappingT> findByNameContaining(String chars) throws Exception {
 		logger.debug("Begin:Inside findByNameContaining() of CompetitorService");
@@ -101,8 +105,12 @@ public class CompetitorService {
 		Date endDate = toDate != null ? toDate : new Date();
 
 		if(CollectionUtils.isEmpty(competitors)) {
-			competitors = Lists.newArrayList("");
+			competitors = userPrefRepo.getCompetitorList(DestinationUtils.getCurrentUserId());
+			if(CollectionUtils.isEmpty(competitors)) {
+				throw new DestinationException(HttpStatus.NOT_FOUND, "User prefered competitors are not found.");
+			}
 		}
+		
 		
 		List<CompetitorOpportunityWrapperDTO> dtoList = Lists.newArrayList();
 		List<Object[]> values = compRepository.findOpportunityMetrics(startDate, endDate, competitors);
