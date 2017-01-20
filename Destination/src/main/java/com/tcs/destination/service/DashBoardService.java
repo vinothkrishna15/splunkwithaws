@@ -1474,7 +1474,7 @@ public class DashBoardService {
 			int dashboardCategory) throws Exception {
 		ContentDTO<MobileDashboardComponentT> content = new ContentDTO<MobileDashboardComponentT>();
 		logger.info("Start: Inside getMobileDashboardValues() of DashBoardService");
-		List<MobileDashboardComponentT> mobileDashboardValues = mobileDashboardComponentRepo.findByCategoryId(dashboardCategory);
+		List<MobileDashboardComponentT> mobileDashboardValues = mobileDashboardComponentRepo.findByCategoryIdOrderByComponentIdAsc(dashboardCategory);
 		prepareMobileComponentLists(mobileDashboardValues);
 		content.setContent(mobileDashboardValues);
 		logger.info("End getMobileDashboardValues() of DashBoardService");
@@ -1486,6 +1486,8 @@ public class DashBoardService {
 			for (MobileDashboardComponentT mobileDashboardComponentT : mobileDashboardValues) {
 				mobileDashboardComponentT.setMobileDashboardTs(null);
 				mobileDashboardComponentT.setCategory(null);
+				mobileDashboardComponentT.setDeliveryCentreUtilizationTs(null);
+				mobileDashboardComponentT.setHealthCardOverallPercentages(null);
 			}
 		}
 	}

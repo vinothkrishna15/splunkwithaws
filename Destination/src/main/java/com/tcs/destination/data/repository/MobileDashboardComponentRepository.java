@@ -11,7 +11,7 @@ import com.tcs.destination.bean.MobileDashboardComponentT;
 public interface MobileDashboardComponentRepository extends
 		CrudRepository<MobileDashboardComponentT, Integer> {
 
-	List<MobileDashboardComponentT> findByCategoryId(int dashboardCategory);
+	List<MobileDashboardComponentT> findByCategoryIdOrderByComponentIdAsc(int dashboardCategory);
 
 	
 
