@@ -3,7 +3,7 @@ package com.tcs.destination.service;
 import static com.tcs.destination.utils.ErrorConstants.ERR_INAC_01;
 
 import java.sql.Timestamp;
-import java.text.DateFormatSymbols;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -2491,10 +2491,11 @@ public class ConnectService {
 			version = "W" + count;
 			weeklyConnectDetails.setRange(version);
 		} else if ("MONTHLY".equalsIgnoreCase(period)) {
-			int month = new LocalDate(endDateWeek).getMonthOfYear();
-			String monthName = new DateFormatSymbols().getMonths()[month - 1];
+			String monthName = new SimpleDateFormat("MMM").format(endDateWeek)
+					.toString();
 			int year = new LocalDate(endDateWeek).getYear();
 			version = monthName + "-" + year;
+			version = version.replace("20", "");
 			weeklyConnectDetails.setRange(version);
 		} else if ("QUARTERLY".equalsIgnoreCase(period)) {
 			count++;
