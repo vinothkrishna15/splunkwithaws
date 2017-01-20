@@ -1,6 +1,7 @@
 package com.tcs.destination.controller;
 
 import java.util.Date;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,7 +108,7 @@ public class HealthCardController {
 	 */
 	@RequestMapping(value = "/add", method = RequestMethod.GET)
 	public String insertComponentInHealthCard(
-			@RequestParam(value = "componentId") int componentId) {
+			@RequestParam(value = "componentId") List<Integer> componentId) {
 		logger.info("Inside HealthCardController for insertComponentInHealthCard method: start");
 		Status status = new Status();
 		String response = null;

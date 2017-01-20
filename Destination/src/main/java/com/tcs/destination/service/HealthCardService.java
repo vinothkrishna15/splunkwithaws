@@ -116,20 +116,20 @@ public class HealthCardService {
 	 * @param componentId
 	 * @return status - containing status and description
 	 */
-	public Status insertNewComponentByuserID(int componentId) {
+	public Status insertNewComponentByuserID(List<Integer> componentId) {
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		Status status = new Status();
 		Long orderNumer = mobileDashboardRepository.countByUserId(userId);
 		List<Integer> availableComponentsByUserId = mobileDashboardRepository
 				.getComponentsByUserId(userId);
-		if (availableComponentsByUserId.isEmpty()
-				|| !(availableComponentsByUserId.toString().contains(Integer
-						.toString(componentId).toString()))) {
-			setMobileDashboardValues(componentId, userId, orderNumer);
-			status.setStatus(Status.SUCCESS, "Component Successfully added");
-		} else {
-			status.setStatus(Status.FAILED, "Component Already Exist");
-
+		for (Integer cmpId : componentId) {
+			if (availableComponentsByUserId.isEmpty()
+					|| !(availableComponentsByUserId.toString()
+							.contains(Integer.toString(cmpId).toString()))) {
+				setMobileDashboardValues(cmpId, userId, orderNumer);
+				status.setStatus(Status.SUCCESS, "Component Successfully added");
+				orderNumer++;
+			}
 		}
 		return status;
 	}
