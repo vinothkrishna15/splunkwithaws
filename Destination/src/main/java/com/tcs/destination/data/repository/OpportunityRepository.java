@@ -1597,13 +1597,14 @@ public interface OpportunityRepository extends
 		+ " AND gmt.display_geography in (:geo)", nativeQuery=true)
 	List<Object[]> getGeoWinRatio(@Param("minVal") double minVal, @Param("maxVal") double maxVal, @Param("fromDate") Date fromDate, @Param("toDate") Date toDate, @Param("geo") List<String> geo);
 
-	@Query(value = "SELECT cmt.group_customer_name, "
-		+ " SUM(case when opp.sales_stage_code = 9 then 1 else 0 end) as win,"
-		+ " SUM(case when opp.sales_stage_code = 10 then 1 else 0 end) as loss "
-		+ " FROM opportunity_t opp"
-		+ " JOIN customer_master_t cmt ON cmt.customer_id = opp.customer_id AND cmt.group_customer_name in (:customers)"
-		+ " WHERE opp.deal_closure_date BETWEEN :fromDate AND :toDate"
-		+ " GROUP BY cmt.group_customer_name", nativeQuery=true)
+	@Query(value = "SELECT gct.group_customer_name,"
+			+ " SUM(case when opp.sales_stage_code = 9 then 1 else 0 end) as win,"
+			+ " SUM(case when opp.sales_stage_code = 10 then 1 else 0 end) as loss"
+			+ " FROM group_customer_t gct"
+			+ " JOIN customer_master_t cmt on gct.group_customer_name = cmt.group_customer_name"
+			+ " FULL JOIN opportunity_t opp  ON cmt.customer_id = opp.customer_id AND opp.deal_closure_date BETWEEN :fromDate AND :toDate"
+			+ " WHERE gct.group_customer_name in (:customers)"
+			+ " GROUP BY gct.group_customer_name", nativeQuery=true)
 	List<Object[]> getCustomerWinRatio( @Param("fromDate") Date fromDate, @Param("toDate") Date toDate, @Param("customers") List<String> customers);
 	
 	@Query(value = "SELECT opp.salesStageCode, opp.dealClosureDate"
