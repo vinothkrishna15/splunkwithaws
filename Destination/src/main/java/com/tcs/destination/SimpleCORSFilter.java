@@ -53,8 +53,8 @@ public class SimpleCORSFilter implements Filter {
 			.getLogger(SimpleCORSFilter.class);
 
 	private static final String PROD = "PROD";
-
 	private static final String UAT = "UAT";
+	private static final String SIT = "SIT";
 
 	@Value("${allowed.orgins}")
 	private String allowedOrgin;
@@ -108,6 +108,7 @@ public class SimpleCORSFilter implements Filter {
 			// validate session based on the environment
 			switch (PropertyUtil.getProperty(Constants.ENVIRONMENT_NAME)) {
 			case UAT:
+			case SIT:
 			case PROD:// Check if other services has valid session populated
 				if (session == null) {
 					logger.error("Session is not Valid (or) Timed out");
