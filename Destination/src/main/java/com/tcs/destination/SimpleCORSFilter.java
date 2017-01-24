@@ -93,10 +93,11 @@ public class SimpleCORSFilter implements Filter {
 		HttpSession session = httpServletRequest.getSession(false);
 
 		// Check if the Login Service has Session populated
-		if (httpServletRequest.getRequestURL().indexOf("/user/login") > 0
-				|| httpServletRequest.getRequestURL()
+		StringBuffer requestURL = httpServletRequest.getRequestURL();
+		if (requestURL.indexOf("/user/login") > 0
+				|| requestURL
 						.indexOf("/user/forgotpwd") > 0
-				|| httpServletRequest.getRequestURL().indexOf(
+				|| requestURL.indexOf(
 						"/useraccess/request") > 0) {
 			if (session != null) {
 				logger.error("Session should not be passed for this service : "
@@ -104,6 +105,8 @@ public class SimpleCORSFilter implements Filter {
 				throw new ServletException(
 						"Session should not be passed for this service");
 			}
+		} else if(requestURL.indexOf("/image/logo") > 0) {
+			logger.info("open service for logo");
 		} else {
 			// validate session based on the environment
 			switch (PropertyUtil.getProperty(Constants.ENVIRONMENT_NAME)) {
