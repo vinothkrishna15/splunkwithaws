@@ -127,10 +127,8 @@ public class HealthCardService {
 					|| !(availableComponentsByUserId.toString()
 							.contains(Integer.toString(cmpId).toString()))) {
 				setMobileDashboardValues(cmpId, userId, orderNumer);
-				status.setStatus(Status.SUCCESS, "Component Successfully added");
+				status.setStatus(Status.SUCCESS, "Metrics added successfully");
 				orderNumer++;
-			} else {
-				status.setStatus(Status.FAILED, "Data Already Exist");
 			}
 		}
 		return status;
