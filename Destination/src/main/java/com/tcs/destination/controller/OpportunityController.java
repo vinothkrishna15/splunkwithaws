@@ -38,6 +38,7 @@ import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.bean.dto.MoneyBucketDTO;
 import com.tcs.destination.bean.dto.OpportunityDTO;
 import com.tcs.destination.bean.dto.QualifiedPipelineDTO;
 import com.tcs.destination.bean.dto.WinLossFactorCountDTO;
@@ -1152,13 +1153,14 @@ public class OpportunityController {
 	@RequestMapping(value = "/winlossfactor", method = RequestMethod.GET)
 	public @ResponseBody ContentDTO<WinLossFactorCountDTO> getTopWinlossFactor(
 			@RequestParam(value = "count", defaultValue = "3") Integer count,
+			@RequestParam(value = "stage", defaultValue = "9") Integer stage,
 			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
 			@RequestParam(value = "toDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate)
 					throws DestinationException {
 		logger.info("Start - Inside OpportunityController: getWinratioByGeoCustomer");
 		ContentDTO<WinLossFactorCountDTO> opportunity;
 		try {
-			opportunity = opportunityService.getTopWinlossFactor(fromDate, toDate, count);
+			opportunity = opportunityService.getTopWinlossFactor(fromDate, toDate, count, stage);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -1208,6 +1210,29 @@ public class OpportunityController {
 					"Backend error in retrieving the opportunity winratio getWinRatioCustomer");
 		}
 		logger.info("Ends - Inside OpportunityController: getWinRatioCustomer");
+		return ratioWrapper;
+	}
+
+	@RequestMapping(value = "/winlossBucket", method = RequestMethod.GET)
+	public @ResponseBody ContentDTO<MoneyBucketDTO> getWinLossBuckets(
+			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
+			@RequestParam(value = "toDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
+			@RequestParam(value = "oppType", defaultValue = "ALL") String oppType,
+			@RequestParam(value = "dispGeo", defaultValue = "ALL") String dispGeo,
+			@RequestParam(value = "stages", defaultValue = "9") List<Integer> stages)
+					throws DestinationException {
+		logger.info("Start - Inside OpportunityController: getWinLossBuckets");
+		ContentDTO<MoneyBucketDTO> ratioWrapper;
+		try {
+			ratioWrapper = opportunityService.getWinLossBuckets(fromDate, toDate, oppType, stages, dispGeo);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the opportunity WinLossBuckets");
+		}
+		logger.info("Ends - Inside OpportunityController: getWinLossBuckets");
 		return ratioWrapper;
 	}
 	

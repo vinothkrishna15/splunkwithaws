@@ -1579,12 +1579,10 @@ public interface OpportunityRepository extends
 
 	@Query(value = "SELECT distinct wlf.win_loss_factor, count(ot) as count FROM opportunity_t ot"
 			+ " join opportunity_win_loss_factors_t wlf on ot.opportunity_id = wlf.opportunity_id"
-			+ " WHERE ot.sales_stage_code in (9,10) AND ot.deal_closure_date BETWEEN :fromDate AND :toDate"
+			+ " WHERE ot.sales_stage_code = :stage AND ot.deal_closure_date BETWEEN :fromDate AND :toDate"
 			+ " group by wlf.win_loss_factor"
 			+ " order by count DESC limit :count", nativeQuery=true)
-	List<Object[]> getTopWinlossFactor( @Param("fromDate") Date fromDate, @Param("toDate") Date toDate, @Param("count") Integer count);
-
-
+	List<Object[]> getTopWinlossFactor( @Param("fromDate") Date fromDate, @Param("toDate") Date toDate, @Param("count") Integer count, @Param("stage") Integer stage);
 	
 	// --------- win ratio repo methods ----------//
 	@Query(value = "SELECT SUM(case when opp.sales_stage_code = 9 then 1 else 0 end) as win,"
@@ -1618,6 +1616,18 @@ public interface OpportunityRepository extends
 			+ " FROM opportunity_t opp where opp.deal_closure_date between (:startDate) and (:endDate)", nativeQuery = true)
 	List<Object[]> getNumberOfWinsAndLosses(@Param("startDate") Date startDate,@Param("endDate") Date endDate);
 	// --------- win ratio repo methods : ENDS ----------//
+
+	@Query(value="SELECT "
+			+ " COUNT(opp.*) as count,"
+			+ " SUM(deal_value_usd_converter(opp.digital_deal_value, opp.deal_currency))"
+			+ " FROM opportunity_t opp"
+			+ " WHERE opp.deal_closure_date BETWEEN :fromDate AND :toDate"
+			+ " AND opp.sales_stage_code in (:stages)"
+			+ " AND (opp.opportunity_id in (:oppIds) OR ('') in (:oppIds))"
+			+ " AND deal_value_usd_converter(opp.digital_deal_value, opp.deal_currency) BETWEEN :minVal AND :maxVal", nativeQuery = true)
+	List<Object[]> getWinLossValue(@Param("fromDate") Date fromDate, @Param("toDate") Date toDate, 
+			@Param("stages") List<Integer> stages, @Param("minVal") Integer minVal, @Param("maxVal") Integer maxVal,
+			@Param("oppIds") List<String> oppIds);
 	
 	// Change ends
 }

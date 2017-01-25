@@ -6,7 +6,6 @@ import java.math.BigInteger;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.tcs.destination.enums.MoneyBucket;
 
 @JsonInclude(Include.NON_NULL)
 public class MoneyBucketDTO  implements Serializable {
@@ -21,7 +20,10 @@ public class MoneyBucketDTO  implements Serializable {
 	private BigDecimal lossValue;
 	private BigDecimal winRatio;
 	
+	private BigInteger count;
+	private BigDecimal Value;
 	public Integer getMinValue() {
+
 		return minValue;
 	}
 	public void setMinValue(Integer minValue) {
@@ -69,4 +71,18 @@ public class MoneyBucketDTO  implements Serializable {
 	public void setBucketLabel(String bucketLabel) {
 		this.bucketLabel = bucketLabel;
 	}
+	public BigInteger getCount() {
+		return count;
+	}
+	public void setCount(BigInteger count) {
+		this.count = count;
+	}
+	public BigDecimal getValue() {
+		return Value;
+	}
+	public void setValue(BigDecimal value) {
+		Value = value;
+	}
+	
+	
 }

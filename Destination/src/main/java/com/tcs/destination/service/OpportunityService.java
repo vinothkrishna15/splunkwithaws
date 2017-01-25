@@ -4053,12 +4053,12 @@ public class OpportunityService {
 		return resultList;
 	}
 
-	public ContentDTO<WinLossFactorCountDTO> getTopWinlossFactor(Date fromDate, Date toDate, Integer count) {
+	public ContentDTO<WinLossFactorCountDTO> getTopWinlossFactor(Date fromDate, Date toDate, Integer count, Integer stage) {
 
 		Date startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
 		Date endDate = toDate != null ? toDate : new Date();
 		
-		List<Object[]> winlossFactors = opportunityRepository.getTopWinlossFactor(startDate, endDate, count);
+		List<Object[]> winlossFactors = opportunityRepository.getTopWinlossFactor(startDate, endDate, count, stage);
 		List<WinLossFactorCountDTO> list = Lists.newArrayList();
 		if(CollectionUtils.isNotEmpty(winlossFactors)) {
 			for (Object[] objects : winlossFactors) {
@@ -4148,6 +4148,57 @@ public class OpportunityService {
 		wrapperDto.setCustomerWinRatios(customerWinRatio);
 		return wrapperDto;
 	}
+	
+	public ContentDTO<MoneyBucketDTO> getWinLossBuckets(Date fromDate, Date toDate, String oppType,
+			List<Integer> stages, String geo) {
+		Date startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
+		Date endDate = toDate != null ? toDate : new Date();
+		
+		List<String> oppIds = null;
+		//apply user grroup filter
+		if(StringUtils.equals(oppType, "SALES")) {
+			List<String> userGroups = DestinationUtils.getSalesUserGroups();
+			oppIds = opportunityRepository.getOppIdsByUserGroup(userGroups);
+		} else if(StringUtils.equals(oppType, "CONSULTING")) {
+			List<String> userGroups = DestinationUtils.getConsultingUserGroups();
+			oppIds = opportunityRepository.getOppIdsByUserGroup(userGroups);
+		}
+		
+		if(!StringUtils.equals(geo, "ALL")) {
+			List<String> oppIdsByGeo = opportunityRepository.getOppIdsByGeo(geo);
+			if(CollectionUtils.isNotEmpty(oppIds)) {
+				oppIds = (List<String>) CollectionUtils.intersection(oppIds, oppIdsByGeo);
+			} else {
+				oppIds = oppIdsByGeo;
+			}
+		}
+		
+		if(CollectionUtils.isEmpty(oppIds)) {
+			oppIds = Lists.newArrayList("");
+		}
+		
+		List<MoneyBucketDTO> dtoList = Lists.newArrayList();
+		for (MoneyBucket bucket : MoneyBucket.values()) {
+			Integer minVal = bucket.getMinValue();
+			Integer maxVal = bucket.getMaxValue();
+		
+			List<Object[]> winlossDataObj = opportunityRepository.getWinLossValue(startDate, endDate, stages, minVal, maxVal, oppIds);
+			Object[] winlossData = winlossDataObj.get(0);
+			
+			BigInteger count = (BigInteger) winlossData[0];
+			BigDecimal value = winlossData[1] != null ? ((BigDecimal) winlossData[1]) : BigDecimal.ZERO;
+			
+			MoneyBucketDTO dto = new MoneyBucketDTO();
+			dto.setCount(count);
+			dto.setValue(value);
+			dto.setBucketLabel(bucket.getLabel());
+			dto.setMinValue(bucket.getMinValue());
+			dto.setMaxValue(bucket.getMaxValue());
+
+			dtoList.add(dto);
+		}
+		return new ContentDTO<MoneyBucketDTO>(dtoList) ;
+	}
 
 	/**
 	 * @param startDate
@@ -4234,5 +4285,5 @@ public class OpportunityService {
 		}
 		return dto;
 	}
-	
+
 }
