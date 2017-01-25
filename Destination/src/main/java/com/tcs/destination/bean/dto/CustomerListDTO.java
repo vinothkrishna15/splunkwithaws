@@ -7,6 +7,7 @@ import java.util.List;
 public class CustomerListDTO {
 
 	List<String> groupCustomerNames;
+	String nameWith;
 	String mapId;
 	String type;
 	Date fromDate;
@@ -55,5 +56,10 @@ public class CustomerListDTO {
 	public void setCount(int count) {
 		this.count = count;
 	}
-		
+	public String getNameWith() {
+		return nameWith;
+	}
+	public void setNameWith(String nameWith) {
+		this.nameWith = nameWith;
+	}
 }

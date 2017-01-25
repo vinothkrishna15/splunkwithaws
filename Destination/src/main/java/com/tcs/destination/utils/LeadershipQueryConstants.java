@@ -35,7 +35,7 @@ public class LeadershipQueryConstants {
     
     public static final String TEAM_OPPORTUNITY_WIN_QUERY_PART4 = Constants.SINGLE_QUOTE;
     
-    public static final String TEAM_OPPORTUNITY_QUERY_PART1 = "select DISTINCT (OPP.*) from opportunity_t OPP LEFT JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id LEFT JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country JOIN geography_mapping_t GMT on GMT.geography = GCMT.geography JOIN customer_master_t CMT ON CMT.customer_id=OPP.customer_id and GMT.geography=CMT.geography JOIN iou_customer_mapping_t ICMT ON CMT.iou=ICMT.iou  and (GMT.display_geography = '";
+    public static final String TEAM_OPPORTUNITY_QUERY_PART1 = "select DISTINCT (OPP.*) from opportunity_t OPP LEFT JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id LEFT JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country JOIN geography_mapping_t GMT on GMT.geography = GCMT.geography JOIN customer_master_t CMT ON CMT.customer_id=OPP.customer_id JOIN iou_customer_mapping_t ICMT ON CMT.iou=ICMT.iou  and (GMT.display_geography = '";
     
     public static final String TEAM_OPPORTUNITY_QUERY_PART1a = "' or '";
     

@@ -1751,27 +1751,31 @@ public class CustomerService {
 						//Checking deal closure date till YTD
 						if (checkIfDateBetween(startDate, endDate,
 								opportunityT.getDealClosureDate())) {
-							BigDecimal dealValueInUSD = beaconConverterService
-									.convert(opportunityT.getDealCurrency(),
-											"USD",
-											opportunityT.getDigitalDealValue());
-							winValue = winValue.add(dealValueInUSD);
-							oppWins++;
+							if(opportunityT.getDigitalDealValue()!=null) {
+								BigDecimal dealValueInUSD = beaconConverterService
+										.convert(opportunityT.getDealCurrency(),
+												"USD",
+												opportunityT.getDigitalDealValue());
+								winValue = winValue.add(dealValueInUSD);
+								oppWins++;
+							}
 						}
 						break;
-					case CLOSED_AND_DISQUALIFIED:
-					case CLOSED_AND_SCRAPPED:
 					case LOST:
 						if (checkIfDateBetween(startDate, endDate,
 								opportunityT.getDealClosureDate())) {
-							BigDecimal dealValueInUSD = beaconConverterService
-									.convert(opportunityT.getDealCurrency(),
-											"USD",
-											opportunityT.getDigitalDealValue());
-							lossValue = lossValue.add(dealValueInUSD);
-							oppLoss++;
+							if(opportunityT.getDigitalDealValue()!=null) {
+								BigDecimal dealValueInUSD = beaconConverterService
+										.convert(opportunityT.getDealCurrency(),
+												"USD",
+												opportunityT.getDigitalDealValue());
+								lossValue = lossValue.add(dealValueInUSD);
+								oppLoss++;
+							}
 						}
 						break;
+					case CLOSED_AND_DISQUALIFIED:
+					case CLOSED_AND_SCRAPPED:	
 					case CLOSED_AND_SHELVED:
 						break;
 					case PROSPECTING:
@@ -1867,6 +1871,10 @@ public class CustomerService {
 		PageDTO<GroupCustomerDTO> grpCustomerDto = new PageDTO<GroupCustomerDTO>();
 		
 		List<String> grpCustomerNames = customerListDTO.getGroupCustomerNames();
+		if(CollectionUtils.isEmpty(grpCustomerNames)) {
+			grpCustomerNames = Lists.newArrayList();
+			grpCustomerNames.add("");
+		}
 		int page = customerListDTO.getPage();
 		int count = customerListDTO.getCount()==0 ? 15 : customerListDTO.getCount();
 		//getting year to date (YTD) if date is not available
@@ -1877,6 +1885,8 @@ public class CustomerService {
 		String mapId = StringUtils.isEmpty(customerListDTO.getMapId()) ? "" : customerListDTO.getMapId();
 		Pageable pageable = new PageRequest(page, count);
 		String userId = DestinationUtils.getCurrentUserId();
+		String nameWith = customerListDTO.getNameWith();
+		nameWith = StringUtils.isEmpty(nameWith) ? "%%":"%"+nameWith+"%"; 
 		boolean strategicInitiatives = false;
 		String userGroup = DestinationUtils.getCurrentUserDetails()
 				.getUserGroup();
@@ -1889,13 +1899,7 @@ public class CustomerService {
 					.getPrivilegedCustomers(userId);
 		}
 		Page<GroupCustomerT> grpCustomersPage = null;
-		if (CollectionUtils.isNotEmpty(grpCustomerNames)) {
-			grpCustomersPage = groupCustomerRepository
-					.findByGroupCustomerNameIsIn(grpCustomerNames, pageable);
-		} else {
-			grpCustomersPage = groupCustomerPagingRepository.findAll(pageable);
-		}
-
+		grpCustomersPage = groupCustomerRepository.getGrpCustomersByNameWith(grpCustomerNames,nameWith,pageable);
 		if (grpCustomersPage == null) {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Customer Details not found");

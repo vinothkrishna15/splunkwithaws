@@ -20,4 +20,10 @@ public interface GroupCustomerRepository extends CrudRepository<GroupCustomerT, 
 	@Query(value = "SELECT gct.logo FROM GroupCustomerT gct WHERE gct.groupCustomerName=:id")
 	byte[] getLogo(@Param("id") String id);
 
+	@Query(value = "select GC from GroupCustomerT GC"
+			+ " where (GC.groupCustomerName in (:grpCustomerNames) or ('') in (:grpCustomerNames))"
+			+ " and upper(GC.groupCustomerName) like upper((:nameWith))")
+	Page<GroupCustomerT> getGrpCustomersByNameWith(@Param("grpCustomerNames")
+			List<String> grpCustomerNames,@Param("nameWith") String nameWith, Pageable pageable);
+
 }
