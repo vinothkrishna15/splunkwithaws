@@ -44,18 +44,17 @@ public class UserPreferencesService {
 	public UserPreferencesT insertNewCustomerByuserID(String moduleType,
 			List<String> customerOrCompetitorName) throws Exception {
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-
-		List<String> competitorList = userPreferencesRepository
-				.getCompetitorList(userId);
-		List<String> customerList = userPreferencesRepository
-				.getCustomerList(userId);
 		UserPreferencesT response = null;
 
 		if (moduleType.equalsIgnoreCase("COMPETITOR")) {
+			List<String> competitorList = userPreferencesRepository
+					.getCompetitorList(userId);
 			response = validateCompetitor(customerOrCompetitorName,
 					competitorList, response, userId, moduleType);
 
 		} else if (moduleType.equalsIgnoreCase("CUSTOMER")) {
+			List<String> customerList = userPreferencesRepository
+					.getCustomerList(userId);
 			response = validateCustomer(customerOrCompetitorName, customerList,
 					response, userId, moduleType);
 		} else {
@@ -182,8 +181,7 @@ public class UserPreferencesService {
 		}
 		if (availableCustOrCompList.isEmpty()) {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No Available favourite list");
-
+					"User prefered " + moduleType + " are not found.");
 		} else if (availableCustOrCompList.contains(null)) {
 			availableCustOrCompList.removeAll(Collections.singleton(null));
 			userFavouritesDTO.setContent(availableCustOrCompList);
@@ -209,13 +207,20 @@ public class UserPreferencesService {
 		if (moduleType.equalsIgnoreCase("COMPETITOR")) {
 			userPreferencesT = userPreferencesRepository
 					.findByUserIdAndCompetitorName(userId, customerID);
-			userPreferencesRepository.delete(userPreferencesT);
+			if(userPreferencesT != null) {
+				userPreferencesRepository.delete(userPreferencesT);
+			} else {
+				throw new DestinationException(HttpStatus.NOT_FOUND, "The competitor is not found in prefered list.");
+			}
 
 		} else if (moduleType.equalsIgnoreCase("CUSTOMER")) {
 			userPreferencesT = userPreferencesRepository
 					.findByGroupCustomerNameAndUserId(customerID, userId);
-			userPreferencesRepository.delete(userPreferencesT);
-			;
+			if(userPreferencesT != null) {
+				userPreferencesRepository.delete(userPreferencesT);
+			} else {
+				throw new DestinationException(HttpStatus.NOT_FOUND, "The customer is not found in prefered list.");
+			}			
 		} else {
 			logger.error("BAD_REQUEST: URL Needs to be rephrased");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,

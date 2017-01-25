@@ -4158,9 +4158,13 @@ public class OpportunityService {
 		
 		String currentUserId = DestinationUtils.getCurrentUserId();
 		
-		List<String> custList = userPrefRepo.getCustomerList(currentUserId); 
+		List<String> custList = userPrefRepo.getCustomerList(currentUserId);
 		
-		List<Object[]> customerWinRatio = opportunityRepository.getCustomerWinRatio(startDate, endDate, custList);//TODO customer pref list
+		if(CollectionUtils.isEmpty(custList)) {
+			throw new DestinationException(HttpStatus.NOT_FOUND, "User prefered customers are not found.");
+		}
+		
+		List<Object[]> customerWinRatio = opportunityRepository.getCustomerWinRatio(startDate, endDate, custList);
 
 		List<CustomerWinRatioDTO> dtos = Lists.newArrayList();
 		if(CollectionUtils.isNotEmpty(customerWinRatio)) {
