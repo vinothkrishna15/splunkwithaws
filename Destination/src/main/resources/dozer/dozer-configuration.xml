@@ -176,6 +176,7 @@
   		<class-b>com.tcs.destination.bean.dto.OpportunitySubSpLinkDTO</class-b>
 		
 		<field map-id="subsp-base"> <a>subSpMappingT</a> <b>subSpMappingT</b> </field>
+		<field> <a>subspPrimary</a> <b>subspPrimary</b> </field>
 	</mapping>
 
 	<mapping map-id="opportunity-offering" wildcard="false">

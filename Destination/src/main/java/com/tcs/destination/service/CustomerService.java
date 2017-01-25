@@ -1857,7 +1857,8 @@ public class CustomerService {
 	 */
 	private boolean checkIfDateBetween(Date startDate, Date endDate,
 			Date dateToCheck) {
-		if (dateToCheck.after(startDate)
+		
+		if (dateToCheck != null && dateToCheck.after(startDate)
 				&& dateToCheck
 						.before(endDate)) {
 			return true;
@@ -1876,7 +1877,13 @@ public class CustomerService {
 			grpCustomerNames.add("");
 		}
 		int page = customerListDTO.getPage();
-		int count = customerListDTO.getCount()==0 ? 15 : customerListDTO.getCount();
+		int count = 15;
+		if(customerListDTO.getCount() == -1) {
+			count = (int) groupCustomerRepository.count();
+		} else {
+			count = customerListDTO.getCount()==0 ? 15 : customerListDTO.getCount();
+		}
+		
 		//getting year to date (YTD) if date is not available
 		Date startDate = customerListDTO.getFromDate() !=null ? customerListDTO.getFromDate() : DateUtils
 				.getFinancialYrStartDate();

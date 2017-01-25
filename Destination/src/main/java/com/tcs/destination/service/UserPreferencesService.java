@@ -55,7 +55,7 @@ public class UserPreferencesService {
 		} else if (moduleType.equalsIgnoreCase("CUSTOMER")) {
 			List<String> customerList = userPreferencesRepository
 					.getCustomerList(userId);
-			response = validateCustomer(customerOrCompetitorName, customerList,
+			response = validateCustomer(customerOrCompetitorName.get(0), customerList,
 					response, userId, moduleType);
 		} else {
 			logger.error("BAD_REQUEST: URL Needs to be rephrased");
@@ -77,16 +77,13 @@ public class UserPreferencesService {
 	 * @return
 	 */
 	private UserPreferencesT validateCustomer(
-			List<String> customerOrCompetitorName, List<String> customerList,
+			String names, List<String> customerList,
 			UserPreferencesT response, String userId, String moduleType) {
-		for (String names : customerOrCompetitorName) {
-			if (customerList.isEmpty()) {
+			if (!customerList.contains(names.toString())) {
 				response = setUserPrefsForCustomer(userId, moduleType, names);
-			} else if (names != null
-					&& !customerList.contains(names.toString())) {
-				response = setUserPrefsForCustomer(userId, moduleType, names);
+			} else {
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Customer already added");
 			}
-		}
 		return response;
 	}
 

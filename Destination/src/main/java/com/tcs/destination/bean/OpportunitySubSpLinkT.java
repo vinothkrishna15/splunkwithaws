@@ -68,6 +68,10 @@ public class OpportunitySubSpLinkT implements Serializable {
 		return subspPrimary;
 	}
 
+	public Boolean getSubspPrimary() {
+		return subspPrimary;
+	}
+
 	public void setSubspPrimary(Boolean subspPrimary) {
 		this.subspPrimary = subspPrimary;
 	}
