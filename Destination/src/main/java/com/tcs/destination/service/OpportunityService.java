@@ -4190,7 +4190,7 @@ public class OpportunityService {
 			
 			MoneyBucketDTO dto = new MoneyBucketDTO();
 			dto.setCount(count);
-			dto.setValue(value);
+			dto.setValue(DestinationUtils.scaleToTwoDecimal(value, true));
 			dto.setBucketLabel(bucket.getLabel());
 			dto.setMinValue(bucket.getMinValue());
 			dto.setMaxValue(bucket.getMaxValue());
