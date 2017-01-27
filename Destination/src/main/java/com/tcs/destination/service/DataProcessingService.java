@@ -148,6 +148,15 @@ public class DataProcessingService {
 		case 27:
 			entity = EntityType.RGS.name();
 		break;
+		case 28:
+			entity = EntityType.DELIVERY_CENTRE_UTILIZATION.name();
+			break;
+		case 29:
+			entity = EntityType.DELIVERY_CENTRE_UNALLOCATION.name();
+			break;
+		case 30:
+			entity = EntityType.CUSTOMER_ASSOCIATE.name();
+			break;
 		}
 		return entity;
 	}

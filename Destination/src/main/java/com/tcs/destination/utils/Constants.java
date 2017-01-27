@@ -166,6 +166,10 @@ public class Constants {
 	public static final String BEACON_DOWNLOAD_SUBJECT = "Beacon download request processed.";
 	public static final String OPPORTUNITY_DAILY_DOWNLOAD_SUBJECT = "Opportunity daily download";
 	
+	public static final String CUSTOMER_ASSOCIATE_UPLOAD_NOTIFY_SUBJECT = "Customer Associate upload request submitted";
+
+	public static final String CUSTOMER_ASSOCIATE_UPLOAD_SUBJECT  = "Customer Associate upload request processed.";
+	
 	//added as part of partner changes 
 	public static final String PRODUCT_UPLOAD_SUBJECT = "Product upload request processed.";
 	public static final String PRODUCT_DOWNLOAD_SUBJECT = "Product download request processed.";
@@ -391,6 +395,12 @@ public class Constants {
 	//Revenue Category
 	public static final String CATEGORY_REVENUE = "REVENUE";
 	public static final String CATEGORY_COST = "COST";
+	
+	//SP
+	public static final String SP_DESS = "Digital Enterprise Services and Solutions";
+	//Allocation Type
+	public static final String ALLOCATION_TYPE_WON = "WON";
+	public static final String NA = "N/A";
 	
 	//dozer mapper mapping id
 	public static final String COMPETITOR_OPPORTUNITY = "competitor-opportunity";

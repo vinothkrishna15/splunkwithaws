@@ -523,7 +523,8 @@ public class DestinationMailUtils {
 		if ((requestType > 0 && requestType < 10) || requestType == RequestType.PARTNER_MASTER_UPLOAD.getType()
 				|| requestType == RequestType.PRODUCT_UPLOAD.getType() ||
 				requestType == RequestType.PRODUCT_CONTACT_UPLOAD.getType() ||
-				requestType == RequestType.RGS_UPLOAD.getType()) { // upload
+				requestType == RequestType.RGS_UPLOAD.getType() ||
+				requestType == RequestType.CUSTOMER_ASSOCIATE_UPLOAD.getType()) { // upload
 			template = uploadTemplateLoc;
 			requestId = request.getProcessRequestId().toString();
 			uploadedFileName = request.getFileName();

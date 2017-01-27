@@ -39,5 +39,7 @@ public interface DeliveryCentreRepository extends
 
 	@Query(value = "select delivery_centre from delivery_centre_t where delivery_centre_id in (:deliveryCentres)", nativeQuery=true)
 	List<String> findDeliveryCentreNamesByIds(@Param("deliveryCentres") List<Integer> deliveryCentres);
+
+	DeliveryCentreT findByDeliveryCentre(String deliveryCentre);
 	
 }

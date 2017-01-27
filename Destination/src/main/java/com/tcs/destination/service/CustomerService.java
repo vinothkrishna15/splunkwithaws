@@ -1701,8 +1701,7 @@ public class CustomerService {
 						for (CustomerAssociateT associate : customerAssociates) {
 							if (checkIfDateBetween(startDate, endDate,
 									associate.getCreatedDate())) {
-								if (associate.getAllocationCategory().equals(
-										"WON")) {
+								if (Constants.ALLOCATION_TYPE_WON.equals(associate.getAllocationCategory())&&Constants.SP_DESS.equals(associate.getSp())) {
 									deWons++;
 								} else {
 									nonDeWons++;

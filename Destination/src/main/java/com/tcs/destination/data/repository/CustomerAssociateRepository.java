@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Repository;
 
 import com.tcs.destination.bean.CustomerAssociateT;
 import com.tcs.destination.bean.dto.CustomerAssociateDTO;
@@ -16,6 +17,7 @@ import com.tcs.destination.bean.dto.CustomerAssociateDTO;
  * @author tcs2
  *
  */
+@Repository
 public interface CustomerAssociateRepository extends
 		CrudRepository<CustomerAssociateT, Serializable> {
 

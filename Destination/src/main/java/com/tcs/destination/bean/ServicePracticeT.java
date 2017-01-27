@@ -27,10 +27,6 @@ public class ServicePracticeT implements Serializable {
 	@Column(name="sp_desc")
 	private String spDesc;
 
-	//bi-directional many-to-one association to CustomerAssociateT
-	@OneToMany(mappedBy="servicePracticeT")
-	private List<CustomerAssociateT> customerAssociateTs;
-
 	public ServicePracticeT() {
 	}
 
@@ -56,28 +52,6 @@ public class ServicePracticeT implements Serializable {
 
 	public void setSpDesc(String spDesc) {
 		this.spDesc = spDesc;
-	}
-
-	public List<CustomerAssociateT> getCustomerAssociateTs() {
-		return this.customerAssociateTs;
-	}
-
-	public void setCustomerAssociateTs(List<CustomerAssociateT> customerAssociateTs) {
-		this.customerAssociateTs = customerAssociateTs;
-	}
-
-	public CustomerAssociateT addCustomerAssociateT(CustomerAssociateT customerAssociateT) {
-		getCustomerAssociateTs().add(customerAssociateT);
-		customerAssociateT.setServicePracticeT(this);
-
-		return customerAssociateT;
-	}
-
-	public CustomerAssociateT removeCustomerAssociateT(CustomerAssociateT customerAssociateT) {
-		getCustomerAssociateTs().remove(customerAssociateT);
-		customerAssociateT.setServicePracticeT(null);
-
-		return customerAssociateT;
 	}
 
 }

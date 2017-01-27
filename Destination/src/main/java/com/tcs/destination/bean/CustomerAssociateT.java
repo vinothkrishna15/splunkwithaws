@@ -69,14 +69,14 @@ public class CustomerAssociateT implements Serializable {
 	@Column(name="associate_id")
 	private String associateId;
 	
-	@Column(name="delivery_centre_id")
-	private Integer deliveryCentreId;
+	@Column(name="reporting_dc")
+	private String reportingDc;
 	
 	@Column(name="revenue_customer_map_id")
 	private Long revenueCustomerMapId;
 	
 	@Column(name="sp")
-	private Integer sp;
+	private String sp;
 	
 	@Column(name = "sub_sp")
 	private String subSp;
@@ -86,25 +86,10 @@ public class CustomerAssociateT implements Serializable {
 	@JoinColumn(name="associate_id", updatable=false, insertable=false)
 	private AssociateT associateT;
 
-	//bi-directional many-to-one association to DeliveryCentreT
-	@ManyToOne
-	@JoinColumn(name="delivery_centre_id", updatable=false, insertable=false)
-	private DeliveryCentreT deliveryCentreT;
-
 	//bi-directional many-to-one association to RevenueCustomerMappingT
 	@ManyToOne
 	@JoinColumn(name="revenue_customer_map_id", updatable=false, insertable=false)
 	private RevenueCustomerMappingT revenueCustomerMappingT;
-
-	//bi-directional many-to-one association to ServicePracticeT
-	@ManyToOne
-	@JoinColumn(name="sp", updatable=false, insertable=false)
-	private ServicePracticeT servicePracticeT;
-
-	//bi-directional many-to-one association to SubSpMappingT
-	@ManyToOne
-	@JoinColumn(name="sub_sp", updatable=false, insertable=false)
-	private SubSpMappingT subSpMappingT;
 
 	public CustomerAssociateT() {
 	}
@@ -237,36 +222,12 @@ public class CustomerAssociateT implements Serializable {
 		this.associateT = associateT;
 	}
 
-	public DeliveryCentreT getDeliveryCentreT() {
-		return this.deliveryCentreT;
-	}
-
-	public void setDeliveryCentreT(DeliveryCentreT deliveryCentreT) {
-		this.deliveryCentreT = deliveryCentreT;
-	}
-
 	public RevenueCustomerMappingT getRevenueCustomerMappingT() {
 		return this.revenueCustomerMappingT;
 	}
 
 	public void setRevenueCustomerMappingT(RevenueCustomerMappingT revenueCustomerMappingT) {
 		this.revenueCustomerMappingT = revenueCustomerMappingT;
-	}
-
-	public ServicePracticeT getServicePracticeT() {
-		return this.servicePracticeT;
-	}
-
-	public void setServicePracticeT(ServicePracticeT servicePracticeT) {
-		this.servicePracticeT = servicePracticeT;
-	}
-
-	public SubSpMappingT getSubSpMappingT() {
-		return this.subSpMappingT;
-	}
-
-	public void setSubSpMappingT(SubSpMappingT subSpMappingT) {
-		this.subSpMappingT = subSpMappingT;
 	}
 
 	public String getAssociateId() {
@@ -277,14 +238,6 @@ public class CustomerAssociateT implements Serializable {
 		this.associateId = associateId;
 	}
 
-	public Integer getDeliveryCentreId() {
-		return deliveryCentreId;
-	}
-
-	public void setDeliveryCentreId(Integer deliveryCentreId) {
-		this.deliveryCentreId = deliveryCentreId;
-	}
-
 	public Long getRevenueCustomerMapId() {
 		return revenueCustomerMapId;
 	}
@@ -292,12 +245,12 @@ public class CustomerAssociateT implements Serializable {
 	public void setRevenueCustomerMapId(Long revenueCustomerMapId) {
 		this.revenueCustomerMapId = revenueCustomerMapId;
 	}
-
-	public Integer getSp() {
+	
+	public String getSp() {
 		return sp;
 	}
 
-	public void setSp(Integer sp) {
+	public void setSp(String sp) {
 		this.sp = sp;
 	}
 
@@ -309,4 +262,12 @@ public class CustomerAssociateT implements Serializable {
 		this.subSp = subSp;
 	}
 
+	public String getReportingDc() {
+		return reportingDc;
+	}
+
+	public void setReportingDc(String reportingDc) {
+		this.reportingDc = reportingDc;
+	}
+	
 }

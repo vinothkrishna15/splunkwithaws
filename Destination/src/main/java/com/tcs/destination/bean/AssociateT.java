@@ -18,7 +18,6 @@ public class AssociateT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name="associate_id")
 	private String associateId;
 

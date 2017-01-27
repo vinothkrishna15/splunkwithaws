@@ -60,6 +60,6 @@
     
     <import resource="/jobs/rgsDownload-job.xml"/>
     <import resource="/jobs/updateEngagementLive-job.xml"/>
-    
+    <import resource="/jobs/customerAssociateUpload-job.xml"/>
 </beans>
 	

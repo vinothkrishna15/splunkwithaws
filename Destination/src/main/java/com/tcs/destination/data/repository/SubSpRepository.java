@@ -27,5 +27,7 @@ public interface SubSpRepository extends CrudRepository<SubSpMappingT, String> {
 	
 	SubSpMappingT findBySubSpIdAndActiveTrue(Integer subSpId);
 
+	SubSpMappingT findByActualSubSp(String actualSubSp);
+
 
 }
