@@ -438,20 +438,7 @@ public class Constants {
 	public static final String CUSTOMER_TYPE_OPPORTUNITIES = "OPPORTUNITIES";
 	public static final String CLUSTER_UNALLOCATION_MAP = "cluster-unallocation-map";
 	
-	
-	
 	public static final Integer MAX_DEAL_VALUE = new Integer(2147483647);
-	public static final List<Integer[]> MONEY_BUCKETS = Lists.newArrayList();
-	
-	static {
-		Integer[] bucket1 = {0,99999};//<100K
-		Integer[] bucket2 = {100000,499999};//100K-500K
-		Integer[] bucket3 = {500000,999999};//500K-1M
-		Integer[] bucket4 = {1000000, MAX_DEAL_VALUE};//1M+
-		MONEY_BUCKETS.add(bucket1);
-		MONEY_BUCKETS.add(bucket2);
-		MONEY_BUCKETS.add(bucket3);
-		MONEY_BUCKETS.add(bucket4);
-	}
+	public static final String MAX_DEAL_VALUE_STR = "2147483647";
 	
 }

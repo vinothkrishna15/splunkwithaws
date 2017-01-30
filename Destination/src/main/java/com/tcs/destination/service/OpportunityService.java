@@ -3820,7 +3820,7 @@ public class OpportunityService {
 
 	@SuppressWarnings("unchecked")
 	public PageDTO<OpportunityDTO> getAllByParam(List<Integer> stages, String oppType, String dispGeo, String category,
-			String searchTerm, Date fromDate, Date toDate, String mapId, int page, int count) {
+			String searchTerm, Date fromDate, Date toDate, String mapId, int page, int count, Integer minVal, Integer MaxVal) {
 
 		Sort sort = new Sort(Direction.DESC, "modifiedDatetime");
 		Pageable pageable = new PageRequest(page, count, sort);
@@ -3845,6 +3845,11 @@ public class OpportunityService {
 				stages = DestinationUtils.getRequestRecievedStages();
 			}
 			oppIds = opportunityRepository.getOppIdsReqDate(stages, startDate, endDate);
+		} else if("WIN_LOSS".equals(category)) {
+			if(CollectionUtils.isEmpty(stages)) {
+				stages = DestinationUtils.getWinLossStages();
+			}
+			oppIds = opportunityRepository.getOppIdsWinLossBuckets(stages, startDate, endDate, minVal, MaxVal);
 		} else {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid category");
 		}

@@ -1628,6 +1628,13 @@ public interface OpportunityRepository extends
 	List<Object[]> getWinLossValue(@Param("fromDate") Date fromDate, @Param("toDate") Date toDate, 
 			@Param("stages") List<Integer> stages, @Param("minVal") Integer minVal, @Param("maxVal") Integer maxVal,
 			@Param("oppIds") List<String> oppIds);
+
+	@Query(value="SELECT opp.opportunity_id"
+			+ " FROM opportunity_t opp"
+			+ " WHERE opp.deal_closure_date BETWEEN :fromDate AND :toDate"
+			+ " AND opp.sales_stage_code in (:stages)"
+			+ " AND deal_value_usd_converter(opp.digital_deal_value, opp.deal_currency) BETWEEN :minVal AND :maxVal", nativeQuery = true)
+	List<String> getOppIdsWinLossBuckets(@Param("stages") List<Integer> stages, @Param("fromDate") Date fromDate, @Param("toDate") Date toDate, @Param("minVal") Integer minVal, @Param("maxVal") Integer maxVal);
 	
 	// Change ends
 }

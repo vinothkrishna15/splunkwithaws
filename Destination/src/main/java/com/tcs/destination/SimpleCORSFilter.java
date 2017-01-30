@@ -105,8 +105,6 @@ public class SimpleCORSFilter implements Filter {
 				throw new ServletException(
 						"Session should not be passed for this service");
 			}
-		} else if(requestURL.indexOf("/image/logo") > 0) {
-			logger.info("open service for logo");
 		} else {
 			// validate session based on the environment
 			switch (PropertyUtil.getProperty(Constants.ENVIRONMENT_NAME)) {

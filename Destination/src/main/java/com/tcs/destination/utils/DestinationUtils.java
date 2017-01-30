@@ -259,6 +259,10 @@ public class DestinationUtils {
 		return Lists.newArrayList(0,1,2,3,4,5,6,7,8,9,10,11,12,13);
 	}
 
+	public static List<Integer> getWinLossStages() {
+		return Lists.newArrayList(9,10);
+	}
+
 	
 	
 	
