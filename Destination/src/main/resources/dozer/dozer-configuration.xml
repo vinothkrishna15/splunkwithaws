@@ -579,6 +579,7 @@
 		<class-b>com.tcs.destination.bean.dto.GroupCustomerDTO</class-b>
 	
 		<field> <a>groupCustomerName</a> <b>groupCustomerName</b></field>
+		<field> <a>logo</a> <b>logo</b></field>
 		<field> <a>totalConnects</a> <b>totalConnects</b></field>
 		<field> <a>cxoConnects</a> <b>cxoConnects</b></field>
 		<field> <a>otherConnects</a> <b>otherConnects</b></field>
