@@ -167,7 +167,9 @@ public class Constants {
 	public static final String CUSTOMER_ASSOCIATE_UPLOAD_NOTIFY_SUBJECT = "Customer Associate upload request submitted";
 
 	public static final String CUSTOMER_ASSOCIATE_UPLOAD_SUBJECT  = "Customer Associate upload request processed.";
+	public static final String UNALLOCATION_UPLOAD_SUBJECT  = "Unallocation upload request processed.";
 	
+	public static final String UNALLOCATION_UPLOAD_NOTIFY_SUBJECT = "Unallocation upload request submitted";
 	//added as part of partner changes 
 	public static final String PRODUCT_UPLOAD_SUBJECT = "Product upload request processed.";
 	public static final String PRODUCT_DOWNLOAD_SUBJECT = "Product download request processed.";

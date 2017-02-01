@@ -62,5 +62,6 @@
     <import resource="/jobs/updateEngagementLive-job.xml"/>
     <import resource="/jobs/customerAssociateUpload-job.xml"/>
     <import resource="/jobs/deliveryCentreUtilisationUpload-job.xml"/>
+    <import resource="/jobs/deliveryCentreUnallocationUpload-job.xml"/>
 </beans>
 	
