@@ -10,6 +10,7 @@ import javax.servlet.ReadListener;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DateUtil;
+import org.apache.poi.ss.usermodel.FormulaEvaluator;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
@@ -58,7 +59,7 @@ public class SpreadSheetReader implements ItemReader<String[]>, ReadListener {
 		
 		
 			Row row = workbook.getSheet(sheetName).getRow(rowNo);
-			
+			FormulaEvaluator formulaEval = workbook.getCreationHelper().createFormulaEvaluator();
 			if (row != null) {
 				returnValue = new String[rowLength + 1];
 				returnValue[0] = Integer.toString(rowNo);
@@ -70,12 +71,21 @@ public class SpreadSheetReader implements ItemReader<String[]>, ReadListener {
 						
 						case Cell.CELL_TYPE_NUMERIC:
 							if(!DateUtil.isCellDateFormatted(cell)) {
-								value = cell.toString().trim();
+								 if (cell.getCellStyle().getDataFormatString().contains("%")) {
+								        Double percentValue = cell.getNumericCellValue() * 100;
+								        value = percentValue.toString().trim();
+								    } else {
+								    	value = cell.toString().trim();
+								    }
 							} else {
 								Date date = cell.getDateCellValue();
 								DateFormat formatter = new SimpleDateFormat("dd/MM/yy");
 								value = formatter.format(date);
 							}
+							break;
+						case Cell.CELL_TYPE_FORMULA:
+							String formulaVal = formulaEval.evaluate(cell).formatAsString();
+							value = formulaVal.trim();
 							break;
 						default:
 							value = cell.toString().trim();

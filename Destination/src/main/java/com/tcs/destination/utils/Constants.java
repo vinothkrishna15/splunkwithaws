@@ -149,9 +149,7 @@ public class Constants {
 	public static final String ACTUAL_REVENUE_UPLOAD_SUBJECT = "Actual revenue upload request processed.";
 	public static final String CUSTOMER_CONTACT_UPLOAD_SUBJECT = "Customer contact upload request processed.";
 	public static final String UTILIZATION_UPLOAD_NOTIFY_SUBJECT = "Utilization upload request submitted";
-	public static final String UNALLOCATION_UPLOAD_NOTIFY_SUBJECT = "Unallocation upload request submitted";
 	public static final String UTILIZATION_UPLOAD_SUBJECT  = "Utilization upload request processed.";
-	public static final String UNALLOCATION_UPLOAD_SUBJECT  = "Unallocation upload request processed.";
 	public static final String PARTNER_UPLOAD_SUBJECT = "Partner upload request processed.";
 	public static final String PARTNER_CONTACT_UPLOAD_SUBJECT = "Partner contact upload request processed.";
 	public static final String BEACON_UPLOAD_SUBJECT = "Beacon upload request processed.";
