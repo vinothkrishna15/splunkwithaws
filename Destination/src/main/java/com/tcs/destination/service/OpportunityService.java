@@ -4005,7 +4005,7 @@ public class OpportunityService {
 		
 		List<String> displayGeography = null;
 		if ("ALL".equalsIgnoreCase(dispGeo)) {
-			displayGeography = geographyRepository.findDisplayGeo();
+			displayGeography = Lists.newArrayList(geographyRepository.findDisplayGeo());
 		} else {
 			displayGeography = Lists.newArrayList(dispGeo);
 		}
@@ -4086,7 +4086,7 @@ public class OpportunityService {
 		Date startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
 		Date endDate = toDate != null ? toDate : new Date();
 
-		List<String> displayGeos = geographyRepository.findDisplayGeo();
+		Set<String> displayGeos = geographyRepository.findDisplayGeo();
 		
 		List<GeoWinRatioDTO> geoWinRatioDTOs = Lists.newArrayList();
 		//add OverAll Geo Buckets
