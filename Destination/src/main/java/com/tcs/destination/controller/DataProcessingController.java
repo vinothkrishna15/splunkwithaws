@@ -128,8 +128,8 @@ public class DataProcessingController {
 				type == RequestType.PRODUCT_CONTACT_UPLOAD.getType()
 				|| type == RequestType.RGS_UPLOAD.getType()
 				|| type == RequestType.UTILISATION_UPLOAD.getType()
-				|| type == RequestType.UNALLOCATION_UPLOAD.getType()
-				|| type == RequestType.CUSTOMER_ASSOCIATE_UPLOAD.getType()) {			
+				|| type == RequestType.CUSTOMER_ASSOCIATE_UPLOAD.getType()
+				|| type == RequestType.UNALLOCATION_UPLOAD.getType()) {			
 			isUploadRequest = true;
 		}
 		return isUploadRequest;
