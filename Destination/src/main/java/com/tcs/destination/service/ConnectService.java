@@ -1475,7 +1475,11 @@ public class ConnectService {
 				//filter connect id with primary owner and secondary owner
 				// Get all users under a supervisor
 				List<String> users = userRepository.getAllSubordinatesIdBySupervisorId(supervisorId);
-				connectIds = connectRepository.filterConnectWithUsers(users, connectIds);
+				if(CollectionUtils.isEmpty(users)) {
+					throw new DestinationException(HttpStatus.NOT_FOUND, "Team Connects Not found");
+				} else if(CollectionUtils.isNotEmpty(connectIds)) {
+					connectIds = connectRepository.filterConnectWithUsers(users, connectIds);
+				}
 			}
 
 			if ((connectIds != null) && (!connectIds.isEmpty())) {
@@ -1829,12 +1833,16 @@ public class ConnectService {
 	private boolean isEditAccessRequiredForConnect(ConnectT connect,
 			String userGroup, String userId) {
 		logger.debug("Inside validateEditAccessForConnect method");
+		UserT currentUser = DestinationUtils.getCurrentUserDetails();
 		boolean isEditAccessRequired = false;
 		if (userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
 			isEditAccessRequired = true;
 		} else if (isUserOwner(userId, connect)) {
 			isEditAccessRequired = true;
 		} else {
+			UserT supervisorUser = userRepository
+					.findByUserId(currentUser
+							.getSupervisorUserId());
 			switch (UserGroup.getUserGroup(userGroup)) {
 			case BDM :
 			case DELIVERY_MANAGER:	
@@ -1846,24 +1854,39 @@ public class ConnectService {
 				isEditAccessRequired = opportunityService.isSubordinateAsOwner(userId, null,
 						connect.getConnectId());
 				break;
-			case GEO_HEADS:
 			case PMO:
+				if(opportunityService.isPMODelivery(currentUser,supervisorUser)) {
+					isEditAccessRequired = opportunityService.isSubordinateAsOwner(supervisorUser.getUserId(), null,
+							connect.getConnectId());
+				} else {
+					isEditAccessRequired = editAccessForGeoIou(connect, userGroup,
+							userId, isEditAccessRequired);
+				}
+				break;
+			case GEO_HEADS:
 			case IOU_HEADS:
-				if (!StringUtils.isEmpty(connect.getCustomerId())) {
-					isEditAccessRequired = opportunityService
-							.checkEditAccessForGeoAndIou(userGroup, userId,
-									connect.getCustomerId());
-				}
-				if (!StringUtils.isEmpty(connect.getPartnerId())) {
-					isEditAccessRequired = isEditAccessNotAuthorisedForPartner(
-							userId, userGroup, connect.getPartnerId());
-				}
+				isEditAccessRequired = editAccessForGeoIou(connect, userGroup,
+						userId, isEditAccessRequired);
 				break;
 			default:
 				break;
 			}
 		}
 		logger.debug("Is Edit Access Required for connect: " +isEditAccessRequired);
+		return isEditAccessRequired;
+	}
+
+	private boolean editAccessForGeoIou(ConnectT connect, String userGroup,
+			String userId, boolean isEditAccessRequired) {
+		if (!StringUtils.isEmpty(connect.getCustomerId())) {
+			isEditAccessRequired = opportunityService
+					.checkEditAccessForGeoAndIou(userGroup, userId,
+							connect.getCustomerId());
+		}
+		if (!StringUtils.isEmpty(connect.getPartnerId())) {
+			isEditAccessRequired = isEditAccessNotAuthorisedForPartner(
+					userId, userGroup, connect.getPartnerId());
+		}
 		return isEditAccessRequired;
 	}
 

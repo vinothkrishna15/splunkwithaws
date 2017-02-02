@@ -189,10 +189,16 @@ public class CustomerService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Customer not found: " + customerId);
 		}
+		UserT supervisorUser = userRepository
+				.findByUserId(userT
+						.getSupervisorUserId());
+		boolean pmoDelivery = opportunityService.isPMODelivery(userT,supervisorUser);
 		if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
 				|| userGroup.contains(UserGroup.DELIVERY_CENTRE_HEAD.getValue()) 
-				|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())){
-			prepareDeliveryCustomerDetails(customerMasterT, userT);
+				|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())
+				|| pmoDelivery){
+			
+			prepareDeliveryCustomerDetails(customerMasterT, pmoDelivery ? supervisorUser : userT);
 		} else {
 			prepareCustomerDetails(customerMasterT, null);
 		}
@@ -317,14 +323,24 @@ public class CustomerService {
 				throw new DestinationException(HttpStatus.FORBIDDEN,
 						"User is not authorised to access this service");
 			default:
-				// Validate financial year and set default value
-				if (financialYear.isEmpty()) {
-					logger.debug("Financial year is empty");
-					financialYear = DateUtils.getCurrentFinancialYear();
+				UserT supervisorUser = userRepository
+				.findByUserId(user
+						.getSupervisorUserId());
+				boolean pmoDelivery = opportunityService.isPMODelivery(user,supervisorUser);
+				if(pmoDelivery) {
+					logger.error("User is not authorized to access this service");
+					throw new DestinationException(HttpStatus.FORBIDDEN,
+							"User is not authorised to access this service");
+				} else {
+					// Validate financial year and set default value
+					if (financialYear.isEmpty()) {
+						logger.debug("Financial year is empty");
+						financialYear = DateUtils.getCurrentFinancialYear();
+					}
+					List<CustomerMasterT> resultCustomerList = getTopRevenuesBasedOnUserPrivileges(
+							user.getUserId(), financialYear, count);
+					return resultCustomerList;
 				}
-				List<CustomerMasterT> resultCustomerList = getTopRevenuesBasedOnUserPrivileges(
-						user.getUserId(), financialYear, count);
-				return resultCustomerList;
 			}
 		} else {
 			logger.error("Invalid User Group: {}", userGroup);
@@ -547,11 +563,17 @@ public class CustomerService {
 			for (CustomerMasterT customerMasterT : customerMasterList) {
 				customerNameList.add(customerMasterT.getCustomerName());
 			}
+			UserT supervisorUser = userRepository
+					.findByUserId(userT
+							.getSupervisorUserId());
+			boolean pmoDelivery = opportunityService.isPMODelivery(userT,supervisorUser);
 			if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
 					|| userGroup.contains(UserGroup.DELIVERY_CENTRE_HEAD.getValue()) 
-					|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())){
+					|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())
+					|| pmoDelivery){
+				
 				for (CustomerMasterT customerMasterT : customerMasterList) {
-					prepareDeliveryCustomerDetails(customerMasterT, userT);
+					prepareDeliveryCustomerDetails(customerMasterT, pmoDelivery ? supervisorUser : userT);
 				}
 			} else {
 				customerNameList =  customerDao.getPreviledgedCustomerName(userT.getUserId(), 
@@ -881,12 +903,19 @@ public class CustomerService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Customer available");
 		}
+		UserT supervisorUser = userRepository
+				.findByUserId(userT
+						.getSupervisorUserId());
+		boolean pmoDelivery = opportunityService.isPMODelivery(userT,supervisorUser);
 		if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
 				|| userGroup.contains(UserGroup.DELIVERY_CENTRE_HEAD.getValue()) 
-				|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())) {
+				|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())
+				|| pmoDelivery) {
 			
-			for(CustomerMasterT customer : customerMasterTs) {
-				prepareDeliveryCustomerDetails(customer, userT);
+			for (CustomerMasterT customer : customerMasterTs) {
+				prepareDeliveryCustomerDetails(
+						customer,
+						pmoDelivery ? supervisorUser : userT);
 			}
 			
 		}

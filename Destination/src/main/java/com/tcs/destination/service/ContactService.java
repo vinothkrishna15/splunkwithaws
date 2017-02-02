@@ -98,6 +98,9 @@ public class ContactService {
 
 	@Autowired
 	UserRepository userRepository;
+	
+	@Autowired
+	OpportunityService opportunityService;
 
 
 
@@ -157,10 +160,16 @@ public class ContactService {
 					"No Contact found");
 		}
 		removeCyclicForLinkedContactTs(contact);
+		UserT supervisorUser = userRepository
+				.findByUserId(userT
+						.getSupervisorUserId());
+		boolean pmoDelivery = opportunityService.isPMODelivery(userT,supervisorUser);
 		if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
 				|| userGroup.contains(UserGroup.DELIVERY_CENTRE_HEAD.getValue()) 
-				|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())){
-			prepareDeliveryContactDetails(contact, userT);
+				|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())
+				|| pmoDelivery){
+			
+			prepareDeliveryContactDetails(contact, pmoDelivery ? supervisorUser : userT);
 		} else {
 			if (contact.getContactCategory().equals(EntityType.CUSTOMER.name())) {
 				prepareContactDetails(contact, null);
@@ -852,6 +861,10 @@ public class ContactService {
 		removeCyclicForLinkedContactTs(contactList);
 		logger.debug("Inside prepareContactDetails() method");
 		UserT userT = DestinationUtils.getCurrentUserDetails();
+		UserT supervisorUser = userRepository
+				.findByUserId(userT
+						.getSupervisorUserId());
+		boolean pmoDelivery = opportunityService.isPMODelivery(userT,supervisorUser);
 		String userGroup = userT.getUserGroup();
 		if (contactList != null && !contactList.isEmpty()) {
 			ArrayList<String> contactIdList = new ArrayList<String>();
@@ -861,8 +874,9 @@ public class ContactService {
 
 			if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
 					|| userGroup.contains(UserGroup.DELIVERY_CENTRE_HEAD.getValue()) 
-					|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())) {
-				prepareDeliveryContactListDetails(contactList, userT);
+					|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())
+					|| pmoDelivery) {
+				prepareDeliveryContactListDetails(contactList, pmoDelivery ? supervisorUser : userT);
 			} else {
 				contactIdList = getPreviledgedContactIds(DestinationUtils
 						.getCurrentUserDetails().getUserId(), contactIdList, true);

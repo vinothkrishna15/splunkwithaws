@@ -137,6 +137,9 @@ public class PartnerService {
 	
 	@Autowired
 	ContactService contactService;
+	
+	@Autowired
+	OpportunityService opportunityService;
 
 	private Map<String, GeographyMappingT> geographyMapping = null;
 
@@ -464,11 +467,16 @@ public class PartnerService {
 	private void preparePartnerDelivery(PartnerMasterT partner,
 			UserT userT) {
 		String userGroup = userT.getUserGroup();
-		List<String> userIds = userRepository.getAllSubordinatesIdBySupervisorId(userT.getUserId());
-		userIds.add(userT.getUserId());
+		UserT supervisorUser = userRepository
+				.findByUserId(userT
+						.getSupervisorUserId());
+		boolean pmoDelivery = opportunityService.isPMODelivery(userT,supervisorUser);
+		List<String> userIds = userRepository.getAllSubordinatesIdBySupervisorId(pmoDelivery? supervisorUser.getUserId() : userT.getUserId());
+		userIds.add(pmoDelivery? supervisorUser.getUserId() : userT.getUserId());
 		if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
 				|| userGroup.contains(UserGroup.DELIVERY_CENTRE_HEAD.getValue()) 
-				|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())){
+				|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())
+				|| pmoDelivery){
 			List<PartnerContactLinkT> partnerContactLinkTs = partner.getPartnerContactLinkTs();
 			for (PartnerContactLinkT partnerContactLinkT : partnerContactLinkTs) {
 				partnerContactLinkT.getContactT().setPartnerContactLinkTs(null);

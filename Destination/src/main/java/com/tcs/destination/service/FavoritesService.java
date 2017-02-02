@@ -17,6 +17,7 @@ import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.FavoritesSearchedRepository;
+import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
@@ -37,6 +38,12 @@ public class FavoritesService {
 
 	@Autowired
 	ContactService contactService;
+	
+	@Autowired
+	UserRepository userRepository;
+	
+	@Autowired
+	OpportunityService opportunityService;
 	
 /**
  * This method finds the favorites for an user
@@ -250,6 +257,10 @@ public class FavoritesService {
 	private void prepareFavorites(Iterable<UserFavoritesT> userFavorites, UserT userT)
 			throws DestinationException {
 		logger.debug("Starting prepareFavorites service");
+		UserT supervisorUser = userRepository
+				.findByUserId(userT
+						.getSupervisorUserId());
+		boolean pmoDelivery = opportunityService.isPMODelivery(userT,supervisorUser);
 		String userGroup = userT.getUserGroup();
 		for (UserFavoritesT userFavoritesT : userFavorites) {
 			if (userFavoritesT.getContactT() != null) {
@@ -257,8 +268,9 @@ public class FavoritesService {
 						.getContactT());
 				if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
 						|| userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
-						|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())) {
-					contactService.prepareDeliveryContactDetails(userFavoritesT.getContactT(), userT);
+						|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())
+						|| pmoDelivery) {
+					contactService.prepareDeliveryContactDetails(userFavoritesT.getContactT(), pmoDelivery ? supervisorUser : userT);
 				} else {
 					contactService.prepareContactDetails(
 							userFavoritesT.getContactT(), null);

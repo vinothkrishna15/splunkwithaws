@@ -17,6 +17,7 @@ import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.FrequentlySearchedRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
+import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
@@ -45,6 +46,12 @@ public class FrequentlySearchedService {
 
 	@Autowired
 	private CustomerService customerService;
+	
+	@Autowired
+	OpportunityService opportunityService;
+	
+	@Autowired
+	UserRepository userRepository;
 
 	/**
 	 * This method searches  and finds the frequently searched 
@@ -59,6 +66,11 @@ public class FrequentlySearchedService {
 		logger.debug("Begin: findFrequent() of FrequentlySearchedService");
 		UserT userT= DestinationUtils.getCurrentUserDetails();
 		String userGroup = userT.getUserGroup();
+		UserT supervisorUser = userRepository
+				.findByUserId(userT
+						.getSupervisorUserId());
+		boolean pmoDelivery = opportunityService.isPMODelivery(userT,supervisorUser);
+		
 		if (EntityType.contains(entityType)) {
 			List<Object[]> frequentMapping = frequentRepository
 					.findFrequentEntities(entityType, count);
@@ -71,8 +83,9 @@ public class FrequentlySearchedService {
 							.findactivecust(frequent[1].toString());
 					if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
 							|| userGroup.contains(UserGroup.DELIVERY_CENTRE_HEAD.getValue()) 
-							|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())){
-						customerService.prepareDeliveryCustomerDetails(customer, userT);
+							|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())
+							|| pmoDelivery){
+						customerService.prepareDeliveryCustomerDetails(customer, pmoDelivery ? supervisorUser : userT);
 					}
 					FrequentlySearchedResponse frequentResponse = ResponseConstructors
 							.convertToFrequentlySearchedResponse(
