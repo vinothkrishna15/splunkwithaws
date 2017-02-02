@@ -1,13 +1,13 @@
 package com.tcs.destination.data.repository;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.tcs.destination.bean.ContentDTO;
 import com.tcs.destination.bean.GeographyMappingT;
 
 @Repository
@@ -26,7 +26,7 @@ public interface GeographyRepository extends
 
 	GeographyMappingT findByActiveTrueAndGeography(String geography);
 
-	@Query("SELECT DISTINCT gt.displayGeography FROM GeographyMappingT gt")
-	List<String> findDisplayGeo();
+	@Query("SELECT gt.displayGeography FROM GeographyMappingT gt ORDER BY gt.displayOrder")
+	Set<String> findDisplayGeo();
 
 }

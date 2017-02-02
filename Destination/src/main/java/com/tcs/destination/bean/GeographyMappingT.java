@@ -36,6 +36,9 @@ public class GeographyMappingT implements Serializable {
 
 	@Column(name = "display_geography")
 	private String displayGeography;
+
+	@Column(name = "display_order")
+	private Integer displayOrder;
 	
 	//bi-directional many-to-one association to GeographyCountryMappingT
 	@JsonIgnore
@@ -260,5 +263,15 @@ public class GeographyMappingT implements Serializable {
 
 		return workflowPartnerT;
 	}
+
+	public Integer getDisplayOrder() {
+		return displayOrder;
+	}
+
+	public void setDisplayOrder(Integer displayOrder) {
+		this.displayOrder = displayOrder;
+	}
+	
+	
 	
 }

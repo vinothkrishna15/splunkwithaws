@@ -112,7 +112,10 @@ public class DateUtils {
 	public static final String END_DATE = "END_DATE";
 	public static final String START_DATE = "START_DATE";
 	
-	
+	/**
+	 * Format MMMMM yyyy
+	 */
+	public static final DateFormat FORMAT_MMMMM_YYYY = new SimpleDateFormat("MMMMM yyyy");
 	
 	static {
 		monthMap.put("JAN", Calendar.JANUARY);

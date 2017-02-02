@@ -50,7 +50,7 @@ public class GeographyService {
 
 	public ContentDTO<String> findAllDisplayGeo() {
 		logger.debug("Inside findAllActive() GeographyService");
-		List<String> displayGeo = geographyRepository.findDisplayGeo();
+		List<String> displayGeo = Lists.newArrayList(geographyRepository.findDisplayGeo());
 		return new ContentDTO<String>(displayGeo);
 	}
 

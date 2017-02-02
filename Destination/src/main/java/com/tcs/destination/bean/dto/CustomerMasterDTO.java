@@ -24,6 +24,7 @@ public class CustomerMasterDTO implements Serializable {
 	private String facebook;
 	private String groupCustomerName;
 	private byte[] logo;
+	private byte[] groupCustomerLogo;
 	private String notes;
 	private String website;
 	private String iou;
@@ -223,6 +224,12 @@ public class CustomerMasterDTO implements Serializable {
 	public void setActive(Boolean active) {
 		this.active = active;
 	}
-	
 
+	public byte[] getGroupCustomerLogo() {
+		return groupCustomerLogo;
+	}
+
+	public void setGroupCustomerLogo(byte[] groupCustomerLogo) {
+		this.groupCustomerLogo = groupCustomerLogo;
+	}
 }
