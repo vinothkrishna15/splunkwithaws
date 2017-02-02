@@ -22,20 +22,20 @@ import org.springframework.batch.item.ItemWriter;
 
 import com.google.common.collect.Lists;
 import com.tcs.destination.bean.DataProcessingRequestT;
-import com.tcs.destination.bean.HealthCardOverallPercentage;
+import com.tcs.destination.bean.DeliveryCentreUtilizationT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
-import com.tcs.destination.data.repository.HealthCardOverallPercentageRepository;
+import com.tcs.destination.data.repository.DeliveryCentreUtilizationRepository;
 import com.tcs.destination.enums.RequestStatus;
 import com.tcs.destination.helper.UnallocationUploadHelper;
 import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.utils.FileManager;
 
-public class UnallocationCustomWriter implements ItemWriter<String[]>,
+public class UnallocationDeliveryCustomWriter implements ItemWriter<String[]>,
 		StepExecutionListener {
 
 	private static final Logger logger = LoggerFactory
-			.getLogger(UnallocationCustomWriter.class);
+			.getLogger(UnallocationDeliveryCustomWriter.class);
 
 	private DataProcessingRequestRepository dataProcessingRequestRepository;
 
@@ -47,7 +47,7 @@ public class UnallocationCustomWriter implements ItemWriter<String[]>,
 
 	private UploadErrorReport uploadErrorReport;
 
-	private HealthCardOverallPercentageRepository healthCardOverallPercentageRepository;
+	private DeliveryCentreUtilizationRepository deliveryCentreUtilizationRepository;
 
 	public DataProcessingRequestRepository getDataProcessingRequestRepository() {
 		return dataProcessingRequestRepository;
@@ -98,19 +98,19 @@ public class UnallocationCustomWriter implements ItemWriter<String[]>,
 	}
 
 	/**
-	 * @return the healthCardOverallPercentageRepository
+	 * @return the deliveryCentreUtilizationRepository
 	 */
-	public HealthCardOverallPercentageRepository getHealthCardOverallPercentageRepository() {
-		return healthCardOverallPercentageRepository;
+	public DeliveryCentreUtilizationRepository getDeliveryCentreUtilizationRepository() {
+		return deliveryCentreUtilizationRepository;
 	}
 
 	/**
-	 * @param healthCardOverallPercentageRepository
-	 *            the healthCardOverallPercentageRepository to set
+	 * @param deliveryCentreUtilizationRepository
+	 *            the deliveryCentreUtilizationRepository to set
 	 */
-	public void setHealthCardOverallPercentageRepository(
-			HealthCardOverallPercentageRepository healthCardOverallPercentageRepository) {
-		this.healthCardOverallPercentageRepository = healthCardOverallPercentageRepository;
+	public void setDeliveryCentreUtilizationRepository(
+			DeliveryCentreUtilizationRepository deliveryCentreUtilizationRepository) {
+		this.deliveryCentreUtilizationRepository = deliveryCentreUtilizationRepository;
 	}
 
 	/**
@@ -120,12 +120,21 @@ public class UnallocationCustomWriter implements ItemWriter<String[]>,
 
 	@Override
 	public void beforeStep(StepExecution stepExecution) {
-		
+		try {
+			DataProcessingRequestT request = (DataProcessingRequestT) stepExecution
+					.getJobExecution().getExecutionContext().get(REQUEST);
+			request.setStatus(RequestStatus.INPROGRESS.getStatus());
+			dataProcessingRequestRepository.save(request);
+
+		} catch (Exception e) {
+			logger.error("Error in before step process: {}", e);
+		}
+
 	}
 
 	/**
 	 * After step will be called to close and terminate the opened file used for
-	 * uploading
+	 * uploading also to update the status of the job execution.
 	 */
 	@Override
 	public ExitStatus afterStep(StepExecution stepExecution) {
@@ -148,13 +157,14 @@ public class UnallocationCustomWriter implements ItemWriter<String[]>,
 				request.setErrorFileName(errorFileName);
 				request.setErrorFilePath(errorPath);
 			}
-			request.setStatus(RequestStatus.INPROGRESS.getStatus());
+			request.setStatus(RequestStatus.PROCESSED.getStatus());
 			dataProcessingRequestRepository.save(request);
-			
+			jobContext.remove(REQUEST);
+			jobContext.remove(FILE_PATH);
 		} catch (Exception e) {
 			logger.error("Error while writing the error report: {}", e);
 		}
-		return stepExecution.getExitStatus();
+		return ExitStatus.COMPLETED;
 	}
 
 	/**
@@ -162,24 +172,24 @@ public class UnallocationCustomWriter implements ItemWriter<String[]>,
 	 */
 	@Override
 	public void write(List<? extends String[]> items) throws Exception {
-		List<HealthCardOverallPercentage> overallHealthcard = Lists
+		List<DeliveryCentreUtilizationT> deliveryCentreUtilization = Lists
 				.newArrayList();
 
 		for (String[] data : items) {
-			HealthCardOverallPercentage healthCardOverallPercentage = new HealthCardOverallPercentage();
+			DeliveryCentreUtilizationT deliveryCentreUtilizationT = new DeliveryCentreUtilizationT();
 			UploadServiceErrorDetailsDTO errorDTO = helper
-					.validateUnallocationData(data, request.getUserT()
-							.getUserId(), healthCardOverallPercentage);
+					.validateUnallocationDeliveryCentreData(data, request
+							.getUserT().getUserId(), deliveryCentreUtilizationT);
 			if (StringUtils.isNotEmpty(errorDTO.getMessage())) {
 				errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
 						: errorList;
 				errorList.add(errorDTO);
 			} else if (errorDTO.getMessage() == null) {
-				overallHealthcard.add(healthCardOverallPercentage);
+				deliveryCentreUtilization.add(deliveryCentreUtilizationT);
 			}
 		}
-		if (CollectionUtils.isNotEmpty(overallHealthcard)) {
-			healthCardOverallPercentageRepository.save(overallHealthcard);
+		if (CollectionUtils.isNotEmpty(deliveryCentreUtilization)) {
+			deliveryCentreUtilizationRepository.save(deliveryCentreUtilization);
 		}
 
 	}

@@ -24,4 +24,6 @@ public interface DeliveryClusterRepository extends CrudRepository<DeliveryCluste
 	@Query(value = "SELECT dct from DeliveryClusterT dct WHERE dct.deliveryClusterId > 0")
 	List<DeliveryClusterT> findAllExceptOpen();
 	
+	@Query(value="select delivery_cluster_id, delivery_cluster from delivery_cluster_t  ",nativeQuery=true)
+	List<Object[]> findDeliveryCluster();
 }

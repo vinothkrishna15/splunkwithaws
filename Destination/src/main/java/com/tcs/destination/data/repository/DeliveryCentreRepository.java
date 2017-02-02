@@ -42,4 +42,7 @@ public interface DeliveryCentreRepository extends
 
 	DeliveryCentreT findByDeliveryCentre(String deliveryCentre);
 	
+	@Query(value="select delivery_centre_id, delivery_centre from delivery_centre_t  ",nativeQuery=true)
+	List<Object[]> findDeliveryCentre();
+	
 }

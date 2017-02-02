@@ -21,4 +21,7 @@ public interface HealthCardOverallPercentageRepository extends CrudRepository<He
 			+ "where component_id = (:componentId) order by date DESC limit 1",nativeQuery=true)
 	BigDecimal getOverallPercentage(@Param("componentId") int componentId);
 
+	@Query(value = "select  overall_percentage_id, date from health_card_overall_percentage ",nativeQuery=true)
+	List<Object[]> getOverallPercentageIdAndDate();
+
 }
