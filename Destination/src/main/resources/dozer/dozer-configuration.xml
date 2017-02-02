@@ -425,6 +425,7 @@
 		<field> <a>customerId</a> <b>customerId</b> </field>
 		<field> <a>customerName</a> <b>customerName</b> </field>
 		<field> <a>groupCustomerName</a> <b>groupCustomerName</b> </field>
+		<field> <a>groupCustomerT.logo</a> <b>groupCustomerLogo</b> </field>
 		<field map-id="geography-mapping"> <a>geographyMappingT</a> <b>geographyMappingT</b> </field>
 		<field map-id="iou-mapping"> <a>iouCustomerMappingT</a> <b>iouCustomerMappingT</b> </field>
 	</mapping>
@@ -436,6 +437,7 @@
 		<field> <a>customerId</a> <b>customerId</b> </field>
 		<field> <a>customerName</a> <b>customerName</b> </field>
 		<field> <a>groupCustomerName</a> <b>groupCustomerName</b> </field>
+		<field> <a>groupCustomerT.logo</a> <b>groupCustomerLogo</b> </field>
 	</mapping>
 	
 	<mapping map-id="cust-connect-base" wildcard="false">
