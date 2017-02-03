@@ -107,6 +107,9 @@ public class BDMReportsService {
 
 	@Autowired
 	GeographyRepository geographyRepository;
+	
+	@Autowired
+	OpportunityService opportunityService;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -221,6 +224,10 @@ public class BDMReportsService {
 		List<UserAccessPrivilegesT> userPrivilegesList = 
 				userAccessPrivilegesRepository.findByUserIdAndParentPrivilegeIdIsNullAndIsactive(userId, Constants.Y);
 		UserT user = userRepository.findByUserId(userId);
+		UserT supervisorUser = userRepository
+				.findByUserId(user
+						.getSupervisorUserId());
+		boolean pmoDelivery = opportunityService.isPMODelivery(user,supervisorUser);
 		String userGroup=user.getUserGroupMappingT().getUserGroup();
 		row = (SXSSFRow) spreadsheet.createRow(14);
 		row.createCell(4).setCellValue("User Access Filter's");
@@ -253,6 +260,13 @@ public class BDMReportsService {
 		case DELIVERY_CENTRE_HEAD:
 		case DELIVERY_CLUSTER_HEAD:
 			ExcelUtils.writeUserFilterConditions(spreadsheet, user, "NA");
+			break;
+		case PMO:
+			if(pmoDelivery) {
+				ExcelUtils.writeUserFilterConditions(spreadsheet, user, "NA");
+			} else {
+				ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.FULLACCESS);
+			}
 			break;
 		default :
 			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.FULLACCESS);
@@ -312,6 +326,10 @@ public class BDMReportsService {
 			List<String> userIds = new ArrayList<String>();
 			UserT user = userService.findByUserId(userId);
 			if (user != null) {
+				UserT supervisorUser = userRepository
+						.findByUserId(user
+								.getSupervisorUserId());
+				boolean pmoDelivery = opportunityService.isPMODelivery(user,supervisorUser);
 				String userGroup = user.getUserGroupMappingT().getUserGroup();
 				List<String> geoList = new ArrayList<String>();
 				List<String> countryList = new ArrayList<String>();
@@ -324,7 +342,7 @@ public class BDMReportsService {
 				
 			    if (UserGroup.contains(userGroup)) {
 			    	
-			    	userIds = bdmDetailedReportService.getRequiredBDMs(userId, opportunityOwners);
+			    	userIds = bdmDetailedReportService.getRequiredBDMs(pmoDelivery ? supervisorUser.getUserId() : userId, opportunityOwners);
 			    	List<String> userGroupsGeoIouHeads = Arrays.asList("GEO Heads","IOU Heads");
 			    // Validate user group, BDM's & BDM supervisor's are not authorized for this service
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
@@ -352,8 +370,10 @@ public class BDMReportsService {
 					 }
 				 	getOpportunitySummaryDetails(userIds, financialYear,from, to, geoList, serviceLinesList, workbook, countryList, iouList);
 					getBDMSupervisorPerformanceExcelReport(userIds, financialYear, workbook);
-					List<String> geoHeadOrIouSpocsUserIds = userRepository.findUserIdByuserGroup(userGroupsGeoIouHeads);
-					getGeoHeadOrIouHeadPerformanceExcelReportForSI(geoHeadOrIouSpocsUserIds, userId, financialYear, workbook);
+					if(!pmoDelivery) {
+						List<String> geoHeadOrIouSpocsUserIds = userRepository.findUserIdByuserGroup(userGroupsGeoIouHeads);
+						getGeoHeadOrIouHeadPerformanceExcelReportForSI(geoHeadOrIouSpocsUserIds, userId, financialYear, workbook);
+					}
 					break;
 				default :
 					List<String> userGroupBDMAndBDMSupervisor = Arrays.asList("BDM", "BDM Supervisor","Practice Head");

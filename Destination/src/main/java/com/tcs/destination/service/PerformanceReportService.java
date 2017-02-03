@@ -41,6 +41,7 @@ import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.PerformanceReportRepository;
 import com.tcs.destination.data.repository.ProjectedRevenuesDataTRepository;
 import com.tcs.destination.data.repository.SalesStageMappingRepository;
+import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.UserAccessPrivilegeQueryBuilder;
@@ -94,6 +95,12 @@ public class PerformanceReportService {
 	
 	@Autowired
 	BeaconConverterService beaconConverterService;
+	
+	@Autowired
+	OpportunityService opportunityService;
+	
+	@Autowired
+	UserRepository userRepository;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -1212,6 +1219,14 @@ public class PerformanceReportService {
 		// throw new DestinationException(HttpStatus.NOT_FOUND,
 		// "User not found: " + userId);
 		// } else {
+		UserT supervisorUser = userRepository
+				.findByUserId(user
+						.getSupervisorUserId());
+		if(opportunityService.isPMODelivery(user, supervisorUser)) {
+			logger.error("User is not authorized to access this service");
+			throw new DestinationException(HttpStatus.UNAUTHORIZED,
+					"User is not authorised to access this service");
+		}
 		String userGroup = user.getUserGroupMappingT().getUserGroup();
 		if (UserGroup.contains(userGroup)) {
 			// Validate user group, BDM's & BDM supervisor's are not

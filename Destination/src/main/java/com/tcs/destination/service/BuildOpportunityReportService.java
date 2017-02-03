@@ -117,6 +117,9 @@ public class BuildOpportunityReportService {
 
 	@Autowired
 	ConnectRepository connectRepository;
+	
+	@Autowired
+	OpportunityService opportunityService;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -150,6 +153,9 @@ public class BuildOpportunityReportService {
 			logger.error("User Id Not Found "+ userId );
 			throw new DestinationException(HttpStatus.NOT_FOUND,"User Id Not Found");
 		}
+		UserT supervisorUser = userRepository
+				.findByUserId(user
+						.getSupervisorUserId());
 		String userGroup=user.getUserGroupMappingT().getUserGroup();
 		addItemToListGeo(geography,geoList);
 		ExcelUtils.addItemToList(iou,iouList);
@@ -172,6 +178,25 @@ public class BuildOpportunityReportService {
 			userIds.add(userId);
 			opportunityIds = opportunityRepository.findOpportunitiesByRoleWith(fromDate, toDate, salesStage, userIds, 
 					geoList, countryList, iouList, serviceLinesList);
+			break;
+		case PMO:
+			boolean pmoDelivery = opportunityService.isPMODelivery(user,supervisorUser);
+			if(pmoDelivery) {
+				List<String> subOrdinateList = userRepository.getAllSubordinatesIdBySupervisorId(supervisorUser.getUserId());
+				userIds.addAll(subOrdinateList);
+				userIds.add(supervisorUser.getUserId());
+				opportunityIds = opportunityRepository.findOpportunitiesByRoleWith(fromDate, toDate, salesStage, userIds, 
+						geoList, countryList, iouList, serviceLinesList);
+			} else {
+				if(geography.contains(ReportConstants.All) && (iou.contains(ReportConstants.All) && serviceLines.contains(ReportConstants.All)) && country.contains(ReportConstants.All)){
+					String queryString = reportsService.getOpportunityDetailedQueryString(userId,fromDate,toDate,salesStage);
+					Query opportunityDetailedReportQuery = entityManager.createNativeQuery(queryString);
+					opportunityIds = opportunityDetailedReportQuery.getResultList();
+				} else {
+					opportunityIds = opportunityRepository.findOpportunitiesWith(fromDate, toDate, geoList, countryList, iouList, serviceLinesList, 
+							salesStage);
+				}
+			}
 			break;
 		default:
 			if(geography.contains(ReportConstants.All) && (iou.contains(ReportConstants.All) && serviceLines.contains(ReportConstants.All)) && country.contains(ReportConstants.All)){
@@ -809,7 +834,7 @@ public class BuildOpportunityReportService {
 	public List<ReportSummaryOpportunity> getServiceLineForPipelineAnticipating(
 			List<String> currency, List<String> geography,
 			List<String> country, List<String> iou, List<String> serviceLines,
-			List<Integer> salesStageList, List<String> userIds, String userId, String userGroup)
+			List<Integer> salesStageList, List<String> userIds, String userId, String userGroup, boolean pmoDelivery)
 					throws Exception {
 		List<ReportSummaryOpportunity> reportSummaryOpportunityList = new ArrayList<ReportSummaryOpportunity>();
 		List<Integer> salesStageAnticipating = new ArrayList<Integer>();
@@ -847,6 +872,20 @@ public class BuildOpportunityReportService {
 			case DELIVERY_CLUSTER_HEAD:
 			case DELIVERY_CENTRE_HEAD:
 				opportunityList = opportunityRepository.findPipelineSummaryServiceLineByRole(salesStagePipeline, userIds, geoList, countryList, iouList, serviceLinesList);
+				break;
+			case PMO:
+				if(pmoDelivery) {
+					opportunityList = opportunityRepository.findPipelineSummaryServiceLineByRole(salesStagePipeline, userIds, geoList, countryList, iouList, serviceLinesList);
+				} else {
+					if(geography.contains(ReportConstants.All) && (iou.contains(ReportConstants.All) && serviceLines.contains(ReportConstants.All)) && country.contains(ReportConstants.All)){
+						String queryString = reportsService.getPipelineAnticipatingOppServiceLineSummaryQueryString(userId,salesStagePipeline);
+						Query opportunitySummaryReportQuery = entityManager.createNativeQuery(queryString);
+						opportunityList = opportunitySummaryReportQuery.getResultList();
+					} else {
+						opportunityList = opportunityRepository.findPipelineSummaryServiceLine(geoList, countryList, iouList, serviceLinesList, 
+								salesStagePipeline);
+					}
+				}
 				break;
 			default:
 				if(geography.contains(ReportConstants.All) && (iou.contains(ReportConstants.All) && serviceLines.contains(ReportConstants.All)) && country.contains(ReportConstants.All)){
@@ -909,6 +948,20 @@ public class BuildOpportunityReportService {
 			case DELIVERY_CLUSTER_HEAD:
 			case DELIVERY_CENTRE_HEAD:
 				opportunityList = opportunityRepository.findPipelineSummaryServiceLineByRole(salesStageAnticipating, userIds, geoList, countryList, iouList, serviceLinesList);
+				break;
+			case PMO:
+				if(pmoDelivery) {
+					opportunityList = opportunityRepository.findPipelineSummaryServiceLineByRole(salesStageAnticipating, userIds, geoList, countryList, iouList, serviceLinesList);
+				} else {
+					if(geography.contains(ReportConstants.All) && (iou.contains(ReportConstants.All) && serviceLines.contains(ReportConstants.All)) && country.contains(ReportConstants.All)){
+						String queryString = reportsService.getPipelineAnticipatingOppServiceLineSummaryQueryString(userId,salesStageAnticipating);
+						Query opportunitySummaryReportQuery = entityManager.createNativeQuery(queryString);
+						opportunityList = opportunitySummaryReportQuery.getResultList();
+					} else {
+						opportunityList = opportunityRepository.findPipelineSummaryServiceLine(geoList, countryList, iouList, serviceLinesList, 
+								salesStageAnticipating);
+					}
+				}
 				break;
 			default:
 				if(geography.contains(ReportConstants.All) && (iou.contains(ReportConstants.All) && serviceLines.contains(ReportConstants.All)) && country.contains(ReportConstants.All)){
@@ -2655,7 +2708,7 @@ public class BuildOpportunityReportService {
 			String year, String quarter, List<String> geography,
 			List<String> country, List<String> iou, List<String> serviceLines,
 			List<Integer> salesStageList, List<String> userIds, String userId,
-			Boolean isDistinctIou, String userGroup) throws DestinationException, Exception {
+			Boolean isDistinctIou, String userGroup, boolean pmoDelivery) throws DestinationException, Exception {
 		logger.debug("Inside Report Service getWinLossOpportunities Method");
 		List<String> geoList = new ArrayList<String>();
 		List<String> iouList = new ArrayList<String>();
@@ -2693,6 +2746,21 @@ public class BuildOpportunityReportService {
 				case DELIVERY_CENTRE_HEAD:
 					serviceLineOpportunityList = opportunityRepository.findOpportunitiesWithServiceLineByRole(fromDate, toDate, salesStageCode, userIds,  geoList, countryList, iouList, serviceLinesList);
 					break;
+				case PMO:
+					if(pmoDelivery) {
+						serviceLineOpportunityList = opportunityRepository.findOpportunitiesWithServiceLineByRole(fromDate, toDate, salesStageCode, userIds,  geoList, countryList, iouList, serviceLinesList);
+					} else {
+						if(geography.contains(ReportConstants.All) && (iou.contains(ReportConstants.All) && serviceLines.contains(ReportConstants.All)) && country.contains(ReportConstants.All)){
+							String queryString = reportsService.getOpportunityServiceLineSummaryQueryString(userId,fromDate,toDate,salesStageCode);
+							Query opportunitySummaryReportQuery = entityManager.createNativeQuery(queryString);
+							serviceLineOpportunityList = opportunitySummaryReportQuery.getResultList();
+
+						} else {
+							serviceLineOpportunityList = opportunityRepository.findOpportunitiesWithServiceLine(fromDate, toDate, geoList, countryList, iouList, serviceLinesList, 
+									salesStageCode);
+						}
+					}
+					break;
 				default:
 					if(geography.contains(ReportConstants.All) && (iou.contains(ReportConstants.All) && serviceLines.contains(ReportConstants.All)) && country.contains(ReportConstants.All)){
 						String queryString = reportsService.getOpportunityServiceLineSummaryQueryString(userId,fromDate,toDate,salesStageCode);
@@ -2728,6 +2796,21 @@ public class BuildOpportunityReportService {
 				case DELIVERY_CLUSTER_HEAD:
 				case DELIVERY_CENTRE_HEAD:
 					geographyOpportunityList = opportunityRepository.findOpportunitiesWithGeographyByRole(fromDate, toDate, salesStageCode, userIds, geoList, countryList, iouList, serviceLinesList);
+					break;
+				case PMO:
+					if(pmoDelivery) {
+						geographyOpportunityList = opportunityRepository.findOpportunitiesWithGeographyByRole(fromDate, toDate, salesStageCode, userIds, geoList, countryList, iouList, serviceLinesList);
+					} else {
+						if(geography.contains(ReportConstants.All) && (iou.contains(ReportConstants.All) && serviceLines.contains(ReportConstants.All)) && country.contains(ReportConstants.All)){
+							String queryString = reportsService.getOpportunityGeoSummaryQueryString(userId,fromDate,toDate,salesStageCode);
+							Query opportunitySummaryReportQuery = entityManager.createNativeQuery(queryString);
+							geographyOpportunityList = opportunitySummaryReportQuery.getResultList();
+
+						} else {
+							geographyOpportunityList = opportunityRepository.findOpportunitiesWithGeography(fromDate, toDate, geoList, countryList, iouList, serviceLinesList, 
+									salesStageCode);
+						}
+					}
 					break;
 				default:
 					if(geography.contains(ReportConstants.All) && (iou.contains(ReportConstants.All) && serviceLines.contains(ReportConstants.All)) && country.contains(ReportConstants.All)){
@@ -2765,6 +2848,21 @@ public class BuildOpportunityReportService {
 					case DELIVERY_CLUSTER_HEAD:
 					case DELIVERY_CENTRE_HEAD:
 						iouOpportunityList = opportunityRepository.findOpportunitiesWithIouByRole(fromDate, toDate, salesStageCode, userIds, geoList, countryList, iouList, serviceLinesList);
+						break;
+					case PMO:
+						if(pmoDelivery) {
+							iouOpportunityList = opportunityRepository.findOpportunitiesWithIouByRole(fromDate, toDate, salesStageCode, userIds, geoList, countryList, iouList, serviceLinesList);
+						} else {
+							if(geography.contains(ReportConstants.All) && (iou.contains(ReportConstants.All) && serviceLines.contains(ReportConstants.All)) && country.contains(ReportConstants.All)){
+								String queryString = reportsService.getOpportunityIouSummaryQueryString(userId,fromDate,toDate,salesStageCode);
+								Query opportunitySummaryReportQuery = entityManager.createNativeQuery(queryString);
+								iouOpportunityList = opportunitySummaryReportQuery.getResultList();
+
+							} else {
+								iouOpportunityList = opportunityRepository.findOpportunitiesWithIou(fromDate, toDate, geoList, countryList, iouList, serviceLinesList, 
+										salesStageCode);
+							}
+						}
 						break;
 					default:
 						if(geography.contains(ReportConstants.All) && (iou.contains(ReportConstants.All) && serviceLines.contains(ReportConstants.All)) && country.contains(ReportConstants.All)){
@@ -2829,6 +2927,9 @@ public class BuildOpportunityReportService {
 		List<UserAccessPrivilegesT> userPrivilegesList = 
 				userAccessPrivilegesRepository.findByUserIdAndParentPrivilegeIdIsNullAndIsactive(userId, Constants.Y);
 		UserT user = userRepository.findByUserId(userId);
+		UserT supervisorUser = userRepository
+				.findByUserId(user
+						.getSupervisorUserId());
 		String userGroup=user.getUserGroupMappingT().getUserGroup();
 		row = (SXSSFRow) spreadsheet.createRow(14);
 		row.createCell(4).setCellValue("User Access Filter's");
@@ -2868,8 +2969,15 @@ public class BuildOpportunityReportService {
 			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.OPPWHEREBDMSUPERVISORPRIMARYORSALESOWNER);
 			break;
 		case DELIVERY_CLUSTER_HEAD:
-		case DELIVERY_CENTRE_HEAD:
+		case DELIVERY_CENTRE_HEAD:	
 			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.OPPWHEREDELVTEAMPRIMARYORSALESOWNER);
+		case PMO:	
+			boolean pmoDelivery = opportunityService.isPMODelivery(user,supervisorUser);
+			if(pmoDelivery) {
+				ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.OPPWHEREDELVTEAMPRIMARYORSALESOWNER);
+			} else {
+				ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.FULLACCESS);
+			}
 			break;
 		default :
 			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.FULLACCESS);

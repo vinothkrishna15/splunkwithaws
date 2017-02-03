@@ -97,6 +97,9 @@ public class BDMDetailedReportService {
 	
 	@Autowired
 	PartnerRepository partnerRepository;
+	
+	@Autowired
+	OpportunityService opportunityService;
 
 
 	/**
@@ -155,8 +158,13 @@ public class BDMDetailedReportService {
 			List<String> serviceLines, List<Integer> salesStage, List<String> opportunityOwners, String userId,
 			SXSSFWorkbook workbook, List<String> fields, List<String> iou) throws Exception {
 		UserT user = userService.findByUserId(userId);
+		
 		boolean isIncludingSupervisor = false;
 		if (user != null) {
+			UserT supervisorUser = userRepository
+					.findByUserId(user
+							.getSupervisorUserId());
+			boolean pmoDelivery = opportunityService.isPMODelivery(user,supervisorUser);
 			Date fromDate=new Date();
 			Date toDate = new Date();
 			List<String> geoList = new ArrayList<String>();
@@ -187,7 +195,7 @@ public class BDMDetailedReportService {
 			}
 			
 		    if (UserGroup.contains(userGroup)) {
-		    List<String> users = getRequiredBDMs(userId, opportunityOwners);
+		    List<String> users = getRequiredBDMs(pmoDelivery ? supervisorUser.getUserId() : userId, opportunityOwners);
 		   
 		    // Validate user group, BDM's & BDM supervisor's are not authorized for this service
 			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
@@ -216,6 +224,9 @@ public class BDMDetailedReportService {
 			    	throw new DestinationException(HttpStatus.NOT_FOUND, "Given BDM is not his Subordinate");
 				    }
 				isIncludingSupervisor = true;
+				if(pmoDelivery) {
+					isIncludingSupervisor = false;
+				}
 				getBDMSupervisorPerformanceReport(users, fromDate, toDate, geoList, salesStage, serviceLinesList, iouList, countryList, currency, workbook, fields,isIncludingSupervisor);
 				break;
 			default :
