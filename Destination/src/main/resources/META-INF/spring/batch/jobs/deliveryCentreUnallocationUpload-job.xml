@@ -15,24 +15,30 @@
 			<batch:tasklet ref="unallocationUploadPreprocessor" />
 		</batch:step>
 
-		
-		<batch:step id="unallocationUploadProcessing" next="unallocationUploadPreprocess">
+
+		<batch:step id="unallocationUploadProcessing" next="unallocationDeliveryUploadProcessing">
 			<batch:tasklet>
 				<batch:chunk reader="unallocationOverallSpreadSheetReader"
 					writer="unallocationCustomWriter" commit-interval="${unallocationUpload.commit.interval}"
 					skip-policy="alwaysSkip" retry-limit="0" />
 			</batch:tasklet>
 		</batch:step>
-		
-				<batch:decision id="unallocationDecider" decider="unallocationFlowDecider">
+
+		<batch:step id="unallocationDeliveryUploadProcessing" next="unallocationUploadPreprocess">
+			<batch:tasklet>
+				<batch:chunk reader="unallocationDeliverySpreadSheetReader"
+					writer="unallocationDeliveryCustomWriter" commit-interval="${unallocationUpload.commit.interval}"
+					skip-policy="alwaysSkip" retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+
+		<batch:decision id="unallocationDecider" decider="unallocationFlowDecider">
 			<batch:next on="PREPROCESS" to="unallocationUploadPreprocess" />
 			<batch:next on="UNALLOCATION_PROCESSING" to="unallocationUploadProcessing" />
 			<batch:end on="END" />
 		</batch:decision>
-		
+
 	</batch:job>
-	
-		
 
 	<!-- Readers -->
 	<bean id="unallocationOverallSpreadSheetReader" class="com.tcs.destination.reader.SpreadSheetReader"
@@ -41,14 +47,14 @@
 		<property name="sheetName" value="Unallocation" />
 		<property name="rowsToSkip" value="1" />
 	</bean>
-<!-- Readers -->
-<bean id="unallocationDeliverySpreadSheetReader" class="com.tcs.destination.reader.SpreadSheetReader"
+	<!-- Readers -->
+	<bean id="unallocationDeliverySpreadSheetReader" class="com.tcs.destination.reader.SpreadSheetReader"
 		scope="step">
 		<property name="filePath" value="#{jobExecutionContext['FILE_PATH']}" />
-		<property name="sheetName" value="Delivery Center Unallocation" />
+		<property name="sheetName" value="DeliveryCentreUnallocation" />
 		<property name="rowsToSkip" value="1" />
 	</bean>
-<!-- Writer -->
+	<!-- Writer -->
 	<bean id="unallocationCustomWriter" class="com.tcs.destination.writer.UnallocationCustomWriter"
 		scope="step">
 		<property name="request" value="#{jobExecutionContext['REQUEST']}" />
@@ -57,15 +63,17 @@
 		<property name="uploadErrorReport" ref="uploadErrorReport" />
 		<property name="healthCardOverallPercentageRepository" ref="healthCardOverallPercentageRepository" />
 	</bean>
+
 	<!-- Writer -->
-		<!-- <bean id="unallocationDeliveryCustomWriter" class="com.tcs.destination.writer.unallocationDeliveryCustomWriter"
+	<bean id="unallocationDeliveryCustomWriter"
+		class="com.tcs.destination.writer.UnallocationDeliveryCustomWriter"
 		scope="step">
 		<property name="request" value="#{jobExecutionContext['REQUEST']}" />
 		<property name="helper" ref="unallocationUploadHelper" />
 		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository" />
 		<property name="uploadErrorReport" ref="uploadErrorReport" />
-		<property name="deliveryCentreUnallocationRepository" ref="deliveryCentreUnallocationRepository" />
-	</bean> -->
+		<property name="DeliveryCentreUtilizationRepository" ref="deliveryCentreUtilizationRepository" />
+	</bean>
 
 	<!-- Decider -->
 	<bean id="unallocationFlowDecider" class="com.tcs.destination.decider.UnallocationDecider" />

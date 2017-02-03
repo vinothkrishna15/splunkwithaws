@@ -29,7 +29,6 @@ public class UnallocationDecider implements JobExecutionDecider {
 		public FlowExecutionStatus decide(JobExecution jobExecution,
 				StepExecution stepExecution) {
 			
-			System.out.println("Inside Unallocation Decider");
 			logger.debug("Inside decide method:");
 			
 			FlowExecutionStatus status = new FlowExecutionStatus(JobStep.END.name());
