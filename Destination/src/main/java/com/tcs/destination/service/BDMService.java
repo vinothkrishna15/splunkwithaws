@@ -244,7 +244,7 @@ public class BDMService {
 			case PRACTICE_OWNER:	
 			case REPORTING_TEAM:
 				logger.error("User is not authorized to access this service");
-			    throw new DestinationException(HttpStatus.UNAUTHORIZED,  "User is not authorised to access this service");
+			    throw new DestinationException(HttpStatus.FORBIDDEN,  "User is not authorised to access this service");
 			case GEO_HEADS:
 			case IOU_HEADS:	
 			case PMO:

@@ -643,7 +643,7 @@ public class PartnerService {
 				else
 				{
 					logger.error("NOT_AUTHORISED: user is not authorised to update the partner name");
-					throw new DestinationException(HttpStatus.UNAUTHORIZED, "user is not authorised to update the partner name" );
+					throw new DestinationException(HttpStatus.FORBIDDEN, "user is not authorised to update the partner name" );
 				}
 			}
 		} else {
@@ -667,7 +667,7 @@ public class PartnerService {
 					else
 					{
 						logger.error("NOT_AUTHORISED: user is not authorised to update the geography");
-						throw new DestinationException(HttpStatus.UNAUTHORIZED, "user is not authorised to update the geography" );
+						throw new DestinationException(HttpStatus.FORBIDDEN, "user is not authorised to update the geography" );
 					}
 				}
 			} else {

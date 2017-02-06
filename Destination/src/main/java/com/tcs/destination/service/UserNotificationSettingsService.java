@@ -211,7 +211,7 @@ public class UserNotificationSettingsService {
 		logger.debug("Begin:Inside getUserNotificationSettings() UserNotificationSettings service");
 		if (!userId.equalsIgnoreCase(DestinationUtils.getCurrentUserDetails()
 				.getUserId())) {
-			throw new DestinationException(HttpStatus.UNAUTHORIZED,
+			throw new DestinationException(HttpStatus.FORBIDDEN,
 					"This user is not authorised to view the deetings of the specified user");
 		}
 

@@ -405,7 +405,7 @@ public class BuildDeliveryReport {
 
 		default:
 			logger.error("User dont have access to view this report");
-			throw new DestinationException(HttpStatus.UNAUTHORIZED,
+			throw new DestinationException(HttpStatus.FORBIDDEN,
 					"User dont have access to view this report");
 		}
 
