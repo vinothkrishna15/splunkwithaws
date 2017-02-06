@@ -59,6 +59,9 @@ public class UserNotificationSettingsService {
 
 	@Autowired
 	UserRepository userRepository;
+	
+	@Autowired
+	OpportunityService opportunityService;
 
 	/**
 	 * This method is used to save details of user notification settings
@@ -298,6 +301,10 @@ public class UserNotificationSettingsService {
 		List<UserSubscriptions> userSubscriptions = Lists.newArrayList();
 		String userId = DestinationUtils.getCurrentUserId();
 		UserT user = userRepository.findByUserId(userId);
+		UserT supervisorUser = userRepository
+				.findByUserId(user
+						.getSupervisorUserId());
+		boolean pmoDelivery = opportunityService.isPMODelivery(user,supervisorUser);
 		String userGroup = user.getUserGroup();
 		List<UserSubscriptions> subscriptions = userSubscriptionRepository
 				.findByUserId(userId);
@@ -341,6 +348,11 @@ public class UserNotificationSettingsService {
 					  flag = false;
 				  }
 				  break;
+				case PMO:
+					if(pmoDelivery && notificationTypeEventMappingT.getGroupId() == NotificationSettingGroup.LEADERSHIP.getGroupId()) {
+						flag = false;
+					}
+					break;
 				 default :
 					 break;
 				}
