@@ -498,8 +498,8 @@ public List<TargetVsActualDetailed> getTargetVsActual(
 			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 			case BDM:
 			case BDM_SUPERVISOR:
-			case PRACTICE_HEAD:
-			case PRACTICE_OWNER:
+			case CONSULTING_HEAD:
+			case CONSULTING_USER:
 			case REPORTING_TEAM:
 				logger.error("User is not authorized to access this service");
 				throw new DestinationException(HttpStatus.FORBIDDEN, "User is not authorised to access this service");
@@ -1111,8 +1111,8 @@ public void getTargetVsActualSummaryExcel(List<String> geography,
 			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 			case BDM:
 			case BDM_SUPERVISOR:
-			case PRACTICE_OWNER:
-			case PRACTICE_HEAD:
+			case CONSULTING_USER:
+			case CONSULTING_HEAD:
 			case REPORTING_TEAM:
 				logger.error("User is not authorized to access this service");
 				throw new DestinationException(HttpStatus.FORBIDDEN, "User is not authorised to access this service");
@@ -2351,14 +2351,14 @@ public InputStreamResource getConnectDetailedReport(String month,
 			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 			
 			case BDM:
-			case PRACTICE_OWNER:
+			case CONSULTING_USER:
 			case DELIVERY_MANAGER:
 				userIds.add(userId);
 				connectIdList = getConnectDetailsByUserIds(fromDate,toDate,userIds,iouList,displayGeography,countryList,serviceLinesList,connectCategory);
 				break;
 
 			case BDM_SUPERVISOR:
-			case PRACTICE_HEAD:
+			case CONSULTING_HEAD:
 			case DELIVERY_CLUSTER_HEAD:
 			case DELIVERY_CENTRE_HEAD:
 				userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
@@ -2629,7 +2629,7 @@ public InputStreamResource connectSummaryReport(String month, String quarter, St
 			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 			
 			case BDM:
-			case PRACTICE_OWNER:
+			case CONSULTING_USER:
 			case DELIVERY_MANAGER:
 				userIds.add(userId);
 				
@@ -2638,7 +2638,7 @@ public InputStreamResource connectSummaryReport(String month, String quarter, St
 				break;
 			
 			case BDM_SUPERVISOR:
-			case PRACTICE_HEAD:
+			case CONSULTING_HEAD:
 			case DELIVERY_CENTRE_HEAD:
 			case DELIVERY_CLUSTER_HEAD:
 				userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
@@ -2995,7 +2995,7 @@ public InputStreamResource getConnectDetailedAndSummaryReports(String month, Str
 
 			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 			case BDM:
-			case PRACTICE_OWNER:
+			case CONSULTING_USER:
 			case DELIVERY_MANAGER:
 				userIds.add(userId);
 				
@@ -3005,7 +3005,7 @@ public InputStreamResource getConnectDetailedAndSummaryReports(String month, Str
 						, geographyPartnerConnectCountList, iouConnectCountList, iouList, displayGeography, countryList, serviceLinesList,connectCategory);
 				break;
 			case BDM_SUPERVISOR:
-			case PRACTICE_HEAD:
+			case CONSULTING_HEAD:
 			case DELIVERY_CENTRE_HEAD:
 			case DELIVERY_CLUSTER_HEAD:
 				userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
@@ -3134,8 +3134,8 @@ public InputStreamResource getBidReport(String year, String fromMonth,
 		switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 		case BDM:
 		case BDM_SUPERVISOR:
-		case PRACTICE_OWNER:
-		case PRACTICE_HEAD:
+		case CONSULTING_USER:
+		case CONSULTING_HEAD:
 		case REPORTING_TEAM:
 			logger.error("User is not authorized to access this service");
 			throw new DestinationException(HttpStatus.FORBIDDEN,	"User is not authorised to access this service");
@@ -3623,12 +3623,12 @@ private String getBidDetailedQueryString(String userId, Date startDate, Date end
 			String userGroup = user.getUserGroupMappingT().getUserGroup();
 			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 			case BDM:
-			case PRACTICE_OWNER:
+			case CONSULTING_USER:
 			case DELIVERY_MANAGER:
 				userIds.add(userId);
 				break;
 			case BDM_SUPERVISOR:
-			case PRACTICE_HEAD:
+			case CONSULTING_HEAD:
 			case DELIVERY_CLUSTER_HEAD:
 			case DELIVERY_CENTRE_HEAD:
 				List<String> subOrdinatesList =userRepository.getAllSubordinatesIdBySupervisorId(userId);
@@ -3648,12 +3648,12 @@ private String getBidDetailedQueryString(String userId, Date startDate, Date end
 				if (salesStageList.get(i) < 9) {
 					switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 					case BDM:
-					case PRACTICE_OWNER:
+					case CONSULTING_USER:
 					case DELIVERY_MANAGER:
 						opportunityList = opportunityRepository.findSummaryGeographyByRole(salesStageList.get(i), userIds, geoList, countryList, iouList, serviceLinesList);
 						break;
 					case BDM_SUPERVISOR:
-					case PRACTICE_HEAD:
+					case CONSULTING_HEAD:
 					case DELIVERY_CLUSTER_HEAD:
 					case DELIVERY_CENTRE_HEAD:
 						opportunityList = opportunityRepository.findSummaryGeographyByRole(salesStageList.get(i), userIds, geoList, countryList, iouList, serviceLinesList);
@@ -3690,12 +3690,12 @@ private String getBidDetailedQueryString(String userId, Date startDate, Date end
 					if (isDistinctIou) {
 						switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 						case BDM:
-						case PRACTICE_OWNER:
+						case CONSULTING_USER:
 						case DELIVERY_MANAGER:
 							opportunityList = opportunityRepository.findSummaryIouByRole(salesStageList.get(i), userIds, geoList, countryList, iouList, serviceLinesList);
 							break;
 						case BDM_SUPERVISOR:
-						case PRACTICE_HEAD:
+						case CONSULTING_HEAD:
 						case DELIVERY_CLUSTER_HEAD:
 						case DELIVERY_CENTRE_HEAD:
 							opportunityList = opportunityRepository.findSummaryIouByRole(salesStageList.get(i), userIds, geoList, countryList, iouList, serviceLinesList);

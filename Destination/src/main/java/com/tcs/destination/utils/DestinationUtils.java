@@ -244,7 +244,7 @@ public class DestinationUtils {
 	}
 
 	public static List<String> getConsultingUserGroups() {
-		return Lists.newArrayList(UserGroup.PRACTICE_HEAD.getValue(), UserGroup.PRACTICE_OWNER.getValue());
+		return Lists.newArrayList(UserGroup.CONSULTING_HEAD.getValue(), UserGroup.CONSULTING_USER.getValue());
 	}
 	
 	public static List<Integer> getBidSubmittedStages() {

@@ -804,7 +804,7 @@ public class ConnectDetailedReportService {
 		row.getCell(currentColumnNo).setCellStyle(subHeadingStyle);
 		switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 		case BDM:
-		case PRACTICE_OWNER:
+		case CONSULTING_USER:
 			ExcelUtils.writeUserFilterConditions(spreadSheet, user,
 					ReportConstants.CONNECTSWHEREPRIMARYORSECONDARYOWNER,
 					currentRowNo++, currentColumnNo);
@@ -812,7 +812,7 @@ public class ConnectDetailedReportService {
 			break;
 
 		case BDM_SUPERVISOR:
-		case PRACTICE_HEAD:
+		case CONSULTING_HEAD:
 			ExcelUtils
 					.writeUserFilterConditions(
 							spreadSheet,

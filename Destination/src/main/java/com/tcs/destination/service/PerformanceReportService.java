@@ -1234,8 +1234,8 @@ public class PerformanceReportService {
 			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 			case BDM:
 			case BDM_SUPERVISOR:
-			case PRACTICE_HEAD:
-			case PRACTICE_OWNER:
+			case CONSULTING_HEAD:
+			case CONSULTING_USER:
 			case DELIVERY_CLUSTER_HEAD:
 			case DELIVERY_CENTRE_HEAD:
 			case DELIVERY_MANAGER:	

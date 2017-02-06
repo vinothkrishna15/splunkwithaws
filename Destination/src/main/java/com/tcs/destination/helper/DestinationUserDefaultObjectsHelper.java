@@ -49,8 +49,8 @@ public class DestinationUserDefaultObjectsHelper {
 		case BDM_SUPERVISOR:
 		case DELIVERY_CLUSTER_HEAD:
 		case DELIVERY_CENTRE_HEAD:		
-		case PRACTICE_OWNER:
-		case PRACTICE_HEAD:
+		case CONSULTING_USER:
+		case CONSULTING_HEAD:
 			userNotificationLeaderShipList.add(getNotification(userId,16,1,Constants.N, notifyTypeEventMap));
 			userNotificationLeaderShipList.add(getNotification(userId,16,2,Constants.N, notifyTypeEventMap));
 			userNotificationLeaderShipList.add(getNotification(userId,16,3,Constants.N, notifyTypeEventMap));
@@ -105,8 +105,8 @@ public class DestinationUserDefaultObjectsHelper {
 		case DELIVERY_CLUSTER_HEAD:
 		case DELIVERY_CENTRE_HEAD:		
 		case GEO_HEADS: 
-		case PRACTICE_OWNER:
-		case PRACTICE_HEAD:
+		case CONSULTING_USER:
+		case CONSULTING_HEAD:
 		case IOU_HEADS:
 		case STRATEGIC_INITIATIVES:
 		case BID_OFFICE:	
@@ -174,8 +174,8 @@ public class DestinationUserDefaultObjectsHelper {
 		case BDM_SUPERVISOR:
 		case DELIVERY_CLUSTER_HEAD:
 		case DELIVERY_CENTRE_HEAD:	
-		case PRACTICE_OWNER:
-		case PRACTICE_HEAD:
+		case CONSULTING_USER:
+		case CONSULTING_HEAD:
 			userNotificationCollaborationList.add(getNotification(userId,8,1,Constants.Y, notifyTypeEventMap));
 			userNotificationCollaborationList.add(getNotification(userId,8,2,Constants.Y, notifyTypeEventMap));
 			userNotificationCollaborationList.add(getNotification(userId,8,3,Constants.N, notifyTypeEventMap));
@@ -226,8 +226,8 @@ public class DestinationUserDefaultObjectsHelper {
 		case BDM_SUPERVISOR:
 		case DELIVERY_CLUSTER_HEAD:
 		case DELIVERY_CENTRE_HEAD:	
-		case PRACTICE_OWNER:
-		case PRACTICE_HEAD:
+		case CONSULTING_USER:
+		case CONSULTING_HEAD:
 		case GEO_HEADS: 
 		case IOU_HEADS:
 		case STRATEGIC_INITIATIVES:
@@ -272,8 +272,8 @@ public class DestinationUserDefaultObjectsHelper {
 		case BDM_SUPERVISOR:
 		case DELIVERY_CLUSTER_HEAD:
 		case DELIVERY_CENTRE_HEAD:
-		case PRACTICE_OWNER:
-		case PRACTICE_HEAD:
+		case CONSULTING_USER:
+		case CONSULTING_HEAD:
 		case GEO_HEADS: 
 		case IOU_HEADS:
 		case STRATEGIC_INITIATIVES:

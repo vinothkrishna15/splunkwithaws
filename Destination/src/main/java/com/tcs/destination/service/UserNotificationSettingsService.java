@@ -254,7 +254,7 @@ public class UserNotificationSettingsService {
 			int index = Integer.MAX_VALUE;
 			switch (UserGroup.valueOf(UserGroup.getName(userT.getUserGroup()))) {
 			case BDM:
-			case PRACTICE_OWNER:	
+			case CONSULTING_USER:	
 				index = 3;
 				removeNotificationSettingsFromIndex(
 						notificationSettingsGroupMappingTs, index);
@@ -262,7 +262,7 @@ public class UserNotificationSettingsService {
 						notificationSettingsGroupMappingTs, index);
 				break;
 			case BDM_SUPERVISOR:
-			case PRACTICE_HEAD:	
+			case CONSULTING_HEAD:	
 				index = 4;
 				removeNotificationSettingsFromIndex(
 						notificationSettingsGroupMappingTs, index);
@@ -334,14 +334,14 @@ public class UserNotificationSettingsService {
 				boolean flag = true;
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 				case BDM :
-				case PRACTICE_OWNER:
+				case CONSULTING_USER:
 				case DELIVERY_MANAGER:	
 					if(notificationTypeEventMappingT.getGroupId() == NotificationSettingGroup.SUPERVISOR.getGroupId() || notificationTypeEventMappingT.getGroupId() == NotificationSettingGroup.LEADERSHIP.getGroupId()) {
 						flag = false;
 					}
 					break;
 				case BDM_SUPERVISOR:
-				case PRACTICE_HEAD:
+				case CONSULTING_HEAD:
 				case DELIVERY_CENTRE_HEAD:
 				case DELIVERY_CLUSTER_HEAD:	
 				  if(notificationTypeEventMappingT.getGroupId() == NotificationSettingGroup.LEADERSHIP.getGroupId()) {

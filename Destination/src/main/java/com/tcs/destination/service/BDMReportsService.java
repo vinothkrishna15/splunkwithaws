@@ -256,7 +256,7 @@ public class BDMReportsService {
 			ExcelUtils.writeDetailsForSearchTypeUserAccessFilter(spreadsheet, userAccessField, privilegeValueList, user, dataRow, "NA");
 			break;
 		case BDM_SUPERVISOR:
-		case PRACTICE_HEAD:
+		case CONSULTING_HEAD:
 		case DELIVERY_CENTRE_HEAD:
 		case DELIVERY_CLUSTER_HEAD:
 			ExcelUtils.writeUserFilterConditions(spreadsheet, user, "NA");
@@ -347,11 +347,11 @@ public class BDMReportsService {
 			    // Validate user group, BDM's & BDM supervisor's are not authorized for this service
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 				case BDM:
-				case PRACTICE_OWNER:
+				case CONSULTING_USER:
 					logger.error("User is not authorized to access this service");
 				    throw new DestinationException(HttpStatus.FORBIDDEN, " User is not authorised to access this service ");
 				case BDM_SUPERVISOR:
-				case PRACTICE_HEAD:
+				case CONSULTING_HEAD:
 				case DELIVERY_CENTRE_HEAD:
 				case DELIVERY_CLUSTER_HEAD:
 					 if(userIds.isEmpty()){
@@ -376,8 +376,8 @@ public class BDMReportsService {
 					}
 					break;
 				default :
-					List<String> userGroupBDMAndBDMSupervisor = Arrays.asList("BDM", "BDM Supervisor","Practice Head");
-					List<String> bdmUser = Arrays.asList("BDM","Practice Owner");
+					List<String> userGroupBDMAndBDMSupervisor = Arrays.asList(UserGroup.BDM.getValue(), UserGroup.BDM_SUPERVISOR.getValue(),UserGroup.CONSULTING_HEAD.getValue());
+					List<String> bdmUser = Arrays.asList(UserGroup.BDM.getValue(),UserGroup.CONSULTING_USER.getValue());
 					List<String> bdmsList = new ArrayList<String>();
 					List<String> geoIouUserList = new ArrayList<String>();
 					List<String> bdmSupervisorList = new ArrayList<String>();
@@ -436,11 +436,11 @@ public class BDMReportsService {
 			    	
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 				case BDM:
-				case PRACTICE_OWNER:
+				case CONSULTING_USER:
 					subOrdinatesList.add(bdm);
 					break;
 				case BDM_SUPERVISOR:
-				case PRACTICE_HEAD:
+				case CONSULTING_HEAD:
 				case GEO_HEADS:
 				case IOU_HEADS:
 				case DELIVERY_CENTRE_HEAD:

@@ -199,8 +199,8 @@ public class UserUploadService {
 				UserGroup.GEO_HEADS.getValue(), UserGroup.IOU_HEADS.getValue(),
 				UserGroup.BID_OFFICE.getValue(),
 				UserGroup.STRATEGIC_INITIATIVES.getValue(),
-				UserGroup.PRACTICE_HEAD.getValue(),
-				UserGroup.PRACTICE_OWNER.getValue(),
+				UserGroup.CONSULTING_HEAD.getValue(),
+				UserGroup.CONSULTING_USER.getValue(),
 				UserGroup.REPORTING_TEAM.getValue()
 };
 

@@ -143,7 +143,7 @@ public class BDMService {
 			}
 			Date fromDate = DateUtils.getDateFromFinancialYear(financialYear, true);
 			Date toDate = DateUtils.getDateFromFinancialYear(financialYear, false);
-			if (userGroup.equals(UserGroup.BDM.getValue()) || userGroup.equals(UserGroup.PRACTICE_OWNER.getValue())
+			if (userGroup.equals(UserGroup.BDM.getValue()) || userGroup.equals(UserGroup.CONSULTING_USER.getValue())
 					|| userGroup.equals(UserGroup.DELIVERY_MANAGER.getValue())) {
 				if (isDashboardByYear) {
 					if(financialYear.equals(DateUtils.getCurrentFinancialYear())){
@@ -155,7 +155,7 @@ public class BDMService {
 				}
 			} else {
 				logger.error("NOT_FOUND: User is not BDM: {}", userId);
-				throw new DestinationException(HttpStatus.NOT_FOUND, "User is not BDM/Practice Owner/Delivery Partner: " + userId);
+				throw new DestinationException(HttpStatus.NOT_FOUND, "User is not BDM/Consulting User/Delivery Partner: " + userId);
 			}
 		} else {
 			logger.error("NOT_FOUND: User not found: {}", userId);
@@ -186,7 +186,7 @@ public class BDMService {
 		if (user != null) {
 			String userGroup = user.getUserGroupMappingT().getUserGroup();
 			if (userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue()) 
-					|| userGroup.equals(UserGroup.PRACTICE_HEAD.getValue()) 
+					|| userGroup.equals(UserGroup.CONSULTING_HEAD.getValue()) 
 					|| userGroup.equals(UserGroup.PMO.getValue()) 
 					|| userGroup.equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
 					|| userGroup.equals(UserGroup.DELIVERY_CENTRE_HEAD.getValue())) {
@@ -203,8 +203,8 @@ public class BDMService {
 				}
 				bdmSupervisorDashboardDetails = getBDMSupervisorDashboardByUser(userIds, financialYear, isDashboardByYear);
 			} else {
-				logger.error("NOT_FOUND: User is not BDM Supervisor/Practice Head/PMO: {}", userId);
-				throw new DestinationException(HttpStatus.NOT_FOUND, "User is not BDM Supervisor/Practice Head/PMO: " + userId);
+				logger.error("NOT_FOUND: User is not BDM Supervisor/Consulting Head/PMO: {}", userId);
+				throw new DestinationException(HttpStatus.NOT_FOUND, "User is not BDM Supervisor/Consulting Head/PMO: " + userId);
 			}
 		} else {
 			logger.error("NOT_FOUND: User not found: {}", userId);
@@ -240,8 +240,8 @@ public class BDMService {
 			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 			case BDM:
 			case BDM_SUPERVISOR:
-			case PRACTICE_HEAD:
-			case PRACTICE_OWNER:	
+			case CONSULTING_HEAD:
+			case CONSULTING_USER:	
 			case REPORTING_TEAM:
 				logger.error("User is not authorized to access this service");
 			    throw new DestinationException(HttpStatus.FORBIDDEN,  "User is not authorised to access this service");

@@ -627,8 +627,8 @@ public class ConnectService {
 		String userGroup = user.getUserGroup();
 		if (UserGroup.contains(userGroup)) {
 			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
-			case PRACTICE_HEAD:
-			case PRACTICE_OWNER:
+			case CONSULTING_HEAD:
+			case CONSULTING_USER:
 				Set<String> owners = new HashSet<String>();
 				owners.add(connect.getPrimaryOwner());
 				if (connect.getConnectSecondaryOwnerLinkTs() != null

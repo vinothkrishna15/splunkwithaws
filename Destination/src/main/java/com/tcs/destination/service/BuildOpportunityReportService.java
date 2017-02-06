@@ -163,14 +163,14 @@ public class BuildOpportunityReportService {
 		ExcelUtils.addItemToList(serviceLines,serviceLinesList);
 		switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 		case BDM:
-		case PRACTICE_OWNER:
+		case CONSULTING_USER:
 		case DELIVERY_MANAGER:
 			userIds.add(userId);
 			opportunityIds = opportunityRepository.findOpportunitiesByRoleWith(fromDate, toDate, salesStage, userIds, 
 					geoList, countryList, iouList, serviceLinesList);
 			break;
 		case BDM_SUPERVISOR:
-		case PRACTICE_HEAD:
+		case CONSULTING_HEAD:
 		case DELIVERY_CLUSTER_HEAD:
 		case DELIVERY_CENTRE_HEAD:
 			List<String> subOrdinatesList = userRepository.getAllSubordinatesIdBySupervisorId(userId);
@@ -863,12 +863,12 @@ public class BuildOpportunityReportService {
 			List<OpportunitySummaryValue> pipelineOpportunitySummaryValueList = new ArrayList<OpportunitySummaryValue>();
 			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 			case BDM:
-			case PRACTICE_OWNER:
+			case CONSULTING_USER:
 			case DELIVERY_MANAGER:
 				opportunityList = opportunityRepository.findPipelineSummaryServiceLineByRole(salesStagePipeline, userIds, geoList, countryList, iouList, serviceLinesList);
 				break;
 			case BDM_SUPERVISOR:
-			case PRACTICE_HEAD:
+			case CONSULTING_HEAD:
 			case DELIVERY_CLUSTER_HEAD:
 			case DELIVERY_CENTRE_HEAD:
 				opportunityList = opportunityRepository.findPipelineSummaryServiceLineByRole(salesStagePipeline, userIds, geoList, countryList, iouList, serviceLinesList);
@@ -939,12 +939,12 @@ public class BuildOpportunityReportService {
 			List<OpportunitySummaryValue> anticipatingOpportunitySummaryValueList = new ArrayList<OpportunitySummaryValue>();
 			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 			case BDM:
-			case PRACTICE_OWNER:
+			case CONSULTING_USER:
 			case DELIVERY_MANAGER:
 				opportunityList = opportunityRepository.findPipelineSummaryServiceLineByRole(salesStageAnticipating, userIds, geoList, countryList, iouList, serviceLinesList);
 				break;
 			case BDM_SUPERVISOR:
-			case PRACTICE_HEAD:
+			case CONSULTING_HEAD:
 			case DELIVERY_CLUSTER_HEAD:
 			case DELIVERY_CENTRE_HEAD:
 				opportunityList = opportunityRepository.findPipelineSummaryServiceLineByRole(salesStageAnticipating, userIds, geoList, countryList, iouList, serviceLinesList);
@@ -2736,12 +2736,12 @@ public class BuildOpportunityReportService {
 				toDate = toDateMap.get(subCategory);
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 				case BDM:
-				case PRACTICE_OWNER:
+				case CONSULTING_USER:
 				case DELIVERY_MANAGER:
 					serviceLineOpportunityList = opportunityRepository.findOpportunitiesWithServiceLineByRole(fromDate, toDate, salesStageCode, userIds,  geoList, countryList, iouList, serviceLinesList);
 					break;
 				case BDM_SUPERVISOR:
-				case PRACTICE_HEAD:
+				case CONSULTING_HEAD:
 				case DELIVERY_CLUSTER_HEAD:
 				case DELIVERY_CENTRE_HEAD:
 					serviceLineOpportunityList = opportunityRepository.findOpportunitiesWithServiceLineByRole(fromDate, toDate, salesStageCode, userIds,  geoList, countryList, iouList, serviceLinesList);
@@ -2787,12 +2787,12 @@ public class BuildOpportunityReportService {
 				toDate = toDateMap.get(subCategory);
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 				case BDM:
-				case PRACTICE_OWNER:
+				case CONSULTING_USER:
 				case DELIVERY_MANAGER:
 					geographyOpportunityList = opportunityRepository.findOpportunitiesWithGeographyByRole(fromDate, toDate, salesStageCode, userIds, geoList, countryList, iouList, serviceLinesList);
 					break;
 				case BDM_SUPERVISOR:
-				case PRACTICE_HEAD:
+				case CONSULTING_HEAD:
 				case DELIVERY_CLUSTER_HEAD:
 				case DELIVERY_CENTRE_HEAD:
 					geographyOpportunityList = opportunityRepository.findOpportunitiesWithGeographyByRole(fromDate, toDate, salesStageCode, userIds, geoList, countryList, iouList, serviceLinesList);
@@ -2839,12 +2839,12 @@ public class BuildOpportunityReportService {
 					toDate = toDateMap.get(subCategory);
 					switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 					case BDM:
-					case PRACTICE_OWNER:
+					case CONSULTING_USER:
 					case DELIVERY_MANAGER:
 						iouOpportunityList = opportunityRepository.findOpportunitiesWithIouByRole(fromDate, toDate, salesStageCode, userIds, geoList, countryList, iouList, serviceLinesList);
 						break;
 					case BDM_SUPERVISOR:
-					case PRACTICE_HEAD:
+					case CONSULTING_HEAD:
 					case DELIVERY_CLUSTER_HEAD:
 					case DELIVERY_CENTRE_HEAD:
 						iouOpportunityList = opportunityRepository.findOpportunitiesWithIouByRole(fromDate, toDate, salesStageCode, userIds, geoList, countryList, iouList, serviceLinesList);
@@ -2958,14 +2958,14 @@ public class BuildOpportunityReportService {
 			ExcelUtils.writeDetailsForSearchTypeUserAccessFilter(spreadsheet, userAccessField, privilegeValueList, user, dataRow, ReportConstants.OPPBASEDONPRIVILAGE);
 			break;
 		case BDM:
-		case PRACTICE_OWNER:
+		case CONSULTING_USER:
 			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.OPPWHEREBDMPRIMARYORSALESOWNER);
 			break;
 		case DELIVERY_MANAGER:
 			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.DELOPPWHEREUSERPRIMARYORSALESOWNER);
 			break;
 		case BDM_SUPERVISOR:
-		case PRACTICE_HEAD:
+		case CONSULTING_HEAD:
 			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.OPPWHEREBDMSUPERVISORPRIMARYORSALESOWNER);
 			break;
 		case DELIVERY_CLUSTER_HEAD:

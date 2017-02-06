@@ -1252,8 +1252,8 @@ public class OpportunityService {
 			OpportunityT opportunityBeforeEdit, int oldSalesStageCode) throws Exception {
 		logger.debug("Inside saveOpportunity() method");
 		validateOpportunityPrimarySubSp(opportunity);
-		if (userGroup.equals(UserGroup.PRACTICE_HEAD.getValue())
-				|| userGroup.equals(UserGroup.PRACTICE_OWNER.getValue())) {
+		if (userGroup.equals(UserGroup.CONSULTING_HEAD.getValue())
+				|| userGroup.equals(UserGroup.CONSULTING_USER.getValue())) {
 			Set<String> owners = new HashSet<String>();
 			owners.add(opportunity.getOpportunityOwner());
 			if (opportunity.getOpportunitySalesSupportLinkTs() != null

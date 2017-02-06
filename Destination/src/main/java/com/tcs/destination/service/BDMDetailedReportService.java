@@ -200,12 +200,12 @@ public class BDMDetailedReportService {
 		    // Validate user group, BDM's & BDM supervisor's are not authorized for this service
 			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 			case BDM:
-			case PRACTICE_OWNER:
+			case CONSULTING_USER:
 			case REPORTING_TEAM:
 				logger.error("User is not authorized to access this service");
 			    throw new DestinationException(HttpStatus.FORBIDDEN, " User is not authorised to access this service ");
 			case BDM_SUPERVISOR:
-			case PRACTICE_HEAD:
+			case CONSULTING_HEAD:
 			case DELIVERY_CENTRE_HEAD:
 			case DELIVERY_CLUSTER_HEAD:
 				 if(users.isEmpty()){
