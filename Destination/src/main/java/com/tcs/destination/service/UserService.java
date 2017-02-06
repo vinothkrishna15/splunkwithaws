@@ -22,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.tcs.destination.bean.DeliveryCentreT;
+import com.tcs.destination.bean.DeliveryClusterT;
 import com.tcs.destination.bean.LoginHistoryT;
 import com.tcs.destination.bean.NotificationTypeEventMappingT;
 import com.tcs.destination.bean.PageDTO;
@@ -41,6 +43,8 @@ import com.tcs.destination.bean.UserProfile;
 import com.tcs.destination.bean.UserRoleMappingT;
 import com.tcs.destination.bean.UserSubscriptions;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.data.repository.DeliveryCentreRepository;
+import com.tcs.destination.data.repository.DeliveryClusterRepository;
 import com.tcs.destination.data.repository.GoalGroupMappingRepository;
 import com.tcs.destination.data.repository.GoalMappingRepository;
 import com.tcs.destination.data.repository.LoginHistoryRepository;
@@ -114,6 +118,13 @@ public class UserService {
 	
 	@Autowired
 	UserRoleMappingRepository userRoleMappingRepository;
+	
+	
+	@Autowired
+	DeliveryClusterRepository deliveryClusterRepository;
+	
+	@Autowired
+	DeliveryCentreRepository deliveryCentreRepository;
 
 	@Value("${forgotPassword}")
 	private String forgotPasswordSubject;
@@ -830,6 +841,8 @@ public class UserService {
 	public boolean insertUserDetails(UserT user) throws Exception {
 		logger.info("Begin:inside insertUserDetails() method");
 		checkIfUserAlreadyExist(user);
+	//	checkIfClusterHeadAlreadyExist(user);
+	//	checkIfCentreHeadAlreadyExist(user);
 		user.setTempPassword(getTempPassword());
 		user.setStatus(0);
 		// validate user
@@ -839,6 +852,9 @@ public class UserService {
 			saveUserPrivileges(user);//save user access privileges
 			saveOrUpdateUserGoals(user);//save user goals
 			saveDefaultNotificationSettings(user);//save default notification settings
+			
+			updateDeliveryHead(user); //update the delivery head
+			
 			logger.info("End:inside insertUserDetails() of UserService: user Saved : " + user.getUserId());
 			return true;
 		} else {
@@ -846,7 +862,40 @@ public class UserService {
 			return false;
 		}
 	}
+	
+	/**
+	 * this method is used to update Delivery Head
+	 * @param user
+	 */
+	
+	
+	private void updateDeliveryHead(UserT user) {
+		logger.info("Inside updateDeliveryHead() method");
+		
+		if(user.getDeliveryClusterId() != null)
+		{
+			DeliveryClusterT deliveryClusterT = deliveryClusterRepository.findByDeliveryClusterId(user.getDeliveryClusterId());
+			deliveryClusterT.setDeliveryClusterHead(user.getUserId());
+			deliveryClusterRepository.save(deliveryClusterT);
+			logger.info("End:inside updateDeliveryClusterHead() of UserService: cluster head saved : " + user.getDeliveryClusterId());
+		}
+		else if(user.getDeliveryCentreId() != null)
+		 {
+			 DeliveryCentreT deliveryCentreT = deliveryCentreRepository .findByDeliveryCentreId(user.getDeliveryCentreId());
+			 deliveryCentreT.setDeliveryCentreHead(user.getUserId());
+			 deliveryCentreRepository.save(deliveryCentreT);
+			 logger.info("End:inside updateDeliveryCentreHead() of UserService: centre head saved : " + user.getDeliveryCentreId());
+		 }
+		 logger.info("End of updateDeliveryHead() method");
+	}
+	
 
+	
+
+
+
+		
+			
 	/**
 	 * This method is used to verify whether userId is already present in database
 	 * 

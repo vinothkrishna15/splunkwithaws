@@ -98,6 +98,12 @@ public class UserT implements Serializable {
 	public void setStatus(int status) {
 		this.status = status;
 	}
+	
+	@Transient
+	private Integer deliveryClusterId;
+	
+	@Transient
+	private Integer deliveryCentreId;
 
 	@Transient
 	private Timestamp lastLogin;
@@ -1923,6 +1929,22 @@ public class UserT implements Serializable {
 	public void setDocumentsTs2(List<DocumentsT> documentsTs2) {
 		this.documentsTs2 = documentsTs2;
 	}
+	
+	public Integer getDeliveryClusterId() {
+		return deliveryClusterId;
+	}
+
+	public void setDeliveryClusterId(Integer deliveryClusterId) {
+		this.deliveryClusterId = deliveryClusterId;
+	}
+
+	public Integer getDeliveryCentreId() {
+		return deliveryCentreId;
+	}
+
+	public void setDeliveryCentreId(Integer deliveryCentreId) {
+		this.deliveryCentreId = deliveryCentreId;
+	}
 
 	@Override
 	public int hashCode() {
@@ -1993,6 +2015,8 @@ public class UserT implements Serializable {
 	//
 	//		return workflowCompetitorTs2;
 	//	}
+	
+	
 	
 	
 }

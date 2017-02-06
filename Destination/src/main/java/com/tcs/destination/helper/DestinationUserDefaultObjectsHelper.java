@@ -278,6 +278,7 @@ public class DestinationUserDefaultObjectsHelper {
 		case IOU_HEADS:
 		case STRATEGIC_INITIATIVES:
 		case BID_OFFICE:
+		case PMO:
 		{
 		userNotificationGeneralSettingsList.add(getNotification(userId,1,1,Constants.Y, notifyTypeEventMap));
 		userNotificationGeneralSettingsList.add(getNotification(userId,1,2,Constants.Y, notifyTypeEventMap));
