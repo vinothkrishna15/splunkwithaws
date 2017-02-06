@@ -66,7 +66,7 @@ public class DealReportingService {
 				break;
 			default:
 				logger.error("NOT_FOUND: Deal Reporting Start Date is empty");
-				throw new DestinationException(HttpStatus.UNAUTHORIZED,
+				throw new DestinationException(HttpStatus.FORBIDDEN,
 						"User not authorized to set month reporting for deals.");
 			}
 		}

@@ -997,7 +997,7 @@ public class CustomerService {
 						else
 						{
 							logger.error("NOT_AUTHORISED: user is not authorised to update the customer");
-							throw new DestinationException(HttpStatus.UNAUTHORIZED, "user is not authorised to update the customer" );
+							throw new DestinationException(HttpStatus.FORBIDDEN, "user is not authorised to update the customer" );
 						}
 						break;
 
@@ -1009,7 +1009,7 @@ public class CustomerService {
 
 			default: 
 				logger.error("NOT_AUTHORISED: user is not authorised to update the customer");
-				throw new DestinationException(HttpStatus.UNAUTHORIZED, "user is not authorised to update the customer" );
+				throw new DestinationException(HttpStatus.FORBIDDEN, "user is not authorised to update the customer" );
 			}
 		}
 
@@ -1145,7 +1145,7 @@ public class CustomerService {
 			else
 			{
 				logger.error("NOT_AUTHORISED: user is not authorised to update the customer name");
-				throw new DestinationException(HttpStatus.UNAUTHORIZED, "user is not authorised to update the customer name" );
+				throw new DestinationException(HttpStatus.FORBIDDEN, "user is not authorised to update the customer name" );
 			}
 
 
@@ -1203,7 +1203,7 @@ public class CustomerService {
 			else
 			{
 				logger.error("NOT_AUTHORISED: user is not authorised to update the geography");
-				throw new DestinationException(HttpStatus.UNAUTHORIZED, "user is not authorised to update the geography" );
+				throw new DestinationException(HttpStatus.FORBIDDEN, "user is not authorised to update the geography" );
 			}
 
 		}
@@ -1224,7 +1224,7 @@ public class CustomerService {
 			else
 			{
 				logger.error("NOT_AUTHORISED: user is not authorised to update the iou");
-				throw new DestinationException(HttpStatus.UNAUTHORIZED, "user is not authorised to update the iou" );
+				throw new DestinationException(HttpStatus.FORBIDDEN, "user is not authorised to update the iou" );
 			}
 
 		}

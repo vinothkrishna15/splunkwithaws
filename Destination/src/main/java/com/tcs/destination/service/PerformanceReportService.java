@@ -1225,13 +1225,13 @@ public class PerformanceReportService {
 			case DELIVERY_CENTRE_HEAD:
 			case DELIVERY_MANAGER:	
 				logger.error("User is not authorized to access this service");
-				throw new DestinationException(HttpStatus.UNAUTHORIZED,
+				throw new DestinationException(HttpStatus.FORBIDDEN,
 						"User is not authorised to access this service");
 			default:
 				return true;
 			}
 		} else {
-			throw new DestinationException(HttpStatus.UNAUTHORIZED,
+			throw new DestinationException(HttpStatus.FORBIDDEN,
 					"User doesnot belong to any user group");
 		}
 		// }

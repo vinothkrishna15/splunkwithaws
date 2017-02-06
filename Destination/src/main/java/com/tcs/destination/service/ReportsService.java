@@ -499,7 +499,7 @@ public List<TargetVsActualDetailed> getTargetVsActual(
 			case PRACTICE_OWNER:
 			case REPORTING_TEAM:
 				logger.error("User is not authorized to access this service");
-				throw new DestinationException(HttpStatus.UNAUTHORIZED, "User is not authorised to access this service");
+				throw new DestinationException(HttpStatus.FORBIDDEN, "User is not authorised to access this service");
 			default:
 				ExcelUtils.addItemToList(iou, iouList);
 				addEmptyItemToListIfGeo(geography, geographyList);
@@ -1112,7 +1112,7 @@ public void getTargetVsActualSummaryExcel(List<String> geography,
 			case PRACTICE_HEAD:
 			case REPORTING_TEAM:
 				logger.error("User is not authorized to access this service");
-				throw new DestinationException(HttpStatus.UNAUTHORIZED, "User is not authorised to access this service");
+				throw new DestinationException(HttpStatus.FORBIDDEN, "User is not authorised to access this service");
 			default:
 				ExcelUtils.addItemToList(iou, iouList);
 				addEmptyItemToListIfGeo(geography, geographyList);
@@ -3103,7 +3103,7 @@ public InputStreamResource getBidReport(String year, String fromMonth,
 		case PRACTICE_HEAD:
 		case REPORTING_TEAM:
 			logger.error("User is not authorized to access this service");
-			throw new DestinationException(HttpStatus.UNAUTHORIZED,	"User is not authorised to access this service");
+			throw new DestinationException(HttpStatus.FORBIDDEN,	"User is not authorised to access this service");
 		default:
 			addEmptyItemToListIfGeo(geography, geographyList);
 			ExcelUtils.addItemToList(iou, iouList);

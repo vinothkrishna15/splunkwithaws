@@ -329,7 +329,7 @@ public class DashBoardService {
 //				case PRACTICE_HEAD:
 				case PRACTICE_OWNER:	
 					logger.error("User is not authorized to access this service");
-					throw new DestinationException(HttpStatus.UNAUTHORIZED,
+					throw new DestinationException(HttpStatus.FORBIDDEN,
 							"User is not authorised to access this service");
 				default:
 					leadershipConnectsDTO = getTeamConnectsBasedOnUserPrivileges(
@@ -689,7 +689,7 @@ public class DashBoardService {
 //				case PRACTICE_HEAD:
 				case PRACTICE_OWNER:
 					logger.error("User is not authorized to access this service");
-					throw new DestinationException(HttpStatus.UNAUTHORIZED,
+					throw new DestinationException(HttpStatus.FORBIDDEN,
 							"User is not authorised to access this service");
 				default:
 					leadershipOverallWinsDTO = getLeadershipWinsByUserPrivileges(
@@ -1070,7 +1070,7 @@ public class DashBoardService {
 //				case PRACTICE_HEAD:
 				case PRACTICE_OWNER:
 					logger.error("User is not authorized to access this service");
-					throw new DestinationException(HttpStatus.UNAUTHORIZED,
+					throw new DestinationException(HttpStatus.FORBIDDEN,
 							"User is not authorised to access this service");
 				default:
 					listOfOppportunities = getLeadershipOpportunitiesByUserPrivileges(
@@ -1452,7 +1452,7 @@ public class DashBoardService {
 
 			default:
 				logger.error("UNAUTHORIZED : User is not authorized to access this service");
-				throw new DestinationException(HttpStatus.UNAUTHORIZED, "User is not authorised to access this service");
+				throw new DestinationException(HttpStatus.FORBIDDEN, "User is not authorised to access this service");
 			}
 		}
 		if((users == null)||(users.isEmpty())){

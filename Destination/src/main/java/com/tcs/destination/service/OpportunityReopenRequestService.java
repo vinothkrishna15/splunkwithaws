@@ -97,7 +97,7 @@ public class OpportunityReopenRequestService {
 			logger.debug("End:Inside findOne  of OpportunityReopenRequestService");
 			return opportunityReopenRequestT;
 		} else {
-			throw new DestinationException(HttpStatus.UNAUTHORIZED,
+			throw new DestinationException(HttpStatus.FORBIDDEN,
 					ERROR_MESSAGE);
 		}
 	}
@@ -169,7 +169,7 @@ public class OpportunityReopenRequestService {
 					// Date());
 				} else
 					throw new DestinationException(
-							HttpStatus.UNAUTHORIZED,
+							HttpStatus.FORBIDDEN,
 							"You are not authorised to Request for reopen. Only Opportunity Owner or Sales Support Owner are allowed to request for update");
 			} catch (Exception e) {
 				throw new DestinationException(
