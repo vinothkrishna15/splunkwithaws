@@ -26,4 +26,6 @@ public interface DeliveryClusterRepository extends CrudRepository<DeliveryCluste
 	
 	@Query(value="select delivery_cluster_id, delivery_cluster from delivery_cluster_t  ",nativeQuery=true)
 	List<Object[]> findDeliveryCluster();
+	
+	DeliveryClusterT findByDeliveryClusterId(Integer id);
 }
