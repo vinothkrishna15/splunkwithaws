@@ -1143,7 +1143,8 @@ public class UserService {
 		logger.info("Inside getPrivilegeType() method");
 		String[] privilegeType = { PrivilegeType.GEOGRAPHY.getValue(),
 				PrivilegeType.IOU.getValue(),PrivilegeType.SUBSP.getValue(),
-				PrivilegeType.CUSTOMER.getValue(),PrivilegeType.GROUP_CUSTOMER.getValue()};
+				PrivilegeType.CUSTOMER.getValue(),PrivilegeType.GROUP_CUSTOMER.getValue(),
+				PrivilegeType.DELIVERY_CENTRE.getValue(),PrivilegeType.DELIVERY_CLUSTER.getValue()};
 		return privilegeType;
 	}
 
