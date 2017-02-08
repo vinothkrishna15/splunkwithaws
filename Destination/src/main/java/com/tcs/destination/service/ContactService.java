@@ -169,7 +169,7 @@ public class ContactService {
 				|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())
 				|| pmoDelivery){
 			
-			prepareDeliveryContactDetails(contact, pmoDelivery ? supervisorUser : userT);
+			prepareDeliveryContactDetails(contact, userT, pmoDelivery);
 		} else {
 			if (contact.getContactCategory().equals(EntityType.CUSTOMER.name())) {
 				prepareContactDetails(contact, null);
@@ -179,9 +179,8 @@ public class ContactService {
 		return contact;
 	}
 
-	public void prepareDeliveryContactDetails(ContactT contact, UserT userT) {
-		List<String> userIds = userRepository.getAllSubordinatesIdBySupervisorId(userT.getUserId());
-		userIds.add(userT.getUserId());
+	public void prepareDeliveryContactDetails(ContactT contact, UserT userT, boolean pmoDelivery) {
+		List<String> userIds = opportunityService.getDeliveryUsers(userT, pmoDelivery);
 		if(!userIds.contains(contact.getCreatedByUser().getUserId())){
 			preventSensitiveInfoForDelivery(contact);
 		}
@@ -876,7 +875,7 @@ public class ContactService {
 					|| userGroup.contains(UserGroup.DELIVERY_CENTRE_HEAD.getValue()) 
 					|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())
 					|| pmoDelivery) {
-				prepareDeliveryContactListDetails(contactList, pmoDelivery ? supervisorUser : userT);
+				prepareDeliveryContactListDetails(contactList, userT, pmoDelivery);
 			} else {
 				contactIdList = getPreviledgedContactIds(DestinationUtils
 						.getCurrentUserDetails().getUserId(), contactIdList, true);
@@ -895,11 +894,12 @@ public class ContactService {
 	 * 
 	 * @param contactList
 	 * @param userT
+	 * @param pmoDelivery 
 	 */
 	private void prepareDeliveryContactListDetails(
-			List<ContactT> contactList, UserT userT) {
+			List<ContactT> contactList, UserT userT, boolean pmoDelivery) {
 		for (ContactT contactT : contactList) {
-			prepareDeliveryContactDetails(contactT, userT);
+			prepareDeliveryContactDetails(contactT, userT, pmoDelivery);
 		}
 	}
 

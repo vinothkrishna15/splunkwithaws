@@ -198,7 +198,7 @@ public class CustomerService {
 				|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())
 				|| pmoDelivery){
 			
-			prepareDeliveryCustomerDetails(customerMasterT, pmoDelivery ? supervisorUser : userT);
+			prepareDeliveryCustomerDetails(customerMasterT, userT, pmoDelivery);
 		} else {
 			prepareCustomerDetails(customerMasterT, null);
 		}
@@ -573,7 +573,7 @@ public class CustomerService {
 					|| pmoDelivery){
 				
 				for (CustomerMasterT customerMasterT : customerMasterList) {
-					prepareDeliveryCustomerDetails(customerMasterT, pmoDelivery ? supervisorUser : userT);
+					prepareDeliveryCustomerDetails(customerMasterT, userT,pmoDelivery);
 				}
 			} else {
 				customerNameList =  customerDao.getPreviledgedCustomerName(userT.getUserId(), 
@@ -590,11 +590,11 @@ public class CustomerService {
 	 * 
 	 * @param customerMasterT
 	 * @param userT
+	 * @param pmoDelivery 
 	 */
-	public void prepareDeliveryCustomerDetails(CustomerMasterT customerMasterT, UserT userT) {
+	public void prepareDeliveryCustomerDetails(CustomerMasterT customerMasterT, UserT userT, boolean pmoDelivery) {
 		removeCyclicForLinkedContactTs(customerMasterT);
-		List<String> userIds = userRepository.getAllSubordinatesIdBySupervisorId(userT.getUserId());
-		userIds.add(userT.getUserId());
+		List<String> userIds = opportunityService.getDeliveryUsers(userT, pmoDelivery);
 		for (ContactCustomerLinkT contactCustomerLinkT : customerMasterT.getContactCustomerLinkTs()) {
 			if(!userIds.contains(contactCustomerLinkT.getContactT().getCreatedByUser().getUserId())){
 				contactService.preventSensitiveInfoForDelivery(contactCustomerLinkT.getContactT());
@@ -915,7 +915,7 @@ public class CustomerService {
 			for (CustomerMasterT customer : customerMasterTs) {
 				prepareDeliveryCustomerDetails(
 						customer,
-						pmoDelivery ? supervisorUser : userT);
+						userT, pmoDelivery);
 			}
 			
 		}

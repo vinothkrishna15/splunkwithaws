@@ -1840,9 +1840,6 @@ public class ConnectService {
 		} else if (isUserOwner(userId, connect)) {
 			isEditAccessRequired = true;
 		} else {
-			UserT supervisorUser = userRepository
-					.findByUserId(currentUser
-							.getSupervisorUserId());
 			switch (UserGroup.getUserGroup(userGroup)) {
 			case BDM :
 			case DELIVERY_MANAGER:	
@@ -1850,21 +1847,17 @@ public class ConnectService {
 				break;
 			case BDM_SUPERVISOR:
 			case DELIVERY_CLUSTER_HEAD:
-			case DELIVERY_CENTRE_HEAD:	
+			case DELIVERY_CENTRE_HEAD:
 				isEditAccessRequired = opportunityService.isSubordinateAsOwner(userId, null,
 						connect.getConnectId());
 				break;
-			case PMO:
-				if(opportunityService.isPMODelivery(currentUser,supervisorUser)) {
-					isEditAccessRequired = opportunityService.isSubordinateAsOwner(supervisorUser.getUserId(), null,
-							connect.getConnectId());
-				} else {
-					isEditAccessRequired = editAccessForGeoIou(connect, userGroup,
-							userId, isEditAccessRequired);
-				}
+			case PMO_DELIVERY:	
+				isEditAccessRequired = opportunityService.isSubordinateAsOwnerForPMODelivery(currentUser, null,
+						connect.getConnectId());
 				break;
 			case GEO_HEADS:
 			case IOU_HEADS:
+			case PMO:	
 				isEditAccessRequired = editAccessForGeoIou(connect, userGroup,
 						userId, isEditAccessRequired);
 				break;

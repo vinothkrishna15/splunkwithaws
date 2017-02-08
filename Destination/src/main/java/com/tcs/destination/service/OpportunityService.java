@@ -37,6 +37,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.tcs.destination.bean.AsyncJobRequest;
 import com.tcs.destination.bean.AuditOpportunityDeliveryCentreT;
 import com.tcs.destination.bean.BidDetailsT;
@@ -96,6 +97,7 @@ import com.tcs.destination.data.repository.DeliveryCentreRepository;
 import com.tcs.destination.data.repository.DeliveryIntimatedRepository;
 import com.tcs.destination.data.repository.DeliveryMasterRepository;
 import com.tcs.destination.data.repository.DeliveryOwnershipRepository;
+import com.tcs.destination.data.repository.DeliveryPmoRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.NotesTRepository;
 import com.tcs.destination.data.repository.NotificationEventGroupMappingTRepository;
@@ -326,6 +328,9 @@ public class OpportunityService {
 	
 	@Autowired
 	GeographyRepository geographyRepository;
+	
+	@Autowired
+	DeliveryPmoRepository deliveryPmoRepository;
 
 	@Autowired
 	private UserPreferencesRepository userPrefRepo;
@@ -357,7 +362,7 @@ public class OpportunityService {
 				|| userGroup.equals(UserGroup.DELIVERY_MANAGER.getValue())
 				|| pmoDelivery) {
 			paginatedResponse = findByOpportunityNameAndDelivaryFlag(nameWith,
-					customerId, currencies, isAjax, pmoDelivery ? supervisorUser : user, page, count);
+					customerId, currencies, isAjax, user, page, count, pmoDelivery);
 		} else {
 			paginatedResponse = findByOpportunityName(nameWith, customerId,
 					currencies, isAjax, user, page, count);
@@ -434,20 +439,19 @@ public class OpportunityService {
 	 * @param userId
 	 * @param page
 	 * @param count
+	 * @param pmoDelivery 
 	 * @return
 	 * @throws Exception
 	 */
 	public PaginatedResponse findByOpportunityNameAndDelivaryFlag(
 			String nameWith, String customerId, List<String> toCurrency,
-			boolean isAjax, UserT user, int page, int count) throws Exception {
+			boolean isAjax, UserT user, int page, int count, boolean pmoDelivery) throws Exception {
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		Set<OpportunityT> opportunitiesSet = new HashSet<OpportunityT>();
 		List<OpportunityT> opportunitiesList = new ArrayList<OpportunityT>();
 		logger.debug("Inside findByOpportunityNameAndDelivaryFlag() service");
 
-		List<String> userIds = userRepository
-				.getAllSubordinatesIdBySupervisorId(user.getUserId());
-		userIds.add(user.getUserId());
+		List<String> userIds = getDeliveryUsers(user, pmoDelivery);
 
 		if (customerId.isEmpty()) {
 			opportunitiesSet
@@ -1056,7 +1060,8 @@ public class OpportunityService {
 			UserGroup userGroupE = UserGroup.getUserGroup(userGroup);
 			if (userGroupE == UserGroup.DELIVERY_CENTRE_HEAD
 					|| userGroupE == UserGroup.DELIVERY_CLUSTER_HEAD
-					|| userGroupE == UserGroup.DELIVERY_MANAGER) {
+					|| userGroupE == UserGroup.DELIVERY_MANAGER
+					|| userGroupE == UserGroup.PMO_DELIVERY) {
 				deliveryTeamFlag = true;
 			}
 			opportunity.setDeliveryTeamFlag(deliveryTeamFlag);
@@ -2629,9 +2634,8 @@ public class OpportunityService {
 				|| userGroup.equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue())
 				|| userGroup.equals(UserGroup.DELIVERY_MANAGER.getValue())
 				|| pmoDelivery) {
-			List<String> userIds = userRepository.getAllSubordinatesIdBySupervisorId(getUserIdIfPmoDelivery(user, supervisorUser, pmoDelivery));
-			userIds.add(getUserIdIfPmoDelivery(user, supervisorUser, pmoDelivery));
-			List<OpportunityT> deliveryOppList = validateAndGetDeliveryOpportunities(opportunity, userIds);
+			List<String> deliveryUserIds = getDeliveryUsers(user, pmoDelivery);
+			List<OpportunityT> deliveryOppList = validateAndGetDeliveryOpportunities(opportunity, deliveryUserIds);
 			opportunityList.addAll(deliveryOppList);
 		} else {
 			opportunityList.addAll(opportunity);
@@ -2663,6 +2667,25 @@ public class OpportunityService {
 				toCurrency);
 
 		return opportunityResponse;
+	}
+
+	public List<String> getDeliveryUsers(UserT user, boolean pmoDelivery) {
+		List<String> userIds = userRepository.getAllSubordinatesIdBySupervisorId(user.getUserId());
+		userIds.add(user.getUserId());
+		if(pmoDelivery) {
+			List<String> deliveryHeadsPmo = deliveryPmoRepository.getDeliveryCentreHeadsByPmo(user.getUserId());
+			for (String dcHead : deliveryHeadsPmo) {
+				userIds.add(dcHead);
+				List<String> subOrdinates = userRepository.getAllSubordinatesIdBySupervisorId(dcHead);
+				if(CollectionUtils.isNotEmpty(subOrdinates)) {
+					userIds.addAll(subOrdinates);
+				}
+			}
+		}
+		Set<String> userIdSets = Sets.newHashSet();
+		userIdSets.addAll(userIds);
+		List<String> deliveryUserIds = Lists.newArrayList(userIdSets);
+		return deliveryUserIds;
 	}
 
 	private List<OpportunityT> validateAndGetDeliveryOpportunities(
@@ -2716,10 +2739,7 @@ public class OpportunityService {
 				|| userGroup.equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue())
 				|| userGroup.equals(UserGroup.DELIVERY_MANAGER.getValue())
 				|| pmoDelivery) {
-			String userId = getUserIdIfPmoDelivery(user, supervisorUser, pmoDelivery);
-			List<String> userIds = userRepository
-					.getAllSubordinatesIdBySupervisorId(userId);
-			userIds.add(userId);
+			List<String> userIds = getDeliveryUsers(user, pmoDelivery);
 			opportunityResponse = getAllDeliveryOpportunities(fromDate, toDate, userIds, isCurrentFinancialYear, page, count);
 		} else {
 			if (isCurrentFinancialYear) {
@@ -2874,10 +2894,7 @@ public class OpportunityService {
 				|| userGroup.equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue())
 				|| userGroup.equals(UserGroup.DELIVERY_MANAGER.getValue())
 				|| pmoDelivery) {
-			String userId = getUserIdIfPmoDelivery(user, supervisorUser, pmoDelivery);
-			List<String> userIds = userRepository
-					.getAllSubordinatesIdBySupervisorId(userId);
-			userIds.add(userId);
+			List<String> userIds = getDeliveryUsers(user, pmoDelivery);
 			results = opportunityRepository
 					.findDeliveryOpportunityNameKeywordSearch(
 							name.toUpperCase(), userIds);
@@ -3425,10 +3442,7 @@ public class OpportunityService {
 				|| userGroup.equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue())
 				|| userGroup.equals(UserGroup.DELIVERY_MANAGER.getValue())
 				|| pmoDelivery) {
-			String userId = getUserIdIfPmoDelivery(user, supervisorUser, pmoDelivery);
-			List<String> userIds = userRepository
-					.getAllSubordinatesIdBySupervisorId(userId);
-			userIds.add(userId);
+			List<String> userIds = getDeliveryUsers(user, pmoDelivery);
 			records = opportunityRepository.searchDeliveryOpportunitiesById("%"
 					+ term + "%", getAll, userIds);
 		} else {
@@ -3450,10 +3464,7 @@ public class OpportunityService {
 				|| userGroup.equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue())
 				|| userGroup.equals(UserGroup.DELIVERY_MANAGER.getValue())
 				|| pmoDelivery) {
-			String userId = getUserIdIfPmoDelivery(user, supervisorUser, pmoDelivery);
-			List<String> userIds = userRepository
-					.getAllSubordinatesIdBySupervisorId(userId);
-			userIds.add(userId);
+			List<String> userIds = getDeliveryUsers(user, pmoDelivery);
 			records = opportunityRepository.searchDeliveryOpportunitiesByName(
 					"%" + term + "%", getAll, userIds);
 		} else {
@@ -3475,10 +3486,7 @@ public class OpportunityService {
 				|| userGroup.equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue())
 				|| userGroup.equals(UserGroup.DELIVERY_MANAGER.getValue())
 				|| pmoDelivery) {
-			String userId = getUserIdIfPmoDelivery(user, supervisorUser, pmoDelivery);
-			List<String> userIds = userRepository
-					.getAllSubordinatesIdBySupervisorId(userId);
-			userIds.add(userId);
+			List<String> userIds = getDeliveryUsers(user, pmoDelivery);
 			records = opportunityRepository
 					.searchDeliveryOpportunitiesByCustomerName(
 							"%" + term + "%", getAll, userIds);
@@ -3596,20 +3604,17 @@ public class OpportunityService {
 			case DELIVERY_CENTRE_HEAD:
 			case DELIVERY_CLUSTER_HEAD:
 				isEditAccessRequired = checkEditAccessForDelivery(opportunity,
-						userId, isUpdate, isEditAccessRequired);
+						currentUser, isUpdate, isEditAccessRequired,false);
 				break;
 			case GEO_HEADS:
 			case IOU_HEADS:
+			case PMO:	
 				isEditAccessRequired = checkEditAccessForGeoAndIou(userGroup,
 						userId, opportunity.getCustomerId());
-			case PMO:
-			if(isPMODelivery(currentUser,supervisorUser)) {
+				break;
+			case PMO_DELIVERY:
 				isEditAccessRequired = checkEditAccessForDelivery(opportunity,
-						currentUser.getSupervisorUserId(), isUpdate, isEditAccessRequired);
-			} else {
-				isEditAccessRequired = checkEditAccessForGeoAndIou(userGroup,
-						userId, opportunity.getCustomerId());
-			}
+						currentUser, isUpdate, isEditAccessRequired,true);
 				break;
 			default:
 				break;
@@ -3622,15 +3627,19 @@ public class OpportunityService {
 	}
 
 	private boolean checkEditAccessForDelivery(OpportunityT opportunity,
-			String userId, boolean isUpdate, boolean isEditAccessRequired) {
-		if (isUpdate) {
-			if (opportunity.getDeliveryTeamFlag()) {
-				isEditAccessRequired = isSubordinateAsOwner(userId,
+			UserT user, boolean isUpdate, boolean isEditAccessRequired, boolean pmoDelivery) {
+		if(pmoDelivery) {
+			isEditAccessRequired = isSubordinateAsOwnerForPMODelivery(user, opportunity.getOpportunityId(), null);
+		} else {
+			if (isUpdate) {
+				if (opportunity.getDeliveryTeamFlag()) {
+					isEditAccessRequired = isSubordinateAsOwner(user.getUserId(),
+							opportunity.getOpportunityId(), null);
+				}
+			} else {
+				isEditAccessRequired = isSubordinateAsOwner(user.getUserId(),
 						opportunity.getOpportunityId(), null);
 			}
-		} else {
-			isEditAccessRequired = isSubordinateAsOwner(userId,
-					opportunity.getOpportunityId(), null);
 		}
 		return isEditAccessRequired;
 	}
@@ -4369,11 +4378,35 @@ public class OpportunityService {
 
 	public boolean isPMODelivery(UserT userT, UserT supervisorUser) {
 		boolean pmoDelivery = false;
-		if(supervisorUser!=null && userT.getUserGroup().equals(UserGroup.PMO.getValue()) &&
-				supervisorUser.getUserGroup().equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue())) {
+		if(userT.getUserGroup().equals(UserGroup.PMO_DELIVERY)) {
 				pmoDelivery = true;
 		}
 		return pmoDelivery;
+	
+	}
+
+	public boolean isSubordinateAsOwnerForPMODelivery(UserT user,
+			String opportunityId, String connectId) {
+		boolean isSubordinateAsOwner = false;
+		List<String> owners = new ArrayList<String>();
+		List<String> subordinates = getDeliveryUsers(user, true);
+		if (CollectionUtils.isNotEmpty(subordinates)) {
+			if (!StringUtils.isEmpty(opportunityId)) {
+				owners = opportunityRepository.getAllOwners(opportunityId);
+			}
+			if (!StringUtils.isEmpty(connectId)) {
+				owners = connectRepository.findOwnersOfConnect(connectId);
+			}
+			if (owners != null) {
+				for (String owner : owners) {
+					if (subordinates.contains(owner)) {
+						isSubordinateAsOwner = true;
+						break;
+					}
+				}
+			}
+		}
+		return isSubordinateAsOwner;
 	
 	}
 

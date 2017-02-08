@@ -5,7 +5,8 @@ public enum UserGroup {
 			"Bid Office"), GEO_HEADS("GEO Heads"), STRATEGIC_INITIATIVES("Strategic Initiatives"),
 			SYSTEM("System"), IOU_HEADS("IOU Heads"), CONSULTING_HEAD("Consulting Head"), CONSULTING_USER("Consulting User"),
 			REPORTING_TEAM("Reporting Team"), PMO("PMO"), DELIVERY_CENTRE_HEAD("Delivery Centre Head"),
-			DELIVERY_CLUSTER_HEAD("Delivery Cluster Head"), DELIVERY_MANAGER("Delivery Partner");
+			DELIVERY_CLUSTER_HEAD("Delivery Cluster Head"), DELIVERY_MANAGER("Delivery Partner"),
+			PMO_DELIVERY("PMO Delivery");
 
 	private final String value;
 

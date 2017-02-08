@@ -85,7 +85,7 @@ public class FrequentlySearchedService {
 							|| userGroup.contains(UserGroup.DELIVERY_CENTRE_HEAD.getValue()) 
 							|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())
 							|| pmoDelivery){
-						customerService.prepareDeliveryCustomerDetails(customer, pmoDelivery ? supervisorUser : userT);
+						customerService.prepareDeliveryCustomerDetails(customer, userT, pmoDelivery);
 					}
 					FrequentlySearchedResponse frequentResponse = ResponseConstructors
 							.convertToFrequentlySearchedResponse(
