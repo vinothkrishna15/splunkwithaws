@@ -2317,9 +2317,6 @@ public InputStreamResource getConnectDetailedReport(String month,
 	UserT user = userService.findByUserId(userId);
 	
 	if (user != null) {
-		UserT supervisorUser = userRepository
-				.findByUserId(user
-						.getSupervisorUserId());
 		SXSSFWorkbook workbook = new SXSSFWorkbook(50);
 		
 		List<String> iouList = new ArrayList<String>();
@@ -2359,24 +2356,23 @@ public InputStreamResource getConnectDetailedReport(String month,
 
 			case BDM_SUPERVISOR:
 			case CONSULTING_HEAD:
-			case DELIVERY_CLUSTER_HEAD:
-			case DELIVERY_CENTRE_HEAD:
 				userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
 				userIds.add(userId);
 				connectIdList = getConnectDetailsByUserIds(fromDate,toDate,userIds,iouList,displayGeography,countryList,serviceLinesList,connectCategory);
 				break;
-			
+			case DELIVERY_CLUSTER_HEAD:
+			case DELIVERY_CENTRE_HEAD:
+				userIds = opportunityService.getDeliveryUsers(user, false);
+				connectIdList = getConnectDetailsByUserIds(fromDate,toDate,userIds,iouList,displayGeography,countryList,serviceLinesList,connectCategory);
+				break;
+			case PMO_DELIVERY:	
+				userIds = opportunityService.getDeliveryUsers(user, true);
+				connectIdList = getConnectDetailsByUserIds(fromDate,toDate,userIds,iouList,displayGeography,countryList,serviceLinesList,connectCategory);
+				break;
 			case GEO_HEADS:
 			case IOU_HEADS:
 			case PMO:
-				boolean isPmoDelivery = opportunityService.isPMODelivery(user, supervisorUser);
-				if(isPmoDelivery) {
-					userIds = userRepository.getAllSubordinatesIdBySupervisorId(supervisorUser.getUserId());
-					userIds.add(supervisorUser.getUserId());
-					connectIdList = getConnectDetailsByUserIds(fromDate,toDate,userIds,iouList,displayGeography,countryList,serviceLinesList,connectCategory);
-				} else {
 					connectIdList = getGeoHeadOrIouHeadConnectDetails(fromDate,toDate,userId,iouList,displayGeography,countryList,serviceLinesList,connectCategory);
-				}
 				break;
 			
 			default:
@@ -2590,6 +2586,7 @@ public InputStreamResource connectSummaryReport(String month, String quarter, St
 		UserT supervisorUser = userRepository
 				.findByUserId(user
 						.getSupervisorUserId());
+		boolean isPmoDelivery = opportunityService.isPMODelivery(user, supervisorUser);
 		SXSSFWorkbook workbook = new SXSSFWorkbook(50);
 		
 		List<String> iouList = new ArrayList<String>();
@@ -2639,11 +2636,16 @@ public InputStreamResource connectSummaryReport(String month, String quarter, St
 			
 			case BDM_SUPERVISOR:
 			case CONSULTING_HEAD:
-			case DELIVERY_CENTRE_HEAD:
-			case DELIVERY_CLUSTER_HEAD:
 				userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
 				userIds.add(userId);
 				
+				getConnectSummaryDetailsByUserIds(userIds, fromDate, toDate, subSpCustomerConnectCountList, subSpPartnerConnectCountList,geographyCustomerConnectCountList, 
+						geographyPartnerConnectCountList ,iouConnectCountList, iouList, geography, countryList, serviceLinesList,connectCategory);
+				break;
+			case DELIVERY_CENTRE_HEAD:
+			case DELIVERY_CLUSTER_HEAD:
+			case PMO_DELIVERY:	
+				userIds = opportunityService.getDeliveryUsers(user, isPmoDelivery);
 				getConnectSummaryDetailsByUserIds(userIds, fromDate, toDate, subSpCustomerConnectCountList, subSpPartnerConnectCountList,geographyCustomerConnectCountList, 
 						geographyPartnerConnectCountList ,iouConnectCountList, iouList, geography, countryList, serviceLinesList,connectCategory);
 				break;
@@ -2651,14 +2653,6 @@ public InputStreamResource connectSummaryReport(String month, String quarter, St
 			case GEO_HEADS:
 			case IOU_HEADS:
 			case PMO:
-				boolean isPmoDelivery = opportunityService.isPMODelivery(user, supervisorUser);
-				if(isPmoDelivery) {
-					userIds = userRepository.getAllSubordinatesIdBySupervisorId(supervisorUser.getUserId());
-					userIds.add(supervisorUser.getUserId());
-					
-					getConnectSummaryDetailsByUserIds(userIds, fromDate, toDate, subSpCustomerConnectCountList, subSpPartnerConnectCountList,geographyCustomerConnectCountList, 
-							geographyPartnerConnectCountList ,iouConnectCountList, iouList, geography, countryList, serviceLinesList,connectCategory);
-				} else {
 					userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
 					userIds.add(userId);
 					if(isCustomer(connectCategory)){
@@ -2673,11 +2667,9 @@ public InputStreamResource connectSummaryReport(String month, String quarter, St
 						geographyPartnerConnectCountList = connectRepository.findGeographyPartnerConnectsSummaryDetails(new Timestamp(fromDate.getTime()),
 								new Timestamp(toDate.getTime()), geography, countryList, serviceLinesList);
 					}
-				}
-				break;
-
-			default:
 				
+				break;
+			default:
 				getConnectSummaryDetailsForSI(fromDate, toDate, subSpCustomerConnectCountList, subSpPartnerConnectCountList,
 						geographyCustomerConnectCountList, geographyPartnerConnectCountList,
 						iouConnectCountList, iouList, geography, countryList, serviceLinesList,connectCategory);
@@ -2955,6 +2947,7 @@ public InputStreamResource getConnectDetailedAndSummaryReports(String month, Str
 		UserT supervisorUser = userRepository
 				.findByUserId(user
 						.getSupervisorUserId());
+		boolean pmoDelivery = opportunityService.isPMODelivery(user,supervisorUser);
 		SXSSFWorkbook workbook = new SXSSFWorkbook(50);
 
 		List<String> iouList = new ArrayList<String>();
@@ -3006,8 +2999,6 @@ public InputStreamResource getConnectDetailedAndSummaryReports(String month, Str
 				break;
 			case BDM_SUPERVISOR:
 			case CONSULTING_HEAD:
-			case DELIVERY_CENTRE_HEAD:
-			case DELIVERY_CLUSTER_HEAD:
 				userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
 				userIds.add(userId);
 				
@@ -3016,17 +3007,17 @@ public InputStreamResource getConnectDetailedAndSummaryReports(String month, Str
 				getConnectSummaryDetailsByUserIds(userIds, fromDate, toDate, subSpCustomerConnectCountList, subSpPartnerConnectCountList,geographyCustomerConnectCountList, 
 						geographyPartnerConnectCountList ,iouConnectCountList, iouList, displayGeography, countryList, serviceLinesList,connectCategory);
 				break;
+			case DELIVERY_CENTRE_HEAD:
+			case DELIVERY_CLUSTER_HEAD:
+			case PMO_DELIVERY:	
+				userIds = opportunityService.getDeliveryUsers(user, pmoDelivery);
+				connectIdList = getConnectDetailsByUserIds(fromDate,toDate,userIds,iouList,displayGeography,countryList,serviceLinesList,connectCategory);
+				getConnectSummaryDetailsByUserIds(userIds, fromDate, toDate, subSpCustomerConnectCountList, subSpPartnerConnectCountList,geographyCustomerConnectCountList, 
+						geographyPartnerConnectCountList ,iouConnectCountList, iouList, displayGeography, countryList, serviceLinesList,connectCategory);
+				break;
 			case GEO_HEADS:
 			case IOU_HEADS:
 			case PMO:
-				boolean pmoDelivery = opportunityService.isPMODelivery(user,supervisorUser);
-				if(pmoDelivery) {
-					userIds = userRepository.getAllSubordinatesIdBySupervisorId(supervisorUser.getUserId());
-					userIds.add(supervisorUser.getUserId());
-					connectIdList = getConnectDetailsByUserIds(fromDate,toDate,userIds,iouList,displayGeography,countryList,serviceLinesList,connectCategory);
-					getConnectSummaryDetailsByUserIds(userIds, fromDate, toDate, subSpCustomerConnectCountList, subSpPartnerConnectCountList,geographyCustomerConnectCountList, 
-							geographyPartnerConnectCountList ,iouConnectCountList, iouList, displayGeography, countryList, serviceLinesList,connectCategory);
-				} else {
 					userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
 					userIds.add(userId);
 					
@@ -3044,7 +3035,6 @@ public InputStreamResource getConnectDetailedAndSummaryReports(String month, Str
 						geographyPartnerConnectCountList = connectRepository.findGeographyPartnerConnectsSummaryDetails(new Timestamp(fromDate.getTime()),
 								new Timestamp(toDate.getTime()), displayGeography, countryList, serviceLinesList);
 					}
-				}
 				break;
 			default:
 				
@@ -3635,12 +3625,9 @@ private String getBidDetailedQueryString(String userId, Date startDate, Date end
 				userIds.addAll(subOrdinatesList);
 				userIds.add(userId);
 				break;
-			case PMO :
-				if(pmoDelivery) {
-					List<String> subOrdinateList =userRepository.getAllSubordinatesIdBySupervisorId(supervisorUser.getUserId());
-					userIds.addAll(subOrdinateList);
-					userIds.add(supervisorUser.getUserId());
-				}
+			case PMO_DELIVERY :
+				List<String> subOrdinateList = opportunityService.getDeliveryUsers(user, true);
+				userIds.addAll(subOrdinateList);
 				break;
 			}
 
@@ -3656,21 +3643,8 @@ private String getBidDetailedQueryString(String userId, Date startDate, Date end
 					case CONSULTING_HEAD:
 					case DELIVERY_CLUSTER_HEAD:
 					case DELIVERY_CENTRE_HEAD:
+					case PMO_DELIVERY:	
 						opportunityList = opportunityRepository.findSummaryGeographyByRole(salesStageList.get(i), userIds, geoList, countryList, iouList, serviceLinesList);
-						break;
-					case PMO:
-						if(pmoDelivery) {
-							opportunityList = opportunityRepository.findSummaryGeographyByRole(salesStageList.get(i), userIds, geoList, countryList, iouList, serviceLinesList);
-						} else {
-							if(geography.contains("All") && (iou.contains("All") && serviceLines.contains("All")) && country.contains("All")){
-								String queryString = getPipelineAnticipatingOppGeoSummaryQueryString(userId,salesStageList.get(i));
-								Query opportunitySummaryReportQuery = entityManager.createNativeQuery(queryString);
-								opportunityList = opportunitySummaryReportQuery.getResultList();
-							} else {
-								opportunityList = opportunityRepository.findSummaryGeography(geoList, countryList, iouList, serviceLinesList, 
-										salesStageList.get(i));
-							}
-						}
 						break;
 					default:
 						if(geography.contains("All") && (iou.contains("All") && serviceLines.contains("All")) && country.contains("All")){
@@ -3698,21 +3672,8 @@ private String getBidDetailedQueryString(String userId, Date startDate, Date end
 						case CONSULTING_HEAD:
 						case DELIVERY_CLUSTER_HEAD:
 						case DELIVERY_CENTRE_HEAD:
+						case PMO_DELIVERY:	
 							opportunityList = opportunityRepository.findSummaryIouByRole(salesStageList.get(i), userIds, geoList, countryList, iouList, serviceLinesList);
-							break;
-						case PMO:
-							if(pmoDelivery) {
-								opportunityList = opportunityRepository.findSummaryIouByRole(salesStageList.get(i), userIds, geoList, countryList, iouList, serviceLinesList);
-							} else {
-								if(geography.contains("All") && (iou.contains("All") && serviceLines.contains("All")) && country.contains("All")){
-									String queryString = getPipelineAnticipatingOppIouSummaryQueryString(userId,salesStageList.get(i));
-									Query opportunitySummaryReportQuery = entityManager.createNativeQuery(queryString);
-									opportunityList = opportunitySummaryReportQuery.getResultList();
-								} else {
-									opportunityList = opportunityRepository.findSummaryIou(geoList, countryList, iouList, serviceLinesList, 
-											salesStageList.get(i));
-								}
-							}
 							break;
 						default:
 							if(geography.contains("All") && (iou.contains("All") && serviceLines.contains("All")) && country.contains("All")){

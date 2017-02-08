@@ -189,7 +189,8 @@ public class BDMService {
 					|| userGroup.equals(UserGroup.CONSULTING_HEAD.getValue()) 
 					|| userGroup.equals(UserGroup.PMO.getValue()) 
 					|| userGroup.equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
-					|| userGroup.equals(UserGroup.DELIVERY_CENTRE_HEAD.getValue())) {
+					|| userGroup.equals(UserGroup.DELIVERY_CENTRE_HEAD.getValue())
+					|| userGroup.equals(UserGroup.PMO_DELIVERY.getValue())) {
 				userIds = new ArrayList<String>();
 				bdmSupervisorDashboardDetails = new BDMSupervisorDashboardDTO();
 				

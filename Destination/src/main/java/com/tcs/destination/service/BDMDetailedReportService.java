@@ -195,7 +195,7 @@ public class BDMDetailedReportService {
 			}
 			
 		    if (UserGroup.contains(userGroup)) {
-		    List<String> users = getRequiredBDMs(pmoDelivery ? supervisorUser.getUserId() : userId, opportunityOwners);
+		    List<String> users = getRequiredBDMs(userId, opportunityOwners);
 		   
 		    // Validate user group, BDM's & BDM supervisor's are not authorized for this service
 			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
@@ -219,6 +219,7 @@ public class BDMDetailedReportService {
 			case GEO_HEADS:
 			case IOU_HEADS:
 			case PMO:
+			case PMO_DELIVERY:	
 				if(users.isEmpty()){
 			    	logger.error("Given BDM is not his Subordinate");
 			    	throw new DestinationException(HttpStatus.NOT_FOUND, "Given BDM is not his Subordinate");

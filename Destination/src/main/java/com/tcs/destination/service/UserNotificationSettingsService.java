@@ -344,15 +344,11 @@ public class UserNotificationSettingsService {
 				case CONSULTING_HEAD:
 				case DELIVERY_CENTRE_HEAD:
 				case DELIVERY_CLUSTER_HEAD:	
+				case PMO_DELIVERY:	
 				  if(notificationTypeEventMappingT.getGroupId() == NotificationSettingGroup.LEADERSHIP.getGroupId()) {
 					  flag = false;
 				  }
 				  break;
-				case PMO:
-					if(pmoDelivery && notificationTypeEventMappingT.getGroupId() == NotificationSettingGroup.LEADERSHIP.getGroupId()) {
-						flag = false;
-					}
-					break;
 				 default :
 					 break;
 				}

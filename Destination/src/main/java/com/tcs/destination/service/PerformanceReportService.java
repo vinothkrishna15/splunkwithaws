@@ -1207,26 +1207,7 @@ public class PerformanceReportService {
 
 	private boolean validateUserAndUserGroup(String userId) throws Exception {
 
-		// if (!DestinationUtils.getCurrentUserDetails().getUserId()
-		// .equalsIgnoreCase(userId)) {
-		// logger.error("User Id mismatch");
-		// throw new DestinationException(HttpStatus.NOT_FOUND, userId
-		// + " does not matches with the logged in user id ");
-		// } else {
 		UserT user = userService.findByUserId(userId);
-		// if (user == null) {
-		// logger.error("NOT_FOUND: User not found: {}", userId);
-		// throw new DestinationException(HttpStatus.NOT_FOUND,
-		// "User not found: " + userId);
-		// } else {
-		UserT supervisorUser = userRepository
-				.findByUserId(user
-						.getSupervisorUserId());
-		if(opportunityService.isPMODelivery(user, supervisorUser)) {
-			logger.error("User is not authorized to access this service");
-			throw new DestinationException(HttpStatus.UNAUTHORIZED,
-					"User is not authorised to access this service");
-		}
 		String userGroup = user.getUserGroupMappingT().getUserGroup();
 		if (UserGroup.contains(userGroup)) {
 			// Validate user group, BDM's & BDM supervisor's are not
@@ -1238,7 +1219,8 @@ public class PerformanceReportService {
 			case CONSULTING_USER:
 			case DELIVERY_CLUSTER_HEAD:
 			case DELIVERY_CENTRE_HEAD:
-			case DELIVERY_MANAGER:	
+			case DELIVERY_MANAGER:
+			case PMO_DELIVERY:	
 				logger.error("User is not authorized to access this service");
 				throw new DestinationException(HttpStatus.FORBIDDEN,
 						"User is not authorised to access this service");

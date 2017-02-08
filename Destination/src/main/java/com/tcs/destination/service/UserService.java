@@ -879,9 +879,9 @@ public class UserService {
 			deliveryClusterRepository.save(deliveryClusterT);
 			logger.info("End:inside updateDeliveryClusterHead() of UserService: cluster head saved : " + user.getDeliveryClusterId());
 		}
-		else if(user.getDeliveryCentreId() != null)
+		else if(CollectionUtils.isNotEmpty(user.getDeliveryCentreId()))
 		 {
-			 DeliveryCentreT deliveryCentreT = deliveryCentreRepository .findByDeliveryCentreId(user.getDeliveryCentreId());
+			 DeliveryCentreT deliveryCentreT = deliveryCentreRepository.findByDeliveryCentreId(user.getDeliveryCentreId().get(0));
 			 deliveryCentreT.setDeliveryCentreHead(user.getUserId());
 			 deliveryCentreRepository.save(deliveryCentreT);
 			 logger.info("End:inside updateDeliveryCentreHead() of UserService: centre head saved : " + user.getDeliveryCentreId());

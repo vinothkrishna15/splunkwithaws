@@ -52,6 +52,7 @@ public class DestinationUserDefaultObjectsHelper {
 		case CONSULTING_USER:
 		case CONSULTING_HEAD:
 		case PMO:	
+		case PMO_DELIVERY:	
 			userNotificationLeaderShipList.add(getNotification(userId,16,1,Constants.N, notifyTypeEventMap));
 			userNotificationLeaderShipList.add(getNotification(userId,16,2,Constants.N, notifyTypeEventMap));
 			userNotificationLeaderShipList.add(getNotification(userId,16,3,Constants.N, notifyTypeEventMap));
@@ -112,6 +113,7 @@ public class DestinationUserDefaultObjectsHelper {
 		case STRATEGIC_INITIATIVES:
 		case BID_OFFICE:
 		case PMO:	
+		case PMO_DELIVERY:	
 		{
 		userNotificationSupervisorList.add(getNotification(userId,11,1,Constants.Y, notifyTypeEventMap));
 		userNotificationSupervisorList.add(getNotification(userId,11,2,Constants.Y, notifyTypeEventMap));
@@ -179,6 +181,7 @@ public class DestinationUserDefaultObjectsHelper {
 		case CONSULTING_USER:
 		case CONSULTING_HEAD:
 		case PMO:	
+		case PMO_DELIVERY:	
 			userNotificationCollaborationList.add(getNotification(userId,8,1,Constants.Y, notifyTypeEventMap));
 			userNotificationCollaborationList.add(getNotification(userId,8,2,Constants.Y, notifyTypeEventMap));
 			userNotificationCollaborationList.add(getNotification(userId,8,3,Constants.N, notifyTypeEventMap));
@@ -235,7 +238,8 @@ public class DestinationUserDefaultObjectsHelper {
 		case IOU_HEADS:
 		case STRATEGIC_INITIATIVES:
 		case BID_OFFICE:
-		case PMO:	
+		case PMO:
+		case PMO_DELIVERY:	
 			userNotificationReminderList.add(getNotification(userId,5,1,Constants.Y, notifyTypeEventMap));
 			userNotificationReminderList.add(getNotification(userId,5,2,Constants.Y, notifyTypeEventMap));
 			userNotificationReminderList.add(getNotification(userId,5,3,Constants.Y, notifyTypeEventMap));
@@ -283,6 +287,7 @@ public class DestinationUserDefaultObjectsHelper {
 		case STRATEGIC_INITIATIVES:
 		case BID_OFFICE:
 		case PMO:
+		case PMO_DELIVERY:	
 		{
 		userNotificationGeneralSettingsList.add(getNotification(userId,1,1,Constants.Y, notifyTypeEventMap));
 		userNotificationGeneralSettingsList.add(getNotification(userId,1,2,Constants.Y, notifyTypeEventMap));

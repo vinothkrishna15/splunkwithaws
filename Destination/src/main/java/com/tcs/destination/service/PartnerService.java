@@ -471,8 +471,7 @@ public class PartnerService {
 				.findByUserId(userT
 						.getSupervisorUserId());
 		boolean pmoDelivery = opportunityService.isPMODelivery(userT,supervisorUser);
-		List<String> userIds = userRepository.getAllSubordinatesIdBySupervisorId(pmoDelivery? supervisorUser.getUserId() : userT.getUserId());
-		userIds.add(pmoDelivery? supervisorUser.getUserId() : userT.getUserId());
+		List<String> userIds = opportunityService.getDeliveryUsers(userT, pmoDelivery);
 		if(userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
 				|| userGroup.contains(UserGroup.DELIVERY_CENTRE_HEAD.getValue()) 
 				|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())

@@ -103,7 +103,7 @@ public class UserT implements Serializable {
 	private Integer deliveryClusterId;
 	
 	@Transient
-	private Integer deliveryCentreId;
+	private List<Integer> deliveryCentreId;
 
 	@Transient
 	private Timestamp lastLogin;
@@ -1937,12 +1937,12 @@ public class UserT implements Serializable {
 	public void setDeliveryClusterId(Integer deliveryClusterId) {
 		this.deliveryClusterId = deliveryClusterId;
 	}
-
-	public Integer getDeliveryCentreId() {
+	
+	public List<Integer> getDeliveryCentreId() {
 		return deliveryCentreId;
 	}
 
-	public void setDeliveryCentreId(Integer deliveryCentreId) {
+	public void setDeliveryCentreId(List<Integer> deliveryCentreId) {
 		this.deliveryCentreId = deliveryCentreId;
 	}
 

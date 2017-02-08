@@ -318,20 +318,12 @@ public class CustomerService {
 			case CONSULTING_USER:
 			case DELIVERY_CLUSTER_HEAD:
 			case DELIVERY_CENTRE_HEAD:
-			case DELIVERY_MANAGER:	
+			case DELIVERY_MANAGER:
+			case PMO_DELIVERY:	
 				logger.error("User is not authorized to access this service");
 				throw new DestinationException(HttpStatus.FORBIDDEN,
 						"User is not authorised to access this service");
 			default:
-				UserT supervisorUser = userRepository
-				.findByUserId(user
-						.getSupervisorUserId());
-				boolean pmoDelivery = opportunityService.isPMODelivery(user,supervisorUser);
-				if(pmoDelivery) {
-					logger.error("User is not authorized to access this service");
-					throw new DestinationException(HttpStatus.FORBIDDEN,
-							"User is not authorised to access this service");
-				} else {
 					// Validate financial year and set default value
 					if (financialYear.isEmpty()) {
 						logger.debug("Financial year is empty");
@@ -340,7 +332,6 @@ public class CustomerService {
 					List<CustomerMasterT> resultCustomerList = getTopRevenuesBasedOnUserPrivileges(
 							user.getUserId(), financialYear, count);
 					return resultCustomerList;
-				}
 			}
 		} else {
 			logger.error("Invalid User Group: {}", userGroup);
