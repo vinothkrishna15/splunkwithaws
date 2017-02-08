@@ -53,7 +53,7 @@ public class UserPreferencesController {
 		try {
 			userPreferencesService
 					.insertNewCustomerByuserID(moduleType, name);
-				status.setStatus(Status.SUCCESS, "Data Successfully added");
+				status.setStatus(Status.SUCCESS, "Successfully added");
 			response = ResponseConstructors.filterJsonForFieldAndViews("all",
 					"", status);
 			logger.info("Inside UserPreferencesController for insertCustomerOrCompetitor method: exit");
