@@ -18,6 +18,7 @@ public class CompetitorMappingDTO implements Serializable {
 	private String competitorName;
 	private Boolean active;
 	private String website;
+	private byte[] logo;
 	
 	private List<OpportunityCompetitorLinkDTO> opportunityCompetitorLinkTs;
 
@@ -57,5 +58,18 @@ public class CompetitorMappingDTO implements Serializable {
 	public void setWebsite(String website) {
 		this.website = website;
 	}
+
+	public byte[] getLogo() {
+		return logo;
+	}
+
+	public void setLogo(byte[] logo) {
+		this.logo = logo;
+	}
+
+	public Boolean getActive() {
+		return active;
+	}
+	
 
 }

@@ -31,6 +31,8 @@ public class DataProcessingController {
 
 	@Autowired
 	DataProcessingService service;
+	
+
 
 	/**
 	 * This method is used to request upload to database
@@ -144,6 +146,42 @@ public class DataProcessingController {
 			isDownloadRequest = true;
 		}
 		return isDownloadRequest;
+	}
+	
+	/**
+	 * Controller called to read and upload the logo.
+	 * 
+	 * @param fields
+	 * @param view
+	 * @return ResponseEntity - Response along with the corresponding message
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/uploadLogo", method = RequestMethod.GET)
+	public @ResponseBody ResponseEntity<String> listFilesAndFilesSubDirectories(
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.info("Inside Data Processing controller: Start of upload of LOGO");
+		Status status = new Status();
+		status.setStatus(Status.FAILED, "");
+		try {
+			// updated for product master changes
+			status = service.readAndUploadLogo();
+			logger.info("Logo UPLOAD SUCCESS - Record Updated ");
+
+		} catch (DestinationException e) {
+			logger.error("Destination Exception" + e.getMessage());
+			throw e;
+		} catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
+		logger.info("Inside Data Processing controller: End of upload of LOGO");
+		return new ResponseEntity<String>(
+				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+						status), HttpStatus.OK);
+
 	}
 
 }

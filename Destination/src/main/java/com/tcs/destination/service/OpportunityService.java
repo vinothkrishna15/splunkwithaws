@@ -52,6 +52,7 @@ import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
 import com.tcs.destination.bean.OpportunityCompetitorLinkT;
 import com.tcs.destination.bean.OpportunityCustomerContactLinkT;
+import com.tcs.destination.bean.OpportunityDealValue;
 import com.tcs.destination.bean.OpportunityDeliveryCentreMappingT;
 import com.tcs.destination.bean.OpportunityDetailsDTO;
 import com.tcs.destination.bean.OpportunityNameKeywordSearch;
@@ -3859,6 +3860,10 @@ public class OpportunityService {
 
 	public OpportunityDTO findById(String oppId, String mapId) throws Exception {
 		OpportunityT opportunity = findByOpportunityId(oppId, Lists.newArrayList(Constants.USD));
+		List<OpportunityDealValue> opportunityDealValues = opportunity.getOpportunityDealValues();
+		if(CollectionUtils.isNotEmpty(opportunityDealValues)) {
+			opportunity.setDigitalDealValue(opportunityDealValues.get(0).getDigitalDealValue().intValue());
+		}
 		OpportunityDTO dto = beanMapper.map(opportunity, OpportunityDTO.class, mapId);
 		return dto;
 	}
