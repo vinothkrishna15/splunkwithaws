@@ -270,7 +270,7 @@ public class FavoritesService {
 						|| userGroup.contains(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()) 
 						|| userGroup.contains(UserGroup.DELIVERY_MANAGER.getValue())
 						|| pmoDelivery) {
-					contactService.prepareDeliveryContactDetails(userFavoritesT.getContactT(), pmoDelivery ? supervisorUser : userT);
+					contactService.prepareDeliveryContactDetails(userFavoritesT.getContactT(), userT, pmoDelivery);
 				} else {
 					contactService.prepareContactDetails(
 							userFavoritesT.getContactT(), null);
