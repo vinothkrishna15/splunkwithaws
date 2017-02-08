@@ -17,14 +17,14 @@ public interface CompetitorRepository extends
 		CrudRepository<CompetitorMappingT, String> {
 
 	 List<CompetitorMappingT> findByActiveTrueAndCompetitorNameIgnoreCaseLike(String name);
-
+	 Page<CompetitorMappingT> findByCompetitorNameIgnoreCaseLike(String string, Pageable pageable);
+		
 	 @Query(value="select competitor_name from competitor_mapping_t", nativeQuery=true)
 	 List<String> getCompetitorName();
 
 	CompetitorMappingT findByActiveTrueAndCompetitorName(String competitorName);
 	
 	List<CompetitorMappingT> findByCompetitorNameIgnoreCaseLike(String name);
-
 	
 	 @Query(value="SELECT DISTINCT cmt FROM CompetitorMappingT cmt "
 	 		+ "JOIN cmt.opportunityCompetitorLinkTs oclt "
@@ -42,7 +42,7 @@ public interface CompetitorRepository extends
 	 Page<CompetitorMappingT> findByNameContainingAndDealDate(@Param("startDate") Date startDate, @Param("endDate") Date endDate, Pageable pageable);
 	 
 	 
-	 @Query(value="select cmt1.competitor_name, wins.win_count, wins.win_value, loss.loss_count, loss.loss_value, pipe.pipe_count, pipe.pipe_value from competitor_mapping_t cmt1"
+	 @Query(value="select cmt1.competitor_name, cmt1.logo, wins.win_count, wins.win_value, loss.loss_count, loss.loss_value, pipe.pipe_count, pipe.pipe_value from competitor_mapping_t cmt1"
 	 		+ " JOIN (select cmtwin.competitor_name, sum(deal_value_usd_converter(ot.digital_deal_value, ot.deal_currency)) as win_value, count(ot) as win_count from competitor_mapping_t cmtwin"
 	 		+ " LEFT JOIN opportunity_competitor_link_t oclt on oclt.competitor_name = cmtwin.competitor_name"
 	 		+ " LEFT JOIN opportunity_t ot on oclt.opportunity_id = ot.opportunity_id AND ot.sales_stage_code in (9) AND ot.deal_closure_date between :startDate and :endDate"
@@ -62,6 +62,8 @@ public interface CompetitorRepository extends
 	 
 	@Query(value = "SELECT cmt.logo FROM CompetitorMappingT cmt WHERE cmt.competitorName=:id")
 	byte[] getLogo(@Param("id") String id);
+
+
 
 	
 }

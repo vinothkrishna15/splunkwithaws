@@ -64,6 +64,21 @@ public class CompetitorService {
 		return compList;
 	}
 
+	public PageDTO<CompetitorMappingT> findListByNameContaining(String chars, int page, int count) throws Exception {
+		logger.debug("Begin:Inside findListByNameContaining() of CompetitorService");
+		
+		Pageable pageable = new PageRequest(page, count); 
+		Page<CompetitorMappingT> compList = compRepository
+				.findByCompetitorNameIgnoreCaseLike("%" + chars + "%", pageable);
+		if (compList.getContent().isEmpty())
+		{
+			logger.error("NOT_FOUND: No such competitor");
+			throw new DestinationException(HttpStatus.NOT_FOUND,"No such competitor");
+		}
+		logger.info("End:Inside findListByNameContaining() of CompetitorService");
+		return new PageDTO<CompetitorMappingT>(compList.getContent(), compList.getTotalElements());
+	}
+
 	public PageDTO<CompetitorMappingDTO> findByNameContainingAndDealDate(List<String> competitors, Date fromDate, Date toDate, int page, int count) throws Exception {
 		logger.debug("Begin:Inside findByNameContainingAndDealDate() of CompetitorService");
 		
@@ -111,19 +126,19 @@ public class CompetitorService {
 			}
 		}
 		
-		
 		List<CompetitorOpportunityWrapperDTO> dtoList = Lists.newArrayList();
 		List<Object[]> values = compRepository.findOpportunityMetrics(startDate, endDate, competitors);
 		if(CollectionUtils.isNotEmpty(values)) {
 			for (Object[] fieldArr : values) {
 				CompetitorOpportunityWrapperDTO dto = new CompetitorOpportunityWrapperDTO();
 				dto.setCompetitorName((String) fieldArr[0]);
-				dto.setWinCount((BigInteger) fieldArr[1]);
-				dto.setWinValue(DestinationUtils.scaleToTwoDecimal((BigDecimal) fieldArr[2], true));
-				dto.setLossCount((BigInteger) fieldArr[3]);
-				dto.setLossValue(DestinationUtils.scaleToTwoDecimal((BigDecimal)fieldArr[4], true));
-				dto.setPipelineCount((BigInteger) fieldArr[5]);
-				dto.setPiplineValue(DestinationUtils.scaleToTwoDecimal((BigDecimal)fieldArr[6], true));
+				dto.setLogo((byte[]) fieldArr[1]);
+				dto.setWinCount((BigInteger) fieldArr[2]);
+				dto.setWinValue(DestinationUtils.scaleToTwoDecimal((BigDecimal) fieldArr[3], true));
+				dto.setLossCount((BigInteger) fieldArr[4]);
+				dto.setLossValue(DestinationUtils.scaleToTwoDecimal((BigDecimal)fieldArr[5], true));
+				dto.setPipelineCount((BigInteger) fieldArr[6]);
+				dto.setPiplineValue(DestinationUtils.scaleToTwoDecimal((BigDecimal)fieldArr[7], true));
 				
 				dtoList.add(dto);
 			}

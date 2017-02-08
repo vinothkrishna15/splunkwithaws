@@ -22,6 +22,7 @@ public class CompetitorOpportunityWrapperDTO implements Serializable {
 	private BigInteger lossCount;
 	private BigDecimal piplineValue;
 	private BigInteger pipelineCount;
+	private byte[] logo;
 
 	public CompetitorOpportunityWrapperDTO() {
 		super();
@@ -81,6 +82,14 @@ public class CompetitorOpportunityWrapperDTO implements Serializable {
 
 	public void setPipelineCount(BigInteger pipelineCount) {
 		this.pipelineCount = pipelineCount;
+	}
+
+	public byte[] getLogo() {
+		return logo;
+	}
+
+	public void setLogo(byte[] logo) {
+		this.logo = logo;
 	}
 
 }

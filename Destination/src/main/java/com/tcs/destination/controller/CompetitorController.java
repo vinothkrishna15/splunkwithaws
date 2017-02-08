@@ -50,7 +50,7 @@ public class CompetitorController {
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findNameWith(
 			@RequestParam(value= "nameWith", defaultValue = "") String chars,
-			@RequestParam(value = "fields", defaultValue = "competitorName,active") String fields,
+			@RequestParam(value = "fields", defaultValue = "competitorName,logo,active") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		logger.info("Inside CompetitorController : Start of retrieving the competitor list");
@@ -66,6 +66,42 @@ public class CompetitorController {
 			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in retrieving the competitor name for : "
+							+ chars);
+		}
+
+	}
+	
+	/**
+	 * This method is used to retrieve list of competitors whose name starts
+	 * with value mentioned in nameWith parameter
+	 * 
+	 * @param nameWith
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/list", method = RequestMethod.GET)
+	public @ResponseBody String getListAndNameWith(
+			@RequestParam(value= "nameWith", defaultValue = "") String chars,
+			@RequestParam(value = "fields", defaultValue = "competitorName,logo") String fields,
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "15") int count,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Inside CompetitorController : Start of retrieving the getListAndNameWith");
+		PageDTO<CompetitorMappingT> compList;
+		try {
+			compList = compService.findListByNameContaining(chars, page, count);
+			logger.info("Inside CompetitorController : End of retrieving the getListAndNameWith");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, compList);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the getListAndNameWith : "
 							+ chars);
 		}
 

@@ -12,6 +12,8 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.tcs.destination.utils.Constants;
 
 
@@ -19,6 +21,7 @@ import com.tcs.destination.utils.Constants;
  * The persistent class for the competitor_mapping_t database table.
  * 
  */
+@JsonInclude(Include.NON_NULL)
 @JsonFilter(Constants.FILTER)
 //@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="competitorName")
 @Entity
