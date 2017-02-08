@@ -143,6 +143,9 @@ public class WorkflowService {
 	@Value("${workflowOpportunityReopenRejected}")
 	private String workflowOpportunityReopenRejectedSubject;
 
+	@Value("${superConsultingHeads}")
+	private String superConsultingHeads;
+
 	@Autowired
 	DestinationMailUtils mailUtils;
 
@@ -375,15 +378,12 @@ public class WorkflowService {
 			PaginatedResponse worklistResponse = new PaginatedResponse();
 			// Contains list of all requests including customer, partner etc
 			List<WorklistDTO<Object>> myWorklist = new ArrayList<WorklistDTO<Object>>();
-			// Contains all the lists of customer requests
+			
+			// Contains all the lists of specific type(customer, partner, competitor, opp, bfm) requests
 			List<List<Object[]>> listOfCustomerRequests = new ArrayList<>();
-			// Contains all the lists of partner requests
 			List<List<Object[]>> listOfPartnerRequests = new ArrayList<>();
-			// Contains all the lists of competitor requests
 			List<List<Object[]>> listOfCompetitorRequests = new ArrayList<>();
-			// Contains all the lists of opportunity requests
 			List<List<Object[]>> listOfOpportunityReopenRequests = new ArrayList<>();
-			// Contains all the lists of bfm requests
 			List<List<Object[]>> listOfBfmRequests = new ArrayList<>();
 
 			Set<WorklistDTO<Object>> submittedAndApprovedRequests = new HashSet<WorklistDTO<Object>>();
@@ -528,42 +528,49 @@ public class WorkflowService {
 		String userGroupLike = "%" + userGroup + "%";
 		List<Object[]> resultForGroupPending = null;
 		Query query = null;
+		StringBuffer queryBuffer = null;
 		switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
-		case IOU_HEADS: {
+		case IOU_HEADS: 
 			// Query to get bfm requests pending based on IOU
-			StringBuffer queryBuffer = new StringBuffer(
+			queryBuffer = new StringBuffer(
 					QueryConstants.BFM_PENDING_WITH_IOU_GROUP_QUERY);
 			query = entityManager.createNativeQuery(queryBuffer.toString());
 			query.setParameter("userId", userId);
 			query.setParameter("userGroup", userGroupLike);
 			break;
-		}
-		case GEO_HEADS: {
+		case GEO_HEADS: 
 			// Query to get bfm requests pending based on Geography
-			StringBuffer queryBuffer = new StringBuffer(
+			queryBuffer = new StringBuffer(
 					QueryConstants.BFM_PENDING_WITH_GEO_GROUP_QUERY);
 			query = entityManager.createNativeQuery(queryBuffer.toString());
 			query.setParameter("userId", userId);
 			query.setParameter("userGroup", userGroupLike);
 			break;
-		}
+		case CONSULTING_HEAD: 
+			if(isSuperConsultingHead(userId)) {
+				// Query to get bfm requests pending based on Geography
+				queryBuffer = new StringBuffer(
+						QueryConstants.BFM_PENDING_WITH_GEO_GROUP_QUERY);
+				query = entityManager.createNativeQuery(queryBuffer.toString());
+				query.setParameter("userId", userId);
+				query.setParameter("userGroup", userGroupLike);
+			}
+			break;
 		case STRATEGIC_INITIATIVES: 
-		{
 			// Query to get bfm requests pending for a SI or Reporting Team 
-			StringBuffer queryBuffer = new StringBuffer(
+			queryBuffer = new StringBuffer(
 					QueryConstants.BFM_PENDING_WITH_SI_QUERY);
 			query = entityManager.createNativeQuery(queryBuffer.toString());
 			//query.setParameter("userId", userId);
 			query.setParameter("userRole", userRoleLike);
 			query.setParameter("userGroup", userGroupLike);
 			break;
-		}
 		default:
 			break;
 		}
 		if (userGroup.equals(UserGroup.PMO.getValue()))
 		{
-			StringBuffer queryBuffer = new StringBuffer(QueryConstants.BFM_PENDING_WITH_GEO_GROUP_QUERY);
+			queryBuffer = new StringBuffer(QueryConstants.BFM_PENDING_WITH_GEO_GROUP_QUERY);
 			query = entityManager.createNativeQuery(queryBuffer.toString());
 			query.setParameter("userId", userId);
 			query.setParameter("userGroup", userGroupLike);
@@ -575,7 +582,7 @@ public class WorkflowService {
 		resultList = resultForGroupPending;
 
 		// Query to get pending bfm requests for specific user's approval/rejection
-		StringBuffer queryBuffer = new StringBuffer(
+		queryBuffer = new StringBuffer(
 				QueryConstants.BFM_PENDING_WITH_USER_QUERY);
 		query = entityManager.createNativeQuery(queryBuffer.toString());
 		query.setParameter("userId", userId);
@@ -2570,6 +2577,15 @@ public class WorkflowService {
 			query.setParameter("userId", userId);
 			break;
 		}
+		case CONSULTING_HEAD: {
+			if(isSuperConsultingHead(userId)) {
+				StringBuffer queryBuffer = new StringBuffer(
+						QueryConstants.CUSTOMER_PENDING_WITH_GEO_GROUP_QUERY);
+				query = entityManager.createNativeQuery(queryBuffer.toString());
+				query.setParameter("userId", userId);
+			}
+			break;
+		}
 		case STRATEGIC_INITIATIVES: {
 			// Query to get customer requests pending for a SI as no access
 			// privilege applies to SI
@@ -2610,6 +2626,12 @@ public class WorkflowService {
 		}
 		logger.debug("Inside getPendingCustomerRequests method : End");
 		return resultList;
+	}
+
+	private boolean isSuperConsultingHead(String userId) {
+		//Check if the user is having geo access
+		List<String> superUsers = Arrays.asList(StringUtils.split(superConsultingHeads, ','));
+		return superUsers.contains(userId);
 	}
 
 	/**
