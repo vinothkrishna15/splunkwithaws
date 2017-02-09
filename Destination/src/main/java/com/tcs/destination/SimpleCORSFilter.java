@@ -114,7 +114,7 @@ public class SimpleCORSFilter implements Filter {
 				if (session == null) {
 					logger.error("Session is not Valid (or) Timed out");
 					throw new DestinationException(HttpStatus.UNAUTHORIZED,
-							"Session is not Valid (or) Timed out");
+							"Your session has expired. Please log in again.");
 				} else {
 					logger.info("SessionId : " + session.getId());
 					MDC.put("sessionId", session.getId());

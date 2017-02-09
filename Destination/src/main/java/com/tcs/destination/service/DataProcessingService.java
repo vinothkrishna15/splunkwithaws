@@ -210,15 +210,17 @@ public class DataProcessingService {
 
 	public Status readAndUploadLogo() {
 		Status status = new Status();
+		
+		StringBuffer unavailableFiles = new StringBuffer();
 		File directory = new File(logoServerPath);
 		// get all the files from a directory
-
 		File[] fList = directory.listFiles();
 		for (File file : fList) {
 			if (file!= null && file.isDirectory()) {
-				readAndSaveLogoFiles(file.getAbsolutePath(), status);
+				unavailableFiles=readAndSaveLogoFiles(file.getAbsolutePath(), status,unavailableFiles);
+				
 			} else {
-				status.setStatus(Status.FAILED, "No Valid Directory");
+				status.setStatus(Status.FAILED, "No Valid Directory / Files");
 			}
 		}
 		return status;
@@ -230,9 +232,12 @@ public class DataProcessingService {
 	 * 
 	 * @param directoryName
 	 * @param status
+	 * @param unavailableFiles 
+	 * @param unavailableFiles 
+	 * @return 
 	 */
-	private void readAndSaveLogoFiles(String directoryName,
-			Status status) {
+	private StringBuffer readAndSaveLogoFiles(String directoryName,
+			Status status, StringBuffer unavailableFiles) {
 		File directory = new File(directoryName);
 		// get all the files from a directory
 		File[] fList = directory.listFiles();
@@ -241,16 +246,17 @@ public class DataProcessingService {
 				String fileNameWithOutExt = FilenameUtils.removeExtension(file
 						.getName());
 				if (file.getAbsolutePath().contains("COMPETITOR")) {
-					updateCompetitorLogo(fileNameWithOutExt, file.getName(),
-							status);
+					unavailableFiles = updateCompetitorLogo(fileNameWithOutExt, file.getName(),
+							status,unavailableFiles,file);
 				} else if (file.getAbsolutePath().contains("GROUP_CUSTOMER")) {
-					updateGroupCustomerLogo(fileNameWithOutExt, file.getName(),
-							status);
+					unavailableFiles = updateGroupCustomerLogo(fileNameWithOutExt, file.getName(),
+							status,unavailableFiles,file);
 				} else {
 
 				}
 			}
 		}
+		return unavailableFiles;
 	}
 
 	/**
@@ -258,18 +264,27 @@ public class DataProcessingService {
 	 * @param fileNameWithOutExt
 	 * @param fileName
 	 * @param status
+	 * @param unavailableFiles 
+	 * @param file 
+	 * @return 
 	 */
-	private void updateGroupCustomerLogo(String fileNameWithOutExt,
-			String fileName, Status status) {
+	private StringBuffer updateGroupCustomerLogo(String fileNameWithOutExt,
+			String fileName, Status status, StringBuffer unavailableFiles, File file) {
 		GroupCustomerT oldObject = groupCustomerRepository
 				.findOne(fileNameWithOutExt);
+		StringBuffer fullPath = new StringBuffer();
 		if (oldObject != null) {
 			GroupCustomerT update = new GroupCustomerT();
 			update.setGroupCustomerName(oldObject.getGroupCustomerName());
 			update.setLogo(fileName.getBytes());
 			groupCustomerRepository.save(update);
 			status.setStatus(Status.SUCCESS, "Logo Uploaded successfully");
+		} else {
+			fullPath = fullPath.append(file.getPath());
+			unavailableFiles = unavailableFiles.append(fullPath.append(","));
+			status.setStatus(Status.FAILED, "Partially Loaded.List of Files Not Loaded:"+unavailableFiles);
 		}
+		return unavailableFiles;
 
 	}
 
@@ -278,20 +293,30 @@ public class DataProcessingService {
 	 * @param fileNameWithOutExt
 	 * @param fileName
 	 * @param status
+	 * @param unavailableFiles 
+	 * @param file 
 	 * @param oldObject
+	 * @return 
 	 * 
 	 */
-	private void updateCompetitorLogo(String fileNameWithOutExt,
-			String fileName, Status status) {
+	private StringBuffer updateCompetitorLogo(String fileNameWithOutExt,
+			String fileName, Status status, StringBuffer unavailableFiles, File file) {
 		CompetitorMappingT oldObject = competitorRepository
 				.findOne(fileNameWithOutExt);
+		StringBuffer fullPath = new StringBuffer();
+		
 		if (oldObject != null) {
 			CompetitorMappingT update = new CompetitorMappingT();
 			update.setCompetitorName(oldObject.getCompetitorName());
 			update.setLogo(fileName.getBytes());
 			competitorRepository.save(update);
 			status.setStatus(Status.SUCCESS, "Logo Uploaded successfully");
+		} else {
+			fullPath = fullPath.append(file.getPath());
+			unavailableFiles = unavailableFiles.append(fullPath.append(","));
+			status.setStatus(Status.FAILED, "Partially Loaded.List of Files Not Loaded:"+unavailableFiles);
 		}
+		return unavailableFiles;
 	}
 
 }
