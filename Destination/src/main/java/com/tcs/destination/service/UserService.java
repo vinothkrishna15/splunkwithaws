@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryClusterT;
+import com.tcs.destination.bean.DeliveryPmoT;
 import com.tcs.destination.bean.LoginHistoryT;
 import com.tcs.destination.bean.NotificationTypeEventMappingT;
 import com.tcs.destination.bean.PageDTO;
@@ -45,6 +46,7 @@ import com.tcs.destination.bean.UserSubscriptions;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.DeliveryCentreRepository;
 import com.tcs.destination.data.repository.DeliveryClusterRepository;
+import com.tcs.destination.data.repository.DeliveryPmoRepository;
 import com.tcs.destination.data.repository.GoalGroupMappingRepository;
 import com.tcs.destination.data.repository.GoalMappingRepository;
 import com.tcs.destination.data.repository.LoginHistoryRepository;
@@ -125,6 +127,9 @@ public class UserService {
 	
 	@Autowired
 	DeliveryCentreRepository deliveryCentreRepository;
+	
+	@Autowired
+	DeliveryPmoRepository deliveryPmoRepository;
 
 	@Value("${forgotPassword}")
 	private String forgotPasswordSubject;
@@ -881,9 +886,18 @@ public class UserService {
 		}
 		else if(CollectionUtils.isNotEmpty(user.getDeliveryCentreId()))
 		 {
-			 DeliveryCentreT deliveryCentreT = deliveryCentreRepository.findByDeliveryCentreId(user.getDeliveryCentreId().get(0));
-			 deliveryCentreT.setDeliveryCentreHead(user.getUserId());
-			 deliveryCentreRepository.save(deliveryCentreT);
+			if(user.getUserGroup().equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue())) {
+				DeliveryCentreT deliveryCentreT = deliveryCentreRepository.findByDeliveryCentreId(user.getDeliveryCentreId().get(0));
+				 deliveryCentreT.setDeliveryCentreHead(user.getUserId());
+				 deliveryCentreRepository.save(deliveryCentreT);
+			} else if(user.getUserGroup().equals(UserGroup.PMO_DELIVERY.getValue())) {
+				for(Integer dc : user.getDeliveryCentreId()) {
+					DeliveryPmoT deliveryPmoT = new DeliveryPmoT();
+					deliveryPmoT.setPmoId(user.getUserId());
+					deliveryPmoT.setDeliveryCentreId(dc);
+					deliveryPmoRepository.save(deliveryPmoT);
+				}
+			}
 			 logger.info("End:inside updateDeliveryCentreHead() of UserService: centre head saved : " + user.getDeliveryCentreId());
 		 }
 		 logger.info("End of updateDeliveryHead() method");
