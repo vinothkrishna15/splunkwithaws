@@ -4,7 +4,9 @@ import static com.tcs.destination.utils.Constants.FILE_DIR_SEPERATOR;
 import static com.tcs.destination.utils.Constants.UPLOAD;
 
 import java.io.File;
+import java.io.IOException;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -219,8 +221,6 @@ public class DataProcessingService {
 			if (file!= null && file.isDirectory()) {
 				unavailableFiles=readAndSaveLogoFiles(file.getAbsolutePath(), status,unavailableFiles);
 				
-			} else {
-				status.setStatus(Status.FAILED, "No Valid Directory / Files");
 			}
 		}
 		return status;
@@ -251,8 +251,6 @@ public class DataProcessingService {
 				} else if (file.getAbsolutePath().contains("GROUP_CUSTOMER")) {
 					unavailableFiles = updateGroupCustomerLogo(fileNameWithOutExt, file.getName(),
 							status,unavailableFiles,file);
-				} else {
-
 				}
 			}
 		}
@@ -276,7 +274,14 @@ public class DataProcessingService {
 		if (oldObject != null) {
 			GroupCustomerT update = new GroupCustomerT();
 			update.setGroupCustomerName(oldObject.getGroupCustomerName());
-			update.setLogo(fileName.getBytes());
+			try {
+				update.setLogo(FileUtils.readFileToByteArray(file));
+			} catch (IOException e) {
+				fullPath = fullPath.append(file.getPath());
+				unavailableFiles = unavailableFiles.append(fullPath.append(","));
+				status.setStatus(Status.FAILED, "Partially Loaded.List of Files Not Loaded:"+unavailableFiles);
+				return unavailableFiles;
+			}
 			groupCustomerRepository.save(update);
 			status.setStatus(Status.SUCCESS, "Logo Uploaded successfully");
 		} else {
@@ -308,7 +313,14 @@ public class DataProcessingService {
 		if (oldObject != null) {
 			CompetitorMappingT update = new CompetitorMappingT();
 			update.setCompetitorName(oldObject.getCompetitorName());
-			update.setLogo(fileName.getBytes());
+			try {
+				update.setLogo(FileUtils.readFileToByteArray(file));
+			} catch (IOException e) {
+				fullPath = fullPath.append(file.getPath());
+				unavailableFiles = unavailableFiles.append(fullPath.append(","));
+				status.setStatus(Status.FAILED, "Partially Loaded.List of Files Not Loaded:"+unavailableFiles);
+				return unavailableFiles;
+			}
 			competitorRepository.save(update);
 			status.setStatus(Status.SUCCESS, "Logo Uploaded successfully");
 		} else {
