@@ -2403,11 +2403,20 @@ public class ConnectService {
 				.findTotalCustomersConnected(startDate, endDate);
 		List<String> cxoCounts = connectRepository.findTotalCxoCustomers(
 				startDate, endDate);
+		List<String> otherCounts = Lists.newArrayList();
+		if(CollectionUtils.isNotEmpty(cxoCounts)) {
+			otherCounts = connectRepository.findTotalOtherCustomersConnected(
+					startDate, endDate, cxoCounts);
+		} else {
+			otherCounts = totalConnects;
+		}
 		Date startDateWeek = new Date();
 		Date endDateWeek = new Date();
 
 		CustomerConnectDetails customerConnectDetails = new CustomerConnectDetails();
 		customerConnectDetails.setConnectedCustomerList(totalConnects);
+		customerConnectDetails.setCxoConnectedCustomerList(cxoCounts);
+		customerConnectDetails.setOthersConnectedCustomerList(otherCounts);
 		customerConnectDetails.setCxoCount(cxoCounts.size());
 		customerConnectDetails.setNumberOfCustomersConnected(totalConnects
 				.size());

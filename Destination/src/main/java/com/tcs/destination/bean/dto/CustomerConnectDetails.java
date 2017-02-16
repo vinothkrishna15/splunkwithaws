@@ -18,6 +18,8 @@ public class CustomerConnectDetails implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
 	private List<String> connectedCustomerList;
+	private List<String> cxoConnectedCustomerList;
+	private List<String> othersConnectedCustomerList;
 	private int numberOfCustomersConnected;
 	private int cxoCount;
 	private int othersCount;
@@ -84,4 +86,19 @@ public class CustomerConnectDetails implements Serializable {
 	public void setConnectedCustomerList(List<String> connectedCustomerList) {
 		this.connectedCustomerList = connectedCustomerList;
 	}
+	public List<String> getCxoConnectedCustomerList() {
+		return cxoConnectedCustomerList;
+	}
+	public void setCxoConnectedCustomerList(List<String> cxoConnectedCustomerList) {
+		this.cxoConnectedCustomerList = cxoConnectedCustomerList;
+	}
+	public List<String> getOthersConnectedCustomerList() {
+		return othersConnectedCustomerList;
+	}
+	public void setOthersConnectedCustomerList(
+			List<String> othersConnectedCustomerList) {
+		this.othersConnectedCustomerList = othersConnectedCustomerList;
+	}
+	
+	
 }
