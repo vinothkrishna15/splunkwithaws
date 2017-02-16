@@ -895,4 +895,11 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 			+ "order by start_datetime_of_connect asc", nativeQuery=true)
 	List<Object[]> getCustomerWithStartDate(@Param("fromDate") Date fromDate,
 			@Param("toDate") Date toDate);
+
+	@Query(value = "select distinct cmt.group_customer_name from connect_t cont "
+			+ "join customer_master_t cmt on cmt.customer_id = cont.customer_id "
+			+ "where cont.start_datetime_of_connect BETWEEN (:fromDate) AND (:toDate) "
+			+ "AND cont.cxo_flag=false and cmt.group_customer_name not in (:grpCustomers)", nativeQuery = true)
+	List<String> findTotalOtherCustomersConnected(@Param("fromDate") Date startDate,@Param("toDate") Date endDate,
+			@Param("grpCustomers") List<String> grpCustomers);
 }
