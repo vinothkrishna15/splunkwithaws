@@ -22,6 +22,7 @@ import javax.persistence.Query;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.dozer.DozerBeanMapper;
+import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -128,6 +129,7 @@ import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.data.repository.WinLossMappingRepository;
 import com.tcs.destination.data.repository.WorkflowBfmTRepository;
 import com.tcs.destination.data.repository.WorkflowRequestTRepository;
+import com.tcs.destination.enums.BidRequestType;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.EntityTypeId;
 import com.tcs.destination.enums.JobName;
@@ -3880,7 +3882,7 @@ public class OpportunityService {
 		Date startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
 		Date endDate = toDate != null ? toDate : new Date();
 
-		Page<OpportunityT> oppTs = opportunityRepository.findByGrpCustomerAndDealDate(startDate, endDate, grpCustomer, stages, pageable);
+		Page<OpportunityT> oppTs = opportunityRepository.findByGrpCustomerAndDealDate(startDate, endDate, grpCustomer,pageable);
 
 		List<OpportunityDTO> dtos = Lists.newArrayList();
 		List<OpportunityT> oppList = oppTs.getContent();
@@ -3904,7 +3906,7 @@ public class OpportunityService {
 
 	@SuppressWarnings("unchecked")
 	public PageDTO<OpportunityDTO> getAllByParam(List<Integer> stages, String oppType, String dispGeo, String category,
-			String searchTerm, Date fromDate, Date toDate, String mapId, int page, int count, Integer minVal, Integer MaxVal) {
+			String searchTerm, Date fromDate, Date toDate, String mapId, int page, int count, Integer minVal, Integer MaxVal, String filter) {
 
 		Sort sort = new Sort(Direction.DESC, "modifiedDatetime");
 		Pageable pageable = new PageRequest(page, count, sort);
@@ -3957,6 +3959,15 @@ public class OpportunityService {
 			
 			List<String> oppIdsByGroup = opportunityRepository.getOppIdsByUserGroup(userGroups);
 			oppIds = (List<String>) CollectionUtils.intersection(oppIds, oppIdsByGroup);
+		}
+		
+		//apply 1min+ or proactive filter
+		if(StringUtils.equals(filter, "ONE_MILLION")) {
+			List<String> oppIdsWithValMillion = opportunityRepository.getOppIdsByDealValGreaterThanOneMillion();
+			oppIds = (List<String>) CollectionUtils.intersection(oppIds, oppIdsWithValMillion);
+		} else if(StringUtils.equals(filter, "PROACTIVE")) {
+			List<String> oppIdsByBidType = opportunityRepository.getOppIdsByBidType(BidRequestType.PROACTIVE.getBidType());
+			oppIds = (List<String>) CollectionUtils.intersection(oppIds, oppIdsByBidType);
 		}
 		
 		if(CollectionUtils.isEmpty(oppIds)) {
@@ -4239,9 +4250,21 @@ public class OpportunityService {
 	}
 	
 	public ContentDTO<MoneyBucketDTO> getWinLossBuckets(Date fromDate, Date toDate, String oppType,
-			List<Integer> stages, String geo) {
-		Date startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
-		Date endDate = toDate != null ? toDate : new Date();
+			List<Integer> stages, String geo, String filter, Integer filterValue) {
+		
+		
+		Date startDate = null;
+		Date endDate = null;
+		if(StringUtils.equalsIgnoreCase(filter, "QUARTER")) {
+			LocalDate yrFirstDate = new LocalDate(DateUtils.getFinancialYrStartDate().getTime());
+			LocalDate date1 = yrFirstDate.plusMonths((filterValue.intValue()-1) * 3);
+			LocalDate date2 = date1.plusMonths(2).dayOfMonth().withMaximumValue();
+			startDate = date1.toDate();
+			endDate = date2.toDate();
+		} else {
+			startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
+			endDate = toDate != null ? toDate : new Date();
+		}
 		
 		List<String> oppIds = null;
 		//apply user grroup filter
@@ -4283,6 +4306,8 @@ public class OpportunityService {
 			dto.setBucketLabel(bucket.getLabel());
 			dto.setMinValue(bucket.getMinValue());
 			dto.setMaxValue(bucket.getMaxValue());
+			dto.setStartDate(startDate);
+			dto.setEndDate(endDate);
 
 			dtoList.add(dto);
 		}
