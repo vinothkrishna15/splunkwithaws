@@ -1222,12 +1222,14 @@ public class OpportunityController {
 			@RequestParam(value = "toDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
 			@RequestParam(value = "oppType", defaultValue = "ALL") String oppType,
 			@RequestParam(value = "dispGeo", defaultValue = "ALL") String dispGeo,
+			@RequestParam(value = "filter", defaultValue = "") String filter,
+			@RequestParam(value = "filterValue", defaultValue = "") Integer filterValue,
 			@RequestParam(value = "stages", defaultValue = "9") List<Integer> stages)
 					throws DestinationException {
 		logger.info("Start - Inside OpportunityController: getWinLossBuckets");
 		ContentDTO<MoneyBucketDTO> ratioWrapper;
 		try {
-			ratioWrapper = opportunityService.getWinLossBuckets(fromDate, toDate, oppType, stages, dispGeo);
+			ratioWrapper = opportunityService.getWinLossBuckets(fromDate, toDate, oppType, stages, dispGeo, filter, filterValue);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {

@@ -22,6 +22,7 @@ import javax.persistence.Query;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.dozer.DozerBeanMapper;
+import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -4160,9 +4161,21 @@ public class OpportunityService {
 	}
 	
 	public ContentDTO<MoneyBucketDTO> getWinLossBuckets(Date fromDate, Date toDate, String oppType,
-			List<Integer> stages, String geo) {
-		Date startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
-		Date endDate = toDate != null ? toDate : new Date();
+			List<Integer> stages, String geo, String filter, Integer filterValue) {
+		
+		
+		Date startDate = null;
+		Date endDate = null;
+		if(StringUtils.equalsIgnoreCase(filter, "QUARTER")) {
+			LocalDate yrFirstDate = new LocalDate(DateUtils.getFinancialYrStartDate().getTime());
+			LocalDate date1 = yrFirstDate.plusMonths((filterValue.intValue()-1) * 3);
+			LocalDate date2 = date1.plusMonths(2).dayOfMonth().withMaximumValue();
+			startDate = date1.toDate();
+			endDate = date2.toDate();
+		} else {
+			startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
+			endDate = toDate != null ? toDate : new Date();
+		}
 		
 		List<String> oppIds = null;
 		//apply user grroup filter
