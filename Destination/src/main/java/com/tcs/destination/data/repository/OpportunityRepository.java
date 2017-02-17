@@ -1435,11 +1435,10 @@ public interface OpportunityRepository extends
 	@Query(value="SELECT ot FROM OpportunityT ot "
 			+ "JOIN ot.customerMasterT ct "
 			+ "WHERE ct.groupCustomerName = :grpCustomer "
-			+ "AND ot.salesStageCode in (:stages)"
-			+ "AND (ot.salesStageCode <> 9 OR (ot.salesStageCode = 9 AND (9) in (:stages) AND ot.dealClosureDate BETWEEN :fromDate AND :toDate)) "
-			+ "AND (ot.salesStageCode <> 10 OR (ot.salesStageCode = 10 AND (10) in (:stages) AND ot.dealClosureDate BETWEEN :fromDate AND :toDate)) ")
+			+ "AND (ot.salesStageCode <> 9 OR (ot.salesStageCode = 9 AND ot.dealClosureDate BETWEEN :fromDate AND :toDate)) "
+			+ "AND (ot.salesStageCode <> 10 OR (ot.salesStageCode = 10 AND ot.dealClosureDate BETWEEN :fromDate AND :toDate)) ")
 	Page<OpportunityT> findByGrpCustomerAndDealDate(@Param("fromDate") Date fromDate, @Param("toDate") Date toDate, 
-			@Param("grpCustomer") String grpCustomer, @Param("stages") List<Integer> stages, Pageable pageable);
+			@Param("grpCustomer") String grpCustomer, Pageable pageable);
 
 	//***************** Start of carousel queries *************//
 	@Query(value = "select count(OPP.opportunity_id) , sum(deal_value_usd_converter(OPP.digital_deal_value, OPP.deal_currency)) from opportunity_t OPP where OPP.sales_stage_code in (:salesStageCode) and "
@@ -1635,6 +1634,14 @@ public interface OpportunityRepository extends
 			+ " AND opp.sales_stage_code in (:stages)"
 			+ " AND deal_value_usd_converter(opp.digital_deal_value, opp.deal_currency) BETWEEN :minVal AND :maxVal", nativeQuery = true)
 	List<String> getOppIdsWinLossBuckets(@Param("stages") List<Integer> stages, @Param("fromDate") Date fromDate, @Param("toDate") Date toDate, @Param("minVal") Integer minVal, @Param("maxVal") Integer maxVal);
+
+	@Query(value="select opportunity_id from opportunity_t where "
+			+ "deal_value_usd_converter(digital_deal_value, deal_currency)  > 1000000", nativeQuery = true)
+	List<String> getOppIdsByDealValGreaterThanOneMillion();
+
+	@Query(value="SELECT DISTINCT OPP.opportunityId from OpportunityT OPP"
+			+ " join OPP.bidDetailsTs BD where BD.bidRequestType = (:bidType)")
+	List<String> getOppIdsByBidType(@Param("bidType") String bidType);
 	
 	// Change ends
 }
