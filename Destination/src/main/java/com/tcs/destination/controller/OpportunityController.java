@@ -1078,7 +1078,7 @@ public class OpportunityController {
 			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
 			@RequestParam(value = "toDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
 			@RequestParam(value = "grpCustomer") String grpCustomer,
-			@RequestParam(value = "stages") List<Integer> stages,
+			@RequestParam(value = "stages", defaultValue = "") List<Integer> stages,
 			@RequestParam(value = "page", defaultValue = "0") int page,
 			@RequestParam(value = "count", defaultValue = "15") int count,
 			@RequestParam(value = "mapId", defaultValue = Constants.OPPORTUNITY_LIST_MAP) String mapId)
