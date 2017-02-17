@@ -1635,6 +1635,14 @@ public interface OpportunityRepository extends
 			+ " AND opp.sales_stage_code in (:stages)"
 			+ " AND deal_value_usd_converter(opp.digital_deal_value, opp.deal_currency) BETWEEN :minVal AND :maxVal", nativeQuery = true)
 	List<String> getOppIdsWinLossBuckets(@Param("stages") List<Integer> stages, @Param("fromDate") Date fromDate, @Param("toDate") Date toDate, @Param("minVal") Integer minVal, @Param("maxVal") Integer maxVal);
+
+	@Query(value="select opportunity_id from opportunity_t where "
+			+ "deal_value_usd_converter(digital_deal_value, deal_currency)  > 1000000", nativeQuery = true)
+	List<String> getOppIdsByDealValGreaterThanOneMillion();
+
+	@Query(value="SELECT DISTINCT OPP.opportunityId from OpportunityT OPP"
+			+ " join OPP.bidDetailsTs BD where BD.bidRequestType = (:bidType)")
+	List<String> getOppIdsByBidType(@Param("bidType") String bidType);
 	
 	// Change ends
 }

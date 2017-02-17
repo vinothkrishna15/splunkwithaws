@@ -1111,13 +1111,14 @@ public class OpportunityController {
 			@RequestParam(value = "maxVal", defaultValue = Constants.MAX_DEAL_VALUE_STR) Integer maxVal,
 			@RequestParam(value = "page", defaultValue = "0") int page,
 			@RequestParam(value = "count", defaultValue = "15") int count,
-			@RequestParam(value = "mapId", defaultValue = Constants.OPPORTUNITY_LIST_MAP) String mapId)
+			@RequestParam(value = "mapId", defaultValue = Constants.OPPORTUNITY_LIST_MAP) String mapId,
+			@RequestParam(value = "filter", defaultValue = "") String filter)
 					throws DestinationException {
 		logger.info("Start - Inside OpportunityController: getAllByParam");
 		PageDTO<OpportunityDTO> opportunity;
 		try {
 			opportunity = opportunityService.getAllByParam(stages, oppType, dispGeo, category, 
-					searchTerm, fromDate, toDate, mapId, page, count, minVal, maxVal);
+					searchTerm, fromDate, toDate, mapId, page, count, minVal, maxVal, filter);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {

@@ -127,6 +127,7 @@ import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.data.repository.WinLossMappingRepository;
 import com.tcs.destination.data.repository.WorkflowBfmTRepository;
 import com.tcs.destination.data.repository.WorkflowRequestTRepository;
+import com.tcs.destination.enums.BidRequestType;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.EntityTypeId;
 import com.tcs.destination.enums.JobName;
@@ -3826,7 +3827,7 @@ public class OpportunityService {
 
 	@SuppressWarnings("unchecked")
 	public PageDTO<OpportunityDTO> getAllByParam(List<Integer> stages, String oppType, String dispGeo, String category,
-			String searchTerm, Date fromDate, Date toDate, String mapId, int page, int count, Integer minVal, Integer MaxVal) {
+			String searchTerm, Date fromDate, Date toDate, String mapId, int page, int count, Integer minVal, Integer MaxVal, String filter) {
 
 		Sort sort = new Sort(Direction.DESC, "modifiedDatetime");
 		Pageable pageable = new PageRequest(page, count, sort);
@@ -3879,6 +3880,15 @@ public class OpportunityService {
 			
 			List<String> oppIdsByGroup = opportunityRepository.getOppIdsByUserGroup(userGroups);
 			oppIds = (List<String>) CollectionUtils.intersection(oppIds, oppIdsByGroup);
+		}
+		
+		//apply 1min+ or proactive filter
+		if(StringUtils.equals(filter, "ONE_MILLION")) {
+			List<String> oppIdsWithValMillion = opportunityRepository.getOppIdsByDealValGreaterThanOneMillion();
+			oppIds = (List<String>) CollectionUtils.intersection(oppIds, oppIdsWithValMillion);
+		} else if(StringUtils.equals(filter, "PROACTIVE")) {
+			List<String> oppIdsByBidType = opportunityRepository.getOppIdsByBidType(BidRequestType.PROACTIVE.getBidType());
+			oppIds = (List<String>) CollectionUtils.intersection(oppIds, oppIdsByBidType);
 		}
 		
 		if(CollectionUtils.isEmpty(oppIds)) {
