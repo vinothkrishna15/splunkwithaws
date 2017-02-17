@@ -4217,6 +4217,8 @@ public class OpportunityService {
 			dto.setBucketLabel(bucket.getLabel());
 			dto.setMinValue(bucket.getMinValue());
 			dto.setMaxValue(bucket.getMaxValue());
+			dto.setStartDate(startDate);
+			dto.setEndDate(endDate);
 
 			dtoList.add(dto);
 		}

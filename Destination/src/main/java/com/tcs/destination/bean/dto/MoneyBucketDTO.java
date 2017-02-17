@@ -3,6 +3,7 @@ package com.tcs.destination.bean.dto;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -22,6 +23,22 @@ public class MoneyBucketDTO  implements Serializable {
 	
 	private BigInteger count;
 	private BigDecimal Value;
+	
+	private Date startDate;
+	private Date endDate;
+	
+	public Date getStartDate() {
+		return startDate;
+	}
+	public void setStartDate(Date startDate) {
+		this.startDate = startDate;
+	}
+	public Date getEndDate() {
+		return endDate;
+	}
+	public void setEndDate(Date endDate) {
+		this.endDate = endDate;
+	}
 	public Integer getMinValue() {
 
 		return minValue;
