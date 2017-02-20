@@ -877,7 +877,7 @@ public class UserService {
 	private void updateDeliveryHead(UserT user) {
 		logger.info("Inside updateDeliveryHead() method");
 		
-		if(user.getDeliveryClusterId() != null)
+		if(user.getDeliveryClusterId() != null && user.getUserGroup().equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()))
 		{
 			DeliveryClusterT deliveryClusterT = deliveryClusterRepository.findByDeliveryClusterId(user.getDeliveryClusterId());
 			deliveryClusterT.setDeliveryClusterHead(user.getUserId());
@@ -886,7 +886,7 @@ public class UserService {
 		}
 		else if(CollectionUtils.isNotEmpty(user.getDeliveryCentreId()))
 		 {
-			if(user.getUserGroup().equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue())) {
+			if(user.getUserGroup().equals(UserGroup.DELIVERY_CENTRE_HEAD.getValue())) {
 				DeliveryCentreT deliveryCentreT = deliveryCentreRepository.findByDeliveryCentreId(user.getDeliveryCentreId().get(0));
 				 deliveryCentreT.setDeliveryCentreHead(user.getUserId());
 				 deliveryCentreRepository.save(deliveryCentreT);
