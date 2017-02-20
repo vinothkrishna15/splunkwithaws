@@ -2395,10 +2395,13 @@ public class ConnectService {
 	public CustomerConnectDetails getAllByPeriod(Date fromDate, Date toDate,
 			String period) {
 		// TODO Auto-generated method stub
-		Date startDate = fromDate != null ? fromDate : DateUtils
+		Date fromDateTs = fromDate != null ? fromDate : DateUtils
 				.getFinancialYrStartDate();
-		Date endDate = toDate != null ? toDate : DateUtils
-				.getFinancialYrEndDate();
+		Date toDateTs = toDate != null ? toDate : new Date();
+		
+		Timestamp startDate = new Timestamp(fromDateTs.getTime());
+		Timestamp endDate = new Timestamp(toDateTs.getTime()
+				+ Constants.ONE_DAY_IN_MILLIS - 1);
 		List<String> totalConnects = connectRepository
 				.findTotalCustomersConnected(startDate, endDate);
 		List<String> cxoCounts = connectRepository.findTotalCxoCustomers(
