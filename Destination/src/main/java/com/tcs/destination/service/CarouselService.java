@@ -2,6 +2,7 @@ package com.tcs.destination.service;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -27,6 +28,7 @@ import com.tcs.destination.enums.HealthCardComponent;
 import static com.tcs.destination.enums.SalesStageCode.WIN;
 import static com.tcs.destination.enums.SalesStageCode.LOST;
 
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 
@@ -76,9 +78,12 @@ public class CarouselService {
 			Date toDate, Long associateCount) {
 		logger.info("Start of getCarouselMetrics");
 		CarouselMetricsDTO carouselMetricsDTO = new CarouselMetricsDTO();
-		Date startDate = fromDate != null ? fromDate : DateUtils
+		Date fromDateTs = fromDate != null ? fromDate : DateUtils
 				.getFinancialYrStartDate();
-		Date endDate = toDate != null ? toDate : new Date();
+		Date toDateTs = toDate != null ? toDate : new Date();
+		Timestamp startDate = new Timestamp(fromDateTs.getTime());
+		Timestamp endDate = new Timestamp(toDateTs.getTime()
+				+ Constants.ONE_DAY_IN_MILLIS - 1);
 		String userId = DestinationUtils.getCurrentUserId();
 		if (type.equals(HEALTH_CARD.getType()) || type.equals(ALL.getType())) {
 			setHealthCardMetrics(carouselMetricsDTO, startDate, endDate, userId);
