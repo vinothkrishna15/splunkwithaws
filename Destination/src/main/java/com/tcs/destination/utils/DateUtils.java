@@ -436,9 +436,9 @@ public class DateUtils {
 	public static String getQuarterForMonth(String formattedMonth)
 			throws ParseException {
 		String quarter = "";
+		Date date = getDateFromDBFormattedString(formattedMonth);
 		Calendar cal = Calendar.getInstance();
-		cal.setTimeInMillis(getDateFromDBFormattedString(formattedMonth)
-				.getTime());
+		cal.setTimeInMillis(date.getTime());
 		int year = cal.get(Calendar.YEAR);
 		switch (cal.get(Calendar.MONTH)) {
 		case Calendar.JANUARY:
@@ -464,6 +464,37 @@ public class DateUtils {
 		case Calendar.DECEMBER:
 			quarter = "Q3 - " + (year) + "-"
 					+ Integer.toString(year + 1).substring(2);
+			break;
+		default:
+			break;
+		}
+		return quarter;
+	}
+
+	public static Integer getQuarterNumberForMonth(Date date) {
+		Integer quarter = null;
+		Calendar cal = Calendar.getInstance();
+		cal.setTimeInMillis(date.getTime());
+		switch (cal.get(Calendar.MONTH)) {
+		case Calendar.JANUARY:
+		case Calendar.FEBRUARY:
+		case Calendar.MARCH:
+			quarter = 4;
+			break;
+		case Calendar.APRIL:
+		case Calendar.MAY:
+		case Calendar.JUNE:
+			quarter = 1;
+			break;
+		case Calendar.JULY:
+		case Calendar.AUGUST:
+		case Calendar.SEPTEMBER:
+			quarter = 2;
+			break;
+		case Calendar.OCTOBER:
+		case Calendar.NOVEMBER:
+		case Calendar.DECEMBER:
+			quarter = 3;
 			break;
 		default:
 			break;

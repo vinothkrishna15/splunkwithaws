@@ -18,7 +18,14 @@ public class WinLossCountDTO  implements Serializable {
 	private BigDecimal winValue;
 	private BigDecimal lossValue;
 	private BigDecimal winRatio;
+	private Integer quarterNumber;
 	
+	public Integer getQuarterNumber() {
+		return quarterNumber;
+	}
+	public void setQuarterNumber(Integer quarterNumber) {
+		this.quarterNumber = quarterNumber;
+	}
 	public Date getFromDate() {
 		return fromDate;
 	}
