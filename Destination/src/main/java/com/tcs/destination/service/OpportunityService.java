@@ -4297,6 +4297,7 @@ public class OpportunityService {
 				winLossDto.setToDate(monthEndDate);
 				winLossDto.setWinCount(winCount);
 				winLossDto.setLossCount(lossCount);
+				winLossDto.setQuarterNumber(DateUtils.getQuarterNumberForMonth(monthStartDate));
 				winlossDtos.add(winLossDto);
 			}
 		}
