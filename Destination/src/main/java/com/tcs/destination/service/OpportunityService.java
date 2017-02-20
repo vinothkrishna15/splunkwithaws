@@ -3803,7 +3803,7 @@ public class OpportunityService {
 		Date startDate = fromDate != null ? fromDate : DateUtils.getFinancialYrStartDate();
 		Date endDate = toDate != null ? toDate : new Date();
 
-		Page<OpportunityT> oppTs = opportunityRepository.findByGrpCustomerAndDealDate(startDate, endDate, grpCustomer,pageable);
+		Page<OpportunityT> oppTs = opportunityRepository.findByGrpCustomerAndDealDate(startDate, endDate, grpCustomer, stages, pageable);
 
 		List<OpportunityDTO> dtos = Lists.newArrayList();
 		List<OpportunityT> oppList = oppTs.getContent();

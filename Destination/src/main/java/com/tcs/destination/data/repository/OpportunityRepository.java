@@ -1435,10 +1435,11 @@ public interface OpportunityRepository extends
 	@Query(value="SELECT ot FROM OpportunityT ot "
 			+ "JOIN ot.customerMasterT ct "
 			+ "WHERE ct.groupCustomerName = :grpCustomer "
-			+ "AND (ot.salesStageCode <> 9 OR (ot.salesStageCode = 9 AND ot.dealClosureDate BETWEEN :fromDate AND :toDate)) "
-			+ "AND (ot.salesStageCode <> 10 OR (ot.salesStageCode = 10 AND ot.dealClosureDate BETWEEN :fromDate AND :toDate)) ")
-	Page<OpportunityT> findByGrpCustomerAndDealDate(@Param("fromDate") Date fromDate, @Param("toDate") Date toDate, 
-			@Param("grpCustomer") String grpCustomer, Pageable pageable);
+			+ "AND ot.salesStageCode in (:stages)"
+			+ "AND (ot.salesStageCode <> 9 OR (ot.salesStageCode = 9 AND (9) in (:stages) AND ot.dealClosureDate BETWEEN :fromDate AND :toDate)) "
+			+ "AND (ot.salesStageCode <> 10 OR (ot.salesStageCode = 10 AND (10) in (:stages) AND ot.dealClosureDate BETWEEN :fromDate AND :toDate)) ")
+		Page<OpportunityT> findByGrpCustomerAndDealDate(@Param("fromDate") Date fromDate, @Param("toDate") Date toDate, 
+			@Param("grpCustomer") String grpCustomer, @Param("stages") List<Integer> stages, Pageable pageable);
 
 	//***************** Start of carousel queries *************//
 	@Query(value = "select count(OPP.opportunity_id) , sum(deal_value_usd_converter(OPP.digital_deal_value, OPP.deal_currency)) from opportunity_t OPP where OPP.sales_stage_code in (:salesStageCode) and "
