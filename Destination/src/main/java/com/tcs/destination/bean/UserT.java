@@ -465,6 +465,17 @@ public class UserT implements Serializable {
 	// bi-directional many-to-one association to DocumentsT
 	@OneToMany(mappedBy = "modifiedByUser")
 	private List<DocumentsT> documentsTs2;
+	
+	//bi-directional many-to-one association to PartnerContactLinkT
+	@OneToMany(mappedBy="deliveryCentreHeadUser")
+	private List<DeliveryCentreT> deliveryCentreTs;
+	
+	//bi-directional many-to-one association to PartnerContactLinkT
+	@OneToMany(mappedBy="deliveryClusterHeadUser")
+	private List<DeliveryClusterT> deliveryClusterTs;
+	
+	@OneToMany(mappedBy="userT")
+	private List<DeliveryPmoT> deliveryCentresPmo;
 
 	public UserT() {
 	}
@@ -1944,6 +1955,30 @@ public class UserT implements Serializable {
 
 	public void setDeliveryCentreId(List<Integer> deliveryCentreId) {
 		this.deliveryCentreId = deliveryCentreId;
+	}
+	
+	public List<DeliveryCentreT> getDeliveryCentreTs() {
+		return deliveryCentreTs;
+	}
+
+	public void setDeliveryCentreTs(List<DeliveryCentreT> deliveryCentreTs) {
+		this.deliveryCentreTs = deliveryCentreTs;
+	}
+
+	public List<DeliveryClusterT> getDeliveryClusterTs() {
+		return deliveryClusterTs;
+	}
+
+	public void setDeliveryClusterTs(List<DeliveryClusterT> deliveryClusterTs) {
+		this.deliveryClusterTs = deliveryClusterTs;
+	}
+
+	public List<DeliveryPmoT> getDeliveryCentresPmo() {
+		return deliveryCentresPmo;
+	}
+
+	public void setDeliveryCentresPmo(List<DeliveryPmoT> deliveryCentresPmo) {
+		this.deliveryCentresPmo = deliveryCentresPmo;
 	}
 
 	@Override

@@ -1026,6 +1026,7 @@ public class UserService {
 			}
 			updateUserPrivileges(user);//update user access privileges
 			saveOrUpdateUserGoals(user);//update user goals
+			updateDeliveryHead(user);
 			logger.info("End:inside updateUserDetails() of UserService: user Saved : " + user.getUserId());
 			return true;
 		} else {
