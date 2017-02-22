@@ -3786,10 +3786,12 @@ public class OpportunityService {
 		String oppQueryString = getOpportunityQueryByPrivilege(userId,oppType);
 		Query oppQuery = entityManager.createNativeQuery(oppQueryString, OpportunityT.class);
 		List<String> userGroups = Lists.newArrayList();
-		if(oppType.equals("SALES")) {
+		if(oppType.equals(Constants.SALES)) {
 			userGroups = DestinationUtils.getSalesUserGroups();
-		} else if (oppType.equals("CONSULTING")) {
+		} else if (oppType.equals(Constants.CONSULTING)) {
 			userGroups = DestinationUtils.getConsultingUserGroups();
+		} else if (oppType.equals(Constants.DELIVERY)) {
+			userGroups = DestinationUtils.getDeliveryUserGroups();
 		}
 		oppQuery.setParameter("fromDate", startDate);
 		oppQuery.setParameter("toDate", endDate);
@@ -3949,10 +3951,12 @@ public class OpportunityService {
 		//apply user grroup filter
 		if(!StringUtils.equals(oppType, "ALL")) {
 			List<String> userGroups = null;
-			if(StringUtils.equals(oppType, "SALES")) {
+			if(StringUtils.equals(oppType, Constants.SALES)) {
 				userGroups = DestinationUtils.getSalesUserGroups();
-			} else if(StringUtils.equals(oppType, "CONSULTING")) {
+			} else if(StringUtils.equals(oppType, Constants.CONSULTING)) {
 				userGroups = DestinationUtils.getConsultingUserGroups();
+			} else if(StringUtils.equals(oppType, Constants.DELIVERY)) {
+				userGroups = DestinationUtils.getDeliveryUserGroups();
 			} else {
 				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid opportunity type");
 			}
@@ -4090,10 +4094,12 @@ public class OpportunityService {
 		Date endDate = toDate != null ? toDate : new Date();
 		
 		List<String> userGroup = null;
-		if ("SALES".equalsIgnoreCase(oppType)) {
+		if (Constants.SALES.equalsIgnoreCase(oppType)) {
 			userGroup = DestinationUtils.getSalesUserGroups();
-		} else if ("CONSULTING".equalsIgnoreCase(oppType)) {
+		} else if (Constants.CONSULTING.equalsIgnoreCase(oppType)) {
 			userGroup = DestinationUtils.getConsultingUserGroups();
+		} else if (Constants.DELIVERY.equalsIgnoreCase(oppType)) {
+			userGroup = DestinationUtils.getDeliveryUserGroups();
 		} else {
 			userGroup = opportunityRepository.findAllOppIdsForAllUserGroup();
 		}
@@ -4268,11 +4274,14 @@ public class OpportunityService {
 		
 		List<String> oppIds = null;
 		//apply user grroup filter
-		if(StringUtils.equals(oppType, "SALES")) {
+		if(StringUtils.equals(oppType, Constants.SALES)) {
 			List<String> userGroups = DestinationUtils.getSalesUserGroups();
 			oppIds = opportunityRepository.getOppIdsByUserGroup(userGroups);
-		} else if(StringUtils.equals(oppType, "CONSULTING")) {
+		} else if(StringUtils.equals(oppType, Constants.CONSULTING)) {
 			List<String> userGroups = DestinationUtils.getConsultingUserGroups();
+			oppIds = opportunityRepository.getOppIdsByUserGroup(userGroups);
+		} else if(StringUtils.equals(oppType, Constants.DELIVERY)) {
+			List<String> userGroups = DestinationUtils.getDeliveryUserGroups();
 			oppIds = opportunityRepository.getOppIdsByUserGroup(userGroups);
 		}
 		

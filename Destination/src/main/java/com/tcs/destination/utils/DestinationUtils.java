@@ -243,6 +243,10 @@ public class DestinationUtils {
 		return Lists.newArrayList(UserGroup.BDM.getValue(), UserGroup.BDM_SUPERVISOR.getValue(), UserGroup.GEO_HEADS.getValue());
 	}
 
+	public static List<String> getDeliveryUserGroups() {
+		return Lists.newArrayList(UserGroup.DELIVERY_CENTRE_HEAD.getValue(), UserGroup.DELIVERY_CLUSTER_HEAD.getValue(), UserGroup.DELIVERY_MANAGER.getValue(), UserGroup.PMO_DELIVERY.getValue());
+	}
+
 	public static List<String> getConsultingUserGroups() {
 		return Lists.newArrayList(UserGroup.CONSULTING_HEAD.getValue(), UserGroup.CONSULTING_USER.getValue());
 	}

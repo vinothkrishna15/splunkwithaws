@@ -9,10 +9,6 @@
  */
 package com.tcs.destination.utils;
 
-import java.util.List;
-
-import com.google.common.collect.Lists;
-
 /**
  * This Constants class holds all the constants
  * 
@@ -348,7 +344,6 @@ public class Constants {
 	public static final String WORKFLOW_BFM_ESCALATE_PATH_A_REJECTED_SUBJECT = "Deal Financial Exception Rejected - ";
 	public static final String WORKFLOW_BFM_ESCALATE_PATH_B_APPROVED_SUBJECT = "Deal Financial Exception Approved - ";
 	public static final String WORKFLOW_BFM_ESCALATE_PATH_B_REJECTED_SUBJECT = "Deal Financial Exception Rejected - ";
-	public static final String CONSULTING = "CONSULTING";
 	public static final String ABIM_CONSULTING = "ABIM – Consulting";
 	
 	
@@ -440,5 +435,12 @@ public class Constants {
 	
 	public static final Integer MAX_DEAL_VALUE = new Integer(2147483647);
 	public static final String MAX_DEAL_VALUE_STR = "2147483647";
+	
+	//User types
+	public static final String DELIVERY = "DELIVERY";
+	public static final String SALES = "SALES";
+	public static final String CONSULTING = "CONSULTING";
+	
+	
 	
 }
