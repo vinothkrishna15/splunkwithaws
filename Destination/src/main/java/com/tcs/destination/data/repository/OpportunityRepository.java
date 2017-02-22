@@ -1590,7 +1590,8 @@ public interface OpportunityRepository extends
 		+ " FROM opportunity_t opp"
 		+ " JOIN customer_master_t cmt on cmt.customer_id = opp.customer_id"
 		+ " JOIN geography_mapping_t gmt on cmt.geography = gmt.geography"
-		+ " WHERE deal_value_usd_converter(opp.digital_deal_value, opp.deal_currency) BETWEEN :minVal AND :maxVal"
+		+ " WHERE deal_value_usd_converter(opp.digital_deal_value, opp.deal_currency) >= :minVal"
+		+ " AND deal_value_usd_converter(opp.digital_deal_value, opp.deal_currency) < :maxVal"
 		+ " AND opp.deal_closure_date BETWEEN :fromDate AND :toDate"
 		+ " AND gmt.display_geography in (:geo)", nativeQuery=true)
 	List<Object[]> getGeoWinRatio(@Param("minVal") double minVal, @Param("maxVal") double maxVal, @Param("fromDate") Date fromDate, @Param("toDate") Date toDate, @Param("geo") List<String> geo);
@@ -1624,7 +1625,8 @@ public interface OpportunityRepository extends
 			+ " WHERE opp.deal_closure_date BETWEEN :fromDate AND :toDate"
 			+ " AND opp.sales_stage_code in (:stages)"
 			+ " AND (opp.opportunity_id in (:oppIds) OR ('') in (:oppIds))"
-			+ " AND deal_value_usd_converter(opp.digital_deal_value, opp.deal_currency) BETWEEN :minVal AND :maxVal", nativeQuery = true)
+			+ " AND deal_value_usd_converter(opp.digital_deal_value, opp.deal_currency) >= :minVal"
+			+ " AND deal_value_usd_converter(opp.digital_deal_value, opp.deal_currency) < :maxVal", nativeQuery = true)
 	List<Object[]> getWinLossValue(@Param("fromDate") Date fromDate, @Param("toDate") Date toDate, 
 			@Param("stages") List<Integer> stages, @Param("minVal") Integer minVal, @Param("maxVal") Integer maxVal,
 			@Param("oppIds") List<String> oppIds);

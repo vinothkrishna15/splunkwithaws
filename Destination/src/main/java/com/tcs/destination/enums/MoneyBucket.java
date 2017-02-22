@@ -4,9 +4,9 @@ import com.tcs.destination.utils.Constants;
 
 public enum MoneyBucket {
 	
-	LESS_HUNDRED("<100K",0,99999),
-	LESS_FIVE_HUNDRED("100K-500K", 100000, 499999),
-	LESS_ONE_MILLION("500K-1M", 500000,999999),
+	LESS_HUNDRED("<100K",0,100000),
+	LESS_FIVE_HUNDRED("100K-500K", 100000, 500000),
+	LESS_ONE_MILLION("500K-1M", 500000,1000000),
 	ONE_MILLION_PLUS("1M+", 1000000, Constants.MAX_DEAL_VALUE);
 	
 	private final String label;
