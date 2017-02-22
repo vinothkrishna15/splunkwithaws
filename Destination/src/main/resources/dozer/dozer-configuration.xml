@@ -21,6 +21,7 @@
 		<field> <a>dealClosureDate</a> <b>dealClosureDate</b> </field>
 	  	<field> <a>digitalDealValue</a> <b>digitalDealValue</b> </field>
 		<field> <a>salesStageCode</a> <b>salesStageCode</b> </field>
+		<field> <a>modifiedDatetime</a> <b>modifiedDatetime</b> </field>
 		<field map-id="customer-geo-iou-mapping"> <a>customerMasterT</a> <b>customerMasterT</b> </field>
 		<field map-id="winloss-factor-mapping"> <a>opportunityWinLossFactorsTs</a> <b>opportunityWinLossFactorsTs</b> </field>
   		<field map-id="opportunity-subsp"> <a>opportunitySubSpLinkTs</a> <b>opportunitySubSpLinkTs</b> </field>
@@ -36,6 +37,7 @@
 		<field> <a>dealClosureDate</a> <b>dealClosureDate</b> </field>
 	  	<field> <a>digitalDealValue</a> <b>digitalDealValue</b> </field>
 		<field> <a>salesStageCode</a> <b>salesStageCode</b> </field>
+		<field> <a>modifiedDatetime</a> <b>modifiedDatetime</b> </field>
 		<field map-id="customer-only-mapping"> <a>customerMasterT</a> <b>customerMasterT</b> </field>
   		<field map-id="opportunity-subsp"> <a>opportunitySubSpLinkTs</a> <b>opportunitySubSpLinkTs</b> </field>
 	</mapping>
