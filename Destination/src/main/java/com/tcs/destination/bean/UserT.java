@@ -104,6 +104,12 @@ public class UserT implements Serializable {
 	
 	@Transient
 	private List<Integer> deliveryCentreId;
+	
+	@Transient
+	private Integer deleteDeliveryClusterId;
+	
+	@Transient
+	private List<Integer> deleteDeliveryCentreId;
 
 	@Transient
 	private Timestamp lastLogin;
@@ -1979,6 +1985,22 @@ public class UserT implements Serializable {
 
 	public void setDeliveryCentresPmo(List<DeliveryPmoT> deliveryCentresPmo) {
 		this.deliveryCentresPmo = deliveryCentresPmo;
+	}
+	
+	public Integer getDeleteDeliveryClusterId() {
+		return deleteDeliveryClusterId;
+	}
+
+	public void setDeleteDeliveryClusterId(Integer deleteDeliveryClusterId) {
+		this.deleteDeliveryClusterId = deleteDeliveryClusterId;
+	}
+
+	public List<Integer> getDeleteDeliveryCentreId() {
+		return deleteDeliveryCentreId;
+	}
+
+	public void setDeleteDeliveryCentreId(List<Integer> deleteDeliveryCentreId) {
+		this.deleteDeliveryCentreId = deleteDeliveryCentreId;
 	}
 
 	@Override

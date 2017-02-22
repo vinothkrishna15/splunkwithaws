@@ -943,30 +943,80 @@ public class UserService {
 	private void updateDeliveryHead(UserT user) {
 		logger.info("Inside updateDeliveryHead() method");
 		
-		if(user.getDeliveryClusterId() != null && user.getUserGroup().equals(UserGroup.DELIVERY_CLUSTER_HEAD.getValue()))
-		{
-			DeliveryClusterT deliveryClusterT = deliveryClusterRepository.findByDeliveryClusterId(user.getDeliveryClusterId());
+		switch (UserGroup.getUserGroup(user.getUserGroup())) {
+		case DELIVERY_CLUSTER_HEAD:
+			saveDeliveryClusterHead(user);
+			break;
+		case DELIVERY_CENTRE_HEAD:
+			saveDeliveryCentreHead(user);
+			break;
+		case PMO_DELIVERY:
+			saveDeliveryPmo(user);
+			break;
+		default:
+			break;
+		}
+	 logger.info("End of updateDeliveryHead() method");
+	}
+
+
+
+
+	private void saveDeliveryPmo(UserT user) {
+		for(Integer dc : user.getDeliveryCentreId()) {
+			DeliveryPmoT oldDeliveryPmoT = deliveryPmoRepository.
+					findByDeliveryCentreIdAndPmoId(dc,user.getUserId());
+			if(oldDeliveryPmoT==null) {
+				DeliveryPmoT deliveryPmoT = new DeliveryPmoT();
+				deliveryPmoT.setPmoId(user.getUserId());
+				deliveryPmoT.setDeliveryCentreId(dc);
+				deliveryPmoRepository.save(deliveryPmoT);
+			}
+		}
+		for(Integer deleteDc : user.getDeleteDeliveryCentreId()) {
+			DeliveryPmoT deliveryPmoT = deliveryPmoRepository.
+					findByDeliveryCentreIdAndPmoId(deleteDc,user.getUserId());
+			if(deliveryPmoT!=null) {
+				deliveryPmoRepository.delete(deliveryPmoT);
+			}
+		}
+	}
+
+
+
+
+	private void saveDeliveryCentreHead(UserT user) {
+		if (CollectionUtils.isNotEmpty(user.getDeliveryCentreId())) {
+			DeliveryCentreT deliveryCentreT = deliveryCentreRepository
+					.findByDeliveryCentreId(user.getDeliveryCentreId().get(0));
+			deliveryCentreT.setDeliveryCentreHead(user.getUserId());
+			deliveryCentreRepository.save(deliveryCentreT);
+		}
+		if (CollectionUtils.isNotEmpty(user.getDeleteDeliveryCentreId())) {
+			DeliveryCentreT deliveryCentreT = deliveryCentreRepository
+					.findByDeliveryCentreId(user.getDeleteDeliveryCentreId()
+							.get(0));
+			deliveryCentreT.setDeliveryCentreHead(null);
+			deliveryCentreRepository.save(deliveryCentreT);
+		}
+	}
+
+
+
+
+	private void saveDeliveryClusterHead(UserT user) {
+		if (user.getDeliveryClusterId() != null) {
+			DeliveryClusterT deliveryClusterT = deliveryClusterRepository
+					.findByDeliveryClusterId(user.getDeliveryClusterId());
 			deliveryClusterT.setDeliveryClusterHead(user.getUserId());
 			deliveryClusterRepository.save(deliveryClusterT);
-			logger.info("End:inside updateDeliveryClusterHead() of UserService: cluster head saved : " + user.getDeliveryClusterId());
 		}
-		else if(CollectionUtils.isNotEmpty(user.getDeliveryCentreId()))
-		 {
-			if(user.getUserGroup().equals(UserGroup.DELIVERY_CENTRE_HEAD.getValue())) {
-				DeliveryCentreT deliveryCentreT = deliveryCentreRepository.findByDeliveryCentreId(user.getDeliveryCentreId().get(0));
-				 deliveryCentreT.setDeliveryCentreHead(user.getUserId());
-				 deliveryCentreRepository.save(deliveryCentreT);
-			} else if(user.getUserGroup().equals(UserGroup.PMO_DELIVERY.getValue())) {
-				for(Integer dc : user.getDeliveryCentreId()) {
-					DeliveryPmoT deliveryPmoT = new DeliveryPmoT();
-					deliveryPmoT.setPmoId(user.getUserId());
-					deliveryPmoT.setDeliveryCentreId(dc);
-					deliveryPmoRepository.save(deliveryPmoT);
-				}
-			}
-			 logger.info("End:inside updateDeliveryCentreHead() of UserService: centre head saved : " + user.getDeliveryCentreId());
-		 }
-		 logger.info("End of updateDeliveryHead() method");
+		if (user.getDeleteDeliveryClusterId() != null) {
+			DeliveryClusterT deliveryClusterT = deliveryClusterRepository
+					.findByDeliveryClusterId(user.getDeleteDeliveryClusterId());
+			deliveryClusterT.setDeliveryClusterHead(null);
+			deliveryClusterRepository.save(deliveryClusterT);
+		}
 	}
 	
 

@@ -18,4 +18,6 @@ CrudRepository<DeliveryPmoT, String>{
 			+ " join DP.deliveryCentreT DC join DC.deliveryClusterT DCL where DP.pmoId = (:pmoId)")
 	List<String> getDeliveryCentreHeadsByPmo(@Param("pmoId") String userId);
 
+	DeliveryPmoT findByDeliveryCentreIdAndPmoId(Integer dc, String userId);
+
 }
