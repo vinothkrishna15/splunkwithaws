@@ -963,21 +963,25 @@ public class UserService {
 
 
 	private void saveDeliveryPmo(UserT user) {
-		for(Integer dc : user.getDeliveryCentreId()) {
-			DeliveryPmoT oldDeliveryPmoT = deliveryPmoRepository.
-					findByDeliveryCentreIdAndPmoId(dc,user.getUserId());
-			if(oldDeliveryPmoT==null) {
-				DeliveryPmoT deliveryPmoT = new DeliveryPmoT();
-				deliveryPmoT.setPmoId(user.getUserId());
-				deliveryPmoT.setDeliveryCentreId(dc);
-				deliveryPmoRepository.save(deliveryPmoT);
+		if(CollectionUtils.isNotEmpty(user.getDeliveryCentreId())) {
+			for(Integer dc : user.getDeliveryCentreId()) {
+				DeliveryPmoT oldDeliveryPmoT = deliveryPmoRepository.
+						findByDeliveryCentreIdAndPmoId(dc,user.getUserId());
+				if(oldDeliveryPmoT==null) {
+					DeliveryPmoT deliveryPmoT = new DeliveryPmoT();
+					deliveryPmoT.setPmoId(user.getUserId());
+					deliveryPmoT.setDeliveryCentreId(dc);
+					deliveryPmoRepository.save(deliveryPmoT);
+				}
 			}
 		}
-		for(Integer deleteDc : user.getDeleteDeliveryCentreId()) {
-			DeliveryPmoT deliveryPmoT = deliveryPmoRepository.
-					findByDeliveryCentreIdAndPmoId(deleteDc,user.getUserId());
-			if(deliveryPmoT!=null) {
-				deliveryPmoRepository.delete(deliveryPmoT);
+		if(CollectionUtils.isNotEmpty(user.getDeleteDeliveryCentreId())) {
+			for(Integer deleteDc : user.getDeleteDeliveryCentreId()) {
+				DeliveryPmoT deliveryPmoT = deliveryPmoRepository.
+						findByDeliveryCentreIdAndPmoId(deleteDc,user.getUserId());
+				if(deliveryPmoT!=null) {
+					deliveryPmoRepository.delete(deliveryPmoT);
+				}
 			}
 		}
 	}
