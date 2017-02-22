@@ -832,8 +832,74 @@ public class UserService {
 		} else {
 			throw new DestinationException(HttpStatus.NOT_FOUND, "No users available for the specified page");
 		}
+		setDeliveryDetails(paginatedResponse.getUserTs());
 		return paginatedResponse;
 	}
+
+	private void setDeliveryDetails(List<UserT> userTs) {
+		if(CollectionUtils.isNotEmpty(userTs)) {
+			for(UserT user : userTs) {
+				switch (UserGroup.getUserGroup(user.getUserGroup())) {
+				case DELIVERY_CENTRE_HEAD:
+				case DELIVERY_CLUSTER_HEAD:
+				case PMO_DELIVERY:
+				case DELIVERY_MANAGER:
+					List<UserAccessPrivilegesT> userAccessPrivilegesTs = null;
+					if(CollectionUtils.isEmpty(user.getUserAccessPrivilegesTs())) {
+						userAccessPrivilegesTs = Lists.newArrayList();
+					} else {
+						userAccessPrivilegesTs = user.getUserAccessPrivilegesTs();
+					}
+						String userId = user.getUserId();
+						DeliveryClusterT deliveryCluster = deliveryClusterRepository.
+								findByDeliveryClusterHead(userId);
+						if(deliveryCluster!=null) {
+							userAccessPrivilegesTs.
+							add(constructPrivilegesDelivery(deliveryCluster.getDeliveryClusterId(),PrivilegeType.DELIVERY_CLUSTER.getValue(),
+									deliveryCluster.getDeliveryCluster(), userId));
+						}
+						List<DeliveryCentreT> deliveryCentres = Lists.newArrayList();
+						DeliveryCentreT deliveryCentre  = deliveryCentreRepository.findByDeliveryCentreHead(userId);
+						if(deliveryCentre!=null) {
+							deliveryCentres.add(deliveryCentre);
+						}
+						List<DeliveryCentreT> deliveryCentrePmo = deliveryCentreRepository.findDeliveryCentresByPmo(userId);
+						if(CollectionUtils.isNotEmpty(deliveryCentrePmo)) {
+							deliveryCentres.addAll(deliveryCentrePmo);
+						}
+						if(CollectionUtils.isNotEmpty(deliveryCentres)) {
+							for(DeliveryCentreT dc : deliveryCentres) {
+								userAccessPrivilegesTs.add(constructPrivilegesDelivery(dc.getDeliveryCentreId(),PrivilegeType.DELIVERY_CENTRE.getValue(),
+										dc.getDeliveryCentre(), userId));
+							}
+						}
+						if(CollectionUtils.isNotEmpty(userAccessPrivilegesTs)) {
+							user.setUserAccessPrivilegesTs(userAccessPrivilegesTs);
+						}
+					
+					break;
+				default:
+					break;
+				}
+			}
+		}
+	}
+
+
+
+
+	private UserAccessPrivilegesT constructPrivilegesDelivery(
+			Integer deliveryId, String privilegeType, String deliveryName, String userId) {
+		UserAccessPrivilegesT userAccessPrivilegesT = new UserAccessPrivilegesT();
+		userAccessPrivilegesT.setPrivilegeId(deliveryId);
+		userAccessPrivilegesT.setPrivilegeType(privilegeType);
+		userAccessPrivilegesT.setPrivilegeValue(deliveryName);
+		userAccessPrivilegesT.setUserId(userId);
+		return userAccessPrivilegesT;
+	}
+
+
+
 
 	/**
 	 * This method is used to insert new user details into database

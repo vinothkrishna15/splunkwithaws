@@ -45,4 +45,8 @@ public interface DeliveryCentreRepository extends
 	@Query(value="select delivery_centre_id, delivery_centre from delivery_centre_t  ",nativeQuery=true)
 	List<Object[]> findDeliveryCentre();
 	
+	@Query(value = "select DC.* from delivery_centre_t DC join delivery_pmo_t DP"
+			+ " on DC.delivery_centre_id = DP.delivery_centre_id where DP.pmo_id = (:pmoId)",nativeQuery=true)
+	List<DeliveryCentreT> findDeliveryCentresByPmo(@Param("pmoId") String pmoId);
+	
 }
