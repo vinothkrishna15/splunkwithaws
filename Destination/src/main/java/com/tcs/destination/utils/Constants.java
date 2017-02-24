@@ -240,8 +240,8 @@ public class Constants {
 	public static final String NOTIFICATION_SALES_SUPPORT = "(Sales support)";
 	public static final String NOTIFICATION_BID_OFFICE_GRP_OWNER = "(Bid Office Group Owner)";
 	public static final String PMO_KEYWORD = "pmo";
-	public static final String WORKFLOW_GEO_HEADS_PMO = "GEO Heads,PMO";
-	public static final String WORKFLOW_GEO_HEADS = "GEO Heads";
+	public static final String WORKFLOW_GEO_HEADS_PMO = "GEO Head,PMO";
+	public static final String WORKFLOW_GEO_HEADS = "GEO Head";
 	public static final String WORKFLOW_IOU_HEADS = "IOU Heads";
 	public static final String WORKFLOW_STRATEGIC_ADMIN = "Strategic Group Admin";
 	public static final String WORKFLOW_CUSTOMER = "Customer";

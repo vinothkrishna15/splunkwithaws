@@ -329,7 +329,7 @@ public class BDMReportsService {
 			    if (UserGroup.contains(userGroup)) {
 			    	
 			    	userIds = bdmDetailedReportService.getRequiredBDMs(userId, opportunityOwners);
-			    	List<String> userGroupsGeoIouHeads = Arrays.asList("GEO Heads","IOU Heads");
+			    	List<String> userGroupsGeoIouHeads = Arrays.asList("GEO Head","IOU Heads");
 			    // Validate user group, BDM's & BDM supervisor's are not authorized for this service
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 				case BDM:
@@ -406,7 +406,7 @@ public class BDMReportsService {
 		}
 
 
-		/** This method retrieves the subordinate list of BDM Supervisor, GEO Heads and IOU Heads
+		/** This method retrieves the subordinate list of BDM Supervisor, GEO Head and IOU Heads
 		 * @param bdmsList
 		 * @param userGroup 
 		 * @return

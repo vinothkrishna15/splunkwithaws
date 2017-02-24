@@ -888,7 +888,7 @@ public class DestinationMailUtils {
 									.findUserIdsForWorkflowUserGroup(geography,
 											Constants.Y,
 											UserGroup.GEO_HEADS.getValue()));
-					logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+					logger.debug("recepient Ids for GEO Head :" + recepientIds);
 					userGroupOrUserRoleOrUserId = Constants.WORKFLOW_GEO_HEADS;
 					ccIds.addAll(userAccessPrivilegesRepository
 							.findUserIdsForWorkflowUserGroup(geography,
@@ -2140,7 +2140,7 @@ public class DestinationMailUtils {
 								.findByRequestIdAndStepStatus(requestId,
 										WorkflowStatus.APPROVED.getStatus());
 						subject.append(Constants.WORKFLOW_BFM_STEP1_APPROVED_SUBJECT);
-						// Adding respective GEO Heads to cc Ids	
+						// Adding respective GEO Head to cc Ids	
 						 List<String> geoHeads = userAccessPrivilegesRepository.findUserIdsForCustomerUserGroup(customerMasterT.getGeography(), Constants.Y, UserGroup.GEO_HEADS.getValue());
 						if(CollectionUtils.isNotEmpty(geoHeads)) {
 							ccIds.addAll(geoHeads);
@@ -2154,7 +2154,7 @@ public class DestinationMailUtils {
 						
 						
 						subject.append(Constants.WORKFLOW_BFM_STEP1_REJECTED_SUBJECT);
-						// Adding respective GEO Heads to cc Ids	
+						// Adding respective GEO Head to cc Ids	
 						 List<String> geoHeads = userAccessPrivilegesRepository.findUserIdsForCustomerUserGroup(customerMasterT.getGeography(), Constants.Y, UserGroup.GEO_HEADS.getValue());
 						if(CollectionUtils.isNotEmpty(geoHeads)) {
 							ccIds.addAll(geoHeads);
@@ -2365,7 +2365,7 @@ public class DestinationMailUtils {
 											.findUserIdsForWorkflowUserGroup(geography,
 													Constants.Y,
 													UserGroup.GEO_HEADS.getValue()));
-							logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+							logger.debug("recepient Ids for GEO Head :" + recepientIds);
 							userGroupOrUserRoleOrUserId = Constants.WORKFLOW_GEO_HEADS;
 							ccIds.addAll(userAccessPrivilegesRepository
 									.findUserIdsForWorkflowUserGroup(geography,
@@ -2399,7 +2399,7 @@ public class DestinationMailUtils {
 										.findUserIdsForCustomerUserGroup(geography,
 												Constants.Y,
 												UserGroup.GEO_HEADS.getValue()));
-						logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+						logger.debug("recepient Ids for GEO Head :" + recepientIds);
 						userGroupOrUserRoleOrUserId = Constants.WORKFLOW_GEO_HEADS;
 						ccIds.addAll(userAccessPrivilegesRepository
 								.findUserIdsForCustomerUserGroup(geography,
@@ -2805,7 +2805,7 @@ public class DestinationMailUtils {
 													.findUserIdsForCustomerUserGroup(geography,
 															Constants.Y,
 															UserGroup.GEO_HEADS.getValue()));
-									logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+									logger.debug("recepient Ids for GEO Head :" + recepientIds);
 							ccIds.addAll(userAccessPrivilegesRepository
 											.findUserIdsForCustomerUserGroup(geography,
 													Constants.Y, UserGroup.PMO.getValue()));
@@ -2840,7 +2840,7 @@ public class DestinationMailUtils {
 															.findUserIdsForCustomerUserGroup(geography,
 																	Constants.Y,
 																	UserGroup.GEO_HEADS.getValue()));
-											logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+											logger.debug("recepient Ids for GEO Head :" + recepientIds);
 									ccIds.addAll(userAccessPrivilegesRepository
 													.findUserIdsForCustomerUserGroup(geography,
 															Constants.Y, UserGroup.PMO.getValue()));
@@ -2872,7 +2872,7 @@ public class DestinationMailUtils {
 											.findUserIdsForCustomerUserGroup(geography,
 													Constants.Y,
 													UserGroup.GEO_HEADS.getValue()));
-							logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+							logger.debug("recepient Ids for GEO Head :" + recepientIds);
 					ccIds.addAll(userAccessPrivilegesRepository
 									.findUserIdsForCustomerUserGroup(geography,
 											Constants.Y, UserGroup.PMO.getValue()));
@@ -2959,7 +2959,7 @@ public class DestinationMailUtils {
 													.findUserIdsForCustomerUserGroup(geography,
 															Constants.Y,
 															UserGroup.GEO_HEADS.getValue()));
-									logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+									logger.debug("recepient Ids for GEO Head :" + recepientIds);
 							ccIds.addAll(userAccessPrivilegesRepository
 											.findUserIdsForCustomerUserGroup(geography,
 													Constants.Y, UserGroup.PMO.getValue()));
@@ -2991,7 +2991,7 @@ public class DestinationMailUtils {
 											.findUserIdsForCustomerUserGroup(geography,
 													Constants.Y,
 													UserGroup.GEO_HEADS.getValue()));
-							logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+							logger.debug("recepient Ids for GEO Head :" + recepientIds);
 					ccIds.addAll(userAccessPrivilegesRepository
 									.findUserIdsForCustomerUserGroup(geography,
 											Constants.Y, UserGroup.PMO.getValue()));
@@ -3089,7 +3089,7 @@ public class DestinationMailUtils {
 																	.findUserIdsForCustomerUserGroup(geography,
 																			Constants.Y,
 																			UserGroup.GEO_HEADS.getValue()));
-													logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+													logger.debug("recepient Ids for GEO Head :" + recepientIds);
 											ccIds.addAll(userAccessPrivilegesRepository
 															.findUserIdsForCustomerUserGroup(geography,
 																	Constants.Y, UserGroup.PMO.getValue()));
@@ -3121,7 +3121,7 @@ public class DestinationMailUtils {
 													.findUserIdsForCustomerUserGroup(geography,
 															Constants.Y,
 															UserGroup.GEO_HEADS.getValue()));
-									logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+									logger.debug("recepient Ids for GEO Head :" + recepientIds);
 							ccIds.addAll(userAccessPrivilegesRepository
 											.findUserIdsForCustomerUserGroup(geography,
 													Constants.Y, UserGroup.PMO.getValue()));
@@ -3215,7 +3215,7 @@ public class DestinationMailUtils {
 													.findUserIdsForCustomerUserGroup(geography,
 															Constants.Y,
 															UserGroup.GEO_HEADS.getValue()));
-									logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+									logger.debug("recepient Ids for GEO Head :" + recepientIds);
 							ccIds.addAll(userAccessPrivilegesRepository
 											.findUserIdsForCustomerUserGroup(geography,
 													Constants.Y, UserGroup.PMO.getValue()));
@@ -3251,7 +3251,7 @@ public class DestinationMailUtils {
 															.findUserIdsForCustomerUserGroup(geography,
 																	Constants.Y,
 																	UserGroup.GEO_HEADS.getValue()));
-											logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+											logger.debug("recepient Ids for GEO Head :" + recepientIds);
 									ccIds.addAll(userAccessPrivilegesRepository
 													.findUserIdsForCustomerUserGroup(geography,
 															Constants.Y, UserGroup.PMO.getValue()));
@@ -3283,7 +3283,7 @@ public class DestinationMailUtils {
 											.findUserIdsForCustomerUserGroup(geography,
 													Constants.Y,
 													UserGroup.GEO_HEADS.getValue()));
-							logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+							logger.debug("recepient Ids for GEO Head :" + recepientIds);
 					ccIds.addAll(userAccessPrivilegesRepository
 									.findUserIdsForCustomerUserGroup(geography,
 											Constants.Y, UserGroup.PMO.getValue()));
@@ -3373,7 +3373,7 @@ public class DestinationMailUtils {
 											.findUserIdsForCustomerUserGroup(geography,
 													Constants.Y,
 													UserGroup.GEO_HEADS.getValue()));
-							logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+							logger.debug("recepient Ids for GEO Head :" + recepientIds);
 					ccIds.addAll(userAccessPrivilegesRepository
 									.findUserIdsForCustomerUserGroup(geography,
 											Constants.Y, UserGroup.PMO.getValue()));
@@ -3405,7 +3405,7 @@ public class DestinationMailUtils {
 											.findUserIdsForCustomerUserGroup(geography,
 													Constants.Y,
 													UserGroup.GEO_HEADS.getValue()));
-							logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+							logger.debug("recepient Ids for GEO Head :" + recepientIds);
 					ccIds.addAll(userAccessPrivilegesRepository
 									.findUserIdsForCustomerUserGroup(geography,
 											Constants.Y, UserGroup.PMO.getValue()));
@@ -3437,7 +3437,7 @@ public class DestinationMailUtils {
 											.findUserIdsForCustomerUserGroup(geography,
 													Constants.Y,
 													UserGroup.GEO_HEADS.getValue()));
-							logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+							logger.debug("recepient Ids for GEO Head :" + recepientIds);
 					ccIds.addAll(userAccessPrivilegesRepository
 									.findUserIdsForCustomerUserGroup(geography,
 											Constants.Y, UserGroup.PMO.getValue()));
@@ -3523,7 +3523,7 @@ public class DestinationMailUtils {
 			 List<String> userIdsByIds = getUserIdsById(approvedStep);
 			 ccIds.addAll(userIdsByIds);
 			}
-		// Adding respective GEO Heads to cc Ids	
+		// Adding respective GEO Head to cc Ids	
 		 List<String> geoHeads = userAccessPrivilegesRepository.findUserIdsForCustomerUserGroup(geography, Constants.Y, UserGroup.GEO_HEADS.getValue());
 		if(CollectionUtils.isNotEmpty(geoHeads)) {
 			ccIds.addAll(geoHeads);
@@ -3536,7 +3536,7 @@ public class DestinationMailUtils {
 									.findUserIdsForCustomerUserGroup(geography,
 											Constants.Y,
 											UserGroup.GEO_HEADS.getValue()));
-					logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+					logger.debug("recepient Ids for GEO Head :" + recepientIds);
 					ccIds.addAll(userAccessPrivilegesRepository
 							.findUserIdsForCustomerUserGroup(geography,
 									Constants.Y, UserGroup.PMO.getValue()));
@@ -3636,7 +3636,7 @@ public class DestinationMailUtils {
 									.findUserIdsForCustomerUserGroup(geography,
 											Constants.Y,
 											UserGroup.GEO_HEADS.getValue()));
-					logger.debug("recepient Ids for GEO Heads :" + recepientIds);
+					logger.debug("recepient Ids for GEO Head :" + recepientIds);
 					ccIds.addAll(userAccessPrivilegesRepository
 							.findUserIdsForCustomerUserGroup(geography,
 									Constants.Y, UserGroup.PMO.getValue()));

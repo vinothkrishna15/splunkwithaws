@@ -659,7 +659,7 @@ public class DashBoardService {
 	/**
 	 * This service retrieves the WON opportunities of all users under a
 	 * supervisor based on his access privileges. This module is for Strategic
-	 * Initiatives/GEO Heads/IOU Heads
+	 * Initiatives/GEO Head/IOU Heads
 	 * 
 	 * @param userId
 	 * @param fromDate

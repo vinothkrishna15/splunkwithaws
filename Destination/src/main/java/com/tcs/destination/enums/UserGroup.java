@@ -2,7 +2,7 @@ package com.tcs.destination.enums;
 
 public enum UserGroup {
 	BDM("BDM"), BDM_SUPERVISOR("BDM Supervisor"), BID_OFFICE(
-			"Bid Office"), GEO_HEADS("GEO Heads"), STRATEGIC_INITIATIVES("Strategic Initiatives"),
+			"Bid Office"), GEO_HEADS("GEO Head"), STRATEGIC_INITIATIVES("Strategic Initiatives"),
 			SYSTEM("System"), IOU_HEADS("IOU Heads"), CONSULTING_HEAD("Consulting Head"), CONSULTING_USER("Consulting User"),
 			REPORTING_TEAM("Reporting Team"), PMO("PMO"), DELIVERY_CENTRE_HEAD("Delivery Centre Head"),
 			DELIVERY_CLUSTER_HEAD("Delivery Cluster Head"), DELIVERY_MANAGER("Delivery Partner"),
