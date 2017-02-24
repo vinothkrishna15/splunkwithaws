@@ -3860,7 +3860,10 @@ public class OpportunityService {
 		OpportunityT opportunity = findByOpportunityId(oppId, Lists.newArrayList(Constants.USD));
 		List<OpportunityDealValue> opportunityDealValues = opportunity.getOpportunityDealValues();
 		if(CollectionUtils.isNotEmpty(opportunityDealValues)) {
-			opportunity.setDigitalDealValue(opportunityDealValues.get(0).getDigitalDealValue().intValue());
+			BigDecimal digitalDealValue = opportunityDealValues.get(0).getDigitalDealValue();
+			if(digitalDealValue!=null) {
+				opportunity.setDigitalDealValue(digitalDealValue.intValue());
+			}
 		}
 		OpportunityDTO dto = beanMapper.map(opportunity, OpportunityDTO.class, mapId);
 		return dto;
