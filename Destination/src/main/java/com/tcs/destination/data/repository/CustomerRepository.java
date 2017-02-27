@@ -172,7 +172,7 @@ public interface CustomerRepository extends
     @Query(value = "SELECT DISTINCT CMT.groupCustomerName, COUNT(CAT.customerAssociateId) from CustomerMasterT CMT"
     		+ " JOIN CMT.revenueCustomerMappingTs RCMT"
     		+ " JOIN RCMT.customerAssociateTs CAT GROUP BY CMT.groupCustomerName"
-    		+ " HAVING COUNT(CAT.customerAssociateId) >= (:associateCount)")
+    		+ " HAVING COUNT(CAT.customerAssociateId) > (:associateCount)")
 	List<Object[]> getCountOfCustomersByAssociates(@Param("associateCount") Long associateCount);
 	
 	@Query(value = "SELECT COUNT(DISTINCT CMT.groupCustomerName) from CustomerMasterT CMT"
