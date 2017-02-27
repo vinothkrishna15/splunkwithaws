@@ -1635,7 +1635,8 @@ public interface OpportunityRepository extends
 			+ " FROM opportunity_t opp"
 			+ " WHERE opp.deal_closure_date BETWEEN :fromDate AND :toDate"
 			+ " AND opp.sales_stage_code in (:stages)"
-			+ " AND deal_value_usd_converter(opp.digital_deal_value, opp.deal_currency) BETWEEN :minVal AND :maxVal", nativeQuery = true)
+			+ " AND deal_value_usd_converter(opp.digital_deal_value, opp.deal_currency) >= :minVal"
+			+ " AND deal_value_usd_converter(opp.digital_deal_value, opp.deal_currency) < :maxVal", nativeQuery = true)
 	List<String> getOppIdsWinLossBuckets(@Param("stages") List<Integer> stages, @Param("fromDate") Date fromDate, @Param("toDate") Date toDate, @Param("minVal") Integer minVal, @Param("maxVal") Integer maxVal);
 
 	@Query(value="select opportunity_id from opportunity_t where "
