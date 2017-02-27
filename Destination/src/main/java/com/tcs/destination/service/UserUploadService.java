@@ -196,7 +196,7 @@ public class UserUploadService {
 
 		String[] groupArr = { UserGroup.BDM.getValue(),
 				UserGroup.BDM_SUPERVISOR.getValue(),
-				UserGroup.GEO_HEADS.getValue(), UserGroup.IOU_HEADS.getValue(),
+				UserGroup.SALES_HEAD.getValue(), UserGroup.IOU_HEADS.getValue(),
 				UserGroup.BID_OFFICE.getValue(),
 				UserGroup.STRATEGIC_INITIATIVES.getValue(),
 				UserGroup.CONSULTING_HEAD.getValue(),

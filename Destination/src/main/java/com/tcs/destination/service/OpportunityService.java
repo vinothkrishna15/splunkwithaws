@@ -3228,7 +3228,7 @@ public class OpportunityService {
 				if (userGroup.equals(UserGroup.BDM.getValue())
 						|| userGroup
 								.equals(UserGroup.BDM_SUPERVISOR.getValue())
-						|| userGroup.equals(UserGroup.GEO_HEADS.getValue())) {
+						|| userGroup.equals(UserGroup.SALES_HEAD.getValue())) {
 					isBDMOrBDMSupervisor = true;
 					break;
 				}
@@ -3286,7 +3286,7 @@ public class OpportunityService {
 		logger.info("Inside checkEditAccessForGeoAndIou method");
 		boolean isEditAccessRequired = false;
 		switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
-		case GEO_HEADS:
+		case SALES_HEAD:
 		case PMO:
 			String geography = customerRepository
 					.findGeographyByCustomerId(customerId);
@@ -3603,7 +3603,7 @@ public class OpportunityService {
 				isEditAccessRequired = checkEditAccessForDelivery(opportunity,
 						currentUser, isUpdate, isEditAccessRequired,false);
 				break;
-			case GEO_HEADS:
+			case SALES_HEAD:
 			case IOU_HEADS:
 			case PMO:	
 				isEditAccessRequired = checkEditAccessForGeoAndIou(userGroup,

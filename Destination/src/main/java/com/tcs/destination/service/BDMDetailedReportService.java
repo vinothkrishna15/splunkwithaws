@@ -216,7 +216,7 @@ public class BDMDetailedReportService {
 				getBDMSupervisorPerformanceReport(users, fromDate, toDate, geoList, salesStage, serviceLinesList, iouList,
 						countryList, currency, workbook, fields, isIncludingSupervisor);
 				break;
-			case GEO_HEADS:
+			case SALES_HEAD:
 			case IOU_HEADS:
 			case PMO:
 			case PMO_DELIVERY:	

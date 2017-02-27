@@ -2855,7 +2855,7 @@ public class BuildOpportunityReportService {
 		row.createCell(4).setCellValue("User Access Filter's");
 		row.getCell(4).setCellStyle(subHeadingStyle);
 		switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
-		case GEO_HEADS:
+		case SALES_HEAD:
 			userAccessField = Constants.GEOGRAPHY;
 			for(UserAccessPrivilegesT accessPrivilegesT:userPrivilegesList){
 				String previlageType=accessPrivilegesT.getPrivilegeType();

@@ -822,7 +822,7 @@ public class ConnectDetailedReportService {
 			currentRowNo = currentRowNo + 4;
 			break;
 
-		case GEO_HEADS:
+		case SALES_HEAD:
 			for (UserAccessPrivilegesT accessPrivilegesT : userPrivilegesList) {
 				String previlageType = accessPrivilegesT.getPrivilegeType();
 				String privilageValue = accessPrivilegesT.getPrivilegeValue();

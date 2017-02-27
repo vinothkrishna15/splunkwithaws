@@ -627,7 +627,7 @@ public class DashBoardService {
 		if (user != null) {
 			String userGroup = user.getUserGroupMappingT().getUserGroup();
 			if (UserGroup.contains(userGroup)) {
-				if((userGroup.equalsIgnoreCase(UserGroup.GEO_HEADS.getValue()))||
+				if((userGroup.equalsIgnoreCase(UserGroup.SALES_HEAD.getValue()))||
 						(userGroup.equalsIgnoreCase(UserGroup.IOU_HEADS.getValue()))){
 
 					//Query to get the user's subordinates till n-level
@@ -659,7 +659,7 @@ public class DashBoardService {
 	/**
 	 * This service retrieves the WON opportunities of all users under a
 	 * supervisor based on his access privileges. This module is for Strategic
-	 * Initiatives/GEO Heads/IOU Heads
+	 * Initiatives/Sales Head/IOU Heads
 	 * 
 	 * @param userId
 	 * @param fromDate
@@ -1444,7 +1444,7 @@ public class DashBoardService {
 			case STRATEGIC_INITIATIVES:
 				users= userRepository.getUsersByUserNameKeyword(nameWith);
 				break;
-			case GEO_HEADS:
+			case SALES_HEAD:
 			case IOU_HEADS:
 			case CONSULTING_HEAD:
 				users = userRepository.getSubordinatesIdBySupervisorId(userId, nameWith);

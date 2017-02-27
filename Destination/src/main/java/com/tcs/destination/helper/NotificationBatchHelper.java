@@ -482,7 +482,7 @@ public class NotificationBatchHelper {
 					.get(RecipientType.STRATEGIC_INITIATIVE);
 			List<String> users = userRepository
 					.findUserIdByUserGroup(UserGroup.STRATEGIC_INITIATIVES.getValue());
-			users.addAll(userRepository.findUserIdByUserGroup(UserGroup.GEO_HEADS.getValue()));
+			users.addAll(userRepository.findUserIdByUserGroup(UserGroup.SALES_HEAD.getValue()));
 			if (CollectionUtils.isNotEmpty(users)) {
 				for (String strategicInitiative : users) {
 					recipients.add(constructRecipient(strategicInitiative,

@@ -1855,7 +1855,7 @@ public class ConnectService {
 				isEditAccessRequired = opportunityService.isSubordinateAsOwnerForPMODelivery(currentUser, null,
 						connect.getConnectId());
 				break;
-			case GEO_HEADS:
+			case SALES_HEAD:
 			case IOU_HEADS:
 			case PMO:	
 				isEditAccessRequired = editAccessForGeoIou(connect, userGroup,
@@ -1908,7 +1908,7 @@ public class ConnectService {
 			String userGroup, String partnerId) {
 		boolean isEditAccessRequired = false;
 		switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
-		case GEO_HEADS:
+		case SALES_HEAD:
 		case PMO:
 			String geography = partnerRepository
 			.findGeographyByPartnerId(partnerId);
@@ -1945,7 +1945,7 @@ public class ConnectService {
 			for (String userGroup : userGroups) {
 				if (userGroup.equals(UserGroup.BDM.getValue())
 						|| userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue())
-						|| userGroup.equals(UserGroup.GEO_HEADS.getValue())) {
+						|| userGroup.equals(UserGroup.SALES_HEAD.getValue())) {
 					isBDMOrBDMSupervisorOrGeoHead = true;
 					break;
 				}

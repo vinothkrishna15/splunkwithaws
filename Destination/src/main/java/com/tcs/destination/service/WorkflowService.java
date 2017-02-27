@@ -538,7 +538,7 @@ public class WorkflowService {
 			query.setParameter("userId", userId);
 			query.setParameter("userGroup", userGroupLike);
 			break;
-		case GEO_HEADS: 
+		case SALES_HEAD: 
 			// Query to get bfm requests pending based on Geography
 			queryBuffer = new StringBuffer(
 					QueryConstants.BFM_PENDING_WITH_GEO_GROUP_QUERY);
@@ -2569,7 +2569,7 @@ public class WorkflowService {
 			query.setParameter("userId", userId);
 			break;
 		}
-		case GEO_HEADS: {
+		case SALES_HEAD: {
 			// Query to get customer requests pending based on Geography
 			StringBuffer queryBuffer = new StringBuffer(
 					QueryConstants.CUSTOMER_PENDING_WITH_GEO_GROUP_QUERY);

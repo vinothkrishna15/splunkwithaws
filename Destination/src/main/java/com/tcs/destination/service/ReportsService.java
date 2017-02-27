@@ -2369,7 +2369,7 @@ public InputStreamResource getConnectDetailedReport(String month,
 				userIds = opportunityService.getDeliveryUsers(user, true);
 				connectIdList = getConnectDetailsByUserIds(fromDate,toDate,userIds,iouList,displayGeography,countryList,serviceLinesList,connectCategory);
 				break;
-			case GEO_HEADS:
+			case SALES_HEAD:
 			case IOU_HEADS:
 			case PMO:
 					connectIdList = getGeoHeadOrIouHeadConnectDetails(fromDate,toDate,userId,iouList,displayGeography,countryList,serviceLinesList,connectCategory);
@@ -2650,7 +2650,7 @@ public InputStreamResource connectSummaryReport(String month, String quarter, St
 						geographyPartnerConnectCountList ,iouConnectCountList, iouList, geography, countryList, serviceLinesList,connectCategory);
 				break;
 			
-			case GEO_HEADS:
+			case SALES_HEAD:
 			case IOU_HEADS:
 			case PMO:
 					userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
@@ -3015,7 +3015,7 @@ public InputStreamResource getConnectDetailedAndSummaryReports(String month, Str
 				getConnectSummaryDetailsByUserIds(userIds, fromDate, toDate, subSpCustomerConnectCountList, subSpPartnerConnectCountList,geographyCustomerConnectCountList, 
 						geographyPartnerConnectCountList ,iouConnectCountList, iouList, displayGeography, countryList, serviceLinesList,connectCategory);
 				break;
-			case GEO_HEADS:
+			case SALES_HEAD:
 			case IOU_HEADS:
 			case PMO:
 					userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);

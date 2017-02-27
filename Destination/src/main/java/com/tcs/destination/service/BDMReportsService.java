@@ -229,7 +229,7 @@ public class BDMReportsService {
 		row.createCell(4).setCellValue("User Access Filter's");
 		row.getCell(4).setCellStyle(subHeadingStyle);
 		switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
-		case GEO_HEADS:
+		case SALES_HEAD:
 			userAccessField = Constants.GEOGRAPHY;
 			for(UserAccessPrivilegesT accessPrivilegesT:userPrivilegesList){
 				String previlageType=accessPrivilegesT.getPrivilegeType();
@@ -329,7 +329,7 @@ public class BDMReportsService {
 			    if (UserGroup.contains(userGroup)) {
 			    	
 			    	userIds = bdmDetailedReportService.getRequiredBDMs(userId, opportunityOwners);
-			    	List<String> userGroupsGeoIouHeads = Arrays.asList("GEO Heads","IOU Heads");
+			    	List<String> userGroupsGeoIouHeads = Arrays.asList("Sales Head","IOU Heads");
 			    // Validate user group, BDM's & BDM supervisor's are not authorized for this service
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 				case BDM:
@@ -348,7 +348,7 @@ public class BDMReportsService {
 					getOpportunitySummaryDetails(userIds, financialYear,from, to, geoList, serviceLinesList, workbook, countryList, iouList);
 					getBDMSupervisorPerformanceExcelReport(userIds, financialYear, workbook);
 					break;
-				case GEO_HEADS:
+				case SALES_HEAD:
 				case IOU_HEADS:
 				case PMO:
 					 if(userIds.isEmpty()){
@@ -406,7 +406,7 @@ public class BDMReportsService {
 		}
 
 
-		/** This method retrieves the subordinate list of BDM Supervisor, GEO Heads and IOU Heads
+		/** This method retrieves the subordinate list of BDM Supervisor, Sales Head and IOU Heads
 		 * @param bdmsList
 		 * @param userGroup 
 		 * @return
@@ -426,7 +426,7 @@ public class BDMReportsService {
 					break;
 				case BDM_SUPERVISOR:
 				case CONSULTING_HEAD:
-				case GEO_HEADS:
+				case SALES_HEAD:
 				case IOU_HEADS:
 				case DELIVERY_CENTRE_HEAD:
 				case DELIVERY_CLUSTER_HEAD:

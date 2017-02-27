@@ -240,7 +240,7 @@ public class DestinationUtils {
 	}
 
 	public static List<String> getSalesUserGroups() {
-		return Lists.newArrayList(UserGroup.BDM.getValue(), UserGroup.BDM_SUPERVISOR.getValue(), UserGroup.GEO_HEADS.getValue());
+		return Lists.newArrayList(UserGroup.BDM.getValue(), UserGroup.BDM_SUPERVISOR.getValue(), UserGroup.SALES_HEAD.getValue());
 	}
 
 	public static List<String> getDeliveryUserGroups() {

@@ -57,7 +57,7 @@ public class DestinationUserDefaultObjectsHelper {
 			userNotificationLeaderShipList.add(getNotification(userId,16,2,Constants.N, notifyTypeEventMap));
 			userNotificationLeaderShipList.add(getNotification(userId,16,3,Constants.N, notifyTypeEventMap));
 		    break;
-		case GEO_HEADS: 
+		case SALES_HEAD: 
 		case IOU_HEADS:
 		case STRATEGIC_INITIATIVES:
 		case BID_OFFICE:	
@@ -106,7 +106,7 @@ public class DestinationUserDefaultObjectsHelper {
 		case BDM_SUPERVISOR: 
 		case DELIVERY_CLUSTER_HEAD:
 		case DELIVERY_CENTRE_HEAD:		
-		case GEO_HEADS: 
+		case SALES_HEAD: 
 		case CONSULTING_USER:
 		case CONSULTING_HEAD:
 		case IOU_HEADS:
@@ -192,7 +192,7 @@ public class DestinationUserDefaultObjectsHelper {
 			userNotificationCollaborationList.add(getNotification(userId,10,2,Constants.N, notifyTypeEventMap));
 			userNotificationCollaborationList.add(getNotification(userId,10,3,Constants.N, notifyTypeEventMap));
 		    break;
-		case GEO_HEADS: 
+		case SALES_HEAD: 
 		case IOU_HEADS:
 		case STRATEGIC_INITIATIVES:
 		case BID_OFFICE:	
@@ -234,7 +234,7 @@ public class DestinationUserDefaultObjectsHelper {
 		case DELIVERY_CENTRE_HEAD:	
 		case CONSULTING_USER:
 		case CONSULTING_HEAD:
-		case GEO_HEADS: 
+		case SALES_HEAD: 
 		case IOU_HEADS:
 		case STRATEGIC_INITIATIVES:
 		case BID_OFFICE:
@@ -282,7 +282,7 @@ public class DestinationUserDefaultObjectsHelper {
 		case DELIVERY_CENTRE_HEAD:
 		case CONSULTING_USER:
 		case CONSULTING_HEAD:
-		case GEO_HEADS: 
+		case SALES_HEAD: 
 		case IOU_HEADS:
 		case STRATEGIC_INITIATIVES:
 		case BID_OFFICE:
