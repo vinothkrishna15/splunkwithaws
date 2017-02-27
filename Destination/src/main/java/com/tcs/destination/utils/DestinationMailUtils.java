@@ -257,6 +257,9 @@ public class DestinationMailUtils {
 	@Value("${weeklyReportEmailId}")
 	private String weeklyReportEmailId;
 	
+	@Value("${weeklyReportCCEmailIds}")
+	private String weeklyReportCCEmailIds;
+	
 	//Delivery Emails Subject
 	
 	@Value("${deliveryIntimatedPriorWinSubject}")
@@ -2046,6 +2049,11 @@ public class DestinationMailUtils {
 	List<String> recipientList = Lists.newArrayList();
 	recipientList = Arrays.asList(StringUtils.split(weeklyReportEmailId, ","));
 	message.setRecipients(recipientList);
+	if(StringUtils.isNotEmpty(weeklyReportCCEmailIds)) {
+		List<String> ccList = Lists.newArrayList();
+		ccList = Arrays.asList(StringUtils.split(weeklyReportCCEmailIds, ","));
+		message.setCcList(ccList);
+	}
 	logger.info("To email address : " + weeklyReportEmailId);
 	message.setSubject(subject.toString());
 	logger.info("Subject : " + subject.toString());
