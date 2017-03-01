@@ -1453,8 +1453,9 @@ public interface OpportunityRepository extends
 	@Query(value = "select count(OPP.opportunity_id) , sum(deal_value_usd_converter(OPP.digital_deal_value, OPP.deal_currency)) from opportunity_t OPP join "
 			+ "bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id "
 			+ "where OPP.sales_stage_code in (5,6,7,8,9,10,12) and BDT.bid_id = (select bid_id from bid_details_t "
-			+ "where opportunity_id = OPP.opportunity_id and actual_bid_submission_date "
-			+ "between (:startDate) and (:endDate) order by bid_id DESC limit 1) ", nativeQuery = true)
+			+ "where opportunity_id = OPP.opportunity_id "
+			+ "order by modified_datetime DESC limit 1) "
+			+ "and BDT.actual_bid_submission_date between (:startDate) and (:endDate) ", nativeQuery = true)
 	List<Object[]> getBidsSubmittedCountAndValues(@Param("startDate") Date startDate,@Param("endDate") Date endDate);
 
 	@Query(value = "select count(OPP.opportunity_id) , sum(deal_value_usd_converter(OPP.digital_deal_value, OPP.deal_currency)) from opportunity_t OPP "
@@ -1471,8 +1472,9 @@ public interface OpportunityRepository extends
 	@Query(value = "SELECT OPP.opportunity_id from opportunity_t OPP join "
 			+ "bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id "
 			+ "where OPP.sales_stage_code in (:stages) and BDT.bid_id = (select bid_id from bid_details_t "
-			+ "where opportunity_id = OPP.opportunity_id and actual_bid_submission_date "
-			+ "between (:fromDate) and (:toDate) order by bid_id DESC LIMIT 1) ", nativeQuery=true)
+			+ "where opportunity_id = OPP.opportunity_id "
+			+ "order by modified_datetime DESC LIMIT 1) and "
+			+ "BDT.actual_bid_submission_date between (:fromDate) and (:toDate)", nativeQuery=true)
 	List<String> getOppIdsByStageAndBidDate(@Param("stages") List<Integer> stages, @Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
 
 	@Query(value="SELECT opp.opportunityId FROM OpportunityT opp WHERE opp.salesStageCode in (:stages) AND opp.opportunityRequestReceiveDate BETWEEN (:fromDate) AND (:toDate)")
@@ -1513,8 +1515,9 @@ public interface OpportunityRepository extends
 			+ "join user_t USRT on USRT.user_id = OPP.opportunity_owner "
 			+ "join customer_master_t CMT on CMT.customer_id = OPP.customer_id "
 			+ "join geography_mapping_t GMT on GMT.geography= CMT.geography "
-			+ "where OPP.sales_stage_code in (:stages) AND BDT.bid_id = (select bid_id from bid_details_t where upper (bid_request_type) = upper('proactive') "
-			+ "and opportunity_id=OPP.opportunity_id order by modified_datetime DESC limit 1) "
+			+ "where OPP.sales_stage_code in (:stages) AND BDT.bid_id = (select bid_id from bid_details_t where "
+			+ "opportunity_id=OPP.opportunity_id order by modified_datetime DESC limit 1) AND "
+			+ "upper (BDT.bid_request_type) = upper('proactive') "
 			+ "AND USRT.user_group in (:userGroup) AND GMT.display_geography in (:displayGeography) "
 			+ "group By OPP.sales_stage_code order by OPP.sales_stage_code", nativeQuery = true)
 	List<Object[]> findOpportunitiesCountByProactiveType(
@@ -1535,7 +1538,7 @@ public interface OpportunityRepository extends
 			+ "AND USRT.user_group in (:userGroup) "
 			+ "AND GMT.display_geography in (:displayGeography) "
 			+ "AND BDT.bid_id = (select bid_id from bid_details_t "
-			+ "where opportunity_id = OPP.opportunity_id order by bid_id DESC LIMIT 1) "
+			+ "where opportunity_id = OPP.opportunity_id order by modified_datetime DESC LIMIT 1) "
 			+ "AND BDT.actual_bid_submission_date between (:fromDate) and (:toDate) "
 			+ "group by sales_stage_code order by sales_stage_code ", nativeQuery = true)
 	List<Object[]> findBidOpportunityMetric(@Param("userGroup") List<String> userGroup,
@@ -1561,8 +1564,9 @@ public interface OpportunityRepository extends
 				+ "join user_t USRT on USRT.user_id = OPP.opportunity_owner "
 				+ "join customer_master_t CMT on CMT.customer_id = OPP.customer_id "
 				+ "join geography_mapping_t GMT on GMT.geography= CMT.geography "
-				+ "where OPP.sales_stage_code in (:stages) AND BDT.bid_id = (select bid_id from bid_details_t where upper (bid_request_type) = upper('proactive') "
-				+ "and opportunity_id=OPP.opportunity_id order by modified_datetime DESC limit 1) "
+				+ "where OPP.sales_stage_code in (:stages) AND BDT.bid_id = (select bid_id from bid_details_t where "
+				+ "opportunity_id=OPP.opportunity_id order by modified_datetime DESC limit 1) AND "
+				+ "upper (BDT.bid_request_type) = upper('proactive') "
 				+ "AND USRT.user_group in (:userGroup) AND GMT.display_geography in (:displayGeography) "
 				+ "AND OPP.opportunity_request_receive_date between (:fromDate) and (:toDate) "
 				+ "group By OPP.sales_stage_code order by OPP.sales_stage_code", nativeQuery = true)
@@ -1643,8 +1647,10 @@ public interface OpportunityRepository extends
 			+ "deal_value_usd_converter(digital_deal_value, deal_currency)  > 1000000", nativeQuery = true)
 	List<String> getOppIdsByDealValGreaterThanOneMillion();
 
-	@Query(value="SELECT DISTINCT OPP.opportunityId from OpportunityT OPP"
-			+ " join OPP.bidDetailsTs BD where BD.bidRequestType = (:bidType)")
+	@Query(value="SELECT DISTINCT OPP.opportunity_id from opportunity_t OPP join bid_details_t BDT "
+			+ " on OPP.opportunity_id = BDT.opportunity_id where BDT.bid_id = (select bid_id from bid_details_t"
+			+ " where opportunity_id = OPP.opportunity_id order by modified_datetime desc limit 1) and"
+			+ " BDT.bid_request_type = (:bidType)", nativeQuery = true)
 	List<String> getOppIdsByBidType(@Param("bidType") String bidType);
 	
 	// Change ends

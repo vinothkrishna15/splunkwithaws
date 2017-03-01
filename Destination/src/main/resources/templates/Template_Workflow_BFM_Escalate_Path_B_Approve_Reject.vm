@@ -2,7 +2,7 @@
 	<body>
 		<p>Dear User,</p>
 		<p>
-			 The exception initiated for deal financial approval of following opportunity, is ${status} by the Geo Head. 	
+			 The exception initiated for deal financial approval of following opportunity, is ${status} by the Sales Head. 	
 		</p>
 		<p>
 		<table>

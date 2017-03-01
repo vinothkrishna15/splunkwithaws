@@ -524,7 +524,9 @@ public class DestinationMailUtils {
 				|| requestType == RequestType.PRODUCT_UPLOAD.getType() ||
 				requestType == RequestType.PRODUCT_CONTACT_UPLOAD.getType() ||
 				requestType == RequestType.RGS_UPLOAD.getType() ||
-				requestType == RequestType.CUSTOMER_ASSOCIATE_UPLOAD.getType()) { // upload
+				requestType == RequestType.CUSTOMER_ASSOCIATE_UPLOAD.getType() ||
+				requestType == RequestType.UTILISATION_UPLOAD.getType() ||
+				requestType == RequestType.UNALLOCATION_UPLOAD.getType()) { // upload
 			template = uploadTemplateLoc;
 			requestId = request.getProcessRequestId().toString();
 			uploadedFileName = request.getFileName();
