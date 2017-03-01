@@ -197,27 +197,26 @@ public class DestinationUtils {
 	}
 	
 	public static BigDecimal scaleToTwoDigits(BigDecimal val, boolean zeroIfNull) {
-		BigDecimal returnValue = null; 
-		if(val != null && val != BigDecimal.ZERO) {
-			if(val.doubleValue() < 10) {
-				
-				BigDecimal roundVal = val.setScale(0, BigDecimal.ROUND_DOWN);
-				if(roundVal.equals(BigDecimal.ZERO) || val.remainder(roundVal).doubleValue() > 0) {
-					returnValue = val.setScale(1, BigDecimal.ROUND_HALF_UP);
-				} else {
-					returnValue = val.setScale(0, BigDecimal.ROUND_HALF_UP);
-				}
+		BigDecimal returnValue = null;
+		if (val != null && val != BigDecimal.ZERO) {
+
+			BigDecimal roundVal = val.setScale(0, BigDecimal.ROUND_DOWN);
+			BigDecimal precisionValue = val.setScale(1,
+					BigDecimal.ROUND_HALF_UP);
+			if (roundVal.equals(BigDecimal.ZERO)
+					|| precisionValue.remainder(roundVal).doubleValue() > 0) {
+				returnValue = val.setScale(1, BigDecimal.ROUND_HALF_UP);
 			} else {
 				returnValue = val.setScale(0, BigDecimal.ROUND_HALF_UP);
 			}
 		}
-		
-		if(returnValue == null && zeroIfNull) {
-			 return new BigDecimal(0);
+
+		if (returnValue == null && zeroIfNull) {
+			return new BigDecimal(0);
 		}
 		return returnValue;
 	}
-	
+
 	/**
 	 * calculates the win ratio based on the number of wins and losses
 	 * @param oppWins
@@ -267,7 +266,4 @@ public class DestinationUtils {
 		return Lists.newArrayList(9,10);
 	}
 
-	
-	
-	
 }
