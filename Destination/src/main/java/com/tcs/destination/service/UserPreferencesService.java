@@ -82,7 +82,7 @@ public class UserPreferencesService {
 			if (!customerList.contains(names.toString())) {
 				response = setUserPrefsForCustomer(userId, moduleType, names);
 			} else {
-				throw new DestinationException(HttpStatus.BAD_REQUEST, "Customer already added");
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Customer already exist");
 			}
 		return response;
 	}
@@ -125,6 +125,9 @@ public class UserPreferencesService {
 			} else if (names != null
 					&& !competitorList.contains(names.toString())) {
 				response = setUserPrefsForCompetitor(userId, moduleType, names);
+			} else {
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Competitor already exist");
 			}
 		}
 
