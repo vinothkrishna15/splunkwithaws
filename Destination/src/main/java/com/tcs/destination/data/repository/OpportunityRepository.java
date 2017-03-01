@@ -1535,8 +1535,8 @@ public interface OpportunityRepository extends
 			+ "AND USRT.user_group in (:userGroup) "
 			+ "AND GMT.display_geography in (:displayGeography) "
 			+ "AND BDT.bid_id = (select bid_id from bid_details_t "
-			+ "where opportunity_id = OPP.opportunity_id order by bid_id DESC LIMIT 1) "
-			+ "AND BDT.actual_bid_submission_date between (:fromDate) and (:toDate) "
+			+ "where opportunity_id = OPP.opportunity_id  "
+			+ "AND actual_bid_submission_date between (:fromDate) and (:toDate) order by bid_id DESC LIMIT 1) "
 			+ "group by sales_stage_code order by sales_stage_code ", nativeQuery = true)
 	List<Object[]> findBidOpportunityMetric(@Param("userGroup") List<String> userGroup,
 			@Param("displayGeography") List<String> displayGeography, @Param("stages") List<Integer> stages, @Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
