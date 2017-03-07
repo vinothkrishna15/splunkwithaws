@@ -4129,7 +4129,7 @@ public class OpportunityService {
 			stages = DestinationUtils.getBidSubmittedStages();
 			oppValuesList = opportunityRepository.findBidOpportunityMetric(userGroup, displayGeography, stages, startDate, endDate);
 			
-			resultSet = fillStageDtoList(oppValuesList);
+			resultSet = fillStageDtoList(oppValuesList, stages);
 		} else if("REQUEST_RECIEVED".equals(category)) {
 			stages = DestinationUtils.getRequestRecievedStages();
 			oppValuesList = opportunityRepository.findReqOpportunityMetric(userGroup, displayGeography, stages, startDate, endDate);
@@ -4145,12 +4145,14 @@ public class OpportunityService {
 		return salesAndConsultingResult;
 	}
 
-	private List<QualifiedPipelineDTO> fillStageDtoList(List<Object[]> oppValuesList) {
+	private List<QualifiedPipelineDTO> fillStageDtoList(List<Object[]> oppValuesList, List<Integer> definedStages) {
 		List<QualifiedPipelineDTO> resultList = Lists.newArrayList();
+		List<Integer> salesStages = Lists.newArrayList();
 		if(CollectionUtils.isNotEmpty(oppValuesList)) {
 			for (Object[] objects : oppValuesList) {
 				QualifiedPipelineDTO dto = new QualifiedPipelineDTO();
 				dto.setSalesStageCode((int) objects[0]);
+				salesStages.add((int) objects[0]);
 				dto.setOpportunitiesCount((BigInteger) objects[1]);
 				dto.setDigitalDealValue(DestinationUtils.scaleToTwoDecimal((BigDecimal) objects[2], true));
 				dto.setOneMillionOpportunityCount((BigInteger) objects[3]);
@@ -4158,7 +4160,7 @@ public class OpportunityService {
 				resultList.add(dto);
 			}
 		}
-		
+		unavailableSalesStages(salesStages, resultList, definedStages);
 		return resultList;
 	}
 
