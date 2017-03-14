@@ -1491,9 +1491,16 @@ public interface OpportunityRepository extends
 			+ " WHERE user.userGroup in :userGroups")
 	List<String> getOppIdsByUserGroup(@Param("userGroups") List<String> userGroups);
 
-	@Query(value = "SELECT opp from OpportunityT opp"
-			+ " WHERE opp.opportunityName LIKE :searchTerm"
-			+ " AND opp.opportunityId in (:oppIds)")
+	@Query(value = "SELECT distinct opp from OpportunityT opp"
+			+ " LEFT JOIN opp.primaryOwnerUser owner"
+			+ " LEFT JOIN opp.opportunitySubSpLinkTs subsp"
+			+ " LEFT JOIN opp.customerMasterT cust"
+			+ " WHERE opp.opportunityId in (:oppIds)"
+			+ " AND (UPPER(opp.opportunityName) LIKE UPPER(:searchTerm)"
+			+ " OR  UPPER(opp.opportunityId) LIKE UPPER(:searchTerm)"
+			+ " OR UPPER(cust.customerName) LIKE UPPER(:searchTerm)"
+			+ " OR UPPER(owner.userName) LIKE UPPER(:searchTerm)"
+			+ " OR UPPER(subsp.subSp) LIKE UPPER(:searchTerm))")
 	Page<OpportunityT> findByOppNameAndIdsIn(@Param("searchTerm") String searchTerm, @Param("oppIds") List<String> oppIds, Pageable pageable);
 	//************ Ends - Opportunity list by criterias *************//
 	
