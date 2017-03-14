@@ -251,7 +251,7 @@ public class DestinationUtils {
 	}
 	
 	public static List<Integer> getBidSubmittedStages() {
-		return Lists.newArrayList(5,6,7,8,9,10,12);
+		return Lists.newArrayList(5,6,7,8,9,10,11,12,13);
 	}
 
 	public static List<Integer> getQualifiedStagess() {
