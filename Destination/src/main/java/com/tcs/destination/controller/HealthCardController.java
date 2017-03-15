@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tcs.destination.bean.ContentDTO;
 import com.tcs.destination.bean.HealthCardValues;
 import com.tcs.destination.bean.Status;
+import com.tcs.destination.bean.dto.ContentModifiedDTO;
 import com.tcs.destination.bean.dto.DeliveryCentreUtilizationDTO;
 import com.tcs.destination.bean.dto.DeliveryClusterDTO;
 import com.tcs.destination.exception.DestinationException;
@@ -169,13 +170,13 @@ public class HealthCardController {
 	 * @throws DestinationException
 	 */
 	@RequestMapping(value = "/values", method = RequestMethod.GET)
-	public @ResponseBody ContentDTO<HealthCardValues> getHealthCardValues(
+	public @ResponseBody ContentModifiedDTO getHealthCardValues(
 			@RequestParam(value = "fromDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
 			@RequestParam(value = "toDate", defaultValue = "") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
 			@RequestParam(value = "componentId", defaultValue = "2") int type)
 			throws DestinationException {
 		logger.info("Start of retrieving healthcard values");
-		ContentDTO<HealthCardValues> healthCardValues;
+		ContentModifiedDTO healthCardValues;
 		try {
 			healthCardValues = healthCardService.getHealthCardValues(fromDate,toDate,type);
 			logger.info("End of retrieving utilization details");

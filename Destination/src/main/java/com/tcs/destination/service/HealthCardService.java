@@ -1,5 +1,6 @@
 package com.tcs.destination.service;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -24,6 +25,7 @@ import com.tcs.destination.bean.MobileDashboardT;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UnallocationAssociate;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.bean.dto.ContentModifiedDTO;
 import com.tcs.destination.bean.dto.DeliveryCentreUtilizationDTO;
 import com.tcs.destination.bean.dto.DeliveryClusterDTO;
 import com.tcs.destination.data.repository.DeliveryCentreUnallocationRepository;
@@ -31,6 +33,7 @@ import com.tcs.destination.data.repository.DeliveryCentreUtilizationRepository;
 import com.tcs.destination.data.repository.DeliveryClusterRepository;
 import com.tcs.destination.data.repository.HealthCardOverallPercentageRepository;
 import com.tcs.destination.data.repository.MobileDashboardRepository;
+import com.tcs.destination.data.repository.QuarterlyHealthcardPercentageRepository;
 import com.tcs.destination.enums.DeliveryCentre;
 import com.tcs.destination.enums.HealthCardComponent;
 import com.tcs.destination.exception.DestinationException;
@@ -62,6 +65,9 @@ public class HealthCardService {
 
 	@Autowired
 	private DashBoardService dashBoardService;
+	
+	@Autowired
+	QuarterlyHealthcardPercentageRepository quarterlyHealthcardPercentageRepository;
 
 	public ContentDTO<DeliveryClusterDTO> getDeliveryCentreUnallocation(Date fromDate,
 			Date toDate) {
@@ -151,10 +157,10 @@ public class HealthCardService {
 		mobileDashboardRepository.save(mobileDashboardT);
 	}
 	
-	public ContentDTO<HealthCardValues> getHealthCardValues(Date fromDate, Date toDate,
+	public ContentModifiedDTO getHealthCardValues(Date fromDate, Date toDate,
 			int type) {
+		ContentModifiedDTO contentModifiedDTO = new ContentModifiedDTO();
 		List<HealthCardValues> healthCardValues = Lists.newArrayList();
-		ContentDTO<HealthCardValues> content = new ContentDTO<HealthCardValues>();
 		Date startDate = fromDate != null ? fromDate : DateUtils
 				.getFinancialYrStartDate();
 		Date endDate = toDate != null ? toDate : new Date();
@@ -165,8 +171,11 @@ public class HealthCardService {
 		for (HealthCardOverallPercentage healthCardOverallPercentage : overallPercentages) {
 			healthCardValues.add(constructHealthCardValues(healthCardOverallPercentage,type,clusterTs));
 		}
-		content.setContent(healthCardValues);
-		return content;
+		contentModifiedDTO.setContent(healthCardValues);
+		BigDecimal quarterlyPercentage = quarterlyHealthcardPercentageRepository.getQuarterlyAveragePercentage();
+		contentModifiedDTO.setQuarterlyPercentage(DestinationUtils.
+				scaleToTwoDigits(quarterlyPercentage, true));
+		return contentModifiedDTO;
 	}
 
 	private HealthCardValues constructHealthCardValues(
