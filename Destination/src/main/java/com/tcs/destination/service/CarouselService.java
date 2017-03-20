@@ -214,8 +214,9 @@ public class CarouselService {
 	private Object[] getBidsSubmittedAndRequestReceived(Date startDate,
 			Date endDate, boolean forBids) {
 		if (forBids) {
+			List<Integer> salesStages = DestinationUtils.getBidSubmittedStages();
 			List<Object[]> bidsList = opportunityRepository
-					.getBidsSubmittedCountAndValues(startDate, endDate);
+					.getBidsSubmittedCountAndValues(startDate, endDate,salesStages);
 			return bidsList.get(0);
 		} else {
 			List<Object[]> requestReceived = opportunityRepository

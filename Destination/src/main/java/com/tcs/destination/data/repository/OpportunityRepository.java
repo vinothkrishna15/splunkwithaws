@@ -1452,11 +1452,11 @@ public interface OpportunityRepository extends
 
 	@Query(value = "select count(OPP.opportunity_id) , sum(deal_value_usd_converter(OPP.digital_deal_value, OPP.deal_currency)) from opportunity_t OPP join "
 			+ "bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id "
-			+ "where OPP.sales_stage_code in (5,6,7,8,9,10,12) and BDT.bid_id = (select bid_id from bid_details_t "
+			+ "where OPP.sales_stage_code in (:stages) and BDT.bid_id = (select bid_id from bid_details_t "
 			+ "where opportunity_id = OPP.opportunity_id "
 			+ "order by modified_datetime DESC limit 1) "
 			+ "and BDT.actual_bid_submission_date between (:startDate) and (:endDate) ", nativeQuery = true)
-	List<Object[]> getBidsSubmittedCountAndValues(@Param("startDate") Date startDate,@Param("endDate") Date endDate);
+	List<Object[]> getBidsSubmittedCountAndValues(@Param("startDate") Date startDate,@Param("endDate") Date endDate, @Param("stages") List<Integer> salesStages);
 
 	@Query(value = "select count(OPP.opportunity_id) , sum(deal_value_usd_converter(OPP.digital_deal_value, OPP.deal_currency)) from opportunity_t OPP "
 			+ "where OPP.opportunity_request_receive_date between (:startDate) and (:endDate) ", nativeQuery = true)
