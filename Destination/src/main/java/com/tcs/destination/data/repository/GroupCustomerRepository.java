@@ -22,8 +22,10 @@ public interface GroupCustomerRepository extends CrudRepository<GroupCustomerT, 
 
 	@Query(value = "select GC from GroupCustomerT GC"
 			+ " where (GC.groupCustomerName in (:grpCustomerNames) or ('') in (:grpCustomerNames))"
-			+ " and upper(GC.groupCustomerName) like upper((:nameWith))")
+			+ " and upper(GC.groupCustomerName) like upper((:nameWith))"
+			+ " and GC.groupCustomerName NOT IN (:preferedCust)")
 	Page<GroupCustomerT> getGrpCustomersByNameWith(@Param("grpCustomerNames")
-			List<String> grpCustomerNames,@Param("nameWith") String nameWith, Pageable pageable);
+			List<String> grpCustomerNames,@Param("nameWith") String nameWith, @Param("preferedCust")
+			List<String> preferedCust, Pageable pageable);
 
 }

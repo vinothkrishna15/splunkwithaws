@@ -62,6 +62,7 @@ import com.tcs.destination.data.repository.IouRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
+import com.tcs.destination.data.repository.UserPreferencesRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.PrivilegeType;
 import com.tcs.destination.enums.SalesStageCode;
@@ -162,6 +163,9 @@ public class CustomerService {
 
 	@Autowired
 	private ConnectRepository connectRepository;
+
+	@Autowired
+	private UserPreferencesRepository  userPrefRepo;
 
 	@Autowired
 	private ConnectService connectService;
@@ -1891,7 +1895,11 @@ public class CustomerService {
 		PageDTO<GroupCustomerDTO> grpCustomerDto = new PageDTO<GroupCustomerDTO>();
 		
 		List<String> grpCustomerNames = customerListDTO.getGroupCustomerNames();
+		List<String> userPrefList = Lists.newArrayList();
 		if(CollectionUtils.isEmpty(grpCustomerNames)) {
+			//filter already added group customers
+			userPrefList = userPrefRepo.getCustomerList(DestinationUtils.getCurrentUserId());
+			
 			grpCustomerNames = Lists.newArrayList();
 			grpCustomerNames.add("");
 		}
@@ -1925,7 +1933,7 @@ public class CustomerService {
 					.getPrivilegedCustomers(userId);
 		}
 		Page<GroupCustomerT> grpCustomersPage = null;
-		grpCustomersPage = groupCustomerRepository.getGrpCustomersByNameWith(grpCustomerNames,nameWith,pageable);
+		grpCustomersPage = groupCustomerRepository.getGrpCustomersByNameWith(grpCustomerNames,nameWith, userPrefList, pageable);
 		if (grpCustomersPage == null) {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Customer Details not found");
