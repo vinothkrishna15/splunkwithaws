@@ -17,8 +17,7 @@ public interface CompetitorRepository extends
 		CrudRepository<CompetitorMappingT, String> {
 
 	 List<CompetitorMappingT> findByActiveTrueAndCompetitorNameIgnoreCaseLike(String name);
-	 
-	 Page<CompetitorMappingT> findByCompetitorNameIgnoreCaseLike(String string, Pageable pageable);
+	 Page<CompetitorMappingT> findByCompetitorNameIgnoreCaseLikeAndCompetitorNameNotIn(String string,List<String> userPrefs, Pageable pageable);
 		
 	 @Query(value="select competitor_name from competitor_mapping_t", nativeQuery=true)
 	 List<String> getCompetitorName();

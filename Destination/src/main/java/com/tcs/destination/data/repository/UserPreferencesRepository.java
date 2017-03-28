@@ -19,10 +19,10 @@ import com.tcs.destination.bean.UserPreferencesT;
 public interface UserPreferencesRepository extends
 		CrudRepository<UserPreferencesT, Serializable> {
 
-	@Query(value = "select distinct upt.competitorName from UserPreferencesT upt where upt.userId=(:userId) and moduleType='COMPETITOR'")
+	@Query(value = "select distinct upt.competitorName from UserPreferencesT upt where upt.userId=(:userId) and upper(moduleType)= 'COMPETITOR'")
 	List<String> getCompetitorList(@Param("userId") String userId);
 
-	@Query(value = "select group_customer_name from user_preferences_t where user_id=?1 AND module_type='CUSTOMER'", nativeQuery = true)
+	@Query(value = "select group_customer_name from user_preferences_t where user_id=?1 AND upper(module_type)= 'CUSTOMER'", nativeQuery = true)
 	List<String> getCustomerList(String userId);
 
 	UserPreferencesT findByUserIdAndCompetitorName(String userId,

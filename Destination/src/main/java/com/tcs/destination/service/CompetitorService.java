@@ -68,8 +68,12 @@ public class CompetitorService {
 		logger.debug("Begin:Inside findListByNameContaining() of CompetitorService");
 		
 		Pageable pageable = new PageRequest(page, count); 
+		List<String> userPrefList = Lists.newArrayList();
+			//filter already added competitors
+			userPrefList = userPrefRepo.getCompetitorList(DestinationUtils.getCurrentUserId());
+			
 		Page<CompetitorMappingT> compList = compRepository
-				.findByCompetitorNameIgnoreCaseLike("%" + chars + "%", pageable);
+				.findByCompetitorNameIgnoreCaseLikeAndCompetitorNameNotIn("%" + chars + "%",userPrefList, pageable);
 		if (compList.getContent().isEmpty())
 		{
 			logger.error("NOT_FOUND: No such competitor");
