@@ -1903,6 +1903,11 @@ public class CustomerService {
 			grpCustomerNames = Lists.newArrayList();
 			grpCustomerNames.add("");
 		}
+		if(CollectionUtils.isEmpty(userPrefList)) {
+			userPrefList = Lists.newArrayList();
+			userPrefList.add("");
+		}
+		
 		int page = customerListDTO.getPage();
 		int count = 15;
 		if(customerListDTO.getCount() == -1) {
