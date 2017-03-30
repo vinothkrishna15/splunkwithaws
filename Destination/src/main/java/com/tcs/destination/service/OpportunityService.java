@@ -4279,6 +4279,7 @@ public class OpportunityService {
 		
 		List<String> oppIds = null;
 		//apply user grroup filter
+		
 		if(StringUtils.equals(oppType, Constants.SALES)) {
 			List<String> userGroups = DestinationUtils.getSalesUserGroups();
 			oppIds = opportunityRepository.getOppIdsByUserGroup(userGroups);
@@ -4289,6 +4290,8 @@ public class OpportunityService {
 			List<String> userGroups = DestinationUtils.getDeliveryUserGroups();
 			oppIds = opportunityRepository.getOppIdsByUserGroup(userGroups);
 		}
+		
+		
 		
 		if(!StringUtils.equals(geo, "ALL")) {
 			List<String> oppIdsByGeo = opportunityRepository.getOppIdsByGeo(geo);
@@ -4307,23 +4310,26 @@ public class OpportunityService {
 		for (MoneyBucket bucket : MoneyBucket.values()) {
 			Integer minVal = bucket.getMinValue();
 			Integer maxVal = bucket.getMaxValue();
-		
-			List<Object[]> winlossDataObj = opportunityRepository.getWinLossValue(startDate, endDate, stages, minVal, maxVal, oppIds);
-			Object[] winlossData = winlossDataObj.get(0);
+			if(oppIds.get(0).equals("") && !(StringUtils.equals(oppType, "ALL") || StringUtils.equals(geo, "ALL"))) {
+				dtoList.add(getMoneyBucket(bucket, BigInteger.ZERO,BigInteger.ZERO));
+			} else {
+				List<Object[]> winlossDataObj = opportunityRepository.getWinLossValue(startDate, endDate, stages, minVal, maxVal, oppIds);
+				Object[] winlossData = winlossDataObj.get(0);
+				
+				BigInteger count = (BigInteger) winlossData[0];
+				BigDecimal value = winlossData[1] != null ? ((BigDecimal) winlossData[1]) : BigDecimal.ZERO;
+				
+				MoneyBucketDTO dto = new MoneyBucketDTO();
+				dto.setCount(count);
+				dto.setValue(DestinationUtils.scaleToTwoDecimal(value, true));
+				dto.setBucketLabel(bucket.getLabel());
+				dto.setMinValue(bucket.getMinValue());
+				dto.setMaxValue(bucket.getMaxValue());
+				dto.setStartDate(startDate);
+				dto.setEndDate(endDate);
+				dtoList.add(dto);
+			}
 			
-			BigInteger count = (BigInteger) winlossData[0];
-			BigDecimal value = winlossData[1] != null ? ((BigDecimal) winlossData[1]) : BigDecimal.ZERO;
-			
-			MoneyBucketDTO dto = new MoneyBucketDTO();
-			dto.setCount(count);
-			dto.setValue(DestinationUtils.scaleToTwoDecimal(value, true));
-			dto.setBucketLabel(bucket.getLabel());
-			dto.setMinValue(bucket.getMinValue());
-			dto.setMaxValue(bucket.getMaxValue());
-			dto.setStartDate(startDate);
-			dto.setEndDate(endDate);
-
-			dtoList.add(dto);
 		}
 		return new ContentDTO<MoneyBucketDTO>(dtoList) ;
 	}

@@ -67,6 +67,7 @@ import com.tcs.destination.data.repository.HealthCardOverallPercentageRepository
 import com.tcs.destination.data.repository.MobileDashboardComponentRepository;
 import com.tcs.destination.data.repository.MobileDashboardRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
+import com.tcs.destination.data.repository.QuarterlyHealthcardPercentageRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.HealthCardComponent;
 import com.tcs.destination.enums.UserGroup;
@@ -119,6 +120,9 @@ public class DashBoardService {
 	
 	@Autowired
 	HealthCardOverallPercentageRepository healthCardOverallPercentageRepository;
+	
+	@Autowired
+	QuarterlyHealthcardPercentageRepository quarterlyHealthcardPercentageRepository;
 
 	@Autowired
 	private MobileDashboardComponentRepository mobileDashboardComponentRepo;
@@ -1506,6 +1510,11 @@ public class DashBoardService {
 		List<MobileDashboardT> mobileDashboardValues = mobileDashboardRepository
 				.findByUserIdAndDashboardCategoryOrderByOrderNumberAsc(userId,
 						dashboardCategory);
+		if(CollectionUtils.isNotEmpty(mobileDashboardValues)) {
+			BigDecimal quarterlyPercentage = quarterlyHealthcardPercentageRepository.getQuarterlyAveragePercentage();
+			mobileDashboardValues.get(0).setQuarterlyPercentage(DestinationUtils.
+					scaleToTwoDigits(quarterlyPercentage, true));
+		}
 		removeCyclicForMobileDashboard(mobileDashboardValues);
 		content.setContent(mobileDashboardValues);
 		logger.info("End getMobileDashboardValues() of DashBoardService");

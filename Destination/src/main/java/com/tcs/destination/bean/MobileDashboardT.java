@@ -46,6 +46,9 @@ public class MobileDashboardT implements Serializable {
 
 	@Column(name="user_id")
 	private String userId;
+	
+	@Transient
+	private BigDecimal quarterlyPercentage;
 
 	//bi-directional many-to-one association to MobileDashboardCategory
 	@ManyToOne
@@ -128,5 +131,12 @@ public class MobileDashboardT implements Serializable {
 	public void setValue(BigDecimal value) {
 		this.value = value;
 	}
-	
+
+	public BigDecimal getQuarterlyPercentage() {
+		return quarterlyPercentage;
+	}
+
+	public void setQuarterlyPercentage(BigDecimal quarterlyPercentage) {
+		this.quarterlyPercentage = quarterlyPercentage;
+	}
 }
