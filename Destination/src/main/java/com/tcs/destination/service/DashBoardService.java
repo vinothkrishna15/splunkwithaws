@@ -1510,18 +1510,13 @@ public class DashBoardService {
 		List<MobileDashboardT> mobileDashboardValues = mobileDashboardRepository
 				.findByUserIdAndDashboardCategoryOrderByOrderNumberAsc(userId,
 						dashboardCategory);
-		if(CollectionUtils.isNotEmpty(mobileDashboardValues)) {
-			BigDecimal quarterlyPercentage = quarterlyHealthcardPercentageRepository.getQuarterlyAveragePercentage();
-			mobileDashboardValues.get(0).setQuarterlyPercentage(DestinationUtils.
-					scaleToTwoDigits(quarterlyPercentage, true));
-		}
-		removeCyclicForMobileDashboard(mobileDashboardValues);
+		removeCyclicAndSetPercentageForMobileDashboard(mobileDashboardValues);
 		content.setContent(mobileDashboardValues);
 		logger.info("End getMobileDashboardValues() of DashBoardService");
 		return content;
 	}
 
-	private void removeCyclicForMobileDashboard(
+	private void removeCyclicAndSetPercentageForMobileDashboard(
 			List<MobileDashboardT> mobiledashboardvalues) {
 		Date startDate = DateUtils
 				.getFinancialYrStartDate();
@@ -1544,6 +1539,11 @@ public class DashBoardService {
 					mobileDashboardT.setValue(BigDecimal.ZERO);
 				}
 			} else {
+				if(HealthCardComponent.ATTRITION.getCategoryId()==mobileDashboardT.getComponentId()) {
+					BigDecimal quarterlyPercentage = quarterlyHealthcardPercentageRepository.getQuarterlyAveragePercentage();
+					mobileDashboardT.setQuarterlyPercentage(DestinationUtils.
+							scaleToTwoDigits(quarterlyPercentage, true));
+				}
 				BigDecimal overallPercentage = healthCardOverallPercentageRepository.getOverallPercentage(mobileDashboardT.getComponentId());
 				mobileDashboardT.setValue(DestinationUtils.scaleToTwoDigits(overallPercentage,true));
 			}
