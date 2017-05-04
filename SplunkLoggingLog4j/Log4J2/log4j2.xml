@@ -1,0 +1,20 @@
+<Configuration status="info" name="HelloWorld" packages="com.tcs.lambda.example">
+    <!-- Define an appender that writes to a TCP socket. We use Log4J's SocketAppender, 
+        which is documented at https://logging.apache.org/log4j/2.x/manual/appenders.html#SocketAppender. 
+        You can find the documentation on how to open TCP inputs on Splunk at http://docs.splunk.com/Documentation/Splunk/latest/Data/Monitornetworkports. 
+        Note that TCP inputs are *not* the same as Splunk's management port. -->
+    <Appenders>
+        <Http name="http" url="http://localhost:8088/" token="146AF51B-F6FD-43D3-B592-1B42FC707797" disableCertificateValidation="true" batch_size_count="1" >
+            <PatternLayout pattern="%m" />	
+        </Http>
+    </Appenders>
+    <!-- Define a logger named 'splunk.logger' that writes to the socket appender 
+        we defined above. -->
+    <Loggers>
+        <Root level="INFO">
+        </Root>
+        <Logger name="splunk.logger" level="info">
+            <AppenderRef ref="http" />
+        </Logger>
+    </Loggers>
+</Configuration>
